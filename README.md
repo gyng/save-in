@@ -18,8 +18,8 @@ the default download location.
   locations (`.webloc`), Linux desktop shortcuts (`.desktop`), or HTML
   redirects (`.html`).
 - Browse sortable, filterable download history, manage active or completed
-  downloads, copy saved paths or source URLs, and export all stored fields as
-  JSON or formula-safe CSV/TSV.
+  downloads, replay a row in the Route debugger, copy saved paths or source
+  URLs, and export all stored fields as JSON or formula-safe CSV/TSV.
 - Select and batch-save filtered Page Sources, or draft a guarded automatic
   rule directly from a discovered source.
 - Keep quick access to recent destinations, make individual destinations open
@@ -33,6 +33,9 @@ the default download location.
   hostnames, page or source root domains, and the browser-resolved
   `finalfilename:` in routing rules. Use `:menupath:` in a destination to
   include the folder chosen from the Save In menu.
+- Route interactive link saves with the clicked link's explicit
+  `:linktitle:` or `:linkdownload:` metadata without changing existing
+  `:linktext:` rules.
 - Inspect MV3 background health, lifecycle events, configuration issue counts,
   and recent session failures from the collapsed Diagnostics panel in Advanced.
 

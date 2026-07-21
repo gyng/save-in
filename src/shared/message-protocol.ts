@@ -38,6 +38,8 @@ export type WireDownloadInfo = {
   frameUrl?: string | undefined;
   selectionText?: string | undefined;
   linkText?: string | undefined;
+  linkTitle?: string | undefined;
+  linkDownload?: string | undefined;
   mediaType?: string | undefined;
   sourceKind?: PageSourceKind | undefined;
   mime?: string | undefined;
@@ -86,6 +88,8 @@ export const WIRE_INFO_STRING_FIELDS = [
   "frameUrl",
   "selectionText",
   "linkText",
+  "linkTitle",
+  "linkDownload",
   "mediaType",
   "mime",
   "filename",
@@ -290,6 +294,8 @@ export type DownloadRequestBody = {
         | "pageUrl"
         | "selectionText"
         | "linkText"
+        | "linkTitle"
+        | "linkDownload"
         | "menuIndex"
         | "comment"
         | "modifiers"
@@ -464,9 +470,16 @@ const isDownloadInfo = (value: unknown): boolean => {
     return false;
   }
   return (
-    ["pageUrl", "srcUrl", "selectionText", "linkText", "mime", "mediaType"].every((key) =>
-      hasOptionalString(value, key),
-    ) &&
+    [
+      "pageUrl",
+      "srcUrl",
+      "selectionText",
+      "linkText",
+      "linkTitle",
+      "linkDownload",
+      "mime",
+      "mediaType",
+    ].every((key) => hasOptionalString(value, key)) &&
     (typeof value.sourceKind === "undefined" || isPageSourceKind(value.sourceKind)) &&
     (typeof value.gesture === "undefined" || isClickGesture(value.gesture)) &&
     (typeof value.matchedCssSelectorsByOrigin === "undefined" ||

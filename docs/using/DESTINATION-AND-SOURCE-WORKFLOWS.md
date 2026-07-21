@@ -114,6 +114,17 @@ actions:
   Downloads folder, not an absolute operating-system path.
 - **Copy source URL** copies the original media, link, or page URL rather than a
   temporary blob or data URL used to build a shortcut.
+- **Debug this save** loads the routing inputs recorded with that row into the
+  Route debugger and runs them against the rules currently in the editor. The
+  result is a replay, so it can differ from the original destination after a
+  rule change. Older rows may have fewer recorded inputs; missing fields remain
+  visibly blank instead of being guessed.
+
+Interactive link saves can route on page-supplied anchor metadata with
+`:linktitle:` / `linktitle:` and `:linkdownload:` / `linkdownload:`. These name
+the link's HTML `title` and `download` attributes. They are separate from
+`:linktext:`, whose established browser-provided behavior remains unchanged.
+The attributes are not available to automatic Page Sources saves.
 
 Private activity is excluded from Save In History by default. Enabling
 **Remember private browsing activity** records it with a visible private marker.

@@ -17,6 +17,8 @@ beforeEach(() => {
     <input id="route-debugger-referrer-url">
     <input id="route-debugger-frame-url" value="https://frame.example/embed">
     <input id="route-debugger-link-text" value="Download report">
+    <input id="route-debugger-link-title" value="Full-size report">
+    <input id="route-debugger-link-download" value="quarterly-report.pdf">
     <input id="route-debugger-selection-text" value="Selected copy">
     <select id="route-debugger-media-type"><option value="image" selected>Image</option></select>
     <select id="route-debugger-source-kind"><option value="image" selected>Image</option></select>
@@ -42,6 +44,8 @@ test.each([
   ["menuindex", "documents"],
   ["comment", "work files"],
   ["linktext", "Download report"],
+  ["linktitle", "Full-size report"],
+  ["linkdownload", "quarterly-report.pdf"],
   ["selectiontext", "Selected copy"],
   ["referrerurl", "https://news.example.com/reports"],
   ["referrerdomain", "news.example.com"],

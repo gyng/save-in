@@ -37,6 +37,13 @@ import { addLogEntry } from "./log.ts";
 import { runBackgroundTask } from "./background-event-task.ts";
 import { resolveClickTarget, type ClickInfo } from "./menu-target.ts";
 import { rebuildMenus } from "./menu-rebuild.ts";
+import {
+  CONTEXT_LINK_METADATA_REQUEST,
+  MAX_CONTEXT_LINK_URL_LENGTH,
+  parseContextLinkMetadata,
+  type ContextLinkMetadata,
+} from "../shared/context-link-metadata.ts";
+import { isBrowserTabId } from "../shared/message-protocol.ts";
 
 export { resolveClickTarget } from "./menu-target.ts";
 
@@ -50,6 +57,64 @@ let lastUsedMenuUpdateQueue: Promise<unknown> = Promise.resolve();
 let privateLastUsedMutationQueue: Promise<unknown> = Promise.resolve();
 type PrivateMenuInvocation = { windowId: number | undefined; invalidated: boolean };
 const activePrivateMenuInvocations = new Set<PrivateMenuInvocation>();
+const LINK_METADATA_TIMEOUT_MS = 500;
+
+const usesLinkMetadataText = (source: string): boolean => {
+  const normalized = source.toLowerCase();
+  return normalized.includes("linktitle") || normalized.includes("linkdownload");
+};
+
+const usesContextLinkMetadata = (): boolean => {
+  if (usesLinkMetadataText(options.paths)) return true;
+  const rules = options.filenamePatterns;
+  if (!Array.isArray(rules)) return false;
+  return rules.some((rule) =>
+    rule.some(
+      (clause) =>
+        clause.name === "linktitle" ||
+        clause.name === "linkdownload" ||
+        (typeof clause.value === "string" && usesLinkMetadataText(clause.value)),
+    ),
+  );
+};
+
+const readContextLinkMetadata = async (
+  info: ContextMenuClickInfo,
+  tab: CurrentTab | null | undefined,
+): Promise<ContextLinkMetadata | null> => {
+  if (
+    !usesContextLinkMetadata() ||
+    !isBrowserTabId(tab?.id) ||
+    typeof info.linkUrl !== "string" ||
+    info.linkUrl.length > MAX_CONTEXT_LINK_URL_LENGTH
+  ) {
+    return null;
+  }
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const messageOptions =
+      typeof info.frameId === "number" && Number.isSafeInteger(info.frameId) && info.frameId >= 0
+        ? { frameId: info.frameId }
+        : undefined;
+    const response = await Promise.race([
+      webExtensionApi.tabs.sendMessage(
+        tab.id,
+        { type: CONTEXT_LINK_METADATA_REQUEST, body: { linkUrl: info.linkUrl } },
+        messageOptions,
+      ),
+      new Promise<null>((resolve) => {
+        timeout = setTimeout(() => resolve(null), LINK_METADATA_TIMEOUT_MS);
+      }),
+    ]);
+    return parseContextLinkMetadata(response, info.linkUrl);
+  } catch {
+    // Restricted pages, stale content scripts, and navigation races simply
+    // leave the optional link metadata blank.
+    return null;
+  } finally {
+    if (timeout !== undefined) clearTimeout(timeout);
+  }
+};
 
 const getContextMenuListenerRegistrar = (
   eventName: "onShown" | "onHidden",
@@ -207,6 +272,7 @@ const handleContextMenuClickInternal = async (
     }
 
     const downloadType = target.downloadType;
+    const contextLinkMetadata = await readContextLinkMetadata(info, clickTab);
     // A text selection is saved as an object URL of its text (the pure
     // decision only reports the text)
     let url = target.selectionText != null ? makeObjectUrl(target.selectionText) : target.url;
@@ -307,6 +373,8 @@ const handleContextMenuClickInternal = async (
       currentTab: clickTab,
       frameUrl: info.frameUrl,
       linkText: typeof linkTextValue === "string" ? linkTextValue : undefined,
+      linkTitle: contextLinkMetadata?.title,
+      linkDownload: contextLinkMetadata?.download,
       mediaType: info.mediaType,
       now: new Date(),
       pageUrl: info.pageUrl,

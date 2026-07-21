@@ -459,6 +459,8 @@ export const handleDownloadMessage = (
       selectedUrl: url,
       webhookEligible: sender.id === webExtensionApi.runtime.id,
       linkText: info.linkText,
+      linkTitle: info.linkTitle,
+      linkDownload: info.linkDownload,
       sourceUrl: info.srcUrl,
       menuIndex: info.menuIndex,
       comment: info.comment,

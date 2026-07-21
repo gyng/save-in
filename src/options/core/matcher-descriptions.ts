@@ -35,6 +35,10 @@ export const matcherTestValue = (matcher: string, root: ParentNode = document): 
       return testFieldValue(root, "route-debugger-menu-path");
     case "linktext":
       return testFieldValue(root, "route-debugger-link-text");
+    case "linktitle":
+      return testFieldValue(root, "route-debugger-link-title");
+    case "linkdownload":
+      return testFieldValue(root, "route-debugger-link-download");
     case "selectiontext":
       return testFieldValue(root, "route-debugger-selection-text");
     case "referrerurl":

@@ -1242,6 +1242,47 @@ describe("content.js initialisation", () => {
     expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
   });
 
+  test("returns metadata only for the most recently context-clicked link", async () => {
+    await importContentWithOptions({ contentClickToSave: false });
+    document.body.innerHTML =
+      '<a href="/full.jpg" title="Full size" download="original.jpg"><span>Photo</span></a>';
+    document.querySelector("span")?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true }));
+    const runtimeListener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock
+      .calls[0]?.[0];
+    const respond = vi.fn();
+
+    runtimeListener?.(
+      {
+        type: "SAVE_IN_CONTEXT_LINK_METADATA",
+        body: { linkUrl: "http://localhost/full.jpg" },
+      },
+      {},
+      respond,
+    );
+    expect(respond).toHaveBeenLastCalledWith({
+      href: "http://localhost/full.jpg",
+      title: "Full size",
+      download: "original.jpg",
+    });
+
+    runtimeListener?.(
+      { type: "SAVE_IN_CONTEXT_LINK_METADATA", body: { linkUrl: "https://stale.test/" } },
+      {},
+      respond,
+    );
+    expect(respond).toHaveBeenLastCalledWith(null);
+    document.body.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true }));
+    runtimeListener?.(
+      {
+        type: "SAVE_IN_CONTEXT_LINK_METADATA",
+        body: { linkUrl: "http://localhost/full.jpg" },
+      },
+      {},
+      respond,
+    );
+    expect(respond).toHaveBeenLastCalledWith(null);
+  });
+
   test("merges a late initial read with newer pushed settings", async () => {
     vi.resetModules();
     const addEventListener = vi.spyOn(window, "addEventListener");
@@ -1666,6 +1707,34 @@ describe("setupClickToSave", () => {
       body: {
         url: "http://localhost/original-page",
         info: { sourceKind: "link" },
+      },
+    });
+    remove();
+  });
+
+  test("click-to-save carries link title and download attributes", () => {
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveCombo: "Ctrl",
+        contentClickToSaveButton: "BACK_CLICK",
+        links: true,
+        preferLinks: true,
+      },
+      acceptTestInput,
+    );
+    document.body.innerHTML =
+      '<a href="/original.jpg" title="Full size" download="original.jpg"><img id="wrapped" src="http://x.test/preview.png"></a>';
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(document.getElementById("wrapped"), 8);
+
+    expect(downloadsSent().at(-1)?.[0]).toMatchObject({
+      body: {
+        url: "http://localhost/original.jpg",
+        info: {
+          sourceKind: "link",
+          linkTitle: "Full size",
+          linkDownload: "original.jpg",
+        },
       },
     });
     remove();

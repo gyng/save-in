@@ -196,11 +196,13 @@ const firesOutsideAutomaticDiscovery = (clauses: readonly ReachabilityClause[]):
 };
 
 // Variables interactive saves populate but the automatic candidate info never
-// carries (automation/automatic-routing.ts candidateInfo): no menu, link
-// text, or selection exists during a page scan.
+// carries (automation/automatic-routing.ts candidateInfo): no menu, clicked
+// link metadata, or selection exists during a page scan.
 export const AUTOMATIC_EMPTY_VARIABLES = [
   SPECIAL_DIRS.MENU_PATH,
   SPECIAL_DIRS.LINK_TEXT,
+  SPECIAL_DIRS.LINK_TITLE,
+  SPECIAL_DIRS.LINK_DOWNLOAD,
   SPECIAL_DIRS.SELECTION_TEXT,
 ] as const;
 

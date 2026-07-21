@@ -15,6 +15,8 @@ describe("variables", () => {
     pageUrl: "http://www.example.com/foobar/",
     sourceUrl: "http://srcurl.com",
     linkText: "linkfoobar",
+    linkTitle: "Full-size image",
+    linkDownload: "original-photo.jpg",
     selectionText: "selectionfoobar",
     currentTab: { title: "foobartitle" },
     filename: "lol.jpeg",
@@ -162,6 +164,12 @@ describe("variables", () => {
       const input = new Path.Path(":linktext:");
       const output = (await Variable.applyVariables(input, info)).finalize();
       expect(output).toBe("linkfoobar");
+    });
+
+    test("interpolates explicit link attributes without changing :linktext:", async () => {
+      const input = new Path.Path(":linktext:/:linktitle:/:linkdownload:");
+      const output = (await Variable.applyVariables(input, info)).finalize();
+      expect(output).toBe("linkfoobar/Full-size image/original-photo.jpg");
     });
 
     test("interpolates :pagetitle:", async () => {

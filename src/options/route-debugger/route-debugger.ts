@@ -20,6 +20,7 @@ import {
   readReachabilityControls,
   subscribeReachabilityControls,
 } from "../core/reachability-controls.ts";
+import { HISTORY_DEBUG_EVENT, historyDebugRequest } from "../core/history-debug.ts";
 
 type MessageSubstitutions = string | number | Array<string | number>;
 
@@ -27,6 +28,7 @@ const RUNNING_MESSAGE_DELAY_MS = 150;
 
 const noop = (): void => {};
 let refreshLatestDownloadFromEvent = noop;
+let removeHistoryDebugListener = noop;
 
 export const refreshRouteDebuggerLatestDownload = (): void => {
   refreshLatestDownloadFromEvent();
@@ -51,12 +53,19 @@ const fieldsFromInfo = (info: WireDownloadInfo): RouteDebuggerFields => ({
   sourceUrl: info.sourceUrl || info.url || "",
   pageUrl: info.pageUrl || "",
   mime: info.mime || "",
-  context: info.context || "",
+  context:
+    info.context === "AUTO"
+      ? info.context
+      : typeof info.context === "string"
+        ? info.context.toLowerCase()
+        : "",
   gesture: info.gesture || "",
   pageTitle: info.currentTab?.title || "",
   referrerUrl: info.referrerUrl || "",
   frameUrl: info.frameUrl || "",
   linkText: info.linkText || "",
+  linkTitle: info.linkTitle || "",
+  linkDownload: info.linkDownload || "",
   selectionText: info.selectionText || "",
   mediaType: info.mediaType || "",
   sourceKind: info.sourceKind || "",
@@ -78,6 +87,8 @@ const SAMPLE_DOWNLOAD: RouteDebuggerFields = {
   referrerUrl: "",
   frameUrl: "",
   linkText: "",
+  linkTitle: "",
+  linkDownload: "",
   selectionText: "",
   mediaType: "",
   sourceKind: "",
@@ -122,6 +133,10 @@ const matcherSourceLabel = (source: string): string => {
       return localize("routeDebuggerPageTitle", "Page title");
     case "linkText":
       return localize("routeDebuggerLinkText", "Link text");
+    case "linkTitle":
+      return localize("routeDebuggerLinkTitle", "Link title");
+    case "linkDownload":
+      return localize("routeDebuggerLinkDownload", "Link download name");
     case "selectionText":
       return localize("routeDebuggerSelectionText", "Selected text");
     case "mediaType":
@@ -156,6 +171,8 @@ export const setupRouteDebugger = (): void => {
   const referrerUrl = element<HTMLInputElement>("#route-debugger-referrer-url");
   const frameUrl = element<HTMLInputElement>("#route-debugger-frame-url");
   const linkText = element<HTMLInputElement>("#route-debugger-link-text");
+  const linkTitle = element<HTMLInputElement>("#route-debugger-link-title");
+  const linkDownload = element<HTMLInputElement>("#route-debugger-link-download");
   const selectionText = element<HTMLInputElement>("#route-debugger-selection-text");
   const mediaType = element<HTMLSelectElement>("#route-debugger-media-type");
   const sourceKind = element<HTMLSelectElement>("#route-debugger-source-kind");
@@ -182,6 +199,8 @@ export const setupRouteDebugger = (): void => {
     !referrerUrl ||
     !frameUrl ||
     !linkText ||
+    !linkTitle ||
+    !linkDownload ||
     !selectionText ||
     !mediaType ||
     !sourceKind ||
@@ -205,6 +224,8 @@ export const setupRouteDebugger = (): void => {
     referrerUrl,
     frameUrl,
     linkText,
+    linkTitle,
+    linkDownload,
     selectionText,
     mediaType,
     sourceKind,
@@ -225,6 +246,7 @@ export const setupRouteDebugger = (): void => {
   // now.
   let lastTrace: RouteDebuggerTrace | null = null;
   let lastRunFields: RouteDebuggerFields | null = null;
+  let replayingHistory = false;
 
   const readFields = (): RouteDebuggerFields => ({
     filename: filename.value.trim(),
@@ -237,6 +259,8 @@ export const setupRouteDebugger = (): void => {
     referrerUrl: referrerUrl.value.trim(),
     frameUrl: frameUrl.value.trim(),
     linkText: linkText.value.trim(),
+    linkTitle: linkTitle.value.trim(),
+    linkDownload: linkDownload.value.trim(),
     selectionText: selectionText.value.trim(),
     mediaType: mediaType.value,
     sourceKind: isPageSourceKind(sourceKind.value) ? sourceKind.value : "",
@@ -260,6 +284,8 @@ export const setupRouteDebugger = (): void => {
     referrerUrl.value = fields.referrerUrl || "";
     frameUrl.value = fields.frameUrl || "";
     linkText.value = fields.linkText || "";
+    linkTitle.value = fields.linkTitle || "";
+    linkDownload.value = fields.linkDownload || "";
     selectionText.value = fields.selectionText || "";
     const nextMediaType = fields.mediaType || "";
     mediaType.value = [...mediaType.options].some((option) => option.value === nextMediaType)
@@ -721,6 +747,17 @@ export const setupRouteDebugger = (): void => {
     lastRunFields = fields;
     setState(trace.selectedRule === null ? "no-match" : "matched");
     const resultFragment = document.createDocumentFragment();
+    if (replayingHistory) {
+      resultFragment.append(
+        buildReachabilityNote(
+          "info",
+          localize(
+            "routeDebuggerHistoryReplay",
+            "Replaying recorded History fields against your current routing rules.",
+          ),
+        ),
+      );
+    }
     resultFragment.append(buildMatchSummary(trace));
     resultFragment.append(...buildDiscoveryNotes(fields));
     const rules = document.createElement("div");
@@ -827,6 +864,7 @@ export const setupRouteDebugger = (): void => {
     hasRun = false;
     lastTrace = null;
     lastRunFields = null;
+    replayingHistory = false;
     runButton.disabled = false;
     delete result.dataset.busy;
     result.removeAttribute("aria-busy");
@@ -842,6 +880,8 @@ export const setupRouteDebugger = (): void => {
       referrerUrl: "",
       frameUrl: "",
       linkText: "",
+      linkTitle: "",
+      linkDownload: "",
       selectionText: "",
       mediaType: "",
       sourceKind: "",
@@ -874,10 +914,12 @@ export const setupRouteDebugger = (): void => {
       );
       return;
     }
+    replayingHistory = false;
     writeFields(fieldsFromInfo(lastDownloadInfo));
     void run();
   });
   useSampleButton.addEventListener("click", () => {
+    replayingHistory = false;
     writeFields(SAMPLE_DOWNLOAD);
     void run();
   });
@@ -897,6 +939,23 @@ export const setupRouteDebugger = (): void => {
   };
 
   refreshLatestDownloadFromEvent = () => refreshLatestDownload(false);
+
+  removeHistoryDebugListener();
+  const handleHistoryDebug = (event: Event): void => {
+    if (!(event instanceof CustomEvent)) return;
+    const request = historyDebugRequest(event.detail);
+    if (!request) return;
+    latestDownloadGeneration += 1;
+    replayingHistory = true;
+    writeFields(fieldsFromInfo(request.state.info));
+    document.dispatchEvent(
+      new CustomEvent("save-in:navigate-option", { detail: { target: runButton } }),
+    );
+    void run();
+  };
+  document.addEventListener(HISTORY_DEBUG_EVENT, handleHistoryDebug);
+  removeHistoryDebugListener = () =>
+    document.removeEventListener(HISTORY_DEBUG_EVENT, handleHistoryDebug);
 
   clearResult();
   useLastButton.disabled = true;

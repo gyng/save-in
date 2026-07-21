@@ -13,6 +13,7 @@ import {
   HISTORY_COLUMNS,
   localizeHistoryColumns,
   historyRow,
+  historyDebuggerState,
   historyStatus,
   historyType,
   paginateHistory,
@@ -70,6 +71,83 @@ test("history timestamps preserve negative timezone offsets", () => {
   const timezone = vi.spyOn(Date.prototype, "getTimezoneOffset").mockReturnValue(90);
   expect(formatHistoryTime("2024-01-01T00:00:00Z").endsWith("-01:30")).toBe(true);
   timezone.mockRestore();
+});
+
+test("reconstructs a compact route-debugger input from current and legacy History fields", () => {
+  expect(
+    historyDebuggerState({
+      timestamp: "2024-01-01T00:00:00Z",
+      initiatedAt: "2024-01-02T03:04:05Z",
+      finalFullPath: "saved/fallback.jpg",
+      url: "https://download.test/final.jpg",
+      info: {
+        sourceUrl: "https://cdn.test/original.jpg",
+        pageUrl: "https://page.test/gallery",
+        context: "LINK",
+      },
+      private: true,
+      variables: {
+        initialfilename: "original.jpg",
+        pagetitle: "Gallery",
+        frameurl: "https://page.test/frame",
+        referrerurl: "https://page.test/previous",
+        linktext: "Original image",
+        linktitle: "View original",
+        linkdownload: "original.jpg",
+        selection: "legacy selection",
+        mediatype: "image",
+        sourcekind: "image",
+        mime: "image/jpeg",
+        gesture: "double-left-click",
+        menuindex: "2",
+        comment: "Pictures",
+        counter: "7",
+        sha256: "abc123",
+      },
+    }),
+  ).toEqual({
+    info: {
+      filename: "original.jpg",
+      sourceUrl: "https://cdn.test/original.jpg",
+      pageUrl: "https://page.test/gallery",
+      context: "LINK",
+      frameUrl: "https://page.test/frame",
+      referrerUrl: "https://page.test/previous",
+      linkText: "Original image",
+      linkTitle: "View original",
+      linkDownload: "original.jpg",
+      selectionText: "legacy selection",
+      mediaType: "image",
+      mime: "image/jpeg",
+      menuIndex: "2",
+      comment: "Pictures",
+      sha256: "abc123",
+      sourceKind: "image",
+      gesture: "double-left-click",
+      counter: 7,
+      now: "2024-01-02T03:04:05Z",
+      currentTab: {
+        title: "Gallery",
+        url: "https://page.test/gallery",
+        incognito: true,
+      },
+    },
+  });
+
+  expect(
+    historyDebuggerState({
+      finalFullPath: "legacy/report.pdf",
+      variables: { counter: "not-a-counter", sourcekind: "unknown" },
+    }),
+  ).toEqual({ info: { filename: "report.pdf" } });
+
+  expect(historyDebuggerState({ private: true })).toEqual({
+    info: { currentTab: { incognito: true } },
+  });
+  expect(historyDebuggerState({ variables: { pagetitle: "Title only" } })).toEqual({
+    info: { currentTab: { title: "Title only" } },
+  });
+  expect(historyDebuggerState({})).toEqual({ info: {} });
 });
 
 test("CSV export includes all flattened history fields and escapes values", () => {

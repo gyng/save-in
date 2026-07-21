@@ -35,6 +35,8 @@ describe("filename rewrite and routing", () => {
     pageUrl: "http://page.com",
     frameUrl: "http://frameurl.com",
     linkText: "link text",
+    linkTitle: "Full-size image",
+    linkDownload: "original.jpg",
   };
 
   beforeAll(() => {
@@ -98,6 +100,17 @@ describe("filename rewrite and routing", () => {
       const matcher = router.matcherFunctions.frameurl(new RegExp(".*"));
       expect(expectMatch(matcher(info)).length).toBe(1);
       expect(expectMatch(matcher(info))[0]!).toBe(info.frameUrl);
+    });
+
+    test.each([
+      ["linktitle", "Full-size image"],
+      ["linkdownload", "original.jpg"],
+    ] as const)("%s matches explicit link metadata", (name, expected) => {
+      const matcher = router.matcherFunctions[name](new RegExp(expected));
+      expect(expectMatch(matcher(info))[0]).toBe(expected);
+      expect(
+        matcher({ ...info, [name === "linktitle" ? "linkTitle" : "linkDownload"]: undefined }),
+      ).toBeNull();
     });
 
     test("infoMatcherFactory negative", () => {

@@ -5,6 +5,7 @@ import { expect, test } from "vitest";
 import {
   runAutomaticRetryScenario,
   runContextMenuScenario,
+  runLinkMetadataRoutingScenario,
   runCssRoutingScenario,
   runQuickSaveScenario,
   runFailedDownloadLogScenario,
@@ -97,6 +98,10 @@ export const registerSharedBrowserCases = (adapters) => {
 
   test("production context-menu handler completes a selection save", async () => {
     await runContextMenuScenario({ control, waitForDownloads });
+  });
+
+  test("interactive link attributes route through the exact content frame", async () => {
+    await runLinkMetadataRoutingScenario({ control, evaluatePage });
   });
 
   test("Quick save routes straight to the configured default destination", async () => {

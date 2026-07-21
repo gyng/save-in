@@ -20,10 +20,11 @@ const withPaths = (svg: SVGSVGElement, paths: string[]): SVGSVGElement => {
 
 export const folderIcon = (): SVGSVGElement => withPaths(svgRoot(), ["M3 6h7l2 2h9v10H3z"]);
 
-type HistoryActionKind = "copy" | "link" | "undo" | "move";
+type HistoryActionKind = "copy" | "debug" | "link" | "undo" | "move";
 
 const ACTION_PATHS: Record<HistoryActionKind, string[]> = {
   copy: ["M8 8h11v11H8z", "M5 16H3V3h13v2"],
+  debug: ["M10.5 5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z", "M15 15l5 5"],
   undo: ["M3 7v6h6", "M3 13a9 9 0 1 0 2.6-7L3 8.4"],
   move: ["M3 6h7l2 2h9v12H3z", "M12 11v6", "M9 14l3 3 3-3"],
   link: [

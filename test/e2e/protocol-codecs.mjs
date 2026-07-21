@@ -33,6 +33,7 @@ export const createProtocolCodecs = () => {
     ["selectionText", "pageUrl", "linkUrl", "srcUrl", "frameUrl", "mediaType", "linkText"].every(
       (key) => hasOptionalString(value, key),
     ) &&
+    hasOptionalNumber(value, "frameId") &&
     (value.modifiers === undefined || isStringArray(value.modifiers));
   /** @param {unknown} value @param {boolean} requireTab */
   const isMenuBody = (value, requireTab) => {

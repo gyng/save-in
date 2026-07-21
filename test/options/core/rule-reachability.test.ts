@@ -410,15 +410,26 @@ describe("ruleReachabilityDiagnostics", () => {
     ).toEqual([]);
   });
 
-  test("link text and selection text are equally absent from automatic saves", () => {
-    expect(AUTOMATIC_EMPTY_VARIABLES).toEqual([":menupath:", ":linktext:", ":selectiontext:"]);
+  test("interactive link and selection data are absent from automatic saves", () => {
+    expect(AUTOMATIC_EMPTY_VARIABLES).toEqual([
+      ":menupath:",
+      ":linktext:",
+      ":linktitle:",
+      ":linkdownload:",
+      ":selectiontext:",
+    ]);
     expect(
       ruleReachabilityDiagnostics(
-        automatic({ name: "into", value: ":linktext:/:selectiontext:/" }),
+        automatic({
+          name: "into",
+          value: ":linktext:/:linktitle:/:linkdownload:/:selectiontext:/",
+        }),
         allOff,
       ),
     ).toEqual([
       { kind: "empty-variable", level: "warning", variable: ":linktext:" },
+      { kind: "empty-variable", level: "warning", variable: ":linktitle:" },
+      { kind: "empty-variable", level: "warning", variable: ":linkdownload:" },
       { kind: "empty-variable", level: "warning", variable: ":selectiontext:" },
     ]);
   });

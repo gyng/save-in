@@ -11,6 +11,7 @@ import { folderIcon, historyActionIcon } from "./history-icons.ts";
 import {
   cancelSave,
   copyHistoryValue,
+  debugHistorySave,
   rerouteDestinations,
   rerouteSave,
   showInFolder,
@@ -152,10 +153,23 @@ const cancelButton = (row: HistoryRow, historyId: string): HTMLButtonElement => 
   return cancel;
 };
 
+const debugButton = (row: HistoryRow, historyId: string): HTMLButtonElement => {
+  const debug = actionButton(
+    "history-open history-debug",
+    historyMessage("historyDebugSave", "Debug this save"),
+    historyMessage("historyDebugSaveNamed", `Debug save of ${row.file}`, row.file),
+  );
+  debug.append(historyActionIcon("debug"));
+  debug.addEventListener("click", () => debugHistorySave(historyId));
+  return debug;
+};
+
 export const buildHistoryStatusCell = (row: HistoryRow): HTMLTableCellElement => {
   const status = document.createElement("td");
   status.className = "history-status";
   status.append(statusBadge(row));
+
+  if (row.historyId) status.append(debugButton(row, row.historyId));
 
   const known = row.status === "complete" && row.downloadId != null;
   if (known) status.append(showInFolderButton(row));

@@ -2261,6 +2261,18 @@
   "historyUndoDone": {
     "message": "已復原儲存。檔案已刪除。"
   },
+  "historyDebugSave": {
+    "message": "偵錯這次儲存"
+  },
+  "historyDebugSaveNamed": {
+    "message": "偵錯 $FILE$ 的儲存",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "report.pdf"
+      }
+    }
+  },
   "historyUndoFileMissing": {
     "message": "已復原儲存。檔案先前已被移動或刪除。"
   },
@@ -2751,6 +2763,9 @@
   },
   "routeDebuggerRun": {
     "message": "測試規則"
+  },
+  "routeDebuggerHistoryReplay": {
+    "message": "正在使用目前的路由規則重播「歷史記錄」中記載的欄位。"
   },
   "routeDebuggerNoMatch": {
     "message": "沒有符合的路由規則。"
@@ -4383,5 +4398,11 @@
   },
   "routeDebuggerClickContext": {
     "message": "點選儲存"
-  }
+  },
+  "html_linkTitleVariableDescription": { "message": "頁面提供時，所點選連結的 title 屬性。" },
+  "html_linkDownloadVariableDescription": { "message": "頁面提供時，連結建議的下載名稱。" },
+  "html_linkTitleMatcherDescription": { "message": "比對所點選連結的 title 屬性。" },
+  "html_linkDownloadMatcherDescription": { "message": "比對連結建議的下載名稱。" },
+  "routeDebuggerLinkTitle": { "message": "連結標題" },
+  "routeDebuggerLinkDownload": { "message": "連結下載名稱" }
 }

@@ -82,6 +82,7 @@ export type DownloadLaunchResult =
 
 export interface MenuClickInfo {
   menuItemId: string | number;
+  frameId?: number | undefined;
   selectionText?: string | undefined;
   pageUrl?: string | undefined;
   linkUrl?: string | undefined;

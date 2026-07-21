@@ -362,6 +362,18 @@
   "historyUndoDone": {
     "message": "Salvamento desfeito. O arquivo foi removido."
   },
+  "historyDebugSave": {
+    "message": "Depurar este salvamento"
+  },
+  "historyDebugSaveNamed": {
+    "message": "Depurar o salvamento de $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "report.pdf"
+      }
+    }
+  },
   "historyUndoFileMissing": {
     "message": "Salvamento desfeito. O arquivo já havia sido movido ou removido."
   },
@@ -2754,6 +2766,9 @@
   "routeDebuggerRun": {
     "message": "Testar regras"
   },
+  "routeDebuggerHistoryReplay": {
+    "message": "Os campos registrados no Histórico são reproduzidos com suas regras de roteamento atuais."
+  },
   "routeDebuggerNoMatch": {
     "message": "Nenhuma regra de roteamento correspondeu."
   },
@@ -4385,5 +4400,19 @@
   },
   "routeDebuggerClickContext": {
     "message": "Clique para salvar"
-  }
+  },
+  "html_linkTitleVariableDescription": {
+    "message": "O atributo title do link clicado, quando fornecido pela página."
+  },
+  "html_linkDownloadVariableDescription": {
+    "message": "O nome de download sugerido pelo link, quando fornecido pela página."
+  },
+  "html_linkTitleMatcherDescription": {
+    "message": "Corresponde ao atributo title do link clicado."
+  },
+  "html_linkDownloadMatcherDescription": {
+    "message": "Corresponde ao nome de download sugerido pelo link."
+  },
+  "routeDebuggerLinkTitle": { "message": "Título do link" },
+  "routeDebuggerLinkDownload": { "message": "Nome de download do link" }
 }

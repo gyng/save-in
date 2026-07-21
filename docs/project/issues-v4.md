@@ -744,21 +744,19 @@ than to this clause.
 
 ### Stale reasons worth retracting — decide, do not repeat
 
-Both were declined for a reason v4 has since invalidated. The asks are still
-unbuilt; only the excuses expired. Closing either by repeating its original
-reason would be wrong on the facts.
-
-**#65** — *"prioritize title attribute over text when using `:linktext:`"*.
+**#65 — implemented for 4.1** — *"prioritize title attribute over text when using `:linktext:`"*.
 Declined: *"the WebExtensions API does not provide access to the title attribute
 directly so this can only be done using content scripts. It's going to take some
 effort to do that, so it's not going to happen anytime soon."* v4 ships a
 content script on every page that already reads origin elements from the DOM for
-CSS-selector attestation (`content/css-routing.ts`) — the effort he was avoiding
-is now sunk cost. `linkText` still comes solely from the browser's own
-`info.linkText` (`background/menu-click.ts`), and no `linkTitle` token exists.
-One honest caveat against over-crediting: `css:` can *match* `a[title*="…"]` but
-cannot *capture* it into a filename, and is Page-Sources-scoped rather than
-wired into the right-click path.
+CSS-selector attestation (`content/css-routing.ts`). The implementation keeps
+the established `:linktext:` meaning and adds explicit `:linktitle:` and
+`:linkdownload:` variables plus corresponding matchers. Right-click metadata is
+requested from the exact content frame only after the user selects a Save In
+action and only if current paths or rules use it; click-to-save already owns the
+originating element and includes the same bounded attributes directly. A stale,
+restricted, or unresponsive content script leaves the optional fields empty and
+does not fail the save.
 
 **#77** — a long-press folder menu. Declined **conditionally**: *"There's also
 movement in the bug for accesskeys in Firefox. If accesskeys still don't show up

@@ -54,6 +54,9 @@ const response = await browser.runtime.sendMessage(SAVE_IN_ID, {
     info: {
       pageUrl: "https://example.com/gallery",
       srcUrl: "https://example.com/photo.jpg",
+      linkText: "Open photo",
+      linkTitle: "View full-size photo",
+      linkDownload: "original-photo.jpg",
       selectionText: "optional",
       suggestedFilename: "photo.jpg",
       mime: "image/jpeg",
@@ -76,6 +79,10 @@ const response = await browser.runtime.sendMessage(SAVE_IN_ID, {
 An explicit `url` takes precedence if both fields are present. For `target: "activeTab"`, Save In prefers the originating tab when the message came from a tab; otherwise it queries the active tab in the last-focused browser window. Check for the `active_tab` capability returned by `PING` before using this target.
 
 Accepted URL schemes are `http`, `https`, `ftp`, `data`, and `blob`. A successful response means the save was accepted, not completed. Completion appears asynchronously in History/notifications.
+
+`linkText`, `linkTitle`, and `linkDownload` are independent optional routing
+inputs. The latter two correspond to an HTML anchor's `title` and `download`
+attributes; Save In does not reinterpret `linkText` as either attribute.
 
 Download errors are `UNAUTHORIZED`, `BAD_REQUEST`, or `INVALID_URL`; unknown external message types return `UNKNOWN_TYPE`. Treat `UNAUTHORIZED` as a request for user configuration, not as a transient error to retry repeatedly.
 

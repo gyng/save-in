@@ -11,6 +11,9 @@ import { splitLines } from "../../shared/util.ts";
 import { historyFeedback, renderHistoryFeedback } from "./history-feedback.ts";
 import { historyMessage } from "./history-messages.ts";
 import { renderHistory } from "./history-refresh.ts";
+import { historyState } from "./history-panel-state.ts";
+import { historyDebuggerState } from "./history-model.ts";
+import { HISTORY_DEBUG_EVENT } from "../core/history-debug.ts";
 
 // Opens the containing folder for a completed download (best-effort; the
 // browser may have forgotten the download)
@@ -160,4 +163,14 @@ export const copyHistoryValue = async (value: string, successMessage: string): P
       error: true,
     });
   }
+};
+
+export const debugHistorySave = (historyId: string): void => {
+  const entry = historyState.entries.find((candidate) => candidate.id === historyId);
+  if (!entry) return;
+  document.dispatchEvent(
+    new CustomEvent(HISTORY_DEBUG_EVENT, {
+      detail: { state: historyDebuggerState(entry) },
+    }),
+  );
 };

@@ -61,6 +61,7 @@ const setupBrowserMocks = () => {
   };
   (global.browser.runtime as any).openOptionsPage = vi.fn();
   (global.browser.downloads as any).showDefaultFolder = vi.fn();
+  global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve(null));
   global.browser.storage.local.set = vi.fn(() => Promise.resolve());
   global.browser.storage.session.set = vi.fn(() => Promise.resolve());
   global.browser.storage.session.remove = vi.fn(() => Promise.resolve());
@@ -75,6 +76,8 @@ const setupBrowserMocks = () => {
 const seedDeps = () => {
   setCurrentTab(null);
   Object.assign(options, {
+    paths: "",
+    filenamePatterns: [],
     links: true,
     selection: true,
     page: true,

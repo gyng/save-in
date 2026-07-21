@@ -49,6 +49,8 @@ const DEFAULT_MATCHERS = [
   "comment",
   "directory",
   "linktext",
+  "linktitle",
+  "linkdownload",
   "selectiontext",
   "referrerurl",
   "referrerdomain",

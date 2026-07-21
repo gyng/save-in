@@ -135,6 +135,7 @@ expectTypeOf<TabMenuClickRequest["body"]["info"]>().toEqualTypeOf<
   Pick<
     BackgroundE2ETabMenuRequest["body"]["info"],
     | "menuItemId"
+    | "frameId"
     | "selectionText"
     | "pageUrl"
     | "linkUrl"

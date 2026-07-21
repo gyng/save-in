@@ -207,6 +207,7 @@ const isBackgroundE2EContextMenuInfo = (value: unknown): value is ContextMenuCli
   ["frameUrl", "mediaType", "srcUrl", "linkUrl", "pageUrl", "selectionText", "linkText"].every(
     (key) => hasOptionalString(value, key),
   ) &&
+  hasOptionalNumber(value, "frameId") &&
   hasOptionalStringArray(value, "modifiers");
 
 const isBackgroundE2EContextMenuTab = (

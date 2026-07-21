@@ -362,6 +362,18 @@
   "historyUndoDone": {
     "message": "Speichern rückgängig gemacht. Die Datei wurde entfernt."
   },
+  "historyDebugSave": {
+    "message": "Diesen Speichervorgang debuggen"
+  },
+  "historyDebugSaveNamed": {
+    "message": "Speichervorgang für $FILE$ debuggen",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "report.pdf"
+      }
+    }
+  },
   "historyUndoFileMissing": {
     "message": "Speichern rückgängig gemacht. Die Datei war bereits verschoben oder entfernt."
   },
@@ -2754,6 +2766,9 @@
   "routeDebuggerRun": {
     "message": "Regeln testen"
   },
+  "routeDebuggerHistoryReplay": {
+    "message": "Aufgezeichnete Verlaufsfelder werden mit Ihren aktuellen Routing-Regeln erneut geprüft."
+  },
   "routeDebuggerNoMatch": {
     "message": "Keine Routing-Regel traf zu."
   },
@@ -4385,5 +4400,19 @@
   },
   "routeDebuggerClickContext": {
     "message": "Speichern per Klick"
-  }
+  },
+  "html_linkTitleVariableDescription": {
+    "message": "Das title-Attribut des angeklickten Links, wenn die Seite es angibt."
+  },
+  "html_linkDownloadVariableDescription": {
+    "message": "Der vom Link vorgeschlagene Downloadname, wenn die Seite ihn angibt."
+  },
+  "html_linkTitleMatcherDescription": {
+    "message": "Entspricht dem title-Attribut des angeklickten Links."
+  },
+  "html_linkDownloadMatcherDescription": {
+    "message": "Entspricht dem vom Link vorgeschlagenen Downloadnamen."
+  },
+  "routeDebuggerLinkTitle": { "message": "Linktitel" },
+  "routeDebuggerLinkDownload": { "message": "Link-Downloadname" }
 }

@@ -2263,6 +2263,18 @@
   "historyUndoDone": {
     "message": "保存を取り消しました。ファイルは削除されました。"
   },
+  "historyDebugSave": {
+    "message": "この保存をデバッグ"
+  },
+  "historyDebugSaveNamed": {
+    "message": "$FILE$ の保存をデバッグ",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "report.pdf"
+      }
+    }
+  },
   "historyUndoFileMissing": {
     "message": "保存を取り消しました。ファイルはすでに移動または削除されていました。"
   },
@@ -2753,6 +2765,9 @@
   },
   "routeDebuggerRun": {
     "message": "ルールをテスト"
+  },
+  "routeDebuggerHistoryReplay": {
+    "message": "履歴に記録されたフィールドを現在のルーティングルールで再現しています。"
   },
   "routeDebuggerNoMatch": {
     "message": "一致するルーティングルールはありません。"
@@ -4385,5 +4400,19 @@
   },
   "routeDebuggerClickContext": {
     "message": "クリックして保存"
-  }
+  },
+  "html_linkTitleVariableDescription": {
+    "message": "クリックしたリンクにページで指定された title 属性です。"
+  },
+  "html_linkDownloadVariableDescription": {
+    "message": "リンクにページで指定されたダウンロード名です。"
+  },
+  "html_linkTitleMatcherDescription": {
+    "message": "クリックしたリンクの title 属性に一致します。"
+  },
+  "html_linkDownloadMatcherDescription": {
+    "message": "リンクに指定されたダウンロード名に一致します。"
+  },
+  "routeDebuggerLinkTitle": { "message": "リンクのタイトル" },
+  "routeDebuggerLinkDownload": { "message": "リンクのダウンロード名" }
 }

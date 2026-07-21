@@ -21,6 +21,14 @@
   and clearer browser-download and History behavior.
 - Made **Hide folder choices** preserve non-folder context-menu actions such as
   Options, Open Downloads, context information, and Page Sources.
+- Added **Debug this save** to History. It loads the recorded fields into the
+  Route debugger and tests them against the rules currently in the editor,
+  without storing a second routing trace or rereading History.
+- Added `:linktitle:` and `:linkdownload:` variables and matching
+  `linktitle:` / `linkdownload:` clauses for interactive link saves (#65).
+  Existing `:linktext:` behavior is unchanged. Link attributes are read only
+  after a save action whose current paths or rules use them; the lookup is
+  bounded, frame-specific, and failure-tolerant.
 
 # 4.0.1
 

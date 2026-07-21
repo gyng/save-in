@@ -35,6 +35,8 @@ export const SPECIAL_DIRS = {
   SOURCE_PATH: ":sourcepath:",
   TLD: ":tld:",
   LINK_TEXT: ":linktext:",
+  LINK_TITLE: ":linktitle:",
+  LINK_DOWNLOAD: ":linkdownload:",
   SELECTION_TEXT: ":selectiontext:",
   MENU_PATH: ":menupath:",
   NAIVE_FILENAME: ":naivefilename:",

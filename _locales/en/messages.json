@@ -843,6 +843,14 @@
     "message": "Link text when the browser provides it; tab saves use the tab title.",
     "description": "Description of the link-text filename variable, including its availability and tab-save fallback. Used in src/options/options.html."
   },
+  "html_linkTitleVariableDescription": {
+    "message": "The title attribute of the link you clicked, when the page provides it.",
+    "description": "Description of the :linktitle: filename variable. This is HTML link metadata captured only for an interactive link save. Used in src/options/options.html."
+  },
+  "html_linkDownloadVariableDescription": {
+    "message": "The download name suggested by the link, when the page provides it.",
+    "description": "Description of the :linkdownload: filename variable, sourced from an HTML link download attribute for an interactive link save. Used in src/options/options.html."
+  },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "The currently selected text on the page",
     "description": "Text in the filename-variable reference. Used in src/options/options.html."
@@ -1010,6 +1018,14 @@
   "html_linkTextMatcherDescription": {
     "message": "Matches link text when the browser provides it; tab saves use the tab title.",
     "description": "Description of the linktext routing matcher, including its availability and tab-save fallback. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "html_linkTitleMatcherDescription": {
+    "message": "Matches the title attribute of the link you clicked.",
+    "description": "Description of the linktitle: routing matcher. It is available for interactive link saves when the page supplies a title attribute. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "html_linkDownloadMatcherDescription": {
+    "message": "Matches the download name suggested by the link.",
+    "description": "Description of the linkdownload: routing matcher. It is sourced from an HTML link download attribute for an interactive link save. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_cssMatcherDescription": {
     "message": "Matches the page element that discovered the source. Available for automatic Page Sources, click-to-save, and Page Sources panel saves.",
@@ -3179,6 +3195,20 @@
       }
     }
   },
+  "historyDebugSave": {
+    "message": "Debug this save",
+    "description": "History row action that loads the save's recorded routing inputs into the Route debugger. Used in src/options/history/history-row-actions.ts."
+  },
+  "historyDebugSaveNamed": {
+    "message": "Debug save of $FILE$",
+    "description": "Accessible name for the History action that loads one named save into the Route debugger. Used in src/options/history/history-row-actions.ts.",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "report.pdf"
+      }
+    }
+  },
   "historyUndoDone": {
     "message": "Save undone. The file was removed.",
     "description": "History confirmation after an undo removed the saved file. Used in src/options/history/history-panel.ts."
@@ -4347,6 +4377,10 @@
     "message": "Tests use your current edits, including unapplied changes.",
     "description": "Note explaining what source the route debugger evaluates. Used in src/options/options.html."
   },
+  "routeDebuggerHistoryReplay": {
+    "message": "Replaying recorded History fields against your current routing rules.",
+    "description": "Informational note shown by the Route debugger after the user chooses Debug this save in History. It clarifies that the stored input is tested against rules as they exist now. Used in src/options/route-debugger/route-debugger.ts."
+  },
   "routeDebuggerRun": {
     "message": "Test rules",
     "description": "Button that evaluates routing rules in the route debugger. Used in src/options/options.html."
@@ -4486,6 +4520,14 @@
   "routeDebuggerLinkText": {
     "message": "Link text",
     "description": "Label for the route debugger link text input. Used in src/options/options.html."
+  },
+  "routeDebuggerLinkTitle": {
+    "message": "Link title",
+    "description": "Label for the route debugger input that represents an HTML link title attribute. Used in src/options/options.html."
+  },
+  "routeDebuggerLinkDownload": {
+    "message": "Link download name",
+    "description": "Label for the route debugger input that represents an HTML link download attribute. Used in src/options/options.html."
   },
   "routeDebuggerSelectionText": {
     "message": "Selected text",

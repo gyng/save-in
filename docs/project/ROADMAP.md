@@ -1,10 +1,10 @@
 # Roadmap
 
-This roadmap tracked the work planned after the Manifest V3 rebuild. Because no
-interim release ever shipped, everything listed under Landed went out in 4.0.0
-itself rather than in the separate 4.1, 4.2, and 4.3 releases the tracks were
-once grouped under. The one genuinely open decision and the remaining release
-hygiene follow below. Issue numbers refer to the GitHub tracker.
+This roadmap tracked the work planned after the Manifest V3 rebuild. The first
+three tracks shipped in 4.0.0; the remaining 4.2 and 4.3 candidates were folded
+into 4.1 instead of being held for artificial release boundaries. The one
+genuinely open decision and the remaining release hygiene follow below. Issue
+numbers refer to the GitHub tracker.
 
 ## Landed in 4.0.0
 
@@ -100,6 +100,16 @@ Not features — release hygiene that gates the close-out of everything above.
   destination tree while preserving the routing action and unrelated menu
   actions such as Options, Open Downloads, context information, and Page
   Sources.
+- History rows can open **Debug this save**, which reconstructs the compact
+  recorded routing inputs and runs them through the current Route debugger.
+  This is deliberately a replay, not a persisted old trace: changed rules are
+  the point, and no duplicate per-entry trace increases History storage.
+- Interactive link saves expose the clicked anchor's `title` and `download`
+  attributes as `:linktitle:` / `:linkdownload:` and `linktitle:` /
+  `linkdownload:` (#65). `:linktext:` remains backward compatible. Content
+  extraction happens only after save intent and only when configured syntax
+  consumes it, is tied to the exact URL and frame, and times out without
+  blocking the download path indefinitely.
 
 ## Gated: Firefox cancel-and-redownload verdict
 

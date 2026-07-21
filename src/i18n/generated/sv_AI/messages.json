@@ -362,6 +362,18 @@
   "historyUndoDone": {
     "message": "Sparningen ångrades. Filen togs bort."
   },
+  "historyDebugSave": {
+    "message": "Felsök den här sparningen"
+  },
+  "historyDebugSaveNamed": {
+    "message": "Felsök sparningen av $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "report.pdf"
+      }
+    }
+  },
   "historyUndoFileMissing": {
     "message": "Sparningen ångrades. Filen hade redan flyttats eller tagits bort."
   },
@@ -2754,6 +2766,9 @@
   "routeDebuggerRun": {
     "message": "Testa regler"
   },
+  "routeDebuggerHistoryReplay": {
+    "message": "Sparade Historik-fält spelas upp mot dina aktuella routningsregler."
+  },
   "routeDebuggerNoMatch": {
     "message": "Ingen routningsregel matchade."
   },
@@ -4385,5 +4400,19 @@
   },
   "routeDebuggerClickContext": {
     "message": "Klicka för att spara"
-  }
+  },
+  "html_linkTitleVariableDescription": {
+    "message": "Title-attributet för länken du klickade på, när sidan anger det."
+  },
+  "html_linkDownloadVariableDescription": {
+    "message": "Nedladdningsnamnet som länken föreslår, när sidan anger det."
+  },
+  "html_linkTitleMatcherDescription": {
+    "message": "Matchar title-attributet för länken du klickade på."
+  },
+  "html_linkDownloadMatcherDescription": {
+    "message": "Matchar nedladdningsnamnet som länken föreslår."
+  },
+  "routeDebuggerLinkTitle": { "message": "Länktitel" },
+  "routeDebuggerLinkDownload": { "message": "Länkens nedladdningsnamn" }
 }

@@ -20,6 +20,32 @@ test("history keeps the original source URL for shortcut-backed saves", () => {
   );
 });
 
+test("history keeps the remaining compact inputs needed to replay routing decisions", () => {
+  const state = makeState({
+    info: {
+      frameUrl: "https://example.test/frame",
+      referrerUrl: "https://example.test/previous",
+      mediaType: "image",
+      sourceKind: "image",
+      mime: "image/jpeg",
+      sha256: "abc123",
+    },
+  });
+
+  Download.createDownloadPlan(state);
+
+  expect(vi.mocked(SaveHistory.addHistoryEntry).mock.calls.at(-1)?.[0].variables).toEqual(
+    expect.objectContaining({
+      frameurl: "https://example.test/frame",
+      referrerurl: "https://example.test/previous",
+      mediatype: "image",
+      sourcekind: "image",
+      mime: "image/jpeg",
+      sha256: "abc123",
+    }),
+  );
+});
+
 test("history stores a truncated, non-fetchable form of a data: URL, never the full payload", () => {
   const dataUrl = `data:image/png;base64,${"A".repeat(4000)}`;
   const state = makeState({

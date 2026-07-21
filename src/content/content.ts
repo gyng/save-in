@@ -46,6 +46,12 @@ import {
   matchedCssSelectorsByOrigin,
   sourceOriginElements,
 } from "./css-routing.ts";
+import { contextLinkMetadataFromEvent } from "./context-link-metadata.ts";
+import {
+  CONTEXT_LINK_METADATA_REQUEST,
+  parseContextLinkMetadata,
+  type ContextLinkMetadata,
+} from "../shared/context-link-metadata.ts";
 
 // Runs in every page. Uses callback-style chrome.* APIs: available in both
 // Chrome and Firefox content scripts (no polyfill is loaded here). try/catch
@@ -168,6 +174,8 @@ type ContentDownloadRequest = {
     srcUrl: string;
     sourceKind?: PageSource["kind"];
     gesture?: ClickGesture;
+    linkTitle?: string;
+    linkDownload?: string;
     matchedCssSelectorsByOrigin?: string[][];
   };
 };
@@ -336,6 +344,7 @@ const setupClickToSave = (
 
       e.preventDefault();
       e.stopImmediatePropagation();
+      const linkMetadata = contextLinkMetadataFromEvent(e);
       void sendRuntimeDownload(
         {
           url: source.url,
@@ -344,6 +353,8 @@ const setupClickToSave = (
             srcUrl: source.url,
             sourceKind: source.kind,
             gesture: binding.gesture,
+            ...(linkMetadata?.title ? { linkTitle: linkMetadata.title } : {}),
+            ...(linkMetadata?.download ? { linkDownload: linkMetadata.download } : {}),
             ...(cssSelectors.length > 0
               ? {
                   matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
@@ -564,6 +575,19 @@ const applyOptions = (next: ContentOptions) => {
 };
 
 const changedDuringRead = new Set<string>();
+let lastContextLinkMetadata: ContextLinkMetadata | null = null;
+
+try {
+  window.addEventListener(
+    "contextmenu",
+    (event) => {
+      lastContextLinkMetadata = contextLinkMetadataFromEvent(event);
+    },
+    { capture: true },
+  );
+} catch {
+  // Extension context invalidated before the page listener could be attached.
+}
 
 try {
   // Existing tabs receive later option deltas explicitly from the background.
@@ -756,7 +780,16 @@ try {
       ),
     );
   };
-  chrome.runtime.onMessage.addListener((message) => {
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (message?.type === CONTEXT_LINK_METADATA_REQUEST) {
+      const expectedHref = message.body?.linkUrl;
+      sendResponse(
+        typeof expectedHref === "string" && lastContextLinkMetadata
+          ? parseContextLinkMetadata(lastContextLinkMetadata, expectedHref)
+          : null,
+      );
+      return;
+    }
     if (message?.type === CONTENT_OPTIONS_CHANGED_MESSAGE) {
       const changed = normalizeContentOptionsPatch(message.body?.options);
       if (!receivedInitialOptions) {

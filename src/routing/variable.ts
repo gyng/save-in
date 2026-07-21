@@ -471,6 +471,10 @@ export const transformers: TransformerRegistry = {
       opts => stringSegment(withUrl(opts.url ?? "", url => toTld(url.hostname))),
     [SPECIAL_DIRS.LINK_TEXT]:
       opts => stringSegment(opts.linkText),
+    [SPECIAL_DIRS.LINK_TITLE]:
+      opts => stringSegment(opts.linkTitle),
+    [SPECIAL_DIRS.LINK_DOWNLOAD]:
+      opts => stringSegment(opts.linkDownload),
     [SPECIAL_DIRS.SELECTION_TEXT]:
       opts => stringSegment((opts.selectionText && opts.selectionText.trim()) || ""),
     [SPECIAL_DIRS.MENU_PATH]:

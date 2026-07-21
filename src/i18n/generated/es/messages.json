@@ -362,6 +362,18 @@
   "historyUndoDone": {
     "message": "Guardado deshecho. El archivo se eliminó."
   },
+  "historyDebugSave": {
+    "message": "Depurar este guardado"
+  },
+  "historyDebugSaveNamed": {
+    "message": "Depurar el guardado de $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "report.pdf"
+      }
+    }
+  },
   "historyUndoFileMissing": {
     "message": "Guardado deshecho. El archivo ya se había movido o eliminado."
   },
@@ -2754,6 +2766,9 @@
   "routeDebuggerRun": {
     "message": "Probar reglas"
   },
+  "routeDebuggerHistoryReplay": {
+    "message": "Se reproducen los campos registrados del Historial con sus reglas de enrutamiento actuales."
+  },
   "routeDebuggerNoMatch": {
     "message": "No coincidió ninguna regla de enrutamiento."
   },
@@ -4385,5 +4400,19 @@
   },
   "routeDebuggerClickContext": {
     "message": "Clic para guardar"
-  }
+  },
+  "html_linkTitleVariableDescription": {
+    "message": "El atributo title del enlace pulsado, si la página lo proporciona."
+  },
+  "html_linkDownloadVariableDescription": {
+    "message": "El nombre de descarga sugerido por el enlace, si la página lo proporciona."
+  },
+  "html_linkTitleMatcherDescription": {
+    "message": "Coincide con el atributo title del enlace pulsado."
+  },
+  "html_linkDownloadMatcherDescription": {
+    "message": "Coincide con el nombre de descarga sugerido por el enlace."
+  },
+  "routeDebuggerLinkTitle": { "message": "Título del enlace" },
+  "routeDebuggerLinkDownload": { "message": "Nombre de descarga del enlace" }
 }

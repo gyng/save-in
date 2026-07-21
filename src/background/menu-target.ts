@@ -4,6 +4,7 @@ import { DOWNLOAD_TYPES, isMediaType } from "../shared/constants.ts";
 import { parseRegularExpressionList } from "../shared/pattern-list.ts";
 
 export type ClickInfo = {
+  frameId?: number | undefined;
   frameUrl?: string | undefined;
   mediaType?: string | undefined;
   srcUrl?: string | undefined;

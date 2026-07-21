@@ -52,13 +52,21 @@ const historyEntry = (state: DownloadPipelineState, finalFullPath: string): Hist
         pagetitle: state.info.currentTab?.title,
         pageurl: state.info.pageUrl,
         sourceurl: displayUrl(state.info.sourceUrl),
+        frameurl: state.info.frameUrl,
+        referrerurl: state.info.referrerUrl,
         linktext: state.info.linkText,
+        linktitle: state.info.linkTitle,
+        linkdownload: state.info.linkDownload,
         selection: state.info.selectionText,
+        mediatype: state.info.mediaType,
+        sourcekind: state.info.sourceKind,
+        mime: state.info.mime || state.info.resolvedHead?.contentType,
         context: state.info.context,
         gesture: state.info.gesture,
         comment: state.info.comment,
         menuindex: state.info.menuIndex,
         counter: state.info.counter,
+        sha256: state.info.sha256,
       })
         .filter(
           (entry): entry is [string, string | number] =>

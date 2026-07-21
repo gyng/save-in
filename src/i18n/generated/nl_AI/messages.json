@@ -362,6 +362,18 @@
   "historyUndoDone": {
     "message": "Opslaan ongedaan gemaakt. Het bestand is verwijderd."
   },
+  "historyDebugSave": {
+    "message": "Deze opslag debuggen"
+  },
+  "historyDebugSaveNamed": {
+    "message": "Opslag van $FILE$ debuggen",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "report.pdf"
+      }
+    }
+  },
   "historyUndoFileMissing": {
     "message": "Opslaan ongedaan gemaakt. Het bestand was al verplaatst of verwijderd."
   },
@@ -2754,6 +2766,9 @@
   "routeDebuggerRun": {
     "message": "Regels testen"
   },
+  "routeDebuggerHistoryReplay": {
+    "message": "Vastgelegde geschiedenisvelden worden opnieuw uitgevoerd met uw huidige routeringsregels."
+  },
   "routeDebuggerNoMatch": {
     "message": "Er komt geen routeringsregel overeen."
   },
@@ -4385,5 +4400,19 @@
   },
   "routeDebuggerClickContext": {
     "message": "Klikken om op te slaan"
-  }
+  },
+  "html_linkTitleVariableDescription": {
+    "message": "Het title-attribuut van de aangeklikte link, wanneer de pagina dit opgeeft."
+  },
+  "html_linkDownloadVariableDescription": {
+    "message": "De downloadnaam die de link voorstelt, wanneer de pagina die opgeeft."
+  },
+  "html_linkTitleMatcherDescription": {
+    "message": "Komt overeen met het title-attribuut van de aangeklikte link."
+  },
+  "html_linkDownloadMatcherDescription": {
+    "message": "Komt overeen met de downloadnaam die de link voorstelt."
+  },
+  "routeDebuggerLinkTitle": { "message": "Linktitel" },
+  "routeDebuggerLinkDownload": { "message": "Downloadnaam van de link" }
 }

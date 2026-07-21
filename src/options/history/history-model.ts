@@ -13,6 +13,9 @@ import type {
   HistoryPageOptions,
   HistoryRow,
 } from "../../shared/history-types.ts";
+import type { WireDownloadInfo, WireDownloadState } from "../../shared/message-protocol.ts";
+import { isClickGesture } from "../../shared/click-gesture.ts";
+import { isPageSourceKind } from "../../shared/page-source.ts";
 import {
   historyEntryInfo,
   historySourceUrl,
@@ -252,6 +255,69 @@ export const historyRow = (entry: HistoryEntry): HistoryRow => {
     variables: historyVariableText(variableEntries),
     variableEntries,
   };
+};
+
+// History intentionally stores a compact route-input snapshot instead of a
+// complete trace. Rebuild the debugger's clone-safe input only when the user
+// asks for it, so every retained row does not duplicate the current rule set or
+// its per-clause decisions.
+export const historyDebuggerState = (entry: HistoryEntry): WireDownloadState => {
+  const storedInfo = historyInfo(entry);
+  const variables = entry.variables ?? {};
+  const firstVariable = (...names: string[]): string | undefined => {
+    for (const name of names) {
+      const value = variables[name];
+      if (value) return value;
+    }
+    return undefined;
+  };
+  const info: WireDownloadInfo = {};
+  const filename = firstVariable("filename", "initialfilename", "suggestedfilename");
+  const sourceUrl = storedInfo.sourceUrl || entry.url;
+  const pageUrl = storedInfo.pageUrl || firstVariable("pageurl");
+  const context = storedInfo.context || firstVariable("context");
+  if (filename) info.filename = filename;
+  else if (entry.finalFullPath) info.filename = historyFilename(entry.finalFullPath);
+  if (sourceUrl) info.sourceUrl = sourceUrl;
+  if (pageUrl) info.pageUrl = pageUrl;
+  if (context) info.context = context;
+
+  const directFields = {
+    frameUrl: firstVariable("frameurl"),
+    referrerUrl: firstVariable("referrerurl"),
+    linkText: firstVariable("linktext"),
+    linkTitle: firstVariable("linktitle"),
+    linkDownload: firstVariable("linkdownload"),
+    selectionText: firstVariable("selectiontext", "selection"),
+    mediaType: firstVariable("mediatype"),
+    mime: firstVariable("mime", "contenttype"),
+    menuIndex: firstVariable("menuindex"),
+    comment: firstVariable("comment"),
+    sha256: firstVariable("sha256", "sha256full"),
+  } satisfies Partial<WireDownloadInfo>;
+  for (const [key, value] of Object.entries(directFields)) {
+    if (value) info[key as keyof typeof directFields] = value;
+  }
+
+  const sourceKind = firstVariable("sourcekind");
+  if (isPageSourceKind(sourceKind)) info.sourceKind = sourceKind;
+  const gesture = firstVariable("gesture");
+  if (isClickGesture(gesture)) info.gesture = gesture;
+  const counterText = firstVariable("counter");
+  const counter = counterText === undefined ? Number.NaN : Number(counterText);
+  if (Number.isSafeInteger(counter) && counter >= 0) info.counter = counter;
+  const now = entry.initiatedAt || entry.timestamp;
+  if (now && Number.isFinite(new Date(now).getTime())) info.now = now;
+
+  const title = firstVariable("pagetitle");
+  if (title || pageUrl || entry.private === true) {
+    info.currentTab = {
+      ...(title ? { title } : {}),
+      ...(pageUrl ? { url: pageUrl } : {}),
+      ...(entry.private === true ? { incognito: true } : {}),
+    };
+  }
+  return { info };
 };
 
 // In-progress download cell from a downloads.search item: a percentage when

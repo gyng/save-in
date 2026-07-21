@@ -724,6 +724,106 @@ describe("addDownloadListener", () => {
     });
   });
 
+  test("reads exact-frame link attributes only when a link save is chosen", async () => {
+    options.filenamePatterns = [[{ name: "linktitle", value: /full/ }]];
+    global.browser.tabs.sendMessage = vi.fn(() =>
+      Promise.resolve({
+        href: "https://example.com/gallery.html",
+        title: "Full size",
+        download: "original.jpg",
+      }),
+    );
+    Menus.addPaths(["dir1"], ["link"]);
+
+    await listener(
+      {
+        menuItemId: "save-in-0",
+        frameId: 7,
+        linkUrl: "https://example.com/gallery.html",
+        pageUrl: "https://example.com/",
+      },
+      { id: 42, title: "Gallery" },
+    );
+
+    expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(
+      42,
+      {
+        type: "SAVE_IN_CONTEXT_LINK_METADATA",
+        body: { linkUrl: "https://example.com/gallery.html" },
+      },
+      { frameId: 7 },
+    );
+    expect(lastState().info).toMatchObject({
+      linkTitle: "Full size",
+      linkDownload: "original.jpg",
+    });
+  });
+
+  test("contains unavailable, stale, and slow link metadata lookups", async () => {
+    options.filenamePatterns = [[{ name: "linktitle", value: /.*/ }]];
+    global.browser.tabs.sendMessage = vi.fn(() => {
+      throw new Error("restricted page");
+    });
+    await listener(
+      { menuItemId: Menus.IDS.ROUTE_EXCLUSIVE, linkUrl: "https://example.com/restricted" },
+      { id: 42 },
+    );
+    expect(lastState().info.linkTitle).toBeUndefined();
+    expect(Download.launchDownload).toHaveBeenCalledTimes(1);
+
+    options.filenamePatterns = [[{ name: "linkdownload", value: /.*/ }]];
+    global.browser.tabs.sendMessage = vi.fn(() =>
+      Promise.resolve({ href: "https://example.com/old", title: "Stale" }),
+    );
+    await listener(
+      { menuItemId: Menus.IDS.ROUTE_EXCLUSIVE, linkUrl: "https://example.com/current" },
+      { id: 42 },
+    );
+    expect(lastState().info.linkTitle).toBeUndefined();
+    expect(Download.launchDownload).toHaveBeenCalledTimes(2);
+
+    options.filenamePatterns = [[{ name: "capture", value: "linktitle" }]];
+    vi.useFakeTimers();
+    global.browser.tabs.sendMessage = vi.fn(() => new Promise(() => {}));
+    const pending = listener(
+      { menuItemId: Menus.IDS.ROUTE_EXCLUSIVE, linkUrl: "https://example.com/slow" },
+      { id: 42 },
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    await pending;
+    expect(Download.launchDownload).toHaveBeenCalledTimes(3);
+    vi.useRealTimers();
+  });
+
+  test("skips link metadata messaging without a bounded link and tab", async () => {
+    options.paths = "archive/:linktitle:";
+    Menus.addPaths(["dir1"], ["link"]);
+    await listener({ menuItemId: "save-in-0", linkUrl: "https://example.com/no-tab" });
+    await listener({ menuItemId: "save-in-0", linkUrl: "x".repeat(8_193) }, { id: 42 });
+    expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
+  });
+
+  test("does no content-frame work when routing does not use link metadata", async () => {
+    options.filenamePatterns = "";
+    Menus.addPaths(["dir1"], ["link"]);
+    await listener({ menuItemId: "save-in-0", linkUrl: "https://example.com/file" }, { id: 42 });
+    expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
+  });
+
+  test("ignores unrelated parsed routing syntax for link metadata", async () => {
+    options.filenamePatterns = [
+      [
+        { name: "capture", value: "filename" },
+        { name: "sourceurl", value: /example/ },
+      ],
+    ];
+    await listener(
+      { menuItemId: Menus.IDS.ROUTE_EXCLUSIVE, linkUrl: "https://example.com/file" },
+      { id: 42 },
+    );
+    expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
+  });
+
   test("contains a media menu event whose source URL disappeared", async () => {
     Menus.addPaths(["dir1"], ["image"]);
     await listener({ menuItemId: "save-in-0", mediaType: "image" });

@@ -2259,6 +2259,18 @@
   "historyUndoDone": {
     "message": "已撤销保存。文件已删除。"
   },
+  "historyDebugSave": {
+    "message": "调试此次保存"
+  },
+  "historyDebugSaveNamed": {
+    "message": "调试 $FILE$ 的保存",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "report.pdf"
+      }
+    }
+  },
   "historyUndoFileMissing": {
     "message": "已撤销保存。文件此前已被移动或删除。"
   },
@@ -2749,6 +2761,9 @@
   },
   "routeDebuggerRun": {
     "message": "测试规则"
+  },
+  "routeDebuggerHistoryReplay": {
+    "message": "正在使用当前的路由规则重放“历史记录”中记载的字段。"
   },
   "routeDebuggerNoMatch": {
     "message": "没有匹配的路由规则。"
@@ -4381,5 +4396,11 @@
   },
   "routeDebuggerClickContext": {
     "message": "点击保存"
-  }
+  },
+  "html_linkTitleVariableDescription": { "message": "页面提供时，所点击链接的 title 属性。" },
+  "html_linkDownloadVariableDescription": { "message": "页面提供时，链接建议的下载名称。" },
+  "html_linkTitleMatcherDescription": { "message": "匹配所点击链接的 title 属性。" },
+  "html_linkDownloadMatcherDescription": { "message": "匹配链接建议的下载名称。" },
+  "routeDebuggerLinkTitle": { "message": "链接标题" },
+  "routeDebuggerLinkDownload": { "message": "链接下载名称" }
 }

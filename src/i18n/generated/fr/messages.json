@@ -362,6 +362,18 @@
   "historyUndoDone": {
     "message": "Enregistrement annulé. Le fichier a été supprimé."
   },
+  "historyDebugSave": {
+    "message": "Déboguer cet enregistrement"
+  },
+  "historyDebugSaveNamed": {
+    "message": "Déboguer l’enregistrement de $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "report.pdf"
+      }
+    }
+  },
   "historyUndoFileMissing": {
     "message": "Enregistrement annulé. Le fichier avait déjà été déplacé ou supprimé."
   },
@@ -2754,6 +2766,9 @@
   "routeDebuggerRun": {
     "message": "Tester les règles"
   },
+  "routeDebuggerHistoryReplay": {
+    "message": "Les champs enregistrés dans l’Historique sont rejoués avec vos règles de routage actuelles."
+  },
   "routeDebuggerNoMatch": {
     "message": "Aucune règle de routage ne correspond."
   },
@@ -4385,5 +4400,19 @@
   },
   "routeDebuggerClickContext": {
     "message": "Enregistrement au clic"
-  }
+  },
+  "html_linkTitleVariableDescription": {
+    "message": "L’attribut title du lien sur lequel vous avez cliqué, lorsque la page le fournit."
+  },
+  "html_linkDownloadVariableDescription": {
+    "message": "Le nom de téléchargement suggéré par le lien, lorsque la page le fournit."
+  },
+  "html_linkTitleMatcherDescription": {
+    "message": "Correspond à l’attribut title du lien sur lequel vous avez cliqué."
+  },
+  "html_linkDownloadMatcherDescription": {
+    "message": "Correspond au nom de téléchargement suggéré par le lien."
+  },
+  "routeDebuggerLinkTitle": { "message": "Titre du lien" },
+  "routeDebuggerLinkDownload": { "message": "Nom de téléchargement du lien" }
 }

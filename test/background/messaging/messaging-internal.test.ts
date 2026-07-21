@@ -424,6 +424,8 @@ describe("onMessage", () => {
         variables: {
           pagetitle: "Gallery",
           linktext: "Full-size photo",
+          linktitle: "Open original",
+          linkdownload: "original-photo.png",
           selection: "selected words",
           menuindex: "2",
           gesture: "double-left-click",
@@ -456,6 +458,8 @@ describe("onMessage", () => {
       sourceUrl: "https://cdn.test/photo.png",
       pageUrl: "https://page.test/gallery",
       linkText: "Full-size photo",
+      linkTitle: "Open original",
+      linkDownload: "original-photo.png",
       selectionText: "selected words",
       menuIndex: "2",
       gesture: "double-left-click",

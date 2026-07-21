@@ -10,6 +10,8 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   currentTab?: { title?: string | undefined; incognito?: boolean | undefined } | null | undefined;
   frameUrl?: string | undefined;
   linkText?: string | undefined;
+  linkTitle?: string | undefined;
+  linkDownload?: string | undefined;
   mediaType?: string | undefined;
   sourceKind?: PageSourceKind | undefined;
   mime?: string | undefined;

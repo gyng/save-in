@@ -63,6 +63,8 @@ export type RouteDebuggerFields = {
   referrerUrl?: string | undefined;
   frameUrl?: string | undefined;
   linkText?: string | undefined;
+  linkTitle?: string | undefined;
+  linkDownload?: string | undefined;
   selectionText?: string | undefined;
   mediaType?: string | undefined;
   sourceKind?: PageSourceKind | "" | undefined;
@@ -289,6 +291,8 @@ export const routeDebuggerInfo = (fields: RouteDebuggerFields): ValidationInfo =
   if (fields.referrerUrl) info.referrerUrl = fields.referrerUrl;
   if (fields.frameUrl) info.frameUrl = fields.frameUrl;
   if (fields.linkText) info.linkText = fields.linkText;
+  if (fields.linkTitle) info.linkTitle = fields.linkTitle;
+  if (fields.linkDownload) info.linkDownload = fields.linkDownload;
   if (fields.selectionText) info.selectionText = fields.selectionText;
   const mediaType = fields.mediaType || (automatic ? fields.sourceKind : "");
   if (mediaType) info.mediaType = mediaType;

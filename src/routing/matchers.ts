@@ -320,6 +320,8 @@ export const matcherFunctions = {
   // choose no folder — those simply do not match.
   directory: makeInfoMatcherFactory("menuItemPath"),
   linktext: makeInfoMatcherFactory("linkText"),
+  linktitle: makeInfoMatcherFactory("linkTitle"),
+  linkdownload: makeInfoMatcherFactory("linkDownload"),
   mediatype: makeInfoMatcherFactory("mediaType"),
   mime: mimeMatcher,
   contenttype: mimeMatcher,

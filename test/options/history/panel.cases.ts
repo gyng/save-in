@@ -398,6 +398,61 @@ describe("history filter controls", () => {
     );
   });
 
+  test("loads one History row into the Route debugger without another background read", async () => {
+    historyRuntime.entries = [
+      {
+        id: "h-debug",
+        status: "complete",
+        finalFullPath: "saved/photo.jpg",
+        info: {
+          sourceUrl: "https://cdn.test/photo.jpg",
+          pageUrl: "https://page.test/gallery",
+          context: "LINK",
+        },
+        variables: { filename: "photo.jpg", pagetitle: "Gallery", linktext: "Photo" },
+      },
+    ];
+    const replay = vi.fn();
+    document.addEventListener("save-in:debug-history", replay, { once: true });
+    await historyPanel.renderHistory();
+    const readsBefore = historyRuntime.sendMessage.mock.calls.filter(
+      ([message]) => message.type === "HISTORY_GET",
+    ).length;
+
+    const debug = document.querySelector<HTMLButtonElement>(".history-debug")!;
+    expect(debug.title).toBe("Debug this save");
+    expect(debug.getAttribute("aria-label")).toBe("Debug save of photo.jpg");
+    debug.click();
+
+    expect(replay).toHaveBeenCalledOnce();
+    const replayEvent = replay.mock.calls[0]?.[0];
+    if (!(replayEvent instanceof CustomEvent)) throw new Error("missing History replay event");
+    expect(replayEvent.detail).toEqual({
+      state: {
+        info: {
+          filename: "photo.jpg",
+          sourceUrl: "https://cdn.test/photo.jpg",
+          pageUrl: "https://page.test/gallery",
+          context: "LINK",
+          linkText: "Photo",
+          currentTab: { title: "Gallery", url: "https://page.test/gallery" },
+        },
+      },
+    });
+    expect(
+      historyRuntime.sendMessage.mock.calls.filter(([message]) => message.type === "HISTORY_GET"),
+    ).toHaveLength(readsBefore);
+
+    const { debugHistorySave } = await import("../../../src/options/history/history-actions.ts");
+    debugHistorySave("missing-history-id");
+    expect(replay).toHaveBeenCalledOnce();
+
+    const { buildHistoryStatusCell } =
+      await import("../../../src/options/history/history-row-actions.ts");
+    const { historyRow } = await import("../../../src/options/history/history-model.ts");
+    expect(buildHistoryStatusCell(historyRow({})).querySelector(".history-debug")).toBeNull();
+  });
+
   test("reroutes a completed save to a configured destination", async () => {
     historyRuntime.entries = [
       {

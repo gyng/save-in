@@ -2032,6 +2032,18 @@
   "historyUndoDone": {
     "message": "Salvataggio annullato. Il file è stato rimosso."
   },
+  "historyDebugSave": {
+    "message": "Esegui il debug di questo salvataggio"
+  },
+  "historyDebugSaveNamed": {
+    "message": "Esegui il debug del salvataggio di $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "report.pdf"
+      }
+    }
+  },
   "historyUndoFileMissing": {
     "message": "Salvataggio annullato. Il file era già stato spostato o rimosso."
   },
@@ -2769,6 +2781,9 @@
   },
   "routeDebuggerRun": {
     "message": "Verifica regole"
+  },
+  "routeDebuggerHistoryReplay": {
+    "message": "I campi registrati nella Cronologia vengono riprodotti usando le regole di routing attuali."
   },
   "routeDebuggerNoMatch": {
     "message": "Nessuna regola di routing ha trovato corrispondenza."
@@ -4387,5 +4402,19 @@
   },
   "routeDebuggerClickContext": {
     "message": "Clic per salvare"
-  }
+  },
+  "html_linkTitleVariableDescription": {
+    "message": "L’attributo title del collegamento selezionato, quando la pagina lo fornisce."
+  },
+  "html_linkDownloadVariableDescription": {
+    "message": "Il nome di download suggerito dal collegamento, quando la pagina lo fornisce."
+  },
+  "html_linkTitleMatcherDescription": {
+    "message": "Corrisponde all’attributo title del collegamento selezionato."
+  },
+  "html_linkDownloadMatcherDescription": {
+    "message": "Corrisponde al nome di download suggerito dal collegamento."
+  },
+  "routeDebuggerLinkTitle": { "message": "Titolo del collegamento" },
+  "routeDebuggerLinkDownload": { "message": "Nome di download del collegamento" }
 }

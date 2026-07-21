@@ -1200,6 +1200,24 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                             />
                           </label>
                           <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerLinkTitle__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-link-title"
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerLinkDownload__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-link-download"
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
                             <span>__MSG_routeDebuggerSelectionText__</span>
                             <input
                               type="text"
@@ -3469,6 +3487,22 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
               <tr>
                 <td>
+                  <code class="click-to-copy">:linktitle:</code>
+                </td>
+                <td>View full-size image</td>
+                <td>__MSG_html_linkTitleVariableDescription__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:linkdownload:</code>
+                </td>
+                <td>original-photo.jpg</td>
+                <td>__MSG_html_linkDownloadVariableDescription__</td>
+              </tr>
+
+              <tr>
+                <td>
                   <code class="click-to-copy">:selectiontext:</code>
                 </td>
                 <td>A swan created using</td>
@@ -3827,6 +3861,24 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <code>Click here to download</code>
                 </td>
                 <td>__MSG_html_linkTextMatcherDescription__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">linktitle:</code>
+                </td>
+                <td>
+                  <code>View full-size</code>
+                </td>
+                <td>__MSG_html_linkTitleMatcherDescription__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">linkdownload:</code>
+                </td>
+                <td>
+                  <code>original-.*\.jpg</code>
+                </td>
+                <td>__MSG_html_linkDownloadMatcherDescription__</td>
               </tr>
               <tr>
                 <td>

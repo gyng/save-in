@@ -991,6 +991,112 @@ export const runContextMenuScenario = async ({ control, waitForDownloads }) => {
 };
 
 /**
+ * Verifies the content-to-background bridge for page-owned link attributes.
+ * The contextmenu event captures one exact anchor in the page; the subsequent
+ * production menu command requests that frame's bounded metadata and routes on
+ * both explicit fields.
+ *
+ * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   evaluatePage: (target: string, expression: string) => Promise<unknown>,
+ * }} adapters
+ */
+export const runLinkMetadataRoutingScenario = async ({ control, evaluatePage }) => {
+  const server = http.createServer((req, res) => {
+    if (req.url === "/link-metadata") {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(
+        '<a id="save-target" href="/asset.txt" title="full-size" download="original-name.txt">Download</a>',
+      );
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("link metadata fixture");
+  });
+  const port = await listenLocal(server);
+  const target = `127.0.0.1:${port}/link-metadata`;
+  const pageUrl = `http://${target}`;
+  const linkUrl = `http://127.0.0.1:${port}/asset.txt`;
+  const optionKeys = ["paths", "filenamePatterns"];
+  const previous = await control.storage.local.get(optionKeys);
+  const missing = optionKeys.filter((key) => !Object.hasOwn(previous, key));
+  let tabId;
+
+  try {
+    await control.options.set({
+      paths: "e2e/link-metadata",
+      filenamePatterns: `linktitle: ^full-size$
+linkdownload: ^original-name\\.txt$
+into: routed/:linktitle:/:linkdownload:/`,
+    });
+    const created = await control.tabs.create({ url: pageUrl, active: true });
+    tabId = created.id;
+    await control.tabs.wait(tabId === undefined ? { urlIncludes: target } : { id: tabId });
+    await evaluatePage(
+      target,
+      `new Promise((resolve, reject) => {
+        const deadline = Date.now() + 5000;
+        const capture = () => {
+          const link = document.querySelector("#save-target");
+          if (link) {
+            link.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true }));
+            resolve(true);
+          } else if (Date.now() >= deadline) reject(new Error("Link metadata fixture missing"));
+          else requestAnimationFrame(capture);
+        };
+        capture();
+      })`,
+    );
+    const tab = (await control.tabs.query()).find((candidate) => candidate.url?.includes(target));
+    if (tab?.id === undefined) throw new Error("Link metadata fixture tab missing");
+    await control.background.clickContextMenu({
+      info: {
+        menuItemId: "save-in-0",
+        frameId: 0,
+        linkUrl,
+        pageUrl,
+      },
+      tab: { id: tab.id, title: "Link metadata", url: pageUrl },
+    });
+
+    const rows = await control.downloads.wait({
+      filenameIncludes: `link-metadata${path.sep}routed`,
+      minimumComplete: 1,
+      timeoutMs: 10000,
+    });
+    const completed = requireValue(
+      rows.find((row) => row.state === "complete"),
+      "Link metadata save did not complete",
+    );
+    expect(completed.filename).toMatch(
+      new RegExp(
+        `e2e[\\\\/]link-metadata[\\\\/]routed[\\\\/]full-size[\\\\/]original-name\\.txt[\\\\/]asset\\.txt$`,
+      ),
+    );
+    const history = await control.history.wait({ url: linkUrl, status: "complete" });
+    expect(history).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          variables: expect.objectContaining({
+            linktitle: "full-size",
+            linkdownload: "original-name.txt",
+          }),
+        }),
+      ]),
+    );
+  } finally {
+    try {
+      await control.storage.local.set(previous);
+      if (missing.length) await control.storage.local.remove(missing);
+      if (tabId !== undefined) await control.tabs.remove(tabId).catch(() => {});
+      await control.runtime.reset();
+    } finally {
+      await closeLocal(server);
+    }
+  }
+};
+
+/**
  * Drives the production Quick save path: the root-level Quick save item routes a
  * save straight to the resolved default destination, and the dynamic-default
  * toggle redirects that default from the Downloads root to a configured folder.

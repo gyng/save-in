@@ -14,12 +14,14 @@ const renderWorkbench = (): void => {
       <input id="route-debugger-source-url" value="https://cdn.example/report.pdf">
       <input id="route-debugger-page-url" value="https://example.com/reports">
       <input id="route-debugger-mime" value="application/pdf">
-      <select id="route-debugger-context"><option value=""></option><option value="link">Link</option></select>
+      <select id="route-debugger-context"><option value=""></option><option value="link">Link</option><option value="AUTO">Automatic</option></select>
       <select id="route-debugger-gesture"><option value=""></option><option value="double-left-click">Double left click</option></select>
       <input id="route-debugger-page-title">
       <input id="route-debugger-referrer-url">
       <input id="route-debugger-frame-url">
       <input id="route-debugger-link-text">
+      <input id="route-debugger-link-title">
+      <input id="route-debugger-link-download">
       <input id="route-debugger-selection-text">
       <select id="route-debugger-media-type"><option value=""></option><option value="image">Image</option></select>
       <select id="route-debugger-source-kind"><option value=""></option><option value="image">Image</option></select>
@@ -84,6 +86,8 @@ test("shows production rule and clause decisions and jumps back to their source"
     "gesture",
     "currentTabTitle",
     "linkText",
+    "linkTitle",
+    "linkDownload",
     "selectionText",
     "mediaType",
     "sourceKind",
@@ -256,6 +260,70 @@ test("shows production rule and clause decisions and jumps back to their source"
       }),
     }),
   );
+});
+
+test("replays a validated History snapshot against current rules and navigates to the result", async () => {
+  renderWorkbench();
+  vi.mocked(browser.i18n.getMessage).mockReturnValue("");
+  const navigate = vi.fn();
+  document.addEventListener("save-in:navigate-option", navigate, { once: true });
+  const sendMessage = vi
+    .spyOn(webExtensionApi.runtime, "sendMessage")
+    .mockImplementation(async (message: any) => {
+      if (message.type === MESSAGE_TYPES.CHECK_ROUTES) return checkResponse();
+      if (message.type === MESSAGE_TYPES.VALIDATE) {
+        return {
+          type: MESSAGE_TYPES.VALIDATE_RESULT,
+          body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
+        };
+      }
+      throw new Error(`Unexpected message: ${message.type}`);
+    });
+  setupRouteDebugger();
+
+  document.dispatchEvent(new Event("save-in:debug-history"));
+
+  document.dispatchEvent(
+    new CustomEvent("save-in:debug-history", {
+      detail: {
+        state: {
+          info: {
+            filename: "remembered.jpg",
+            sourceUrl: "https://cdn.test/remembered.jpg",
+            pageUrl: "https://page.test/gallery",
+            context: "AUTO",
+            linkText: "Remembered photo",
+            sourceKind: "image",
+            now: "2024-01-02T03:04:05Z",
+            currentTab: { title: "Gallery" },
+          },
+        },
+      },
+    }),
+  );
+
+  const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
+  await vi.waitFor(() => expect(result.dataset.state).toBe("no-match"));
+  expect(document.querySelector<HTMLInputElement>("#route-debugger-filename")!.value).toBe(
+    "remembered.jpg",
+  );
+  expect(document.querySelector<HTMLSelectElement>("#route-debugger-context")!.value).toBe("AUTO");
+  expect(document.querySelector<HTMLInputElement>("#route-debugger-link-text")!.value).toBe(
+    "Remembered photo",
+  );
+  expect(result.textContent).toContain(
+    "Replaying recorded History fields against your current routing rules.",
+  );
+  expect(navigate).toHaveBeenCalledOnce();
+  expect(
+    sendMessage.mock.calls.filter(([message]: any[]) => message.type === MESSAGE_TYPES.VALIDATE),
+  ).toHaveLength(1);
+
+  // A malformed page event is ignored and does not trigger a second trace.
+  document.dispatchEvent(new CustomEvent("save-in:debug-history", { detail: { state: {} } }));
+  expect(
+    sendMessage.mock.calls.filter(([message]: any[]) => message.type === MESSAGE_TYPES.VALIDATE),
+  ).toHaveLength(1);
 });
 
 const fetchTraceResponse = (

@@ -2263,6 +2263,18 @@
   "historyUndoDone": {
     "message": "저장이 취소되었습니다. 파일이 삭제되었습니다."
   },
+  "historyDebugSave": {
+    "message": "이 저장 디버그"
+  },
+  "historyDebugSaveNamed": {
+    "message": "$FILE$ 저장 디버그",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "report.pdf"
+      }
+    }
+  },
   "historyUndoFileMissing": {
     "message": "저장이 취소되었습니다. 파일은 이미 이동되었거나 삭제되어 있었습니다."
   },
@@ -2753,6 +2765,9 @@
   },
   "routeDebuggerRun": {
     "message": "규칙 테스트"
+  },
+  "routeDebuggerHistoryReplay": {
+    "message": "기록에 저장된 필드를 현재 라우팅 규칙으로 다시 실행하고 있습니다."
   },
   "routeDebuggerNoMatch": {
     "message": "일치하는 라우팅 규칙이 없습니다."
@@ -4385,5 +4400,15 @@
   },
   "routeDebuggerClickContext": {
     "message": "클릭하여 저장"
-  }
+  },
+  "html_linkTitleVariableDescription": {
+    "message": "페이지에서 제공하는 경우 클릭한 링크의 title 속성입니다."
+  },
+  "html_linkDownloadVariableDescription": {
+    "message": "페이지에서 제공하는 경우 링크가 제안한 다운로드 이름입니다."
+  },
+  "html_linkTitleMatcherDescription": { "message": "클릭한 링크의 title 속성과 일치합니다." },
+  "html_linkDownloadMatcherDescription": { "message": "링크가 제안한 다운로드 이름과 일치합니다." },
+  "routeDebuggerLinkTitle": { "message": "링크 제목" },
+  "routeDebuggerLinkDownload": { "message": "링크 다운로드 이름" }
 }

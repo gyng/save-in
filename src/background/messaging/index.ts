@@ -267,6 +267,12 @@ const internalHandlers = {
         suggestedFilename,
         linkText:
           typeof recordedVariables.linktext === "string" ? recordedVariables.linktext : undefined,
+        linkTitle:
+          typeof recordedVariables.linktitle === "string" ? recordedVariables.linktitle : undefined,
+        linkDownload:
+          typeof recordedVariables.linkdownload === "string"
+            ? recordedVariables.linkdownload
+            : undefined,
         selectionText:
           typeof recordedVariables.selection === "string" ? recordedVariables.selection : undefined,
         comment:
