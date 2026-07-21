@@ -3,14 +3,21 @@
 - Expanded click-to-save from one modifier/button pair to multiple configurable
   gestures, including middle, right, back, forward, and double-left click.
   Routing rules and the debugger can distinguish them with `gesture:`.
+  Click-to-save now also honors **Prefer links** and its page filter.
 - Made **Last used** reliable in Private Browsing and Incognito across event-page
   and service-worker sleeps. Private Last used remains separate and clears when
   private browsing ends by default. Chrome worker restarts can no longer
   misclassify an isolated private save as an ordinary browser download.
+- Added an independent opt-in that lets an ordinary browser Save As subfolder
+  inside Downloads update **Last used**, without enabling browser-download
+  History. Direct-to-Downloads and browser-routed destinations are ignored.
 - Added the off-by-default **Remember private browsing activity** option. It
   includes private saves in normal local Last used, Recent locations, History,
   counter, diagnostics, and restart-recovery state, while webhooks and browser
   credentials remain disabled in private windows.
+- Added a completed-History retention limit from 0 to 10,000. Active saves stay
+  visible until they finish, and lowering the limit asks before permanently
+  pruning older completed entries.
 - Reduced repeated work and retained memory in History and Page Sources, and
   hardened their large-list and long-lived-page behavior.
 - Hardened Chrome and Firefox browser-test control, lifecycle recovery, and
@@ -26,9 +33,10 @@
   without storing a second routing trace or rereading History.
 - Added `:linktitle:` and `:linkdownload:` variables and matching
   `linktitle:` / `linkdownload:` clauses for interactive link saves (#65).
-  Existing `:linktext:` behavior is unchanged. Link attributes are read only
-  after a save action whose current paths or rules use them; the lookup is
-  bounded, frame-specific, and failure-tolerant.
+  Existing `:linktext:` behavior is unchanged. Right-click saves request link
+  attributes only when current paths or rules use them; the lookup is bounded,
+  frame-specific, and failure-tolerant. Click-to-save reads the same bounded
+  attributes directly from the element after the save gesture.
 
 # 4.0.1
 

@@ -759,6 +759,48 @@ describe("addDownloadListener", () => {
     });
   });
 
+  test("reads link attributes when only an output variable consumes them", async () => {
+    options.paths = "archive/:linktitle:";
+    global.browser.tabs.sendMessage = vi.fn(() =>
+      Promise.resolve({
+        href: "https://example.com/file",
+        title: "Full size",
+        download: "original.jpg",
+      }),
+    );
+    Menus.addPaths(["archive/:linktitle:"], ["link"]);
+
+    await listener({ menuItemId: "save-in-0", linkUrl: "https://example.com/file" }, { id: 42 });
+
+    expect(global.browser.tabs.sendMessage).toHaveBeenCalledOnce();
+    expect(lastState().info.linkTitle).toBe("Full size");
+
+    options.paths = "archive";
+    const outputRules = [
+      [{ name: "capturegroups", value: "linkdownload" }],
+      [{ name: "into", value: "routed/:linktitle:/" }],
+      [{ name: "fetch", value: "https://example.com/:linkdownload:" }],
+      [
+        {
+          name: "rename",
+          value: "file -> :linkdownload:",
+          find: /file/,
+          replacement: ":linkdownload:",
+        },
+      ],
+    ];
+    for (const rule of outputRules) {
+      options.filenamePatterns = [rule];
+      await listener(
+        { menuItemId: Menus.IDS.ROUTE_EXCLUSIVE, linkUrl: "https://example.com/file" },
+        { id: 42 },
+      );
+    }
+
+    expect(global.browser.tabs.sendMessage).toHaveBeenCalledTimes(1 + outputRules.length);
+    expect(lastState().info.linkDownload).toBe("original.jpg");
+  });
+
   test("contains unavailable, stale, and slow link metadata lookups", async () => {
     options.filenamePatterns = [[{ name: "linktitle", value: /.*/ }]];
     global.browser.tabs.sendMessage = vi.fn(() => {
@@ -811,10 +853,18 @@ describe("addDownloadListener", () => {
   });
 
   test("ignores unrelated parsed routing syntax for link metadata", async () => {
+    options.paths = "archive/linktitle-assets";
     options.filenamePatterns = [
       [
         { name: "capture", value: "filename" },
         { name: "sourceurl", value: /example/ },
+        { name: "css", value: "a.linkdownload" },
+        {
+          name: "rename",
+          value: "linktitle -> plain-name",
+          find: /linktitle/,
+          replacement: "plain-name",
+        },
       ],
     ];
     await listener(

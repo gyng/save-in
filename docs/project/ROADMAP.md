@@ -107,9 +107,11 @@ Not features — release hygiene that gates the close-out of everything above.
 - Interactive link saves expose the clicked anchor's `title` and `download`
   attributes as `:linktitle:` / `:linkdownload:` and `linktitle:` /
   `linkdownload:` (#65). `:linktext:` remains backward compatible. Content
-  extraction happens only after save intent and only when configured syntax
-  consumes it, is tied to the exact URL and frame, and times out without
-  blocking the download path indefinitely.
+  extraction happens only after save intent. Right-click saves request it only
+  when configured syntax consumes it, tie it to the exact URL and frame, and
+  time out without blocking the download path indefinitely. Click-to-save
+  already owns the clicked element and attaches the same bounded attributes
+  directly.
 
 ## Gated: Firefox cancel-and-redownload verdict
 

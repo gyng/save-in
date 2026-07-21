@@ -19,7 +19,7 @@ import {
 } from "./menu-build.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
 import { resolveDefaultDestination } from "../menus/quick-save-target.ts";
-import { DOWNLOAD_TYPES } from "../shared/constants.ts";
+import { DOWNLOAD_TYPES, SPECIAL_DIRS } from "../shared/constants.ts";
 import { Path, sanitizeFilename } from "../routing/path.ts";
 import { launchDownload, makeObjectUrl } from "../downloads/download.ts";
 import {
@@ -59,22 +59,39 @@ type PrivateMenuInvocation = { windowId: number | undefined; invalidated: boolea
 const activePrivateMenuInvocations = new Set<PrivateMenuInvocation>();
 const LINK_METADATA_TIMEOUT_MS = 500;
 
-const usesLinkMetadataText = (source: string): boolean => {
+const usesLinkMetadataVariable = (source: string): boolean => {
   const normalized = source.toLowerCase();
-  return normalized.includes("linktitle") || normalized.includes("linkdownload");
+  return (
+    normalized.includes(SPECIAL_DIRS.LINK_TITLE) || normalized.includes(SPECIAL_DIRS.LINK_DOWNLOAD)
+  );
 };
 
+const capturesLinkMetadata = (source: string): boolean =>
+  source
+    .split(",")
+    .map((name) => name.trim().toLowerCase())
+    .some((name) => name === "linktitle" || name === "linkdownload");
+
 const usesContextLinkMetadata = (): boolean => {
-  if (usesLinkMetadataText(options.paths)) return true;
+  if (usesLinkMetadataVariable(options.paths)) return true;
   const rules = options.filenamePatterns;
   if (!Array.isArray(rules)) return false;
   return rules.some((rule) =>
-    rule.some(
-      (clause) =>
-        clause.name === "linktitle" ||
-        clause.name === "linkdownload" ||
-        (typeof clause.value === "string" && usesLinkMetadataText(clause.value)),
-    ),
+    rule.some((clause) => {
+      const name = clause.name.toLowerCase();
+      if (name === "linktitle" || name === "linkdownload") return true;
+      if (name === "capture" || name === "capturegroups") {
+        return typeof clause.value === "string" && capturesLinkMetadata(clause.value);
+      }
+      if (name === "into" || name === "fetch") {
+        return typeof clause.value === "string" && usesLinkMetadataVariable(clause.value);
+      }
+      if (name === "rename") {
+        const replacement: unknown = Reflect.get(clause, "replacement");
+        return typeof replacement === "string" && usesLinkMetadataVariable(replacement);
+      }
+      return false;
+    }),
   );
 };
 
