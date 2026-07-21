@@ -3,15 +3,15 @@
     "message": "Browsersubmappen van Opslaan als gebruiken voor Laatst gebruikt"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "Werkt voor submappen binnen Downloads na één Save In-download zonder dialoogvenster Opslaan als in deze browsersessie. Automatische downloads in de hoofdmap Downloads worden genegeerd. Browsergeschiedenis bijhouden is niet vereist."
+    "message": "Werkt voor submappen binnen Downloads na één Save In-download zonder dialoogvenster Opslaan als in deze browsersessie. Browserdownloads die rechtstreeks in Downloads worden opgeslagen, wijzigen Laatst gebruikt niet. Browserdownloads hoeven niet aan de geschiedenis van Save In te worden toegevoegd."
   },
   "historyRetentionLimit": { "message": "Voltooide items bewaren" },
   "historyRetentionLimitHelp": {
-    "message": "Bij 0 blijven actieve downloads zichtbaar, maar worden ze na voltooiing verwijderd."
+    "message": "Bij 0 blijven lopende opslagacties zichtbaar, maar worden ze na voltooiing verwijderd."
   },
   "historyRetentionConfirmTitle": { "message": "Geschiedenislimiet verlagen?" },
   "historyRetentionConfirmDescription": {
-    "message": "Oudere voltooide items boven de nieuwe limiet worden permanent verwijderd. Actieve downloads blijven behouden. Dit kan niet ongedaan worden gemaakt."
+    "message": "Oudere voltooide items boven de nieuwe limiet worden permanent verwijderd. Lopende opslagacties blijven behouden. Dit kan niet ongedaan worden gemaakt."
   },
   "historyRetentionKeepLimit": { "message": "Huidige limiet behouden" },
   "historyRetentionLowerLimit": { "message": "Limiet verlagen" },
@@ -23,7 +23,7 @@
     "message": "Die map gebruikt een pad dat Save In niet veilig kan hergebruiken."
   },
   "browserLastUsedNeedsSave": {
-    "message": "Sla eerst één bestand op met Save In zodat de map Downloads kan worden herkend."
+    "message": "Sla eerst één bestand op met Save In zonder het dialoogvenster Opslaan als, zodat de map Downloads kan worden herkend."
   },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "PDF's op inhoudstype"
@@ -658,13 +658,13 @@
     "message": "Voeg alleen overeenkomende download-URL's toe (optioneel)"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "Laat dit veld leeg om elke browserdownload af te handelen, of voer één WebExtension-overeenkomstpatroon per regel in. Dit filter geldt voor het bijhouden in de geschiedenis en voor routering."
+    "message": "Laat dit veld leeg om elke browserdownload af te handelen, of voer één WebExtension-overeenkomstpatroon per regel in. Dit filter geldt voor geschiedenisregistratie van Save In, updates van Laatst gebruikt en routering."
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "Sluit overeenkomende download-URL's uit (optioneel)"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
-    "message": "Voer één WebExtension-overeenkomstpatroon per regel in. Uitsluitingen krijgen voorrang op de overeenkomende URL's hierboven en gelden zowel voor het bijhouden in de geschiedenis als voor routering."
+    "message": "Voer één WebExtension-overeenkomstpatroon per regel in. Uitsluitingen krijgen voorrang op de overeenkomende URL's hierboven en gelden voor geschiedenisregistratie van Save In, updates van Laatst gebruikt en routering."
   },
   "o_lBrowserDownloadVariables": {
     "message": "URL, voorgestelde bestandsnaam, MIME-type, huidige tijd, teller en UUID"
@@ -886,7 +886,7 @@
     "message": "Privénavigatie"
   },
   "persistPrivateActivityHelp": {
-    "message": "Voegt privé-opslagacties toe aan Laatst gebruikt, Recente locaties, Geschiedenis, de teller, diagnostiek en herstel na opnieuw opstarten. Deze gegevens kunnen zichtbaar blijven nadat privénavigatie is gesloten. Als u dit uitschakelt, worden geen nieuwe gegevens meer vastgelegd, maar bestaande gegevens worden niet verwijderd. Webhooks en browserreferenties blijven uitgeschakeld in privévensters."
+    "message": "Voegt privé-opslagacties toe aan Laatst gebruikt, Recente locaties, Geschiedenis, de teller, diagnostiek en herstel na opnieuw opstarten. Deze gegevens kunnen zichtbaar blijven nadat privénavigatie is gesloten. Als u dit uitschakelt, worden geen nieuwe gegevens meer vastgelegd, maar bestaande gegevens worden niet verwijderd. Webhooks en browseraanmeldgegevens blijven uitgeschakeld in privévensters."
   },
   "o_cSaveLinks": {
     "message": "Toon acties voor links"
@@ -4363,7 +4363,7 @@
     "message": "De bestemming moet relatief zijn en mag geen ..-padcomponenten bevatten"
   },
   "html_gestureMatcherDescription": {
-    "message": "Komt overeen met het klikgebaar dat is gebruikt om op te slaan."
+    "message": "Komt overeen met het klikgebaar voor ‘Klikken om op te slaan’."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Dubbelklik met de linkermuisknop"

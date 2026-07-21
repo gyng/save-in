@@ -3,15 +3,15 @@
     "message": "Usar subpastas de Salvar como do navegador em Último local"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "Funciona para subpastas dentro de Downloads após um download do Save In sem a caixa Salvar como nesta sessão. Downloads automáticos na raiz de Downloads são ignorados. Não exige rastrear o histórico do navegador."
+    "message": "Funciona para subpastas dentro de Downloads após um download do Save In sem a caixa Salvar como nesta sessão. Downloads do navegador salvos diretamente em Downloads não alteram Último local. Não é necessário adicionar esses downloads ao histórico do Save In."
   },
   "historyRetentionLimit": { "message": "Manter entradas concluídas" },
   "historyRetentionLimitHelp": {
-    "message": "0 mantém os salvamentos ativos visíveis, mas os remove quando terminam."
+    "message": "Com 0, os salvamentos em andamento ficam visíveis, mas são removidos quando terminam."
   },
   "historyRetentionConfirmTitle": { "message": "Reduzir o limite do histórico?" },
   "historyRetentionConfirmDescription": {
-    "message": "As entradas concluídas mais antigas acima do novo limite serão excluídas permanentemente. Os salvamentos ativos serão mantidos. Isso não pode ser desfeito."
+    "message": "As entradas concluídas mais antigas acima do novo limite serão excluídas permanentemente. Os salvamentos em andamento serão mantidos. Isso não pode ser desfeito."
   },
   "historyRetentionKeepLimit": { "message": "Manter o limite atual" },
   "historyRetentionLowerLimit": { "message": "Reduzir o limite" },
@@ -23,7 +23,7 @@
     "message": "Essa pasta usa um caminho que o Save In não pode reutilizar com segurança."
   },
   "browserLastUsedNeedsSave": {
-    "message": "Primeiro salve um arquivo com o Save In para identificar sua pasta Downloads."
+    "message": "Primeiro salve um arquivo com o Save In sem a caixa Salvar como para identificar sua pasta Downloads."
   },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "PDFs por tipo de conteúdo"
@@ -496,7 +496,7 @@
     "message": "Save In…"
   },
   "contextMenuLastUsed": {
-    "message": "Usado pela última vez"
+    "message": "Último local"
   },
   "contextMenuContextMedia": {
     "message": "Mídia"
@@ -658,13 +658,13 @@
     "message": "Incluir apenas URLs de download correspondentes (opcional)"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "Deixe em branco para lidar com todos os downloads do navegador ou insira um padrão de correspondência WebExtension por linha. Este filtro se aplica ao rastreamento do histórico e ao roteamento."
+    "message": "Deixe em branco para lidar com todos os downloads do navegador ou insira um padrão de correspondência WebExtension por linha. Este filtro se aplica ao registro no histórico do Save In, às atualizações de Último local e ao roteamento."
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "Excluir URLs de download correspondentes (opcional)"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
-    "message": "Insira um padrão de correspondência WebExtension por linha. As exclusões têm precedência sobre os URLs correspondentes acima e se aplicam ao rastreamento do histórico e ao roteamento."
+    "message": "Insira um padrão de correspondência WebExtension por linha. As exclusões têm precedência sobre os URLs correspondentes acima e se aplicam ao registro no histórico do Save In, às atualizações de Último local e ao roteamento."
   },
   "o_lBrowserDownloadVariables": {
     "message": "URL, nome de arquivo proposto, tipo MIME, hora atual, contador e UUID"
@@ -886,7 +886,7 @@
     "message": "Navegação privativa"
   },
   "persistPrivateActivityHelp": {
-    "message": "Adiciona salvamentos privativos a Último usado, Locais recentes, Histórico, contador, diagnósticos e recuperação após reinicialização. Esses dados podem continuar visíveis depois que a navegação privativa for encerrada. Desativar esta opção interrompe novos registros, mas não remove os existentes. Webhooks e credenciais do navegador permanecem desativados em janelas privativas."
+    "message": "Adiciona salvamentos privativos a Último local, Locais recentes, Histórico, contador, diagnósticos e recuperação após reinicialização. Esses dados podem continuar visíveis depois que a navegação privativa for encerrada. Desativar esta opção interrompe novos registros, mas não remove os existentes. Webhooks e credenciais do navegador permanecem desativados em janelas privativas."
   },
   "o_cSaveLinks": {
     "message": "Mostrar ações para links"
@@ -4321,7 +4321,7 @@
     "message": "Mostrar apenas Salvamento rápido no menu de contexto"
   },
   "o_cQuickSaveOnlyHelp": {
-    "message": "Salva com um clique removendo o submenu do Save In. A lista de pastas, Último usado e as demais ações do menu somem junto, porque os navegadores só dispensam o submenu quando há um único item."
+    "message": "Salva com um clique removendo o submenu do Save In. A lista de pastas, Último local e as demais ações do menu somem junto, porque os navegadores só dispensam o submenu quando há um único item."
   },
   "o_cClickToSaveUseDefault": {
     "message": "Sempre salvar no destino padrão"
@@ -4363,7 +4363,7 @@
     "message": "O destino deve ser relativo e não pode conter componentes de caminho .."
   },
   "html_gestureMatcherDescription": {
-    "message": "Corresponde ao gesto de clique usado para salvar."
+    "message": "Corresponde ao gesto usado por «Clique para salvar»."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Clique duplo com o botão esquerdo"

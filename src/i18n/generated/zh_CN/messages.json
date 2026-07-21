@@ -1,7 +1,7 @@
 {
   "o_cBrowserDownloadsUpdateLastUsed": { "message": "将浏览器“另存为”子文件夹用作上次使用位置" },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "本次浏览器会话中使用 Save In 下载一次且未打开“另存为”对话框后，可用于“下载”内的子文件夹。会忽略直接保存到“下载”根目录的自动下载。无需跟踪浏览器下载历史。"
+    "message": "本次浏览器会话中使用 Save In 下载一次且未打开“另存为”对话框后，可用于“下载”内的子文件夹。直接保存在“下载”文件夹中的浏览器下载不会更新上次使用位置。无需将浏览器下载添加到 Save In 历史记录。"
   },
   "historyRetentionLimit": { "message": "保留已完成的条目" },
   "historyRetentionLimitHelp": { "message": "设为 0 时会显示进行中的保存，但完成后会移除。" },
@@ -19,7 +19,7 @@
     "message": "该文件夹使用了 Save In 无法安全重复使用的路径。"
   },
   "browserLastUsedNeedsSave": {
-    "message": "请先使用 Save In 保存一个文件，以便识别“下载”文件夹。"
+    "message": "请先使用 Save In 保存一个文件且不要打开“另存为”对话框，以便识别“下载”文件夹。"
   },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "按内容类型分类 PDF"
@@ -244,13 +244,13 @@
     "message": "仅包含匹配的下载 URL（可选）"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "留空以处理每个浏览器下载，或每行输入一个 WebExtension 匹配模式。此过滤器适用于历史跟踪和路由。"
+    "message": "留空以处理每个浏览器下载，或每行输入一个 WebExtension 匹配模式。此过滤器适用于 Save In 历史记录跟踪、上次使用位置更新和路由。"
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "排除匹配的下载 URL（可选）"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
-    "message": "每行输入一个 WebExtension 匹配模式。排除会覆盖上面的匹配 URL，并适用于历史记录跟踪和路由。"
+    "message": "每行输入一个 WebExtension 匹配模式。排除项优先于上面的匹配 URL，并适用于 Save In 历史记录跟踪、上次使用位置更新和路由。"
   },
   "o_lBrowserDownloadVariables": {
     "message": "URL、建议的文件名、MIME 类型、当前时间、计数器和 UUID"

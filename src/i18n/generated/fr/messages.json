@@ -1,29 +1,29 @@
 {
   "o_cBrowserDownloadsUpdateLastUsed": {
-    "message": "Utiliser les sous-dossiers Enregistrer sous du navigateur pour Dernier utilisé"
+    "message": "Utiliser les sous-dossiers « Enregistrer sous » du navigateur pour « Dernier emplacement »"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "Fonctionne pour les sous-dossiers dans Téléchargements après un téléchargement Save In sans boîte de dialogue Enregistrer sous pendant cette session. Les téléchargements automatiques à la racine de Téléchargements sont ignorés. Le suivi de l’historique du navigateur n’est pas requis."
+    "message": "Fonctionne pour les sous-dossiers du dossier Téléchargements après un téléchargement Save In sans boîte de dialogue Enregistrer sous pendant cette session. Les téléchargements du navigateur enregistrés directement dans Téléchargements ne modifient pas « Dernier emplacement ». Il n’est pas nécessaire de les ajouter à l’historique Save In."
   },
   "historyRetentionLimit": { "message": "Conserver les entrées terminées" },
   "historyRetentionLimitHelp": {
-    "message": "0 garde les enregistrements actifs visibles, puis les supprime lorsqu’ils se terminent."
+    "message": "Avec 0, les enregistrements en cours restent visibles, puis sont supprimés une fois terminés."
   },
   "historyRetentionConfirmTitle": { "message": "Réduire la limite de l’historique ?" },
   "historyRetentionConfirmDescription": {
-    "message": "Les entrées terminées les plus anciennes au-delà de la nouvelle limite seront définitivement supprimées. Les enregistrements actifs sont conservés. Cette action est irréversible."
+    "message": "Les entrées terminées les plus anciennes au-delà de la nouvelle limite seront définitivement supprimées. Les enregistrements en cours sont conservés. Cette action est irréversible."
   },
   "historyRetentionKeepLimit": { "message": "Conserver la limite actuelle" },
   "historyRetentionLowerLimit": { "message": "Réduire la limite" },
-  "browserLastUsedNoticeTitle": { "message": "Dernier utilisé n’a pas changé" },
+  "browserLastUsedNoticeTitle": { "message": "« Dernier emplacement » n’a pas été modifié" },
   "browserLastUsedOutsideDownloads": {
-    "message": "Ce dossier se trouve hors de Téléchargements, Save In ne peut donc pas le réutiliser."
+    "message": "Ce dossier se trouve en dehors du dossier Téléchargements, Save In ne peut donc pas le réutiliser."
   },
   "browserLastUsedUnsupportedPath": {
     "message": "Ce dossier utilise un chemin que Save In ne peut pas réutiliser en toute sécurité."
   },
   "browserLastUsedNeedsSave": {
-    "message": "Enregistrez d’abord un fichier avec Save In afin d’identifier votre dossier Téléchargements."
+    "message": "Enregistrez d’abord un fichier avec Save In sans boîte de dialogue « Enregistrer sous » afin d’identifier votre dossier Téléchargements."
   },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "PDF par type de contenu"
@@ -496,7 +496,7 @@
     "message": "Save In…"
   },
   "contextMenuLastUsed": {
-    "message": "Dernière utilisation"
+    "message": "Dernier emplacement"
   },
   "contextMenuContextMedia": {
     "message": "Médias"
@@ -670,13 +670,13 @@
     "message": "Inclure uniquement les URL de téléchargement correspondantes (facultatif)"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "Laissez ce champ vide pour gérer chaque téléchargement du navigateur ou entrez un modèle de correspondance WebExtension par ligne. Ce filtre s’applique au suivi de l’historique et au routage."
+    "message": "Laissez ce champ vide pour gérer chaque téléchargement du navigateur ou entrez un modèle de correspondance WebExtension par ligne. Ce filtre s’applique à l’enregistrement dans l’historique Save In, aux mises à jour de « Dernier emplacement » et au routage."
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "Exclure les URL de téléchargement correspondantes (facultatif)"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
-    "message": "Entrez un modèle de correspondance WebExtension par ligne. Les exclusions remplacent les URL correspondantes ci-dessus et s’appliquent à la fois au suivi de l’historique et au routage."
+    "message": "Entrez un modèle de correspondance WebExtension par ligne. Les exclusions remplacent les URL correspondantes ci-dessus et s’appliquent à l’enregistrement dans l’historique Save In, aux mises à jour de « Dernier emplacement » et au routage."
   },
   "o_lBrowserDownloadVariables": {
     "message": "URL, nom de fichier proposé, type MIME, heure actuelle, compteur et UUID"
@@ -898,7 +898,7 @@
     "message": "Navigation privée"
   },
   "persistPrivateActivityHelp": {
-    "message": "Ajoute les enregistrements privés au dernier emplacement utilisé, aux emplacements récents, à l’historique, au compteur, aux diagnostics et à la récupération après redémarrage. Ces données peuvent rester visibles après la fermeture de la navigation privée. Désactiver cette option arrête les nouveaux enregistrements sans supprimer ceux qui existent déjà. Les webhooks et les identifiants du navigateur restent désactivés dans les fenêtres privées."
+    "message": "Ajoute les enregistrements privés à « Dernier emplacement », aux emplacements récents, à l’historique, au compteur, aux diagnostics et à la récupération après redémarrage. Ces données peuvent rester visibles après la fermeture de la navigation privée. Désactiver cette option arrête les nouveaux enregistrements sans supprimer ceux qui existent déjà. Les webhooks et les identifiants de connexion du navigateur restent désactivés dans les fenêtres privées."
   },
   "o_cSaveLinks": {
     "message": "Afficher les actions pour les liens"
@@ -3359,7 +3359,7 @@
     "message": "Gérer uniquement les URL de téléchargement correspondantes"
   },
   "o_cBrowserDownloadFiltersEnabledHelp": {
-    "message": "S’applique au suivi dans l’historique, aux mises à jour de Dernier utilisé et au routage de Save In."
+    "message": "S’applique au suivi dans l’historique, aux mises à jour de « Dernier emplacement » et au routage de Save In."
   },
   "o_cBrowserDownloadFilterInvalid": {
     "message": "Modèle non valide. Lorsque le filtrage des URL est activé, aucun téléchargement ne correspond tant que ce problème n’est pas corrigé."
@@ -4321,7 +4321,7 @@
     "message": "N’afficher que Enregistrement rapide dans le menu contextuel"
   },
   "o_cQuickSaveOnlyHelp": {
-    "message": "Enregistre en un clic en supprimant le sous-menu Save In. La liste des dossiers, Dernier utilisé et les autres actions du menu disparaissent avec lui, car les navigateurs n’omettent le sous-menu que s’il ne reste qu’un seul élément."
+    "message": "Enregistre en un clic en supprimant le sous-menu Save In. La liste des dossiers, Dernier emplacement et les autres actions du menu disparaissent avec lui, car les navigateurs n’omettent le sous-menu que s’il ne reste qu’un seul élément."
   },
   "o_cClickToSaveUseDefault": {
     "message": "Toujours enregistrer vers la destination par défaut"
@@ -4363,7 +4363,7 @@
     "message": "La destination doit être relative et ne peut pas contenir de composants de chemin .."
   },
   "html_gestureMatcherDescription": {
-    "message": "Correspond au geste de clic utilisé pour l’enregistrement au clic."
+    "message": "Correspond au geste de clic de « Enregistrement au clic »."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Double-clic gauche"

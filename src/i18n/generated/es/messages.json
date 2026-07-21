@@ -3,15 +3,15 @@
     "message": "Usar las subcarpetas de Guardar como del navegador como Última ubicación"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "Funciona con subcarpetas dentro de Descargas después de una descarga de Save In sin diálogo Guardar como en esta sesión. Se ignoran las descargas automáticas en la raíz de Descargas. No requiere registrar el historial del navegador."
+    "message": "Funciona con subcarpetas dentro de Descargas después de una descarga de Save In sin diálogo Guardar como en esta sesión. Las descargas del navegador que se guardan directamente en Descargas no cambian Última ubicación. No es necesario añadir las descargas del navegador al historial de Save In."
   },
   "historyRetentionLimit": { "message": "Conservar entradas completadas" },
   "historyRetentionLimitHelp": {
-    "message": "Con 0, las descargas activas permanecen visibles pero se eliminan al terminar."
+    "message": "Con 0, los guardados en curso permanecen visibles, pero se eliminan al terminar."
   },
   "historyRetentionConfirmTitle": { "message": "¿Reducir el límite del historial?" },
   "historyRetentionConfirmDescription": {
-    "message": "Las entradas finalizadas más antiguas que superen el nuevo límite se eliminarán de forma permanente. Los guardados activos se conservan. Esta acción no se puede deshacer."
+    "message": "Las entradas finalizadas más antiguas que superen el nuevo límite se eliminarán de forma permanente. Los guardados en curso se conservan. Esta acción no se puede deshacer."
   },
   "historyRetentionKeepLimit": { "message": "Mantener el límite actual" },
   "historyRetentionLowerLimit": { "message": "Reducir el límite" },
@@ -23,7 +23,7 @@
     "message": "Esa carpeta usa una ruta que Save In no puede reutilizar de forma segura."
   },
   "browserLastUsedNeedsSave": {
-    "message": "Primero guarda un archivo con Save In para identificar tu carpeta de Descargas."
+    "message": "Guarde primero un archivo con Save In sin el diálogo Guardar como para identificar la carpeta Descargas."
   },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "PDFs por tipo de contenido"
@@ -496,7 +496,7 @@
     "message": "Save In…"
   },
   "contextMenuLastUsed": {
-    "message": "Último usado"
+    "message": "Última ubicación"
   },
   "contextMenuContextMedia": {
     "message": "Contenido multimedia"
@@ -658,13 +658,13 @@
     "message": "Incluir solo las URL de descarga coincidentes (opcional)"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "Déjelo en blanco para gestionar todas las descargas del navegador o introduzca un patrón de coincidencia de WebExtension por línea. Este filtro se aplica al registro en el historial y al enrutamiento."
+    "message": "Déjelo en blanco para gestionar todas las descargas del navegador o introduzca un patrón de coincidencia de WebExtension por línea. Este filtro se aplica al registro en el historial de Save In, las actualizaciones de Última ubicación y el enrutamiento."
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "Excluir URL de descarga coincidentes (opcional)"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
-    "message": "Introduzca un patrón de coincidencia de WebExtension por línea. Las exclusiones anulan las URL coincidentes anteriores y se aplican tanto al seguimiento del historial como al enrutamiento."
+    "message": "Introduzca un patrón de coincidencia de WebExtension por línea. Las exclusiones anulan las URL coincidentes anteriores y se aplican al registro en el historial de Save In, las actualizaciones de Última ubicación y el enrutamiento."
   },
   "o_lBrowserDownloadVariables": {
     "message": "URL, nombre de archivo propuesto, tipo MIME, hora actual, contador y UUID"
@@ -886,7 +886,7 @@
     "message": "Navegación privada"
   },
   "persistPrivateActivityHelp": {
-    "message": "Añade los guardados privados a Último utilizado, Ubicaciones recientes, Historial, el contador, los diagnósticos y la recuperación tras reiniciar. Estos datos pueden seguir visibles después de cerrar la navegación privada. Desactivar esta opción impide crear registros nuevos, pero no elimina los existentes. Los webhooks y las credenciales del navegador permanecen desactivados en las ventanas privadas."
+    "message": "Añade los guardados privados a Última ubicación, Ubicaciones recientes, Historial, el contador, los diagnósticos y la recuperación tras reiniciar. Estos datos pueden seguir visibles después de cerrar la navegación privada. Desactivar esta opción impide crear registros nuevos, pero no elimina los existentes. Los webhooks y las credenciales del navegador permanecen desactivados en las ventanas privadas."
   },
   "o_cSaveLinks": {
     "message": "Mostrar acciones para enlaces"
@@ -4321,7 +4321,7 @@
     "message": "Mostrar solo Guardado rápido en el menú contextual"
   },
   "o_cQuickSaveOnlyHelp": {
-    "message": "Guarda con un clic al quitar el submenú de Save In. La lista de carpetas, Último usado y las demás acciones del menú desaparecen con él, porque los navegadores solo omiten el submenú cuando hay un único elemento."
+    "message": "Guarda con un clic al quitar el submenú de Save In. La lista de carpetas, Última ubicación y las demás acciones del menú desaparecen con él, porque los navegadores solo omiten el submenú cuando hay un único elemento."
   },
   "o_cClickToSaveUseDefault": {
     "message": "Guardar siempre en el destino predeterminado"
@@ -4363,7 +4363,7 @@
     "message": "El destino debe ser relativo y no puede contener componentes de ruta .."
   },
   "html_gestureMatcherDescription": {
-    "message": "Coincide con el gesto de clic usado para guardar."
+    "message": "Coincide con el gesto usado por «Clic para guardar»."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Doble clic izquierdo"

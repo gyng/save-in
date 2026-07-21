@@ -428,8 +428,8 @@
     "description": "Checkbox that updates Save In's Last used destination from ordinary browser Save As subfolders. Used in src/options/options.html."
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "Works for Save As subfolders inside Downloads after one Save In download without a Save As dialog in this browser session. Automatic downloads in the Downloads root are ignored. Browser history tracking is not required.",
-    "description": "Help text for updating Last used from browser Save As subfolders while explaining that automatic root downloads are ignored. Used in src/options/options.html."
+    "message": "Works for Save As subfolders inside Downloads after one Save In download without a Save As dialog in this browser session. Browser downloads saved directly in Downloads do not change Last used. Recording browser downloads in Save In history is not required.",
+    "description": "Help text for updating Last used from browser Save As subfolders, including folder discovery and the outcome for downloads saved directly in Downloads. Used in src/options/options.html."
   },
   "o_cRouteBrowserDownloads": {
     "message": "Route browser downloads with routing rules",
@@ -464,16 +464,16 @@
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "Leave blank to handle every browser download, or enter one WebExtension match pattern per line. This filter applies to history tracking and routing.",
-    "description": "Option control label or related help text. Used in src/options/options.html."
+    "message": "Leave blank to handle every browser download, or enter one WebExtension match pattern per line. This filter applies to Save In history tracking, Last used updates, and routing.",
+    "description": "Help below the ordinary browser-download include filter explaining blank behavior and the workflows affected. Used in src/options/options.html."
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "Exclude matching download URLs (optional)",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
-    "message": "Enter one WebExtension match pattern per line. Exclusions override the matching URLs above and apply to both history tracking and routing.",
-    "description": "Option control label or related help text. Used in src/options/options.html."
+    "message": "Enter one WebExtension match pattern per line. Exclusions override the matching URLs above and apply to Save In history tracking, Last used updates, and routing.",
+    "description": "Help below the ordinary browser-download exclude filter explaining precedence and the workflows affected. Used in src/options/options.html."
   },
   "o_cBrowserDownloadFilterInvalid": {
     "message": "Invalid pattern. When URL filtering is on, no downloads will match until this is fixed.",
@@ -3109,7 +3109,7 @@
   },
   "historyStorageLimit": {
     "message": "History stays on this device.",
-    "description": "History result-count tooltip explaining local storage and its entry limit. Used in src/options/history-panel.ts."
+    "description": "History result-count tooltip explaining that its data remains local. Used in src/options/history/history-table.ts."
   },
   "historyRetentionLimit": {
     "message": "Keep completed entries",
@@ -3132,8 +3132,8 @@
     "description": "Notification explaining that a browser Save As folder inside Downloads cannot become Last used because its relative path is unsupported. Used in src/downloads/notification-events.ts."
   },
   "browserLastUsedNeedsSave": {
-    "message": "Save one file with Save In first so it can identify your Downloads folder.",
-    "description": "Notification asking for one Save In download before browser Save As folders can update Last used. Used in src/downloads/notification-events.ts."
+    "message": "First save one file with Save In without a Save As dialog so it can identify your Downloads folder.",
+    "description": "Notification asking for one Save In download without a Save As dialog before browser Save As folders can update Last used. Used in src/downloads/notification-events.ts."
   },
   "historyTableCaption": {
     "message": "Saved download history",

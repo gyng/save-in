@@ -3,7 +3,7 @@
     "message": "將瀏覽器「另存新檔」子資料夾用作上次使用位置"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "在本次瀏覽器工作階段使用 Save In 下載一次且未開啟「另存新檔」對話框後，可用於「下載」內的子資料夾。會忽略直接儲存到「下載」根目錄的自動下載。不需要追蹤瀏覽器下載記錄。"
+    "message": "在本次瀏覽器工作階段使用 Save In 下載一次且未開啟「另存新檔」對話框後，可用於「下載」內的子資料夾。直接儲存在「下載」資料夾中的瀏覽器下載不會更新上次使用位置。不需要將瀏覽器下載新增至 Save In 歷史記錄。"
   },
   "historyRetentionLimit": { "message": "保留已完成的項目" },
   "historyRetentionLimitHelp": { "message": "設為 0 時會顯示進行中的儲存，但完成後會移除。" },
@@ -21,7 +21,7 @@
     "message": "該資料夾使用了 Save In 無法安全重複使用的路徑。"
   },
   "browserLastUsedNeedsSave": {
-    "message": "請先使用 Save In 儲存一個檔案，以便識別「下載」資料夾。"
+    "message": "請先使用 Save In 儲存一個檔案且不要開啟「另存新檔」對話框，以便識別「下載」資料夾。"
   },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "依內容類型分類 PDF"
@@ -246,13 +246,13 @@
     "message": "僅包含相符的下載 URL（選填）"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "留空即可處理所有瀏覽器下載項目；也可以每行輸入一個 WebExtension 比對模式。此篩選條件同時套用於記錄追蹤和路由。"
+    "message": "留空即可處理所有瀏覽器下載項目；也可以每行輸入一個 WebExtension 比對模式。此篩選條件套用於 Save In 歷史記錄追蹤、上次使用位置更新和路由。"
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "排除相符的下載 URL（選填）"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
-    "message": "每行輸入一個 WebExtension 比對模式。排除項目會優先於上方相符的 URL，並同時套用於記錄追蹤和路由。"
+    "message": "每行輸入一個 WebExtension 比對模式。排除項目會優先於上方相符的 URL，並套用於 Save In 歷史記錄追蹤、上次使用位置更新和路由。"
   },
   "o_lBrowserDownloadVariables": {
     "message": "URL、建議的檔案名稱、MIME 類型、目前時間、計數器和 UUID"

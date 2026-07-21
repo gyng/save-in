@@ -3,15 +3,15 @@
     "message": "Använd webbläsarens Spara som-undermappar för Senast använd"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "Fungerar för undermappar i Hämtade filer efter en Save In-hämtning utan dialogrutan Spara som under den här sessionen. Automatiska hämtningar direkt i Hämtade filer ignoreras. Spårning av webbläsarhistorik krävs inte."
+    "message": "Fungerar för undermappar i Hämtade filer efter en Save In-hämtning utan dialogrutan Spara som under den här sessionen. Webbläsarnedladdningar som sparas direkt i Hämtade filer ändrar inte Senast använd. De behöver inte läggas till i Save In-historiken."
   },
   "historyRetentionLimit": { "message": "Behåll slutförda poster" },
   "historyRetentionLimitHelp": {
-    "message": "0 visar aktiva hämtningar men tar bort dem när de är klara."
+    "message": "Med 0 visas pågående sparningar, men de tas bort när de är klara."
   },
   "historyRetentionConfirmTitle": { "message": "Sänka historikgränsen?" },
   "historyRetentionConfirmDescription": {
-    "message": "Äldre slutförda poster över den nya gränsen tas bort permanent. Aktiva sparningar behålls. Detta går inte att ångra."
+    "message": "Äldre slutförda poster över den nya gränsen tas bort permanent. Pågående sparningar behålls. Detta går inte att ångra."
   },
   "historyRetentionKeepLimit": { "message": "Behåll aktuell gräns" },
   "historyRetentionLowerLimit": { "message": "Sänk gränsen" },
@@ -23,7 +23,7 @@
     "message": "Mappen använder en sökväg som Save In inte kan återanvända säkert."
   },
   "browserLastUsedNeedsSave": {
-    "message": "Spara först en fil med Save In så att mappen Hämtade filer kan identifieras."
+    "message": "Spara först en fil med Save In utan dialogrutan Spara som, så att mappen Hämtade filer kan identifieras."
   },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "PDF-filer efter innehållstyp"
@@ -658,13 +658,13 @@
     "message": "Inkludera endast matchande URL:er för nedladdningar (valfritt)"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "Lämna tomt för att hantera alla webbläsarnedladdningar, eller ange ett WebExtension-matchningsmönster per rad. Filtret gäller både historikspårning och routning."
+    "message": "Lämna tomt för att hantera alla webbläsarnedladdningar, eller ange ett WebExtension-matchningsmönster per rad. Filtret gäller Save In-historik, uppdateringar av Senast använd och routning."
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "Uteslut matchande URL:er för nedladdningar (valfritt)"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
-    "message": "Ange ett WebExtension-matchningsmönster per rad. Undantag åsidosätter de matchande URL:erna ovan och gäller både historikspårning och routning."
+    "message": "Ange ett WebExtension-matchningsmönster per rad. Undantag åsidosätter de matchande URL:erna ovan och gäller Save In-historik, uppdateringar av Senast använd och routning."
   },
   "o_lBrowserDownloadVariables": {
     "message": "URL, föreslaget filnamn, MIME-typ, aktuell tid, räknare och UUID"
@@ -886,7 +886,7 @@
     "message": "Privat surfning"
   },
   "persistPrivateActivityHelp": {
-    "message": "Lägger till privata sparningar i Senast använt, Senaste platser, Historik, räknaren, diagnostik och återställning efter omstart. Dessa data kan förbli synliga efter att privat surfning har avslutats. Om du stänger av detta stoppas nya poster, men befintliga tas inte bort. Webhooks och webbläsaruppgifter förblir avstängda i privata fönster."
+    "message": "Lägger till privata sparningar i Senast använd, Senaste platser, Historik, räknaren, diagnostik och återställning efter omstart. Dessa data kan förbli synliga efter att privat surfning har avslutats. Om du stänger av detta stoppas nya poster, men befintliga tas inte bort. Webhooks och inloggningsuppgifter från webbläsaren förblir avstängda i privata fönster."
   },
   "o_cSaveLinks": {
     "message": "Visa åtgärder för länkar"
@@ -4321,7 +4321,7 @@
     "message": "Visa bara Snabbspara i snabbmenyn"
   },
   "o_cQuickSaveOnlyHelp": {
-    "message": "Sparar med ett klick genom att ta bort undermenyn Save In. Mapplistan, Senast använda och övriga menyåtgärder försvinner med den, eftersom webbläsare bara hoppar över undermenyn när det finns ett enda objekt."
+    "message": "Sparar med ett klick genom att ta bort undermenyn Save In. Mapplistan, Senast använd och övriga menyåtgärder försvinner med den, eftersom webbläsare bara hoppar över undermenyn när det finns ett enda objekt."
   },
   "o_cClickToSaveUseDefault": {
     "message": "Spara alltid till standardmålet"
@@ -4363,7 +4363,7 @@
     "message": "Målet måste vara relativt och får inte innehålla ..-sökvägskomponenter"
   },
   "html_gestureMatcherDescription": {
-    "message": "Matchar klickgesten som användes för att spara."
+    "message": "Matchar klickgesten för ”Klicka för att spara”."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Dubbelklick med vänsterknappen"

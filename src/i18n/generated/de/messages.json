@@ -3,15 +3,15 @@
     "message": "Browser-Unterordner aus „Speichern unter“ für „Zuletzt verwendet“ nutzen"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "Funktioniert für Unterordner in Downloads nach einem Download mit Save In ohne „Speichern unter“-Dialog in dieser Browsersitzung. Automatische Downloads direkt im Downloads-Ordner werden ignoriert. Die Browser-Verlaufsaufzeichnung ist nicht erforderlich."
+    "message": "Funktioniert für Unterordner in Downloads nach einem Download mit Save In ohne „Speichern unter“-Dialog in dieser Browsersitzung. Browser-Downloads, die direkt im Downloads-Ordner gespeichert werden, ändern „Zuletzt verwendet“ nicht. Browser-Downloads müssen dafür nicht im Verlauf von Save In erfasst werden."
   },
   "historyRetentionLimit": { "message": "Abgeschlossene Einträge behalten" },
   "historyRetentionLimitHelp": {
-    "message": "Bei 0 bleiben aktive Speicherungen sichtbar, werden aber nach Abschluss entfernt."
+    "message": "Bei 0 bleiben laufende Speichervorgänge sichtbar, werden aber nach Abschluss entfernt."
   },
   "historyRetentionConfirmTitle": { "message": "Verlaufslimit verringern?" },
   "historyRetentionConfirmDescription": {
-    "message": "Ältere abgeschlossene Einträge oberhalb des neuen Limits werden dauerhaft gelöscht. Aktive Speicherungen bleiben erhalten. Dies kann nicht rückgängig gemacht werden."
+    "message": "Ältere abgeschlossene Einträge oberhalb des neuen Limits werden dauerhaft gelöscht. Laufende Speichervorgänge bleiben erhalten. Dies kann nicht rückgängig gemacht werden."
   },
   "historyRetentionKeepLimit": { "message": "Aktuelles Limit beibehalten" },
   "historyRetentionLowerLimit": { "message": "Limit verringern" },
@@ -23,7 +23,7 @@
     "message": "Dieser Ordner verwendet einen Pfad, den Save In nicht sicher wiederverwenden kann."
   },
   "browserLastUsedNeedsSave": {
-    "message": "Speichern Sie zuerst eine Datei mit Save In, damit der Downloads-Ordner erkannt wird."
+    "message": "Speichern Sie zuerst eine Datei mit Save In ohne „Speichern unter“-Dialog, damit der Downloads-Ordner erkannt wird."
   },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "PDFs nach Inhaltstyp"
@@ -658,13 +658,13 @@
     "message": "Nur passende Download-URLs einschließen (optional)"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "Lassen Sie das Feld leer, um jeden Browser-Download zu verarbeiten, oder geben Sie ein WebExtension-Übereinstimmungsmuster pro Zeile ein. Dieser Filter gilt für die Verlaufsverfolgung und -weiterleitung."
+    "message": "Lassen Sie das Feld leer, um jeden Browser-Download zu verarbeiten, oder geben Sie ein WebExtension-Übereinstimmungsmuster pro Zeile ein. Dieser Filter gilt für die Verlaufserfassung in Save In, Aktualisierungen von „Zuletzt verwendet“ und das Routing."
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "Übereinstimmende Download-URLs ausschließen (optional)"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
-    "message": "Geben Sie pro Zeile ein WebExtension-Übereinstimmungsmuster ein. Ausschlüsse überschreiben die oben genannten passenden URLs und gelten sowohl für die Verlaufsverfolgung als auch für das Routing."
+    "message": "Geben Sie pro Zeile ein WebExtension-Übereinstimmungsmuster ein. Ausschlüsse überschreiben die oben genannten passenden URLs und gelten für die Verlaufserfassung in Save In, Aktualisierungen von „Zuletzt verwendet“ und das Routing."
   },
   "o_lBrowserDownloadVariables": {
     "message": "URL, vorgeschlagener Dateiname, MIME-Typ, aktuelle Uhrzeit, Zähler und UUID"

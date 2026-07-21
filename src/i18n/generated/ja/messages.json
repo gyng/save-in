@@ -3,7 +3,7 @@
     "message": "ブラウザーの「名前を付けて保存」のサブフォルダーを前回使用した場所に使う"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "このブラウザーセッションで「名前を付けて保存」ダイアログを使わずに Save In で一度保存した後、ダウンロード内のサブフォルダーで動作します。ダウンロード直下への自動ダウンロードは無視されます。ブラウザー履歴の記録は不要です。"
+    "message": "このブラウザーセッションで「名前を付けて保存」ダイアログを使わずに Save In で一度保存した後、ダウンロードフォルダー内のサブフォルダーで動作します。ダウンロードフォルダーに直接保存されたブラウザーのダウンロードでは、前回使用した場所は更新されません。ブラウザーのダウンロードを Save In 履歴に記録する必要はありません。"
   },
   "historyRetentionLimit": { "message": "完了した項目を保持" },
   "historyRetentionLimitHelp": {
@@ -23,7 +23,7 @@
     "message": "そのフォルダーのパスは Save In で安全に再利用できません。"
   },
   "browserLastUsedNeedsSave": {
-    "message": "ダウンロードフォルダーを特定するため、最初に Save In でファイルを1つ保存してください。"
+    "message": "ダウンロードフォルダーを特定するため、最初に「名前を付けて保存」ダイアログを使わずに Save In でファイルを 1 つ保存してください。"
   },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "コンテンツタイプで PDF を分類"
@@ -248,13 +248,13 @@
     "message": "一致するダウンロード URL のみを含める（任意）"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "すべてのブラウザーのダウンロードを処理するには空白のままにするか、1 行に 1 つの WebExtension 一致パターンを入力します。このフィルターは履歴の追跡とルーティングに適用されます。"
+    "message": "すべてのブラウザーのダウンロードを処理するには空白のままにするか、1 行に 1 つの WebExtension 一致パターンを入力します。このフィルターは Save In の履歴追跡、前回使用した場所の更新、ルーティングに適用されます。"
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "一致するダウンロード URL を除外する（任意）"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
-    "message": "1 行に 1 つの WebExtension 一致パターンを入力します。除外は、上記の一致する URL をオーバーライドし、履歴追跡とルーティングの両方に適用されます。"
+    "message": "1 行に 1 つの WebExtension 一致パターンを入力します。除外は、上記の一致する URL より優先され、Save In の履歴追跡、前回使用した場所の更新、ルーティングに適用されます。"
   },
   "o_lBrowserDownloadVariables": {
     "message": "URL、提案されたファイル名、MIME タイプ、現在時刻、カウンター、UUID"

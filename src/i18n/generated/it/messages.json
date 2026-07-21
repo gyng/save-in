@@ -1,21 +1,23 @@
 {
   "o_cBrowserDownloadsUpdateLastUsed": {
-    "message": "Usa le sottocartelle Salva con nome del browser per Ultima usata"
+    "message": "Usa le sottocartelle «Salva con nome» del browser per «Ultima destinazione usata»"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "Funziona con sottocartelle dentro Download dopo un download di Save In senza finestra Salva con nome nella sessione corrente. I download automatici nella cartella Download principale vengono ignorati. Non richiede il tracciamento della cronologia del browser."
+    "message": "Funziona con le sottocartelle della cartella Download dopo un download di Save In senza finestra Salva con nome nella sessione corrente. I download del browser salvati direttamente nella cartella Download non modificano «Ultima destinazione usata». Non è necessario aggiungerli alla cronologia di Save In."
   },
   "historyRetentionLimit": { "message": "Conserva le voci completate" },
   "historyRetentionLimitHelp": {
-    "message": "0 mantiene visibili i salvataggi attivi, ma li rimuove al termine."
+    "message": "0 mantiene visibili i salvataggi in corso, ma li rimuove al termine."
   },
   "historyRetentionConfirmTitle": { "message": "Ridurre il limite della cronologia?" },
   "historyRetentionConfirmDescription": {
-    "message": "Le voci completate meno recenti oltre il nuovo limite verranno eliminate definitivamente. I salvataggi attivi vengono conservati. L’operazione non può essere annullata."
+    "message": "Le voci completate meno recenti oltre il nuovo limite verranno eliminate definitivamente. I salvataggi in corso vengono conservati. L’operazione non può essere annullata."
   },
   "historyRetentionKeepLimit": { "message": "Mantieni il limite attuale" },
   "historyRetentionLowerLimit": { "message": "Riduci il limite" },
-  "browserLastUsedNoticeTitle": { "message": "Ultima usata non è cambiata" },
+  "browserLastUsedNoticeTitle": {
+    "message": "«Ultima destinazione usata» non è stata modificata"
+  },
   "browserLastUsedOutsideDownloads": {
     "message": "La cartella è fuori da Download, quindi Save In non può riutilizzarla."
   },
@@ -23,7 +25,7 @@
     "message": "La cartella usa un percorso che Save In non può riutilizzare in modo sicuro."
   },
   "browserLastUsedNeedsSave": {
-    "message": "Salva prima un file con Save In per identificare la cartella Download."
+    "message": "Salva prima un file con Save In senza la finestra «Salva con nome» per identificare la cartella Download."
   },
   "extensionName": {
     "message": "Save In"
@@ -236,13 +238,13 @@
     "message": "Includi solo gli URL di download corrispondenti (facoltativo)"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "Lascia vuoto per gestire ogni download del browser oppure inserisci un pattern di corrispondenza WebExtension per riga. Questo filtro si applica sia al monitoraggio della cronologia sia al routing."
+    "message": "Lascia vuoto per gestire ogni download del browser oppure inserisci un pattern di corrispondenza WebExtension per riga. Questo filtro si applica alla registrazione nella cronologia di Save In, agli aggiornamenti di «Ultima destinazione usata» e al routing."
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "Escludi gli URL di download corrispondenti (facoltativo)"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
-    "message": "Inserisci un pattern di corrispondenza WebExtension per riga. Le esclusioni hanno la precedenza sugli URL inclusi sopra e si applicano sia alla cronologia sia al routing."
+    "message": "Inserisci un pattern di corrispondenza WebExtension per riga. Le esclusioni hanno la precedenza sugli URL inclusi sopra e si applicano alla registrazione nella cronologia di Save In, agli aggiornamenti di «Ultima destinazione usata» e al routing."
   },
   "o_lBrowserDownloadVariables": {
     "message": "URL, nome file proposto, tipo MIME, ora corrente, contatore e UUID"
@@ -788,7 +790,7 @@
     "message": "Navigazione privata"
   },
   "persistPrivateActivityHelp": {
-    "message": "Aggiunge i salvataggi privati a Ultima posizione utilizzata, Posizioni recenti, Cronologia, contatore, diagnostica e ripristino dopo il riavvio. Questi dati possono rimanere visibili dopo la chiusura della navigazione privata. La disattivazione interrompe la creazione di nuovi record ma non elimina quelli esistenti. I webhook e le credenziali del browser rimangono disattivati nelle finestre private."
+    "message": "Aggiunge i salvataggi privati a Ultima destinazione usata, Posizioni recenti, Cronologia, contatore, diagnostica e ripristino dopo il riavvio. Questi dati possono rimanere visibili dopo la chiusura della navigazione privata. La disattivazione interrompe la creazione di nuovi record ma non elimina quelli esistenti. I webhook e le credenziali del browser rimangono disattivati nelle finestre private."
   },
   "o_cSaveLinks": {
     "message": "Mostra azioni per i collegamenti"
@@ -3359,7 +3361,7 @@
     "message": "Gestisci solo gli URL di download corrispondenti"
   },
   "o_cBrowserDownloadFiltersEnabledHelp": {
-    "message": "Si applica al monitoraggio nella cronologia, agli aggiornamenti di Ultima usata e al routing di Save In."
+    "message": "Si applica al monitoraggio nella cronologia, agli aggiornamenti di «Ultima destinazione usata» e al routing di Save In."
   },
   "o_cBrowserDownloadFilterInvalid": {
     "message": "Pattern non valido. Quando il filtro URL è attivo, nessun download corrisponderà finché non viene corretto."
@@ -4321,7 +4323,7 @@
     "message": "Mostra solo Salvataggio rapido nel menu contestuale"
   },
   "o_cQuickSaveOnlyHelp": {
-    "message": "Salva con un clic rimuovendo il sottomenu Save In. L'elenco delle cartelle, Ultimo usato e le altre azioni del menu spariscono con esso, perché i browser saltano il sottomenu solo con un unico elemento."
+    "message": "Salva con un clic rimuovendo il sottomenu Save In. L'elenco delle cartelle, Ultima destinazione usata e le altre azioni del menu spariscono con esso, perché i browser saltano il sottomenu solo con un unico elemento."
   },
   "o_cClickToSaveUseDefault": {
     "message": "Salva sempre nella destinazione predefinita"
@@ -4363,7 +4365,7 @@
     "message": "La destinazione deve essere relativa e non può contenere componenti di percorso .."
   },
   "html_gestureMatcherDescription": {
-    "message": "Corrisponde al gesto di clic usato per salvare."
+    "message": "Corrisponde al gesto usato da «Clic per salvare»."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Doppio clic sinistro"
