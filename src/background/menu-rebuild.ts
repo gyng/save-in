@@ -63,6 +63,9 @@ const performMenuRebuild = async (): Promise<void> => {
   if (options.routeHideFolderChoices) {
     addRouteExclusive(downloadContexts);
     makeSeparator(downloadContexts, MENU_IDS.SEPARATOR.ACTIONS);
+    addSelectionType(downloadContexts);
+    addShowDefaultFolder(downloadContexts);
+    addOptions(downloadContexts);
     addSourcePanel(actionContexts);
     return;
   }

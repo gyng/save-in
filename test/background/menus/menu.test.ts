@@ -662,7 +662,7 @@ describe("menu creation", () => {
   });
 
   describe("rebuildMenus", () => {
-    test("clears stale path mappings when switching to route-exclusive mode", async () => {
+    test("hides destinations but preserves non-folder actions in route-exclusive mode", async () => {
       menu.addPaths(["old/path"], ["link"]);
       expect(menu.pathMappings["save-in-0"]?.parsedDir).toBe("old/path");
       vi.mocked(global.browser.contextMenus.create).mockClear();
@@ -672,9 +672,19 @@ describe("menu creation", () => {
 
       expect(global.browser.contextMenus.removeAll).toHaveBeenCalledOnce();
       expect(menu.pathMappings).toEqual({});
-      expect(created().map((item) => item.id)).toContain(menu.IDS.ROUTE_EXCLUSIVE);
-      expect(created().map((item) => item.id)).toContain(menu.IDS.ROOT);
-      expect(created().map((item) => item.id)).toContain(menu.IDS.TOGGLE_SOURCE_PANEL);
+      const ids = created().map((item) => item.id);
+      expect(ids).toEqual(
+        expect.arrayContaining([
+          menu.IDS.ROUTE_EXCLUSIVE,
+          menu.IDS.ROOT,
+          menu.IDS.SHOW_DEFAULT_FOLDER,
+          menu.IDS.OPTIONS,
+          menu.IDS.TOGGLE_SOURCE_PANEL,
+        ]),
+      );
+      expect(ids).not.toContain(menu.IDS.LAST_USED);
+      expect(ids).not.toContain(menu.IDS.RECENT);
+      expect(ids).not.toContain("save-in-0");
     });
 
     test("reports one path error per bad line however often the menus rebuild", async () => {

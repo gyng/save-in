@@ -19,6 +19,8 @@
 - Refined every generated catalog for the new 4.1 controls, including consistent
   Last used and Click-to-save terminology, explicit private-data boundaries,
   and clearer browser-download and History behavior.
+- Made **Hide folder choices** preserve non-folder context-menu actions such as
+  Options, Open Downloads, context information, and Page Sources.
 
 # 4.0.1
 

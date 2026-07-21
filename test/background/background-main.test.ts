@@ -441,7 +441,7 @@ describe("init", () => {
     expect(Menus.addShowDefaultFolder).toHaveBeenCalledWith(["image", "video", "audio"]);
   });
 
-  test("hiding folder choices keeps Page Sources available under the root", async () => {
+  test("hiding folder choices preserves every non-folder action under the root", async () => {
     await setupGlobals({ options: { routeHideFolderChoices: true } });
     await importIndex();
     await Runtime.ready;
@@ -453,7 +453,9 @@ describe("init", () => {
     expect(Menus.makeSeparator).toHaveBeenCalledWith(contexts, Menus.MENU_IDS.SEPARATOR.ACTIONS);
     expect(Menus.addLastUsed).not.toHaveBeenCalled();
     expect(Menus.renderPathTree).not.toHaveBeenCalled();
-    expect(Menus.addOptions).not.toHaveBeenCalled();
+    expect(Menus.addSelectionType).toHaveBeenCalledWith(contexts);
+    expect(Menus.addShowDefaultFolder).toHaveBeenCalledWith(contexts);
+    expect(Menus.addOptions).toHaveBeenCalledWith(contexts);
     expect(Menus.addSourcePanel).toHaveBeenCalledWith(contexts);
   });
 
