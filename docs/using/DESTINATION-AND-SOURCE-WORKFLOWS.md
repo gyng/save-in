@@ -34,10 +34,10 @@ later private windows.
 With **Use browser Save As subfolders for Last used** enabled, an ordinary
 browser download saved to a subfolder inside Downloads can update the regular
 Last used destination without adding that download to Save In History. Save In
-must first finish one unprompted download in the browser session to identify the
-Downloads root. Automatic downloads saved directly in that root and destinations
-chosen by browser-download routing are ignored so they cannot erase an explicit
-folder choice.
+must first finish one download without a Save As dialog in the browser session
+to identify the Downloads folder. Ordinary browser downloads saved directly in
+Downloads and destinations chosen by browser-download routing do not change
+Last used, so they cannot erase an explicit folder choice.
 
 ## Recent locations
 

@@ -41,21 +41,39 @@ locale, including stale English wording left behind after the canonical message
 changes.
 
 That mechanical pass is necessary but not sufficient. Review new or changed
-messages together as a feature:
+messages together as a feature, and repeat the passes until a complete pass
+finds no new issues:
 
-- Compare each translation with the English description and the control that
-  uses it.
-- Look for English fallbacks, mistranslated actions versus statuses, inconsistent
-  terminology, and accidental changes to placeholders or product names.
-- Resolve overloaded platform terms from the feature context. In External
-  integrations, `extension` means a browser extension, and a calling extension
-  is the software sender—not extra time or a telephone line. Reuse the locale's
-  established browser-extension term throughout that workflow.
-- Check short labels in their surrounding UI, and check longer help, status,
-  and error copy at narrow widths. Follow the localization layout rules in
-  [UI.md](UI.md).
-- Rerun the check after rebasing, merging, or while related feature work is
-  landing. A catalog can become incomplete between two otherwise clean runs.
+1. Compare each translation with the English description and the control that
+   uses it. Verify the actor, action, outcome, prerequisites, exceptions, and
+   complete scope. A prerequisite such as saving once _without_ a Save As
+   dialog must not be shortened to merely saving once.
+2. Compare repeated feature names within each locale. Reuse the established
+   localized label for named UI concepts such as **Last used** or
+   **Click-to-save**, including in help and error text. Make the name visibly a
+   UI term when sentence grammar would otherwise make it ambiguous.
+3. Resolve overloaded words from the feature context instead of translating
+   them in isolation. Distinguish browser history from Save In History,
+   ordinary browser downloads from Automatic Page Sources, and an ongoing save
+   from a browser download. Prefer the user-visible outcome, such as “saved
+   directly in Downloads,” over implementation shorthand such as “Downloads
+   root.” In External integrations, `extension` means a browser extension, and
+   a calling extension is the software sender—not extra time or a telephone
+   line.
+4. Check privacy and persistence copy against the actual data flow. Name the
+   stores or features that receive private activity and the capabilities that
+   remain disabled; generic wording such as “browser data” is not enough when
+   the setting affects History, diagnostics, credentials, or webhooks
+   differently.
+5. Look for English fallbacks, mistranslated actions versus statuses, accidental
+   changes to placeholders or product names, and unnatural literal phrasing.
+   Check short labels in their surrounding UI, and check longer help, status,
+   and error copy at narrow widths. Follow the localization layout rules in
+   [UI.md](UI.md).
+
+Rerun the review and `npm run check:i18n` after rebasing, merging, or while
+related feature work is landing. A catalog can become incomplete or
+semantically stale between two otherwise clean runs.
 
 Some words legitimately stay the same in every locale, such as product names,
 keyboard tokens, URLs, or fixed file-format labels. Add a key to

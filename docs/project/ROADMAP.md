@@ -86,9 +86,10 @@ Not features — release hygiene that gates the close-out of everything above.
 - Last used can follow an ordinary browser Save As subfolder (#201). The opt-in is
   independent of browser-download History. Each successful Save In download
   without a Save As prompt re-derives the Downloads root for the current browser
-  session; only reusable subfolders beneath that root are accepted. Automatic
-  downloads in the root and browser-routed destinations do not overwrite Last
-  used, while an unsupported or not-yet-known root is explained once.
+  session; only reusable subfolders beneath that root are accepted. Ordinary
+  browser downloads saved directly in Downloads and browser-routed destinations
+  do not overwrite Last used, while an unsupported or not-yet-known root is
+  explained once.
 - Completed History retention is configurable from 0 to 10,000. Active saves
   remain visible even at 0 and are removed only after reaching a terminal state.
   Lowering the limit requires confirmation, cannot offer a misleading Undo, and

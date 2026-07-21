@@ -16,6 +16,9 @@
 - Hardened Chrome and Firefox browser-test control, lifecycle recovery, and
   constrained-CI execution, with full source coverage and real-browser memory
   gates.
+- Refined every generated catalog for the new 4.1 controls, including consistent
+  Last used and Click-to-save terminology, explicit private-data boundaries,
+  and clearer browser-download and History behavior.
 
 # 4.0.1
 
