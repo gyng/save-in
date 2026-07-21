@@ -1,6 +1,10 @@
 import { decodeControlResult, decodeOptionValue } from "./control-codecs.mjs";
 import { createProtocolCodecs } from "./protocol-codecs.mjs";
-import { CONTROL_FUNCTION, CONTROL_PAGE_PATH } from "./control-target.mjs";
+import {
+  CONTENT_READY_MESSAGE_TYPE,
+  CONTROL_FUNCTION,
+  CONTROL_PAGE_PATH,
+} from "./control-target.mjs";
 
 /** @typedef {import("./control-protocol.mjs").ControlOperation} ControlOperation */
 /** @typedef {import("./control-protocol.mjs").ControlRequest} ControlRequest */
@@ -1102,6 +1106,18 @@ export const createE2EControlClient = ({ callFunction }) => {
       remove: (ids) => call({ operation: "tabs.remove", ids }),
       /** @param {number} id @param {Record<string, unknown>} message */
       sendMessage: (id, message) => call({ operation: "tabs.sendMessage", id, message }),
+      /** @param {number} id */
+      waitContentReady: async (id) => {
+        const response = await call({
+          operation: "tabs.sendMessage",
+          id,
+          message: { type: CONTENT_READY_MESSAGE_TYPE },
+        });
+        if (!isRecord(response) || response.type !== CONTENT_READY_MESSAGE_TYPE) {
+          throw new Error("Content script returned an invalid readiness acknowledgement");
+        }
+        return true;
+      },
     },
     windows: {
       /** @param {chrome.windows.CreateData} properties */

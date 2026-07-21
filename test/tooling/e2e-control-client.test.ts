@@ -43,6 +43,28 @@ describe("structured E2E control client", () => {
     expect(client.metrics()).toEqual({ structuredCalls: 1 });
   });
 
+  test("waits for a tab's content script through the structured control page", async () => {
+    const requests: unknown[] = [];
+    const client = createE2EControlClient({
+      callFunction: async (_declaration, args) => {
+        requests.push((args?.[0] as { request?: unknown } | undefined)?.request);
+        return JSON.stringify({
+          ok: true,
+          value: { type: "SAVE_IN_E2E_CONTENT_READY" },
+        });
+      },
+    });
+
+    await expect(client.tabs.waitContentReady(7)).resolves.toBe(true);
+    expect(requests).toEqual([
+      {
+        operation: "tabs.sendMessage",
+        id: 7,
+        message: { type: "SAVE_IN_E2E_CONTENT_READY" },
+      },
+    ]);
+  });
+
   test("reports browser-side operation failures with their original message", async () => {
     const client = createE2EControlClient({
       callFunction: async () =>

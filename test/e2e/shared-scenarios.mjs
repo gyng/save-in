@@ -1032,6 +1032,9 @@ into: routed/:linktitle:/:linkdownload:/`,
     const created = await control.tabs.create({ url: pageUrl, active: true });
     tabId = created.id;
     await control.tabs.wait(tabId === undefined ? { urlIncludes: target } : { id: tabId });
+    const tab = (await control.tabs.query()).find((candidate) => candidate.url?.includes(target));
+    if (tab?.id === undefined) throw new Error("Link metadata fixture tab missing");
+    await control.tabs.waitContentReady(tab.id);
     await evaluatePage(
       target,
       `new Promise((resolve, reject) => {
@@ -1047,8 +1050,6 @@ into: routed/:linktitle:/:linkdownload:/`,
         capture();
       })`,
     );
-    const tab = (await control.tabs.query()).find((candidate) => candidate.url?.includes(target));
-    if (tab?.id === undefined) throw new Error("Link metadata fixture tab missing");
     await control.background.clickContextMenu({
       info: {
         menuItemId: "save-in-0",

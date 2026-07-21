@@ -1886,6 +1886,7 @@ test("click-to-save rejects synthetic input and handles trusted single and doubl
       candidate.url?.includes(targetUrl),
     );
     const fixtureTabId = requireValue(fixtureTab?.id, "click-to-save fixture tab missing");
+    await control.tabs.waitContentReady(fixtureTabId);
     await control.tabs.update(fixtureTabId, { active: true });
 
     await cdp.evalInTarget(

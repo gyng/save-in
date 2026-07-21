@@ -837,6 +837,11 @@ test("click-to-save rejects synthetic input and handles trusted single and doubl
 
     const created = await control.tabs.create({ url: pageUrl });
     if (created.id !== undefined) await control.tabs.wait({ id: created.id });
+    const fixtureTab = (await control.tabs.query()).find((candidate) =>
+      candidate.url?.includes(targetUrl),
+    );
+    const fixtureTabId = requireValue(fixtureTab?.id, "click-to-save fixture tab missing");
+    await control.tabs.waitContentReady(fixtureTabId);
 
     await session.evaluateInTab(
       targetUrl,
@@ -854,10 +859,6 @@ test("click-to-save rejects synthetic input and handles trusted single and doubl
     );
     expect(downloads).toHaveLength(0);
 
-    const fixtureTab = (await control.tabs.query()).find((candidate) =>
-      candidate.url?.includes(targetUrl),
-    );
-    const fixtureTabId = requireValue(fixtureTab?.id, "click-to-save fixture tab missing");
     await control.tabs.update(fixtureTabId, { active: true });
     const point = parseJson(
       await session.evaluateInTab(

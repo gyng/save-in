@@ -53,6 +53,8 @@ import {
   type ContextLinkMetadata,
 } from "../shared/context-link-metadata.ts";
 
+declare const SAVE_IN_CONTENT_E2E: boolean;
+
 // Runs in every page. Uses callback-style chrome.* APIs: available in both
 // Chrome and Firefox content scripts (no polyfill is loaded here). try/catch
 // guards cover the extension being reloaded underneath the page
@@ -469,6 +471,16 @@ let receivedInitialOptions = false;
 let sourcePanelListenerReady = false;
 let announcedSourcePanelReady = false;
 let reconfigureOpenSourcePanel: (() => void) | null = null;
+const E2E_CONTENT_READY_REQUEST = "SAVE_IN_E2E_CONTENT_READY";
+const pendingE2EContentReadyResponses = new Set<(response: { type: string }) => void>();
+
+const acknowledgeE2EContentReady = () => {
+  if (!SAVE_IN_CONTENT_E2E || !receivedInitialOptions) return;
+  pendingE2EContentReadyResponses.forEach((respond) =>
+    respond({ type: E2E_CONTENT_READY_REQUEST }),
+  );
+  pendingE2EContentReadyResponses.clear();
+};
 
 // The per-site disable list turns off every content-script surface on matching
 // pages. Feature mounts follow their own options; this predicate is re-evaluated
@@ -609,11 +621,13 @@ try {
     }
     applyOptions(unchangedSnapshot);
     receivedInitialOptions = true;
+    acknowledgeE2EContentReady();
     announceSourcePanelReady();
   });
 } catch (e) {
   // Extension context invalidated (extension reloaded/updated underneath us)
   receivedInitialOptions = true;
+  acknowledgeE2EContentReady();
 }
 
 try {
@@ -781,6 +795,16 @@ try {
     );
   };
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (SAVE_IN_CONTENT_E2E && message?.type === E2E_CONTENT_READY_REQUEST) {
+      if (receivedInitialOptions) {
+        sendResponse({ type: E2E_CONTENT_READY_REQUEST });
+        return;
+      }
+      pendingE2EContentReadyResponses.add(sendResponse);
+      // Callback-style Chrome listeners must keep the channel open for the
+      // storage-read acknowledgement; Firefox honors the same return value.
+      return true;
+    }
     if (message?.type === CONTEXT_LINK_METADATA_REQUEST) {
       const expectedHref = message.body?.linkUrl;
       sendResponse(
@@ -827,6 +851,7 @@ try {
       // changes, only by the page newly matching the list.
       panelPageWasDisabled = sourcePanelIsOpen ? isCurrentPageDisabled() : null;
     });
+    return undefined;
   });
   // Unlike timer retries in the service worker, this handshake is emitted
   // only after the receiving listener exists and reliably restores an open

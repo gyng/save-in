@@ -73,6 +73,13 @@ by the event that changes the state: a storage listener, browser event,
 `MutationObserver`, or page-local task-queue barrier. Do not replace those with
 fixed sleeps or repeated runner-side target polling.
 
+`tabs.wait` acknowledges browser load state, not content-script initialization.
+Before dispatching a page-owned gesture or event whose listener depends on
+stored options, call `control.tabs.waitContentReady(tabId)`. The e2e content
+bundle keeps that single message channel open until its initial storage read is
+applied; an already-ready tab answers immediately. The handshake is compiled
+out of the production content bundle.
+
 ## Browser RSS measurement
 
 The History memory case reports both the complete browser process tree and the

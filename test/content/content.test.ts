@@ -247,6 +247,70 @@ const pushContentOptions = (options: Record<string, unknown>): void => {
 };
 
 describe("content.js initialisation", () => {
+  test("acknowledges E2E content readiness only after initial options are applied", async () => {
+    vi.resetModules();
+    let storageCallback: ((response: Record<string, unknown>) => void) | undefined;
+    let runtimeListener:
+      | ((
+          message: unknown,
+          sender: unknown,
+          sendResponse: (response: unknown) => void,
+        ) => boolean | void)
+      | undefined;
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) => {
+      storageCallback = callback;
+    }) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+    await import("../../src/content/content.ts");
+
+    const pendingResponse = vi.fn();
+    expect(runtimeListener?.({ type: "SAVE_IN_E2E_CONTENT_READY" }, {}, pendingResponse)).toBe(
+      true,
+    );
+    expect(pendingResponse).not.toHaveBeenCalled();
+
+    storageCallback?.({ contentClickToSave: true });
+    expect(pendingResponse).toHaveBeenCalledOnce();
+    expect(pendingResponse).toHaveBeenCalledWith({ type: "SAVE_IN_E2E_CONTENT_READY" });
+
+    const readyResponse = vi.fn();
+    expect(runtimeListener?.({ type: "SAVE_IN_E2E_CONTENT_READY" }, {}, readyResponse)).toBe(
+      undefined,
+    );
+    expect(readyResponse).toHaveBeenCalledWith({ type: "SAVE_IN_E2E_CONTENT_READY" });
+  });
+
+  test("does not expose the content-readiness message outside E2E builds", async () => {
+    vi.resetModules();
+    (globalThis as { SAVE_IN_CONTENT_E2E?: boolean }).SAVE_IN_CONTENT_E2E = false;
+    let runtimeListener:
+      | ((
+          message: unknown,
+          sender: unknown,
+          sendResponse: (response: unknown) => void,
+        ) => boolean | void)
+      | undefined;
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) => callback({})) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+
+    try {
+      await import("../../src/content/content.ts");
+      const respond = vi.fn();
+      expect(runtimeListener?.({ type: "SAVE_IN_E2E_CONTENT_READY" }, {}, respond)).toBeUndefined();
+      expect(respond).not.toHaveBeenCalled();
+    } finally {
+      (globalThis as { SAVE_IN_CONTENT_E2E?: boolean }).SAVE_IN_CONTENT_E2E = true;
+    }
+  });
+
   test("gives routing this page's title, so an automatic pagetitle rule can match", async () => {
     // The scan pre-matches candidates and the background re-matches them against
     // the sending tab. Without this the library default answers undefined, the
