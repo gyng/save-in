@@ -10,6 +10,8 @@ beforeEach(() => {
   document.body.innerHTML = "";
 });
 
+afterEach(() => vi.restoreAllMocks());
+
 test("updates the top status with the save time", () => {
   document.body.innerHTML = '<span id="lastSavedAt">never</span>';
   markSavedNow();
@@ -48,6 +50,10 @@ test("resolves explicit, generated, and fallback saved-check anchors", () => {
 });
 
 test("shows the saved delta and offers undo", async () => {
+  const frames: FrameRequestCallback[] = [];
+  vi.spyOn(window, "requestAnimationFrame").mockImplementation(
+    (callback) => (frames.push(callback), frames.length),
+  );
   vi.mocked(browser.i18n.getMessage).mockImplementation((key) =>
     key === "savedSettingUpdated" ? "Einstellung aktualisiert" : "",
   );
@@ -57,6 +63,10 @@ test("shows the saved delta and offers undo", async () => {
     <input id="notifyOnSuccess">
     <div class="save-status"><span>Updated</span><span id="lastSavedAt">never</span></div>`;
   markSavedNow([{ name: "notifyOnSuccess", before: true, after: false }], undo);
+  frames.shift()?.(0);
+  expect(document.querySelector<HTMLElement>(".saved-change-popover")?.style.position).toBe(
+    "fixed",
+  );
   expect(document.querySelector(".saved-change-popover")?.textContent).toContain(
     "Erfolgreiche DownloadsOn → Off",
   );

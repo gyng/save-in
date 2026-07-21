@@ -970,7 +970,7 @@ describe("Page Sources panel interactions", () => {
     });
     list.dispatchEvent(new Event("scroll"));
     list.dispatchEvent(new Event("scroll"));
-    expect(shadow.querySelectorAll(".row")).toHaveLength(sourceCount);
+    expect(shadow.querySelectorAll(".row")).toHaveLength(200);
     const firstRow = shadow.querySelector<HTMLElement>(".row")!;
 
     const filter = shadow.querySelector<HTMLInputElement>('input[type="search"]')!;
@@ -987,7 +987,7 @@ describe("Page Sources panel interactions", () => {
 
   test("bounds connected rows while traversing a large result set in both directions", () => {
     document.body.innerHTML = Array.from(
-      { length: 350 },
+      { length: 250 },
       (_, index) => `<a href="https://cdn.test/resource-${index}.jpg">${index}</a>`,
     ).join("");
     toggleSourcePanel(vi.fn(), {
@@ -1003,19 +1003,19 @@ describe("Page Sources panel interactions", () => {
       scrollHeight: { configurable: true, value: 1000 },
     });
 
-    for (let index = 0; index < 5; index += 1) list.dispatchEvent(new Event("scroll"));
+    for (let index = 0; index < 3; index += 1) list.dispatchEvent(new Event("scroll"));
     const forwardPosition = Number(
       shadow.querySelector<HTMLElement>(".row")!.getAttribute("aria-posinset"),
     );
     expect(forwardPosition).toBeGreaterThan(1);
-    expect(shadow.querySelectorAll(".row").length).toBeLessThanOrEqual(300);
+    expect(shadow.querySelectorAll(".row").length).toBeLessThanOrEqual(200);
 
     list.scrollTop = 0;
     list.dispatchEvent(new Event("scroll"));
     expect(
       Number(shadow.querySelector<HTMLElement>(".row")!.getAttribute("aria-posinset")),
     ).toBeLessThan(forwardPosition);
-    expect(shadow.querySelectorAll(".row").length).toBeLessThanOrEqual(300);
+    expect(shadow.querySelectorAll(".row").length).toBeLessThanOrEqual(200);
   });
 
   test("shows one empty state and deactivates cached rows when nothing matches", () => {

@@ -19,7 +19,7 @@ import type { CachedRow, SourcePanelContext } from "./source-panel-context.ts";
 
 const SOURCE_RENDER_CHUNK_SIZE = 100;
 const SOURCE_RENDER_LOAD_THRESHOLD_PX = 300;
-const CONNECTED_ROW_LIMIT = SOURCE_RENDER_CHUNK_SIZE * 3;
+const CONNECTED_ROW_LIMIT = SOURCE_RENDER_CHUNK_SIZE * 2;
 const DETACHED_ROW_CACHE_LIMIT = SOURCE_RENDER_CHUNK_SIZE * 2;
 
 const decodeSourcePart = (value: string): string => {
