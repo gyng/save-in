@@ -8,6 +8,7 @@ import {
   Notifier,
   options,
   OffscreenClient,
+  SessionState,
   sessionStore,
   setCurrentBrowser,
 } from "./download-flow.fixture.ts";
@@ -343,7 +344,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     expect(sessionStore.siDownloads?.[202]).toBeUndefined();
   });
 
-  test("persists private retry recovery only after opt-in", async () => {
+  test("keeps an admitted private retry recoverable after the option is disabled", async () => {
     setCurrentBrowser("FIREFOX");
     options.persistPrivateActivity = true;
     const state = makeState({
@@ -354,6 +355,8 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
       },
     });
     await Download.renameAndDownload(state);
+    options.persistPrivateActivity = false;
+    vi.mocked(SessionState.updateSession).mockClear();
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:private-persisted-retry");
     global.fetch = vi.fn(() =>
       Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
@@ -362,6 +365,18 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     await expect(Download.retryViaFetch(101)).resolves.toBe(true);
 
+    expect(SessionState.updateSession).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      "siPendingDownloads",
+      expect.any(Function),
+    );
+    expect(SessionState.updateSession).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      "siFinalFilenames",
+      expect.any(Function),
+    );
     expect(sessionStore.siPendingDownloads).toBe(0);
     expect(sessionStore.siFinalFilenames).toEqual({ version: 1, names: {} });
     expect(sessionStore.siDownloads[202]).toMatchObject({

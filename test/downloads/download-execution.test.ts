@@ -1565,4 +1565,23 @@ describe("private browsing persistence", () => {
     expect(downloaded).toHaveBeenCalled();
     expect(backgroundRuntime.lastDownloadState?.info.currentTab?.incognito).toBe(true);
   });
+
+  test("keeps recovery enabled when the option is disabled after History admission", async () => {
+    setCurrentBrowser("CHROME");
+    options.persistPrivateActivity = true;
+    const state = makeState({ info: { currentTab: { incognito: true } } });
+    const plan = Download.createDownloadPlan(state);
+    options.persistPrivateActivity = false;
+
+    await Download.executeBrowserDownload(plan, { url: state.info.url, source: "direct" });
+
+    expect(sessionStore.siPendingDownloads).toBe(0);
+    expect(sessionStore.siFinalFilenames).toEqual({ version: 1, names: {} });
+    expect(sessionStore.siPrivatePendingDownloads).toBeUndefined();
+    expect(sessionStore.siDownloads[101]).toMatchObject({
+      historyEntryId: "h-test",
+      privateContext: true,
+      adopted: true,
+    });
+  });
 });

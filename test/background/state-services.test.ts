@@ -154,6 +154,89 @@ describe("state service instances", () => {
     });
   });
 
+  test("keeps an admitted private recovery record after the option is disabled", async () => {
+    options.persistPrivateActivity = true;
+    const state = { records: new Map(), hydration: null };
+    const writes = { queues: new Map<string, Promise<unknown>>() };
+    let persisted: Record<string, any> = {};
+    const storage = {
+      get: vi.fn(() => Promise.resolve({ siDownloads: persisted })),
+      set: vi.fn((value: Record<string, any>) => {
+        persisted = value.siDownloads;
+        return Promise.resolve();
+      }),
+    };
+
+    await mergeDownload(state, writes, storage, 7, {
+      url: "https://private.example/file",
+      historyEntryId: "h-private",
+      privateContext: true,
+      adopted: true,
+    });
+    options.persistPrivateActivity = false;
+
+    await mergeDownload(state, writes, storage, 7, { adopted: false });
+
+    expect(persisted[7]).toMatchObject({
+      historyEntryId: "h-private",
+      privateContext: true,
+      adopted: false,
+    });
+  });
+
+  test("does not let a later public-shaped event clear a private download marker", async () => {
+    options.persistPrivateActivity = true;
+    const state = {
+      records: new Map([[7, { historyEntryId: "h-private", privateContext: true, adopted: true }]]),
+      hydration: null,
+    };
+    const writes = { queues: new Map<string, Promise<unknown>>() };
+    let persisted: Record<string, any> = {
+      7: { historyEntryId: "h-private", privateContext: true, adopted: true },
+    };
+    const storage = {
+      get: vi.fn(() => Promise.resolve({ siDownloads: persisted })),
+      set: vi.fn((value: Record<string, any>) => {
+        persisted = value.siDownloads;
+        return Promise.resolve();
+      }),
+    };
+
+    await mergeDownload(state, writes, storage, 7, {
+      filename: "private/file.png",
+      privateContext: false,
+    });
+
+    expect(state.records.get(7)?.privateContext).toBe(true);
+    expect(persisted[7]?.privateContext).toBe(true);
+  });
+
+  test("restores a persisted private marker when an event wins the hydration race", async () => {
+    const state = { records: new Map(), hydration: null };
+    const writes = { queues: new Map<string, Promise<unknown>>() };
+    let persisted: Record<string, any> = {
+      7: { historyEntryId: "h-private", privateContext: true, adopted: true },
+    };
+    const storage = {
+      get: vi.fn(() => Promise.resolve({ siDownloads: persisted })),
+      set: vi.fn((value: Record<string, any>) => {
+        persisted = value.siDownloads;
+        return Promise.resolve();
+      }),
+    };
+
+    await mergeDownload(state, writes, storage, 7, {
+      filename: "private/file.png",
+      privateContext: false,
+    });
+
+    expect(state.records.get(7)?.privateContext).toBe(true);
+    expect(persisted[7]).toMatchObject({
+      filename: "private/file.png",
+      privateContext: true,
+    });
+  });
+
   test("does not serialize a false runtime privacy marker", async () => {
     const state = { records: new Map(), hydration: null };
     const writes = { queues: new Map<string, Promise<unknown>>() };

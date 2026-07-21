@@ -4,7 +4,6 @@
 // stop the item being mistaken for an ordinary browser download. It contains
 // no URL, filename, tab, or destination and exists only for the recovery lease.
 
-import { shouldPersistActivity } from "../config/options-data.ts";
 import { BROWSERS, CURRENT_BROWSER } from "../platform/chrome-detector.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
@@ -15,12 +14,9 @@ export type AnonymousPrivateDownloadGuardRelease = () => Promise<void>;
 
 export const beginAnonymousPrivateDownloadGuard = async (
   privateContext: boolean,
+  persistActivity: boolean,
 ): Promise<AnonymousPrivateDownloadGuardRelease | null> => {
-  if (
-    CURRENT_BROWSER !== BROWSERS.CHROME ||
-    !privateContext ||
-    shouldPersistActivity(privateContext)
-  ) {
+  if (CURRENT_BROWSER !== BROWSERS.CHROME || !privateContext || persistActivity) {
     return null;
   }
 

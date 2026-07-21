@@ -82,7 +82,11 @@ export const retryViaFetch = async (
   // yield no Referer here and stay barred.
   if (record.allowOriginalUrlFallback === false && !retryReferer) return false;
   const privateContext = isPrivateDownloadRecord(record);
-  const persistActivity = shouldPersistActivity(privateContext);
+  // A retained History id proves the original private save was admitted while
+  // the opt-in was enabled. Preserve that save's restart-safe retry even if the
+  // user has since disabled admission for new private activity.
+  const persistActivity =
+    shouldPersistActivity(privateContext) || typeof record.historyEntryId === "string";
   const controller = new AbortController();
   const requestId = crypto.randomUUID();
   if (record.historyEntryId) {
@@ -111,7 +115,10 @@ export const retryViaFetch = async (
     blobUrl = downloadUrl;
     offscreenRequestId = content.offscreenRequestId;
     runtime.pendingRetryFilenames.set(downloadUrl, filename);
-    releasePrivateDownloadGuard = await beginAnonymousPrivateDownloadGuard(privateContext);
+    releasePrivateDownloadGuard = await beginAnonymousPrivateDownloadGuard(
+      privateContext,
+      persistActivity,
+    );
     expected = services.notifier.expectDownload(downloadUrl, {
       privateContext,
       ...(record.sourceSidecar === true ? { sourceSidecar: true } : {}),

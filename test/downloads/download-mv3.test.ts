@@ -859,10 +859,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
   });
 
   test("keeps a private download's recovered filename out of session storage", async () => {
-    // The restart above is what makes this reachable: privateContext lives only
-    // in memory, so after a wakeup the record cannot say the download is
-    // private. downloadItem.incognito is the only surviving evidence, and
-    // storage.session is restart state, which private activity stays out of.
+    // With private persistence left at its default, the restart above leaves
+    // no retained record. downloadItem.incognito is the surviving evidence,
+    // and storage.session is restart state, which isolated activity stays out
+    // of.
     sessionStore.siFinalFilenames = {
       version: 1,
       names: { "https://x/private.png": "route/recovered.txt" },
@@ -887,6 +887,38 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       conflictAction: "uniquify",
     });
     expect(sessionStore.siDownloads?.[21]).toBeUndefined();
+  });
+
+  test("keeps a persisted private marker when Chrome recovery looks public", async () => {
+    const { downloadsState } = await import("../../src/downloads/download-state-instances.ts");
+    downloadsState.records.set(22, {
+      historyEntryId: "h-private",
+      privateContext: true,
+      adopted: true,
+    });
+    sessionStore.siDownloads = {
+      22: { historyEntryId: "h-private", privateContext: true, adopted: true },
+    };
+    sessionStore.siFinalFilenames = {
+      version: 1,
+      names: { "https://x/private-public-shaped.png": "route/private.txt" },
+    };
+
+    const suggest = vi.fn();
+    listener(
+      {
+        id: 22,
+        byExtensionId: "self-extension-id",
+        filename: "original.txt",
+        url: "https://x/private-public-shaped.png",
+        incognito: false,
+      },
+      suggest,
+    );
+
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalled());
+    expect(downloadsState.records.get(22)?.privateContext).toBe(true);
+    expect(sessionStore.siDownloads[22]?.privateContext).toBe(true);
   });
 
   test("still suggests a retry filename when persisted cleanup fails", async () => {

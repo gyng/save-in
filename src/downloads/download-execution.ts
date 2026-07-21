@@ -263,7 +263,11 @@ export const executeBrowserDownload = async (
 ): Promise<DownloadExecutionResult> => {
   const { state, finalFullPath, prompt, historyEntryId } = plan;
   const privateContext = state.info.currentTab?.incognito === true;
-  const persistActivity = shouldPersistActivity(privateContext);
+  // History admission is the persistence decision for this save. Keep its
+  // restart state coherent if the user turns the option off while the async
+  // acquisition/download handoff is already in progress.
+  const persistActivity =
+    shouldPersistActivity(privateContext) || typeof historyEntryId === "string";
   const pendingSourceSidecar = !prompt && !privateContext ? state.scratch.sourceSidecar : undefined;
   void historyPort.patch(historyEntryId, {
     mechanism: acquired.source === "fetched" ? "fetch-downloads-api" : "downloads-api",
@@ -314,7 +318,10 @@ export const executeBrowserDownload = async (
         ]
       : [],
   );
-  const releasePrivateDownloadGuard = await beginAnonymousPrivateDownloadGuard(privateContext);
+  const releasePrivateDownloadGuard = await beginAnonymousPrivateDownloadGuard(
+    privateContext,
+    persistActivity,
+  );
 
   const expected = expectDownload(acquired.url, {
     url: state.info.url,

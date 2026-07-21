@@ -216,12 +216,27 @@ export const mergeDownload = (
   downloadId: number,
   partial: DownloadRecordUpdate,
 ) => {
-  const merged = Object.assign({}, state.records.get(downloadId), partial);
+  const previous = state.records.get(downloadId);
+  const merged = Object.assign({}, previous, partial);
+  // Browser download ids are stable for the browser session, while Chrome can
+  // omit or falsify the Incognito shape on later extension-owned events. Once
+  // the originating tab proved this id private, no weaker event may clear it.
+  if (previous?.privateContext === true) merged.privateContext = true;
   // A data: URL is the payload and is not retryable. Expected-download state
   // owns it only while correlating the browser event; the longer-lived active
   // record needs no copy in memory or storage.
   if (merged.url && isDataUrl(merged.url)) delete merged.url;
   state.records.set(downloadId, merged);
+  // Decide admission when the update is requested, not later when its queued
+  // storage callback runs. A History id or an existing private session record
+  // proves this activity was admitted while the opt-in was enabled; disabling
+  // the option stops new records but must not erase restart state for a save
+  // already in progress. The existing-record check also keeps cold-start
+  // recovery independent of whether configuration finished loading first.
+  const admitsPrivateActivity =
+    merged.privateContext !== true ||
+    shouldPersistActivity(true) ||
+    typeof merged.historyEntryId === "string";
   const inactiveIds = [...state.records]
     .filter(([, record]) => !record.adopted && !record.observedBrowserDownload)
     .map(([id]) => id);
@@ -230,8 +245,13 @@ export const mergeDownload = (
     .forEach((id) => state.records.delete(id));
   return updateSession<unknown>(sessionWrites, storage, DOWNLOADS_SESSION_KEY, (stored) => {
     const records = normalizeDownloadRecords(stored);
-    if (!shouldPersistActivity(merged.privateContext === true)) delete records[downloadId];
+    const existingPrivateActivity = records[downloadId]?.privateContext === true;
+    if (!admitsPrivateActivity && !existingPrivateActivity) delete records[downloadId];
     else {
+      // A queued event can run before hydration restores the in-memory marker.
+      // The persisted marker is stronger evidence than a later public-shaped
+      // Chrome event, so preserve it in both copies before serializing.
+      if (existingPrivateActivity) merged.privateContext = true;
       records[downloadId] = normalizeDownloadRecord(merged);
     }
     capDownloads(records);

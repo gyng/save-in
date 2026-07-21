@@ -223,9 +223,11 @@ beforeEach(() => {
     },
   );
 
-  // add returns a stable id so the started record carries a truthy
-  // historyEntryId; the retry suite asserts setDownloadId's rebind with it
-  vi.spyOn(SaveHistory, "addHistoryEntry").mockReturnValue("h-test");
+  // Mirror History's private-admission boundary while returning a stable id
+  // for every admitted row; retry tests assert setDownloadId's rebind with it.
+  vi.spyOn(SaveHistory, "addHistoryEntry").mockImplementation((_entry, writeOptions = {}) =>
+    writeOptions.privateContext && !options.persistPrivateActivity ? null : "h-test",
+  );
   vi.spyOn(SaveHistory, "patchHistoryEntry").mockImplementation(() => Promise.resolve());
   vi.spyOn(SaveHistory, "setHistoryDownloadId").mockImplementation(() => Promise.resolve());
   vi.spyOn(SaveHistory, "setHistoryStatus").mockImplementation(() => Promise.resolve());
