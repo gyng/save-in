@@ -3,7 +3,7 @@ import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
 import { normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
-import { options } from "../config/options-data.ts";
+import { options, shouldPersistActivity } from "../config/options-data.ts";
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
 import { fetchUrlForDownload } from "./content-fetch.ts";
 import { getFetchReferer } from "./headers.ts";
@@ -81,6 +81,7 @@ export const retryViaFetch = async (
   // yield no Referer here and stay barred.
   if (record.allowOriginalUrlFallback === false && !retryReferer) return false;
   const privateContext = isPrivateDownloadRecord(record);
+  const persistActivity = shouldPersistActivity(privateContext);
   const controller = new AbortController();
   const requestId = crypto.randomUUID();
   if (record.historyEntryId) {
@@ -123,9 +124,8 @@ export const retryViaFetch = async (
       ...(record.pendingHistoryMove ? { pendingHistoryMove: record.pendingHistoryMove } : {}),
     });
     await Promise.all(
-      privateContext
-        ? []
-        : [
+      persistActivity
+        ? [
             updateSession<number>(
               sessionWriteState,
               extensionSessionStorage,
@@ -138,7 +138,8 @@ export const retryViaFetch = async (
               FINAL_FILENAMES_SESSION_KEY,
               (m) => enqueueFilename(m, downloadUrl, filename),
             ),
-          ],
+          ]
+        : [],
     );
     const downloadOptions: Parameters<typeof webExtensionApi.downloads.download>[0] = {
       url: downloadUrl,
@@ -211,7 +212,7 @@ export const retryViaFetch = async (
     if (cleanupUrl && !filenameListenerWillConsume) {
       runtime.pendingRetryFilenames.delete(cleanupUrl);
     }
-    if (cleanupUrl && !privateContext) {
+    if (cleanupUrl && persistActivity) {
       const cleanup: Promise<unknown>[] = [
         updateSession<number>(
           sessionWriteState,

@@ -708,7 +708,7 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "Recent failures stay on this device until the browser session ends. Verbose logging also writes routing and download details to the browser developer console and stays enabled until you turn it off. Private activity is excluded.",
+    "message": "Recent failures stay on this device until the browser session ends. Verbose logging also writes routing and download details to the browser developer console and stays enabled until you turn it off. Private activity is excluded unless Remember private browsing activity is enabled.",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
@@ -1258,6 +1258,18 @@
   "o_cLastUsedMenu": {
     "message": "Show last used menu item",
     "description": "c prefixes are for controls (buttons, etc). Used in src/options/options.html."
+  },
+  "persistPrivateActivity": {
+    "message": "Remember private browsing activity",
+    "description": "Checkbox label for the opt-in that permits private saves to enter Save In's normal local activity storage. Used in src/options/options.html."
+  },
+  "privateBrowsingHeading": {
+    "message": "Private browsing",
+    "description": "Heading for private browsing behavior controls. Used in src/options/options.html."
+  },
+  "persistPrivateActivityHelp": {
+    "message": "Adds private saves to Last used, Recent locations, History, the counter, diagnostics, and restart recovery. This data can remain visible after private browsing closes. Turning this off stops new records but does not remove existing ones. Webhooks and browser credentials stay off in private windows.",
+    "description": "Privacy disclosure beneath the private activity persistence option. Used in src/options/options.html."
   },
   "o_cSaveLinks": {
     "message": "Show actions for links",

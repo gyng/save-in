@@ -40,7 +40,9 @@ Use these permission rationales:
   matching user-selected resource.
 - `downloads`: start, name, monitor, retry, and record downloads locally.
 - `notifications`: report completion and actionable failures.
-- `storage`: store settings, rules, local history, and recovery state.
+- `storage`: store settings, rules, local history, recovery state, and the
+  session-scoped private **Last used** destination. An off-by-default setting
+  can include private saves in the normal local activity stores.
 - `offscreen`: lend the Chrome service worker a document, which has no DOM of
   its own. It creates the temporary Blob URL a fetched download is handed to
   Chrome as, hashes those same bytes for the SHA-256 variables, and runs the
@@ -164,9 +166,14 @@ manually check current Chrome and Firefox:
    Verify Firefox reaches the target and Chrome reports a failed download
    without writing outside its download folder.
 8. Spot-check the automated private-window contract in Chrome Incognito and
-   Firefox Private Browsing: perform a Save In download and an ordinary browser
-   download. Verify neither enters Save In history or the debug log, and the
-   browser-owned filename remains unchanged.
+   Firefox Private Browsing. With private activity retention off, perform a Save
+   In download and an ordinary browser download; verify neither enters Save In
+   history or the debug log and the browser-owned filename remains unchanged.
+   Then enable **Remember private browsing activity** and verify a Save In save
+   enters History with a private label, updates Last used/Recent locations, and
+   survives a background restart. If ordinary-download tracking is also on,
+   verify a private ordinary download is recorded but is not rerouted. Confirm
+   webhooks and private credentials remain off in both modes.
 
 For a final spot-check, verify Referer behavior in both browsers on a site that
 requires it, such as a pixiv media download, and open options-page dialogs that

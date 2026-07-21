@@ -56,15 +56,23 @@ export const runContentDispositionScenario = async ({
 
 /**
  * Drives private context-menu and Last used saves through the production
- * pipeline while verifying that private activity never reaches persistence.
+ * pipeline while verifying the default private-isolation policy.
  *
  * @param {{
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   filename: string,
+ *   privateWindowId?: number,
+ *   persistActivity?: boolean,
  * }} adapters
  */
-export const runPrivateContextScenario = async ({ control, waitForDownloads, filename }) => {
+export const runPrivateContextScenario = async ({
+  control,
+  waitForDownloads,
+  filename,
+  privateWindowId,
+  persistActivity = false,
+}) => {
   const server = http.createServer((_req, res) => {
     res.writeHead(200, { "Content-Type": "text/plain" });
     res.end("private context content");
@@ -72,15 +80,22 @@ export const runPrivateContextScenario = async ({ control, waitForDownloads, fil
   const port = await listenLocal(server);
   const privateUrl = `http://127.0.0.1:${port}/${filename}.txt`;
   const repeatedName = `last-used-${filename}`;
-  const [local, session, log] = await Promise.all([
-    control.storage.local.get(["paths", "save-in-history", "lastUsedPath", "lastUsedMeta"]),
+  const [local, session, log, history] = await Promise.all([
+    control.storage.local.get([
+      "paths",
+      "persistPrivateActivity",
+      "lastUsedPath",
+      "lastUsedMeta",
+      "recentDestinations",
+    ]),
     control.storage.session.get(),
     control.logs.get(),
+    control.history.get(),
   ]);
-  const snapshot = { local, session, log };
+  const snapshot = { local, session, log, history };
 
   try {
-    await control.options.set({ paths: "e2e/private" });
+    await control.options.set({ paths: "e2e/private", persistPrivateActivity: persistActivity });
     await control.background.clickContextMenu({
       info: {
         menuItemId: "save-in-0",
@@ -90,6 +105,7 @@ export const runPrivateContextScenario = async ({ control, waitForDownloads, fil
       },
       tab: {
         id: 91,
+        ...(privateWindowId === undefined ? {} : { windowId: privateWindowId }),
         title: filename,
         url: "https://private.example/",
         incognito: true,
@@ -114,6 +130,7 @@ export const runPrivateContextScenario = async ({ control, waitForDownloads, fil
       },
       tab: {
         id: 91,
+        ...(privateWindowId === undefined ? {} : { windowId: privateWindowId }),
         title: repeatedName,
         url: "https://private.example/",
         incognito: true,
@@ -125,27 +142,64 @@ export const runPrivateContextScenario = async ({ control, waitForDownloads, fil
     expect(repeated.state).toBe("complete");
     expect(repeated.filename).toMatch(new RegExp(`e2e[\\\\/]private[\\\\/]${repeatedName}\\.txt$`));
 
-    const [afterLocal, afterSession, afterLog] = await Promise.all([
-      control.storage.local.get(["save-in-history", "lastUsedPath", "lastUsedMeta"]),
+    const [afterLocal, afterSession, afterLog, afterHistory] = await Promise.all([
+      control.storage.local.get(["lastUsedPath", "lastUsedMeta", "recentDestinations"]),
       control.storage.session.get(),
       control.logs.get(),
+      control.history.get(),
     ]);
-    const after = { local: afterLocal, session: afterSession, log: afterLog };
-    expect(after.local["save-in-history"]).toEqual(snapshot.local["save-in-history"]);
-    expect(after.local.lastUsedPath).toEqual(snapshot.local.lastUsedPath);
-    expect(after.local.lastUsedMeta).toEqual(snapshot.local.lastUsedMeta);
-    expect(after.log).toEqual(snapshot.log);
-    expect(after.session.siPrivateLastUsed).toEqual({
-      path: "e2e/private",
-      meta: expect.objectContaining({ title: "e2e/private" }),
-    });
+    const after = {
+      local: afterLocal,
+      session: afterSession,
+      log: afterLog,
+      history: afterHistory,
+    };
+    if (persistActivity) {
+      expect(after.local.lastUsedPath).toBe("e2e/private");
+      expect(after.local.lastUsedMeta).toEqual(expect.objectContaining({ title: "e2e/private" }));
+      expect(after.local.recentDestinations).toEqual([
+        expect.objectContaining({ path: "e2e/private" }),
+      ]);
+      const newHistory = after.history.slice(snapshot.history.length);
+      expect(newHistory).toHaveLength(2);
+      expect(newHistory).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ private: true, url: privateUrl }),
+          expect.objectContaining({
+            private: true,
+            url: `http://127.0.0.1:${port}/${repeatedName}.txt`,
+          }),
+        ]),
+      );
+      expect(after.log.length).toBeGreaterThan(snapshot.log.length);
+      expect(after.session.siPrivateLastUsed).toBeUndefined();
+      expect(Object.values(after.session.siDownloads || {})).toEqual(
+        expect.arrayContaining([expect.objectContaining({ privateContext: true })]),
+      );
+    } else {
+      expect(after.history).toEqual(snapshot.history);
+      expect(after.local.lastUsedPath).toEqual(snapshot.local.lastUsedPath);
+      expect(after.local.lastUsedMeta).toEqual(snapshot.local.lastUsedMeta);
+      expect(after.local.recentDestinations).toEqual(snapshot.local.recentDestinations);
+      expect(after.log).toEqual(snapshot.log);
+      expect(after.session.siPrivateLastUsed).toEqual({
+        path: "e2e/private",
+        meta: expect.objectContaining({ title: "e2e/private" }),
+      });
+      expect(Object.keys(after.session.siDownloads || {})).toHaveLength(0);
+    }
     expect(Object.keys(after.session.siActiveTransfers || {})).toHaveLength(0);
-    expect(Object.keys(after.session.siDownloads || {})).toHaveLength(0);
   } finally {
     const hadPaths = Object.hasOwn(snapshot.local, "paths");
+    const hadPersistence = Object.hasOwn(snapshot.local, "persistPrivateActivity");
     try {
       if (hadPaths) await control.storage.local.set({ paths: snapshot.local.paths });
       else await control.storage.local.remove("paths");
+      if (hadPersistence) {
+        await control.storage.local.set({
+          persistPrivateActivity: snapshot.local.persistPrivateActivity,
+        });
+      } else await control.storage.local.remove("persistPrivateActivity");
       await control.runtime.reset();
     } finally {
       await closeLocal(server);
@@ -1455,7 +1509,7 @@ export const runRerouteLastSaveScenario = async ({ control, waitForDownloads, fi
     // Long replacements return while the persisted move is pending; the
     // top-level completion listener removes the original only after the new
     // file is complete. A very fast replacement may already be finalized.
-    expect(response.body.oldRemoved).toBe(response.body.pending === true ? false : true);
+    expect(response.body.oldRemoved).toBe(response.body.pending !== true);
     const newHistoryId = decodeString(response.body.newHistoryId);
 
     // The replacement completes under the new folder while the original file

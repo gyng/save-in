@@ -250,6 +250,10 @@ const internalHandlers = {
       typeof recordedVariables.suggestedfilename === "string"
         ? recordedVariables.suggestedfilename
         : undefined;
+    const recordedTab =
+      typeof recordedVariables.pagetitle === "string" || info.pageUrl
+        ? { title: recordedVariables.pagetitle, url: info.pageUrl }
+        : null;
     const rerouteState: DownloadPipelineState = {
       // The chosen directory is the menu selection; routing rules still run,
       // exactly as they would for a menu click on that directory.
@@ -272,10 +276,7 @@ const internalHandlers = {
         menuItemId: entry.menu?.id,
         menuItemTitle: entry.menu?.title,
         menuItemPath: destination,
-        currentTab:
-          typeof recordedVariables.pagetitle === "string" || info.pageUrl
-            ? { title: recordedVariables.pagetitle, url: info.pageUrl }
-            : null,
+        currentTab: entry.private ? { ...recordedTab, incognito: true } : recordedTab,
         now: new Date(),
         context: info.context || recordedVariables.context || DOWNLOAD_TYPES.CLICK,
         gesture: isClickGesture(recordedVariables.gesture) ? recordedVariables.gesture : undefined,

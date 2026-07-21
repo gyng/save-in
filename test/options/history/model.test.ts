@@ -270,6 +270,18 @@ describe("history row flatteners", () => {
     expect(row.variables).toBe("filename=paper.pdf · pagetitle=Example");
   });
 
+  test("labels opted-in private entries in the shared history", () => {
+    const normalized = normalizeHistoryEntry({
+      id: "private-1",
+      private: true,
+      url: "https://private.example/file.png",
+    });
+
+    expect(normalized?.private).toBe(true);
+    expect(historyRow(normalized!)).toMatchObject({ source: "Save In", private: true });
+    expect(historyCsv([normalized!])).toContain('"Save In (private)"');
+  });
+
   test("normalizes legacy and browser-owned row fallbacks", () => {
     expect(
       historyRow({
@@ -412,9 +424,16 @@ describe("paginateHistory", () => {
       info: { context: "browser" },
       observedBrowserDownload: true,
     };
-    const faceted = [...entries, browserEntry];
+    const privateEntry = {
+      timestamp: "2024-01-05",
+      finalFullPath: "private.png",
+      private: true,
+    };
+    const faceted = [...entries, browserEntry, privateEntry];
     expect(paginateHistory(faceted, { sourceFilter: "browser" }).matchCount).toBe(1);
-    expect(paginateHistory(faceted, { sourceFilter: "save-in" }).matchCount).toBe(3);
+    expect(paginateHistory(faceted, { sourceFilter: "save-in" }).matchCount).toBe(4);
+    expect(paginateHistory(faceted, { filter: "private" }).matchCount).toBe(1);
+    expect(paginateHistory(faceted, { filter: "private-other" }).matchCount).toBe(0);
     expect(paginateHistory(faceted, { statusFilter: "failed" }).matchCount).toBe(2);
     expect(paginateHistory(faceted, { statusFilter: "pending" }).matchCount).toBe(0);
     expect(paginateHistory(faceted, { typeFilter: "image" }).matchCount).toBe(1);

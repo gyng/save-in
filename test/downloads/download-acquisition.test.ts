@@ -72,6 +72,23 @@ describe("renameAndDownload: shared :sha256: fetch reuse", () => {
     expect(downloaded).not.toHaveBeenCalled();
   });
 
+  test("emits the opted-in private History preparation", async () => {
+    options.persistPrivateActivity = true;
+    vi.spyOn(Variable, "applyVariables").mockImplementationOnce(async (path, info) => {
+      await info?.onContentFetchStart?.("private-persisted-request");
+      return path as any;
+    });
+    const state = makeState({ info: { currentTab: { incognito: true } } });
+
+    await Download.renameAndDownload(state);
+
+    expect(downloaded).toHaveBeenCalledWith(
+      expect.objectContaining({
+        info: expect.objectContaining({ currentTab: expect.objectContaining({ incognito: true }) }),
+      }),
+    );
+  });
+
   test("reuses the already-fetched download URL instead of fetching the file again", async () => {
     setCurrentBrowser("CHROME");
     const state = makeState({

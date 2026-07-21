@@ -61,9 +61,9 @@ describe("download outcome webhooks", () => {
     });
   });
 
-  // The record is all this path has, and it cannot say whether the download was
-  // private: privateContext never reaches storage.session. A record the start
-  // path did not clear is not one to report on.
+  // The record is all this path has. A record whose start path did not grant
+  // webhook eligibility is not one to report on, including an opted-in private
+  // recovery record that retains privateContext.
   test("stays quiet for a download the start path did not clear", async () => {
     await install({});
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);

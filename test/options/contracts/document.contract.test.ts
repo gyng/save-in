@@ -127,6 +127,7 @@ test("keeps core feature help separate from checkbox accessible names", () => {
     ["page", "save-page-help"],
     ["contentClickToSave", "click-to-save-help"],
     ["saveSourceSidecar", "save-source-sidecar-help"],
+    ["persistPrivateActivity", "persist-private-activity-help"],
   ] as const) {
     const control = document.getElementById(controlId);
     const label = document.querySelector(`label[for="${controlId}"]`);
@@ -166,6 +167,7 @@ test("keeps behavior controls owned by their semantic groups", () => {
       "tabEnabled",
       "closeTabOnSave",
     ],
+    "private-browsing": ["persistPrivateActivity"],
     "save-dialog": ["prompt", "promptIfNoExtension", "promptOnShift", "promptOnFailure"],
     "existing-files": ["conflictAction"],
     "context-menu-access-keys": ["keyRoot", "keyLastUsed", "enableNumberedItems"],

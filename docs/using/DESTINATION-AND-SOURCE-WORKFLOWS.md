@@ -27,6 +27,9 @@ windows keep that destination on the device so it survives background and
 browser restarts. Private windows keep a separate Last used destination only in
 session storage: it survives background sleeps, is never shown in a regular
 window, and is removed when private browsing ends or the browser closes.
+With **Remember private browsing activity** enabled, private selections instead
+update the normal Last used destination, so it remains available in regular and
+later private windows.
 
 ## Recent locations
 
@@ -37,8 +40,9 @@ a recent location moves it to the front of the list and preserves whether that
 destination always opens Save As.
 
 Recent locations are stored on the device so they survive background restarts.
-Private-window saves are not added. Rule-selected destinations are also not
-added because no explicit menu destination was chosen.
+Private-window saves are not added unless **Remember private browsing activity**
+is enabled. Rule-selected destinations are also not added because no explicit
+menu destination was chosen.
 
 ## Page Sources
 
@@ -103,7 +107,8 @@ actions:
 - **Copy source URL** copies the original media, link, or page URL rather than a
   temporary blob or data URL used to build a shortcut.
 
-Private activity is excluded from Save In History.
+Private activity is excluded from Save In History by default. Enabling
+**Remember private browsing activity** records it with a visible private marker.
 
 ## Source-link sidecars
 

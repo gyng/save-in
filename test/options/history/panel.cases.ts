@@ -705,12 +705,17 @@ describe("history filter controls", () => {
     expect(document.querySelector("#history-feedback")?.textContent).toContain("Source URL copied");
   });
 
-  test("renders a browser-owned entry without a saved path", async () => {
-    historyRuntime.entries = [{ id: "h-browser", observedBrowserDownload: true }];
+  test("renders a private browser-owned entry without a saved path", async () => {
+    historyRuntime.entries = [{ id: "h-browser", observedBrowserDownload: true, private: true }];
+    historyPanel.setHistoryLocalizer((key) =>
+      key === "privateBrowsingHeading" ? "Navigation privée" : "",
+    );
 
     await historyPanel.renderHistory();
 
-    expect(document.querySelector(".history-origin")?.textContent).toBe("Browser");
+    expect(document.querySelector(".history-origin")?.textContent).toBe(
+      "Browser (Navigation privée)",
+    );
     expect(document.querySelector('[aria-label="Copy saved path"]')).toBeNull();
   });
 

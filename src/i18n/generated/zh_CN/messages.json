@@ -443,6 +443,15 @@
   "o_cLastUsedMenu": {
     "message": "显示上次使用的菜单项"
   },
+  "persistPrivateActivity": {
+    "message": "记住隐私浏览活动"
+  },
+  "privateBrowsingHeading": {
+    "message": "隐私浏览"
+  },
+  "persistPrivateActivityHelp": {
+    "message": "将隐私窗口中的保存添加到“上次使用”、“最近位置”、历史记录、计数器、诊断和重启恢复中。隐私浏览结束后，这些数据可能仍然可见。关闭此选项会停止生成新记录，但不会删除现有记录。在隐私窗口中，Webhook 和浏览器凭据仍保持禁用。"
+  },
   "o_cSaveLinks": {
     "message": "显示链接的操作"
   },
@@ -1329,7 +1338,7 @@
     "message": "存储"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "近期失败记录会保留在此设备上，直到浏览器会话结束。详细日志还会将路由和下载详情写入浏览器开发者控制台，并在您关闭前保持启用。隐私活动不会记录。"
+    "message": "近期失败记录会保留在此设备上，直到浏览器会话结束。详细日志还会将路由和下载详情写入浏览器开发者控制台，并在您关闭前保持启用。除非启用“记住隐私浏览活动”，否则不会记录隐私活动。"
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "连接方法：在支持 WebMCP 的浏览器中打开此页面并保持打开，然后让浏览器内的 AI 智能体使用此选项卡。您可以直接用自然语言提问，例如：“按网站和日期将下载内容整理到文件夹中，为每个文件编号，并且只在失败时通知我。”"

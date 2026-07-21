@@ -56,6 +56,24 @@ describe("Log", () => {
     expect(global.browser.storage.session.set).not.toHaveBeenCalled();
   });
 
+  test("keeps private diagnostics under the explicit persistence opt-in", async () => {
+    const { options } = await import("../../src/config/options-data.ts");
+    options.persistPrivateActivity = true;
+
+    await Log.addLogEntry(
+      "download requested",
+      { url: "https://private.example/remembered" },
+      { privateContext: true },
+    );
+
+    expect(entries()).toEqual([
+      expect.objectContaining({
+        message: "download requested",
+        data: '{"url":"https://private.example/remembered"}',
+      }),
+    ]);
+  });
+
   test("caps the ring buffer", async () => {
     store[LOG_KEY] = Array.from({ length: Log.LOG_LIMIT }, (_, i) => ({
       at: "t",

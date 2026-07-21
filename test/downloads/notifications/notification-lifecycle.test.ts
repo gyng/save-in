@@ -106,7 +106,7 @@ describe("download lifecycle notifications", () => {
     );
   });
 
-  test("tracks Save In private downloads without a session record", async () => {
+  test("tracks an isolated Save In private download without a session record", async () => {
     Notifier.expectDownload("https://private.example/p.png", { privateContext: true });
 
     await onCreated({
@@ -178,7 +178,7 @@ describe("download lifecycle notifications", () => {
     expect(patch).toHaveBeenCalledWith("h-routed", { routed: true });
   });
 
-  test("does not retain ordinary downloads from private browsing", async () => {
+  test("does not retain ordinary downloads from private browsing by default", async () => {
     options.trackBrowserDownloads = true;
     const history = await import("../../../src/background/history.ts");
     vi.spyOn(history, "addHistoryEntry");
@@ -194,8 +194,39 @@ describe("download lifecycle notifications", () => {
     expect(sessionStore.siDownloads?.[48]).toBeUndefined();
   });
 
+  test("records private ordinary downloads only under both storage opt-ins", async () => {
+    options.trackBrowserDownloads = true;
+    options.persistPrivateActivity = true;
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry").mockReturnValue("h-private-browser");
+    vi.spyOn(history, "setHistoryDownloadId").mockResolvedValue(undefined);
+
+    await onCreated({
+      id: 48,
+      incognito: true,
+      filename: "C:\\Downloads\\private.zip",
+      url: "https://private.example/private.zip",
+    });
+
+    expect(SaveHistory.addHistoryEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        private: true,
+        url: "https://private.example/private.zip",
+        mechanism: "browser-download",
+      }),
+      { privateContext: true },
+    );
+    expect(sessionStore.siDownloads[48]).toMatchObject({
+      observedBrowserDownload: true,
+      privateContext: true,
+      historyEntryId: "h-private-browser",
+    });
+  });
+
   test("does not reroute Firefox downloads from private browsing", async () => {
     browserState.current = "FIREFOX";
+    options.trackBrowserDownloads = true;
+    options.persistPrivateActivity = true;
     options.routeBrowserDownloadsFirefox = true;
     options.browserDownloadFilter = "*://private.example/*";
     const { BrowserDownloadRouting } = await import("../../../src/downloads/browser-downloads.ts");

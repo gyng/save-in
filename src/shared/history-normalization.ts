@@ -63,7 +63,7 @@ export const normalizeHistoryEntry = (value: unknown): HistoryEntry | null => {
           : value[key];
     }
   }
-  for (const key of ["routed", "observedBrowserDownload"] as const) {
+  for (const key of ["routed", "observedBrowserDownload", "private"] as const) {
     if (typeof value[key] === "boolean") entry[key] = value[key];
   }
   if (isStringMember(HISTORY_MECHANISMS, value.mechanism)) {

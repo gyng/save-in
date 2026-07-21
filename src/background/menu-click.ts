@@ -43,6 +43,13 @@ export { resolveClickTarget } from "./menu-target.ts";
 export type ContextMenuClickInfo = ClickInfo & { menuItemId: string | number };
 
 let dynamicLastUsedMenu = false;
+type LastUsedMenuContext = "regular" | "private";
+let appliedLastUsedMenuContext: LastUsedMenuContext = "regular";
+let requestedLastUsedMenuContext: LastUsedMenuContext = "regular";
+let lastUsedMenuUpdateQueue: Promise<unknown> = Promise.resolve();
+let privateLastUsedMutationQueue: Promise<unknown> = Promise.resolve();
+type PrivateMenuInvocation = { windowId: number | undefined; invalidated: boolean };
+const activePrivateMenuInvocations = new Set<PrivateMenuInvocation>();
 
 const getContextMenuListenerRegistrar = (
   eventName: "onShown" | "onHidden",
@@ -66,37 +73,82 @@ const lastUsedMenuExists = (): boolean =>
   !options.routeHideFolderChoices &&
   !(options.quickSaveEnabled && options.quickSaveOnly);
 
+const queuePrivateLastUsedMutation = <Result>(work: () => Promise<Result>): Promise<Result> => {
+  const pending = privateLastUsedMutationQueue.catch(() => {}).then(work);
+  privateLastUsedMutationQueue = pending;
+  return pending;
+};
+
+const queueLastUsedMenuContext = (
+  privateContext: boolean,
+  refreshVisibleMenu: boolean,
+  refresh: () => Promise<void>,
+): Promise<unknown> | null => {
+  if (
+    !privateContext &&
+    requestedLastUsedMenuContext === "regular" &&
+    appliedLastUsedMenuContext === "regular"
+  ) {
+    return null;
+  }
+  const configurationReady = backgroundRuntime.readyGeneration === backgroundRuntime.generation;
+  const knownContext: LastUsedMenuContext =
+    privateContext && (!configurationReady || !options.persistPrivateActivity)
+      ? "private"
+      : "regular";
+  if (
+    configurationReady &&
+    knownContext === requestedLastUsedMenuContext &&
+    knownContext === appliedLastUsedMenuContext
+  ) {
+    return null;
+  }
+  requestedLastUsedMenuContext = knownContext;
+  const pending = lastUsedMenuUpdateQueue
+    .catch(() => {})
+    .then(async () => {
+      if (backgroundRuntime.ready) await backgroundRuntime.ready;
+      const context: LastUsedMenuContext =
+        privateContext && !options.persistPrivateActivity ? "private" : "regular";
+      if (context === requestedLastUsedMenuContext && context === appliedLastUsedMenuContext)
+        return;
+      requestedLastUsedMenuContext = context;
+      if (!lastUsedMenuExists()) return;
+      await updateLastUsedMenu(context === "private");
+      if (refreshVisibleMenu) await refresh();
+      appliedLastUsedMenuContext = context;
+    });
+  lastUsedMenuUpdateQueue = pending;
+  return pending;
+};
+
 const registerDynamicLastUsedMenu = (): boolean => {
+  appliedLastUsedMenuContext = "regular";
+  requestedLastUsedMenuContext = "regular";
+  lastUsedMenuUpdateQueue = Promise.resolve();
   const addShown = getContextMenuListenerRegistrar("onShown");
   const addHidden = getContextMenuListenerRegistrar("onHidden");
   const refresh = getContextMenuRefresh();
   if (!addShown || !addHidden || !refresh) return false;
 
-  addShown((_info: unknown, tab?: CurrentTab) =>
-    runBackgroundTask(
-      "context menu refresh failed",
-      async () => {
-        if (backgroundRuntime.ready) await backgroundRuntime.ready;
-        if (!lastUsedMenuExists()) return;
-        await updateLastUsedMenu(tab?.incognito === true);
-        await refresh();
-      },
-      { privateContext: tab?.incognito === true },
-    ),
-  );
-  addHidden(() =>
-    runBackgroundTask("context menu reset failed", async () => {
-      if (backgroundRuntime.ready) await backgroundRuntime.ready;
-      if (!lastUsedMenuExists()) return;
-      await updateLastUsedMenu();
-    }),
-  );
+  addShown((_info: unknown, tab?: CurrentTab) => {
+    const privateContext = tab?.incognito === true;
+    const pending = queueLastUsedMenuContext(privateContext, true, refresh);
+    return pending
+      ? runBackgroundTask("context menu refresh failed", () => pending, { privateContext })
+      : undefined;
+  });
+  addHidden(() => {
+    const pending = queueLastUsedMenuContext(false, false, refresh);
+    return pending ? runBackgroundTask("context menu reset failed", () => pending) : undefined;
+  });
   return true;
 };
 
-export const handleContextMenuClick = async (
+const handleContextMenuClickInternal = async (
   info: ContextMenuClickInfo,
   tab?: CurrentTab,
+  privateInvocation?: PrivateMenuInvocation,
 ): Promise<void> => {
   if (Object.values(MENU_IDS.TABSTRIP).some((id) => id === info.menuItemId)) {
     return;
@@ -137,6 +189,7 @@ export const handleContextMenuClick = async (
   // later tab updates (#172, #188)
   const clickTab = tab || currentTab;
   const privateContext = clickTab?.incognito === true;
+  const isolatedPrivateContext = privateContext && !options.persistPrivateActivity;
 
   const menuInfo = menuState.pathMappings[info.menuItemId];
   const isSpecialItem = [MENU_IDS.ROUTE_EXCLUSIVE, MENU_IDS.LAST_USED, MENU_IDS.QUICK_SAVE].some(
@@ -197,7 +250,7 @@ export const handleContextMenuClick = async (
       // of the resolved default destination, only the folder tree is skipped.
       saveIntoPath = resolveDefaultDestination(options);
     } else if (info.menuItemId === MENU_IDS.LAST_USED) {
-      const lastUsed = getLastUsed(privateContext);
+      const lastUsed = getLastUsed(isolatedPrivateContext);
       saveIntoPath = lastUsed.path;
       if (!saveIntoPath) return;
       lastUsedMeta = lastUsed.meta;
@@ -308,16 +361,22 @@ export const handleContextMenuClick = async (
     const result = await launchDownload(state);
 
     if (result.status === "started" && selectedLocation) {
-      await setLastUsed(selectedLocation.path, selectedLocation.meta, privateContext);
-      if (!privateContext) {
+      if (!isolatedPrivateContext) {
+        await setLastUsed(selectedLocation.path, selectedLocation.meta);
         const recentDestinationsChanged = await recordRecentDestination(
           selectedLocation.path,
           selectedLocation.meta,
         );
         if (options.enableLastLocation) await updateLastUsedMenu();
         if (options.recentDestinationCount > 0 && recentDestinationsChanged) await rebuildMenus();
-      } else if (options.enableLastLocation && !dynamicLastUsedMenu) {
-        await enablePrivateLastUsedMenu();
+      } else {
+        await queuePrivateLastUsedMutation(async () => {
+          if (privateInvocation?.invalidated) return;
+          await setLastUsed(selectedLocation.path, selectedLocation.meta, true);
+          if (options.enableLastLocation && !dynamicLastUsedMenu) {
+            await enablePrivateLastUsedMenu();
+          }
+        });
       }
     }
 
@@ -362,6 +421,23 @@ export const handleContextMenuClick = async (
   }
 };
 
+export const handleContextMenuClick = async (
+  info: ContextMenuClickInfo,
+  tab?: CurrentTab,
+): Promise<void> => {
+  const invocationTab = tab || currentTab;
+  const privateInvocation: PrivateMenuInvocation | undefined =
+    invocationTab?.incognito === true
+      ? { windowId: invocationTab.windowId, invalidated: false }
+      : undefined;
+  if (privateInvocation) activePrivateMenuInvocations.add(privateInvocation);
+  try {
+    await handleContextMenuClickInternal(info, tab, privateInvocation);
+  } finally {
+    if (privateInvocation) activePrivateMenuInvocations.delete(privateInvocation);
+  }
+};
+
 // Keyboard-command entry point (#144): the command has no click context, so it
 // saves the active tab's page to the resolved default destination through the
 // same handler the menu item uses. Gated on the opt-in so an unbound-by-default
@@ -377,18 +453,28 @@ export const quickSaveActiveTab = async (): Promise<void> => {
 };
 
 export const addDownloadListener = () => {
+  privateLastUsedMutationQueue = Promise.resolve();
+  activePrivateMenuInvocations.clear();
   webExtensionApi.contextMenus.onClicked.addListener((info, tab) =>
     runBackgroundTask("context menu click failed", () => handleContextMenuClick(info, tab), {
       privateContext: tab?.incognito === true,
     }),
   );
   dynamicLastUsedMenu = registerDynamicLastUsedMenu();
-  webExtensionApi.windows.onRemoved.addListener(() =>
-    runBackgroundTask("private Last used cleanup failed", async () => {
-      if (backgroundRuntime.ready) await backgroundRuntime.ready;
-      const windows = await webExtensionApi.windows.getAll();
-      if (windows.some((window) => window.incognito)) return;
-      await clearPrivateLastUsed();
-    }),
-  );
+  webExtensionApi.windows.onRemoved.addListener((windowId) => {
+    for (const invocation of activePrivateMenuInvocations) {
+      if (invocation.windowId === undefined || invocation.windowId === windowId) {
+        invocation.invalidated = true;
+      }
+    }
+    return runBackgroundTask("private Last used cleanup failed", () =>
+      queuePrivateLastUsedMutation(async () => {
+        if (backgroundRuntime.ready) await backgroundRuntime.ready;
+        if (!menuState.privateLastUsedPath) return;
+        const windows = await webExtensionApi.windows.getAll();
+        if (windows.some((window) => window.incognito)) return;
+        await clearPrivateLastUsed();
+      }),
+    );
+  });
 };

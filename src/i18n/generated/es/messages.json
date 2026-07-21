@@ -853,6 +853,15 @@
   "o_cLastUsedMenu": {
     "message": "Mostrar el último elemento de menú utilizado"
   },
+  "persistPrivateActivity": {
+    "message": "Recordar la actividad de navegación privada"
+  },
+  "privateBrowsingHeading": {
+    "message": "Navegación privada"
+  },
+  "persistPrivateActivityHelp": {
+    "message": "Añade los guardados privados a Último utilizado, Ubicaciones recientes, Historial, el contador, los diagnósticos y la recuperación tras reiniciar. Estos datos pueden seguir visibles después de cerrar la navegación privada. Desactivar esta opción impide crear registros nuevos, pero no elimina los existentes. Los webhooks y las credenciales del navegador permanecen desactivados en las ventanas privadas."
+  },
   "o_cSaveLinks": {
     "message": "Mostrar acciones para enlaces"
   },
@@ -1739,7 +1748,7 @@
     "message": "Almacenamiento"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "Los fallos recientes permanecen en este dispositivo hasta que termina la sesión del navegador. El registro detallado también escribe datos de enrutamiento y descarga en la consola de desarrollo del navegador y permanece activado hasta que lo desactives. Se excluye la actividad privada."
+    "message": "Los fallos recientes permanecen en este dispositivo hasta que termina la sesión del navegador. El registro detallado también escribe datos de enrutamiento y descarga en la consola de desarrollo del navegador y permanece activado hasta que lo desactives. La actividad privada se excluye salvo que esté activada la opción «Recordar la actividad de navegación privada»."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "Para conectarse, abra esta página en un navegador compatible con WebMCP, manténgala abierta y dirija su agente del navegador a esta pestaña. Pídaselo en lenguaje natural, por ejemplo: «ordene mis descargas en carpetas por sitio web y fecha, numere cada archivo y notifíqueme solo cuando uno falle»."

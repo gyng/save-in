@@ -26,6 +26,7 @@ export interface E2EStoredOptionValues {
   notifyOnRuleMatch: boolean;
   notifyOnSuccess: boolean;
   paths: string;
+  persistPrivateActivity: boolean;
   promptOnShift: boolean;
   quickSaveDirectory: string;
   quickSaveEnabled: boolean;
@@ -93,6 +94,7 @@ export interface MenuClickInfo {
 
 export interface ContextMenuTab {
   id?: number | undefined;
+  windowId?: number | undefined;
   title?: string | undefined;
   url?: string | undefined;
   incognito?: boolean | undefined;

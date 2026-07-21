@@ -101,6 +101,7 @@ const seedDeps = () => {
     quickSaveOnly: false,
     keyLastUsed: "",
     recentDestinationCount: 3,
+    persistPrivateActivity: false,
   });
   Object.assign(WEB_EXTENSION_CAPABILITIES, { tabContextMenus: false });
   vi.spyOn(Download, "launchDownload").mockResolvedValue({ status: "started", downloadId: 1 });

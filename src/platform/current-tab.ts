@@ -13,6 +13,7 @@
 // fields from leaking into the Chrome typecheck (and vice versa).
 export type CurrentTab = {
   id?: number | undefined;
+  windowId?: number | undefined;
   title?: string | undefined;
   url?: string | undefined;
   incognito?: boolean | undefined;

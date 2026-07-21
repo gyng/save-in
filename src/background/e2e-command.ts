@@ -56,7 +56,7 @@ export type BackgroundE2EContextMenuRequest = {
   type: typeof BACKGROUND_E2E_CONTEXT_MENU_COMMAND;
   body: {
     info: ContextMenuClickInfo;
-    tab?: Pick<CurrentTab, "id" | "title" | "url" | "incognito"> | undefined;
+    tab?: Pick<CurrentTab, "id" | "windowId" | "title" | "url" | "incognito"> | undefined;
   };
 };
 
@@ -211,9 +211,10 @@ const isBackgroundE2EContextMenuInfo = (value: unknown): value is ContextMenuCli
 
 const isBackgroundE2EContextMenuTab = (
   value: unknown,
-): value is Pick<CurrentTab, "id" | "title" | "url" | "incognito"> =>
+): value is Pick<CurrentTab, "id" | "windowId" | "title" | "url" | "incognito"> =>
   isRecord(value) &&
   hasOptionalNumber(value, "id") &&
+  hasOptionalNumber(value, "windowId") &&
   ["title", "url"].every((key) => hasOptionalString(value, key)) &&
   hasOptionalBoolean(value, "incognito");
 

@@ -151,6 +151,7 @@ const historyMatchesQuery = (entry: HistoryEntry, query: string): boolean => {
     historyFilename(entry.finalFullPath).toLowerCase().includes(query) ||
     historyFolder(entry.finalFullPath).toLowerCase().includes(query) ||
     historySource(entry).toLowerCase().includes(query) ||
+    (entry.private === true && "private".includes(query)) ||
     historySourceUrl(entry).toLowerCase().includes(query) ||
     historyMenuItem(entry).toLowerCase().includes(query) ||
     historyVariableText(historyVariableEntries(entry)).toLowerCase().includes(query)
@@ -237,6 +238,7 @@ export const historyRow = (entry: HistoryEntry): HistoryRow => {
     folder: historyFolder(entry.finalFullPath),
     fullPath: entry.finalFullPath || "",
     source: historySource(entry, info),
+    private: entry.private === true,
     mechanism:
       HISTORY_MECHANISMS[entry.mechanism || ""] ||
       (entry.observedBrowserDownload || info.context === "browser"
@@ -286,7 +288,7 @@ export const formatBytes = (n: number | null | undefined): string => {
 // parsed form of the variables column. Excluding them makes the column key set
 // exactly the set the table can render, so a column without a cell builder is
 // a compile error rather than a silently missing cell.
-type NonColumnRowField = "historyId" | "reroutable" | "variableEntries";
+type NonColumnRowField = "historyId" | "reroutable" | "private" | "variableEntries";
 
 export type HistoryColumnKey = Exclude<keyof HistoryRow, NonColumnRowField> | "index";
 
@@ -358,6 +360,9 @@ const spreadsheetSafeText = (value: unknown): string => {
 
 const csvCell = (value: unknown): string => `"${spreadsheetSafeText(value).replaceAll('"', '""')}"`;
 
+const historyExportValue = (row: HistoryRow, key: keyof HistoryRow): unknown =>
+  key === "source" && row.private ? `${row.source} (private)` : row[key];
+
 export const historyCsv = (
   entries: HistoryEntry[],
   displayColumns: HistoryDisplayColumn[] = HISTORY_COLUMNS,
@@ -368,7 +373,7 @@ export const historyCsv = (
   const rows = entries.map(historyRow);
   return [
     columns.map(({ label }) => csvCell(label)).join(","),
-    ...rows.map((row) => columns.map(({ key }) => csvCell(row[key])).join(",")),
+    ...rows.map((row) => columns.map(({ key }) => csvCell(historyExportValue(row, key))).join(",")),
   ].join("\n");
 };
 
@@ -384,7 +389,7 @@ export const historyTsv = (
     spreadsheetSafeText(String(value ?? "").replaceAll(/[\t\r\n]/g, " "));
   return [
     columns.map(({ label }) => cell(label)).join("\t"),
-    ...rows.map((row) => columns.map(({ key }) => cell(row[key])).join("\t")),
+    ...rows.map((row) => columns.map(({ key }) => cell(historyExportValue(row, key))).join("\t")),
   ].join("\n");
 };
 

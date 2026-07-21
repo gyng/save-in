@@ -853,6 +853,15 @@
   "o_cLastUsedMenu": {
     "message": "Zuletzt verwendeten Menüpunkt anzeigen"
   },
+  "persistPrivateActivity": {
+    "message": "Aktivitäten beim privaten Surfen speichern"
+  },
+  "privateBrowsingHeading": {
+    "message": "Privates Surfen"
+  },
+  "persistPrivateActivityHelp": {
+    "message": "Fügt private Speicherungen zu „Zuletzt verwendet“, den zuletzt verwendeten Speicherorten, dem Verlauf, dem Zähler, der Diagnose und der Wiederherstellung nach einem Neustart hinzu. Diese Daten können nach dem Ende des privaten Surfens sichtbar bleiben. Wenn Sie dies deaktivieren, werden keine neuen Einträge mehr gespeichert, vorhandene jedoch nicht entfernt. Webhooks und Browser-Anmeldedaten bleiben in privaten Fenstern deaktiviert."
+  },
   "o_cSaveLinks": {
     "message": "Aktionen für Links anzeigen"
   },
@@ -1739,7 +1748,7 @@
     "message": "Speicher"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "Kürzlich aufgetretene Fehler bleiben bis zum Ende der Browsersitzung auf diesem Gerät. Die ausführliche Protokollierung schreibt außerdem Routing- und Downloaddetails in die Browser-Entwicklerkonsole und bleibt aktiviert, bis Sie sie ausschalten. Private Aktivitäten sind ausgeschlossen."
+    "message": "Kürzlich aufgetretene Fehler bleiben bis zum Ende der Browsersitzung auf diesem Gerät. Die ausführliche Protokollierung schreibt außerdem Routing- und Downloaddetails in die Browser-Entwicklerkonsole und bleibt aktiviert, bis Sie sie ausschalten. Private Aktivitäten sind ausgeschlossen, sofern „Aktivitäten beim privaten Surfen speichern“ nicht aktiviert ist."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "So stellen Sie eine Verbindung her: Öffnen Sie diese Seite in einem Browser mit WebMCP-Unterstützung, lassen Sie sie geöffnet und weisen Sie Ihren Agenten im Browser auf diesen Tab hin. Bitten Sie ihn in natürlicher Sprache, beispielsweise: „Sortiere meine Downloads nach Website und Datum in Ordner, nummeriere jede Datei und benachrichtige mich nur, wenn eine Datei fehlschlägt.“"

@@ -320,6 +320,35 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     expect(sessionStore.siDownloads?.[202]).toBeUndefined();
   });
 
+  test("persists private retry recovery only after opt-in", async () => {
+    setCurrentBrowser("FIREFOX");
+    options.persistPrivateActivity = true;
+    const state = makeState({
+      info: {
+        url: "https://example.com/private/file.png",
+        pageUrl: "https://example.com/private",
+        currentTab: { incognito: true },
+      },
+    });
+    await Download.renameAndDownload(state);
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:private-persisted-retry");
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    (global.browser.downloads as any).download = vi.fn(() => Promise.resolve(202));
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(sessionStore.siPendingDownloads).toBe(0);
+    expect(sessionStore.siFinalFilenames).toEqual({ version: 1, names: {} });
+    expect(sessionStore.siDownloads[202]).toMatchObject({
+      privateContext: true,
+      viaFetch: true,
+      adopted: true,
+      historyEntryId: "h-test",
+    });
+  });
+
   test("omits credentials from fallback fetching unless enabled", async () => {
     await seedStartedDownload();
     global.fetch = vi.fn(() =>

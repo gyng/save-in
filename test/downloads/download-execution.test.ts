@@ -1070,7 +1070,7 @@ describe("onDeterminingFilename listener: sync path", () => {
   });
 
   test("fails closed when exclusive routing has nothing to prove the route held", async () => {
-    // A private download persists nothing, so a restart leaves no name and no
+    // An isolated private download persists nothing, so a restart leaves no name and no
     // deferred recovery: the mandatory route cannot be shown to have matched,
     // and guessing a destination is what routeSkipUnmatched exists to refuse.
     setCurrentBrowser("CHROME");
@@ -1531,5 +1531,37 @@ describe("private browsing persistence", () => {
     expect(Log.addLogEntry).not.toHaveBeenCalledWith("download requested", expect.anything());
     expect(downloaded).not.toHaveBeenCalled();
     expect(backgroundRuntime.lastDownloadState).toBeUndefined();
+  });
+
+  test("uses normal local activity and recovery paths after opt-in", async () => {
+    setCurrentBrowser("CHROME");
+    options.persistPrivateActivity = true;
+    const state = makeState({
+      info: {
+        currentTab: { incognito: true, title: "Private gallery" },
+        pageUrl: "https://private.example/gallery/",
+      },
+    });
+
+    await Download.renameAndDownload(state);
+
+    expect(SaveHistory.addHistoryEntry).toHaveBeenCalledWith(
+      expect.objectContaining({ private: true }),
+      { privateContext: true },
+    );
+    expect(sessionStore.siPendingDownloads).toBe(0);
+    expect(sessionStore.siFinalFilenames).toEqual({ version: 1, names: {} });
+    expect(sessionStore.siDownloads[101]).toMatchObject({
+      privateContext: true,
+      adopted: true,
+      webhookEligible: false,
+    });
+    expect(SaveHistory.setHistoryDownloadId).toHaveBeenCalledWith("h-test", 101);
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "download requested",
+      expect.objectContaining({ path: "downloads/file.png" }),
+    );
+    expect(downloaded).toHaveBeenCalled();
+    expect(backgroundRuntime.lastDownloadState?.info.currentTab?.incognito).toBe(true);
   });
 });

@@ -75,8 +75,13 @@ the peripheral features fit a single purpose:
 > Save In stores the user's own configuration and state locally: settings, folder
 > paths, routing and renaming rules, download history, and the recovery state
 > that lets an interrupted download resume after the MV3 service worker restarts.
-> All data stays on the device; none is transmitted to the developer or any third
-> party.
+> A separate private **Last used** destination is kept only in browser session
+> storage so it survives background sleeps, then removed when the final private
+> window closes. An off-by-default setting can include private saves in the
+> normal local activity stores; its disclosure explains that those records can
+> outlive private browsing. Webhooks and browser credentials remain disabled in
+> private windows. All data stays on the device; none is transmitted to the
+> developer or any third party.
 
 ### `offscreen`
 

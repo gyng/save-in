@@ -30,6 +30,7 @@ const historyEntry = (state: DownloadPipelineState, finalFullPath: string): Hist
   return {
     timestamp: new Date().toISOString(),
     initiatedAt: state.info.now?.toISOString(),
+    ...(isPrivateDownloadState(state) ? { private: true } : {}),
     url: displayUrl(state.info.url),
     finalFullPath,
     routed: Boolean(state.route),

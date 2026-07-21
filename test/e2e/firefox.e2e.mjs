@@ -515,26 +515,47 @@ test("download completes through the real pipeline", async () => {
   expect(fs.readFileSync(completed.filename, "utf8")).toBe("firefox e2e content");
 });
 
+/** @param {string} filename @param {string} description */
+const waitForPrivateDownload = async (filename, description) => {
+  const privatePath = path.join(session.downloadDir, "e2e", "private", `${filename}.txt`);
+  await poll(
+    () => (fs.existsSync(privatePath) && fs.statSync(privatePath).size > 0 ? true : null),
+    {
+      description,
+    },
+  );
+  return [{ state: "complete", filename: privatePath }];
+};
+
 test("private context-menu saves isolate Last used to the private session", async () => {
   const privateWindow = await control.windows.create({ incognito: true, url: "about:blank" });
   try {
     await runPrivateContextScenario({
       control,
-      waitForDownloads: async (filename) => {
-        const privatePath = path.join(session.downloadDir, "e2e", "private", `${filename}.txt`);
-        await poll(
-          () => (fs.existsSync(privatePath) && fs.statSync(privatePath).size > 0 ? true : null),
-          {
-            description: "Firefox private download file",
-          },
-        );
-        return [{ state: "complete", filename: privatePath }];
-      },
+      waitForDownloads: (filename) =>
+        waitForPrivateDownload(filename, "Firefox private download file"),
       filename: "private-firefox",
+      privateWindowId: privateWindow.id,
     });
   } finally {
     await control.windows.remove(privateWindow.id);
     await control.storage.session.wait("siPrivateLastUsed", undefined);
+  }
+});
+
+test("private activity persistence uses normal local state without leaving Private Browsing", async () => {
+  const privateWindow = await control.windows.create({ incognito: true, url: "about:blank" });
+  try {
+    await runPrivateContextScenario({
+      control,
+      waitForDownloads: (filename) =>
+        waitForPrivateDownload(filename, "Firefox persisted private download file"),
+      filename: "private-persisted-firefox",
+      privateWindowId: privateWindow.id,
+      persistActivity: true,
+    });
+  } finally {
+    await control.windows.remove(privateWindow.id);
   }
 });
 

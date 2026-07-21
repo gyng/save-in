@@ -1,3 +1,21 @@
+# 4.1.0 (unreleased)
+
+- Expanded click-to-save from one modifier/button pair to multiple configurable
+  gestures, including middle, right, back, forward, and double-left click.
+  Routing rules and the debugger can distinguish them with `gesture:`.
+- Made **Last used** reliable in Private Browsing and Incognito across event-page
+  and service-worker sleeps. Private Last used remains separate and clears when
+  private browsing ends by default.
+- Added the off-by-default **Remember private browsing activity** option. It
+  includes private saves in normal local Last used, Recent locations, History,
+  counter, diagnostics, and restart-recovery state, while webhooks and browser
+  credentials remain disabled in private windows.
+- Reduced repeated work and retained memory in History and Page Sources, and
+  hardened their large-list and long-lived-page behavior.
+- Hardened Chrome and Firefox browser-test control, lifecycle recovery, and
+  constrained-CI execution, with full source coverage and real-browser memory
+  gates.
+
 # 4.0.1
 
 - Fixed severe slowdowns and memory growth after repeated saves. History

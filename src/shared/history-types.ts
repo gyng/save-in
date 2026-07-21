@@ -13,6 +13,7 @@ export type HistoryEntryInput = {
   info?: HistoryInfo | undefined;
   state?: { info?: HistoryInfo | undefined } | undefined;
   observedBrowserDownload?: boolean | undefined;
+  private?: boolean | undefined;
   mechanism?:
     | "downloads-api"
     | "fetch-downloads-api"
@@ -53,6 +54,7 @@ export type HistoryRow = {
   folder: string;
   fullPath: string;
   source: string;
+  private: boolean;
   mechanism: string;
   url: string;
   reroutable: boolean;

@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { shouldPersistActivity } from "../config/options-data.ts";
 import type { HistoryEntry, HistoryEntryInput } from "../shared/history-types.ts";
 import type { PrivateWriteOptions } from "../shared/persistence-context.ts";
 import { recordPersistenceFailure } from "../shared/persistence-diagnostics.ts";
@@ -173,9 +174,10 @@ export const addHistoryEntry = (
   entry: HistoryEntryInput,
   writeOptions: PrivateWriteOptions = {},
 ): string | null => {
-  // Chrome and Firefox both expose the originating private context. Private
-  // activity must never enter extension storage, even temporarily.
-  if (writeOptions.privateContext) return null;
+  // Chrome and Firefox both expose the originating private context. Keep the
+  // default exclusion at this final storage boundary; only the explicit user
+  // opt-in admits it.
+  if (!shouldPersistActivity(writeOptions.privateContext === true)) return null;
 
   const id = nextHistoryId();
   const withMeta: HistoryEntry = Object.assign({ id, status: "pending" }, entry);

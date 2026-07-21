@@ -443,6 +443,15 @@
   "o_cLastUsedMenu": {
     "message": "顯示上次使用的選單項"
   },
+  "persistPrivateActivity": {
+    "message": "記住隱私瀏覽活動"
+  },
+  "privateBrowsingHeading": {
+    "message": "隱私瀏覽"
+  },
+  "persistPrivateActivityHelp": {
+    "message": "將隱私視窗中的儲存加入「上次使用」、「最近位置」、歷史記錄、計數器、診斷與重新啟動復原。隱私瀏覽結束後，這些資料可能仍然可見。關閉此選項會停止建立新記錄，但不會移除現有記錄。在隱私視窗中，Webhook 與瀏覽器憑證仍維持停用。"
+  },
   "o_cSaveLinks": {
     "message": "顯示連結的操作"
   },
@@ -1329,7 +1338,7 @@
     "message": "儲存"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "近期失敗會保留在此裝置上，直到瀏覽器工作階段結束。詳細記錄也會將路由與下載詳細資訊寫入瀏覽器開發人員主控台，並會持續啟用，直到您將其關閉。隱私活動不會納入記錄。"
+    "message": "近期失敗會保留在此裝置上，直到瀏覽器工作階段結束。詳細記錄也會將路由與下載詳細資訊寫入瀏覽器開發人員主控台，並會持續啟用，直到您將其關閉。除非啟用「記住隱私瀏覽活動」，否則不會記錄隱私活動。"
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "若要連線，請在支援 WebMCP 的瀏覽器中開啟此頁面並保持開啟，然後讓瀏覽器內的 AI 代理程式使用此分頁。您可以直接用自然語言提問，例如：「依網站和日期將下載項目整理到資料夾、為每個檔案編號，並且只有在失敗時才通知我。」"

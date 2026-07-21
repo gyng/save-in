@@ -183,7 +183,9 @@ or visually separate interface. Preserve these rules as the tab grows:
 - Keep Diagnostics in one collapsed disclosure. Opening it may request one
   bounded, privacy-safe background snapshot; do not poll. Present core worker
   health first, then lifecycle events, recent failures, and the developer logging
-  control. Private activity must never enter either diagnostic record.
+  control. Private activity enters the session diagnostic record only under the
+  explicit **Remember private browsing activity** opt-in, and never enters the
+  developer console record.
 - Action rows must wrap without fixed translated-text offsets. Check backup,
   reset, and similar multi-button rows with a long locale as well as English.
 - At narrow widths, let the main tab list wrap onto additional rows instead of

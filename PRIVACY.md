@@ -1,6 +1,6 @@
 # Save In Privacy Policy
 
-Last updated: July 15, 2026
+Last updated: July 21, 2026
 
 ## What information does Save In collect?
 
@@ -10,8 +10,19 @@ no analytics, telemetry, advertising, data sales, or developer-operated service.
 On the user's device, it processes resource and page URLs, titles, selected text,
 media or link metadata, and destination paths. Browser storage holds settings,
 routing rules, and up to 10,000 download-history entries. The developer cannot
-access this data. Private activity is not stored; temporary private-save state
-remains in memory.
+access this data. By default, private activity is excluded from durable storage,
+History, and diagnostic logs. The private **Last used** destination is kept
+separately in browser session storage so it survives a background sleep, then
+removed when the final private window closes or the browser exits. Other
+temporary private-save state remains in memory.
+
+**Remember private browsing activity** is a separate option and defaults to
+off. When enabled, private saves can enter Save In's normal local Last used,
+Recent locations, History, counter, diagnostic, and restart-recovery state.
+Those records follow each data type's normal retention and can remain visible
+after private browsing closes. Turning the option off stops new private records
+but does not remove records already kept. It does not enable webhooks,
+credentialed private requests, or external access to private tabs.
 
 ## How does Save In use the information?
 
@@ -77,9 +88,10 @@ and Save In neither hosts nor bundles model weights. Requests are then answered
 on the device: no prompt text, rule, or page content leaves the machine, and
 Save In operates no inference service.
 
-Chrome may show an Incognito save in its regular download manager; Save In does
-not retain it in its own history or log. Firefox keeps the download in its
-Private Browsing session.
+Chrome may show an Incognito save in its regular download manager. Save In does
+not retain it in its own history or log unless **Remember private browsing
+activity** is enabled. Firefox keeps the download in its Private Browsing
+session.
 
 ## What information does Save In share?
 
@@ -95,8 +107,10 @@ When the options page is open and WebMCP is available, configuration and tool
 results can also be shared with a compatible in-browser agent as described
 above. Save In does not send that information to an agent on its own.
 
-Local data remains until the user clears it or uninstalls Save In; temporary
-transfer state is removed when no longer needed.
+Durable local data remains until the user clears it or uninstalls Save In.
+Temporary transfer and diagnostic state follows browser-session or operation
+lifetime. With private activity retention off, the separate private **Last
+used** destination is removed when private browsing ends.
 
 Save In's use of information received from Chrome APIs complies with the Chrome
 Web Store User Data Policy, including its Limited Use requirements. Save In also

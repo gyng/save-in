@@ -10,6 +10,7 @@ import {
   clearPersistenceDiagnostics,
   getPersistenceDiagnostics,
 } from "../../../src/shared/persistence-diagnostics.ts";
+import { options } from "../../../src/config/options-data.ts";
 
 const HISTORY_KEY = "save-in-history";
 
@@ -27,6 +28,7 @@ describe("SaveHistory", () => {
   const storedHistory = () => SaveHistory.getHistoryEntries();
 
   beforeEach(() => {
+    options.persistPrivateActivity = false;
     clearPersistenceDiagnostics();
     store = {};
     global.browser.storage.local.get = vi.fn((keys: string | string[] | null) => {
@@ -116,6 +118,24 @@ describe("SaveHistory", () => {
     expect(global.browser.storage.local.get).not.toHaveBeenCalled();
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
     expect(store[HISTORY_KEY]).toBeUndefined();
+  });
+
+  test("persists private history only after the user opts in", async () => {
+    options.persistPrivateActivity = true;
+    const id = SaveHistory.addHistoryEntry(
+      { url: "https://private.example/remembered.png", private: true },
+      { privateContext: true },
+    );
+    await flushWrites();
+
+    expect(id).toEqual(expect.any(String));
+    await expect(storedHistory()).resolves.toEqual([
+      expect.objectContaining({
+        id,
+        private: true,
+        url: "https://private.example/remembered.png",
+      }),
+    ]);
   });
 
   test("setStatus updates only the matching entry", async () => {

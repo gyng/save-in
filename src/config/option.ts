@@ -70,6 +70,8 @@ export const OptionsManagement: OptionsManagementApi = {
     sourcePanelLinks: "Include safe page links, classifying linked media and PDF documents.",
     uiTheme: "Color theme shared by the options page and Page Sources.",
     debug: "Write extra routing and download details to the browser developer console.",
+    persistPrivateActivity:
+      "Include private saves in normal local activity storage and restart recovery.",
     uiLocale: "Options, menu, and notification language (blank = browser default).",
     enableLastLocation: "Show a 'last used' item at the top of the menu.",
     recentDestinationCount: "Number of recently used destinations shown in the context menu (0–5).",

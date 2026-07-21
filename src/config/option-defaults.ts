@@ -10,6 +10,9 @@ export const OPTION_DEFAULTS = {
   ...CONTENT_OPTION_DEFAULTS,
   conflictAction: CONFLICT_ACTION.UNIQUIFY,
   debug: false,
+  // Private browsing keeps its current no-retention behavior unless the user
+  // explicitly asks Save In to include those saves in its normal local state.
+  persistPrivateActivity: false,
   enableLastLocation: true,
   recentDestinationCount: 1,
   enableNumberedItems: true,

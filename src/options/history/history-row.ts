@@ -58,6 +58,17 @@ const routedCell = (row: HistoryRow): HTMLTableCellElement => {
   return routed;
 };
 
+const sourceCell = (row: HistoryRow): HTMLTableCellElement => {
+  const source =
+    row.source === "Browser" ? historyMessage("o_lHistoryBrowser", "Browser") : row.source;
+  return cell(
+    "history-origin",
+    row.private
+      ? `${source} (${historyMessage("privateBrowsingHeading", "Private browsing")})`
+      : source,
+  );
+};
+
 const urlCell = (row: HistoryRow): HTMLTableCellElement => {
   const url = cell("history-url");
   if (row.url) {
@@ -101,11 +112,7 @@ const CELL_BUILDERS: Record<HistoryColumnKey, CellBuilder> = {
       formatHistoryDisplayTime(row.time),
       [relativeHistoryTime(row.time), formatHistoryTime(row.time)].filter(Boolean).join(" · "),
     ),
-  source: (row) =>
-    cell(
-      "history-origin",
-      row.source === "Browser" ? historyMessage("o_lHistoryBrowser", "Browser") : row.source,
-    ),
+  source: (row) => sourceCell(row),
   mechanism: (row) => cell("history-mechanism", row.mechanism),
   status: (row) => buildHistoryStatusCell(row),
   size: (row) => sizeCell(row),

@@ -73,6 +73,20 @@ describe("undo on the success notification", () => {
     expect(Object.keys(details as object)).not.toContain("buttons");
   });
 
+  test("an opted-in private History row enables the normal Undo action", async () => {
+    options.persistPrivateActivity = true;
+    Notifier.expectDownload("https://x/p.png", {
+      privateContext: true,
+      historyEntryId: "h-private-undo",
+    });
+    await completeOwnDownload({ incognito: true });
+
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      "7",
+      expect.objectContaining({ buttons: [{ title: "Translated<notificationUndoSave>" }] }),
+    );
+  });
+
   test("button click removes the file, erases the shelf entry, and marks history", async () => {
     const history = await import("../../../src/background/history.ts");
     vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);

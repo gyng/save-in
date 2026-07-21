@@ -32,8 +32,11 @@ is no account and no first-party server.
   The extension does not use `webRequest` or `webRequestBlocking` and does not
   modify page traffic.
 - `storage` — saves the user's settings, routing rules, and local history in
-  `storage.local`; transient per-download state in `storage.session`. Local
-  only; nothing is synced or transmitted.
+  `storage.local`; transient per-download state and the separate private **Last
+  used** destination in `storage.session`. The private destination is removed
+  when the final private window closes. The off-by-default **Remember private
+  browsing activity** setting permits private saves to use the same local
+  activity stores. Local only; nothing is synced or transmitted.
 - `notifications` — optional completion/failure notifications for saves.
 - `offscreen` (Chrome only) — lends the service worker a DOM so a fetched
   download can become a blob object URL, to hash bytes, and to run the on-device
@@ -63,8 +66,13 @@ is no account and no first-party server.
   device through them.
 - No analytics, no telemetry, no remote logging, no account. Settings, rules,
   and history stay in local extension storage.
-- Private browsing: `incognito: "spanning"`. Save In excludes private-window
-  activity from its history, restart state, and debug log.
+- Private browsing: `incognito: "spanning"`. By default Save In excludes
+  private-window activity from its history, restart state, and debug log. Its
+  separate private **Last used** destination survives background sleeps in
+  `storage.session` and is removed when the final private window closes. The
+  explicit **Remember private browsing activity** option is off by default and
+  admits private saves to normal local activity storage; it never enables
+  webhooks or browser credentials in private windows.
 - The optional on-device rule assistant runs Gemini Nano locally (Chrome Prompt
   API); prompts are not sent to any server. Webhooks and the external Download
   API are opt-in integrations the user configures explicitly.

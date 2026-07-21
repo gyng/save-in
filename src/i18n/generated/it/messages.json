@@ -375,7 +375,7 @@
     "message": "Archiviazione"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "Gli errori recenti rimangono su questo dispositivo fino al termine della sessione del browser. La registrazione dettagliata scrive anche i dettagli di routing e download nella console per sviluppatori del browser e rimane attiva finché non la disattivi. L'attività privata è esclusa."
+    "message": "Gli errori recenti rimangono su questo dispositivo fino al termine della sessione del browser. La registrazione dettagliata scrive anche i dettagli di routing e download nella console per sviluppatori del browser e rimane attiva finché non la disattivi. L'attività privata è esclusa a meno che non sia attiva l'opzione «Ricorda l’attività di navigazione privata»."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "Per connetterti: apri questa pagina in un browser che supporta WebMCP, mantienila aperta e punta l'agente interno al browser su questa scheda. Chiedilo in un linguaggio semplice, ad es. «ordina i miei download in cartelle per sito web e data, numera ogni file e avvisami solo quando uno fallisce.»"
@@ -754,6 +754,15 @@
   },
   "o_cLastUsedMenu": {
     "message": "Mostra l'ultima voce di menu utilizzata"
+  },
+  "persistPrivateActivity": {
+    "message": "Ricorda l’attività di navigazione privata"
+  },
+  "privateBrowsingHeading": {
+    "message": "Navigazione privata"
+  },
+  "persistPrivateActivityHelp": {
+    "message": "Aggiunge i salvataggi privati a Ultima posizione utilizzata, Posizioni recenti, Cronologia, contatore, diagnostica e ripristino dopo il riavvio. Questi dati possono rimanere visibili dopo la chiusura della navigazione privata. La disattivazione interrompe la creazione di nuovi record ma non elimina quelli esistenti. I webhook e le credenziali del browser rimangono disattivati nelle finestre private."
   },
   "o_cSaveLinks": {
     "message": "Mostra azioni per i collegamenti"

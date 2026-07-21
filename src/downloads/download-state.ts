@@ -5,6 +5,7 @@ import { DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
 import type { ConflictAction } from "../shared/constants.ts";
 import type { SourceSidecarRequest } from "./download-types.ts";
 import { isDataUrl } from "../shared/data-url.ts";
+import { shouldPersistActivity } from "../config/options-data.ts";
 
 const MAX_INACTIVE_RECORDS = 50;
 
@@ -34,21 +35,21 @@ export type DownloadRecord = {
   // this existed should mean.
   browserDownloadRouted?: boolean | undefined;
   // Whether this download's outcome may be reported to a webhook, decided when
-  // it started and persisted as the decision rather than the privacy state it
-  // came from: privateContext is deliberately not persisted, so a rehydrated
-  // record cannot tell a private download from a public one. Absent means no,
-  // which is what a record written before this existed should mean.
+  // it started and persisted as the decision rather than recomputed from the
+  // privacy state. Private records exist only under the explicit persistence
+  // opt-in, but the decision still fails closed when older records lack it.
   webhookEligible?: boolean | undefined;
   pendingSourceSidecar?: SourceSidecarRequest | undefined;
   historyEntryId?: string | undefined;
   offscreenRequestId?: string | undefined;
   pendingHistoryMove?: PendingHistoryMove | undefined;
-  // Runtime-only privacy state. This is deliberately omitted from the
-  // persisted record type and serializer below.
+  // Persisted only when the user explicitly allows private activity storage.
+  // Keeping the marker is what lets a rehydrated record preserve every other
+  // private boundary (webhooks, credentialed fetches, and diagnostics policy).
   privateContext?: boolean | undefined;
 };
 
-type PersistedDownloadRecord = Omit<DownloadRecord, "privateContext">;
+type PersistedDownloadRecord = DownloadRecord;
 export type DownloadRecordUpdate = Partial<DownloadRecord>;
 
 export const isPrivateDownloadRecord = (record: Partial<DownloadRecord>): boolean =>
@@ -135,6 +136,7 @@ function normalizeDownloadRecord(value: unknown): PersistedDownloadRecord | null
   booleans.forEach((key) => {
     if (typeof value[key] === "boolean") record[key] = value[key];
   });
+  if (value.privateContext === true) record.privateContext = true;
   if (
     value.conflictAction === "uniquify" ||
     value.conflictAction === "overwrite" ||
@@ -228,7 +230,7 @@ export const mergeDownload = (
     .forEach((id) => state.records.delete(id));
   return updateSession<unknown>(sessionWrites, storage, DOWNLOADS_SESSION_KEY, (stored) => {
     const records = normalizeDownloadRecords(stored);
-    if (merged.privateContext) delete records[downloadId];
+    if (!shouldPersistActivity(merged.privateContext === true)) delete records[downloadId];
     else {
       records[downloadId] = normalizeDownloadRecord(merged);
     }

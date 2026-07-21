@@ -853,6 +853,15 @@
   "o_cLastUsedMenu": {
     "message": "Mostrar último item de menu usado"
   },
+  "persistPrivateActivity": {
+    "message": "Lembrar a atividade de navegação privativa"
+  },
+  "privateBrowsingHeading": {
+    "message": "Navegação privativa"
+  },
+  "persistPrivateActivityHelp": {
+    "message": "Adiciona salvamentos privativos a Último usado, Locais recentes, Histórico, contador, diagnósticos e recuperação após reinicialização. Esses dados podem continuar visíveis depois que a navegação privativa for encerrada. Desativar esta opção interrompe novos registros, mas não remove os existentes. Webhooks e credenciais do navegador permanecem desativados em janelas privativas."
+  },
   "o_cSaveLinks": {
     "message": "Mostrar ações para links"
   },
@@ -1739,7 +1748,7 @@
     "message": "Armazenamento"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "As falhas recentes permanecem neste dispositivo até o fim da sessão do navegador. O registro detalhado também grava informações de roteamento e download no console do desenvolvedor do navegador e permanece ativado até você desativá-lo. Atividades de navegação privativa não são incluídas."
+    "message": "As falhas recentes permanecem neste dispositivo até o fim da sessão do navegador. O registro detalhado também grava informações de roteamento e download no console do desenvolvedor do navegador e permanece ativado até você desativá-lo. Atividades privativas não são incluídas, a menos que Lembrar a atividade de navegação privativa esteja ativado."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "Para conectar: abra esta página em um navegador compatível com WebMCP, mantenha-a aberta e aponte seu agente no navegador para esta guia. Pergunte em linguagem simples - por ex. “classifique meus downloads em pastas por site e data, numere cada arquivo e me avise apenas quando um falhar.”"

@@ -10,6 +10,9 @@ void defaultsMatchSchema;
 // identity stable lets all read-only consumers share it across reloads.
 export const options: SaveInOptions = defaultOptions();
 
+export const shouldPersistActivity = (privateContext: boolean): boolean =>
+  !privateContext || options.persistPrivateActivity;
+
 export const replaceOptions = (next: SaveInOptions): void => {
   Object.keys(options).forEach((key) => Reflect.deleteProperty(options, key));
   Object.assign(options, next);

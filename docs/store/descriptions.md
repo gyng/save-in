@@ -100,6 +100,15 @@ release history.
 Version 4.0.1 fixes the slowdown and memory growth some users saw after upgrading to Version 4. History is now persisted entry by entry and no longer triggers a full settings reload in every open tab on each update. Page Sources renders large lists incrementally and bounds the metadata it retains. Long-lived validation and download-diagnostic state is bounded as well. Chrome and Firefox browser tests now gate memory growth under repeated history changes.
 ```
 
+## Next release notes (4.1.0 draft)
+
+Keep this draft until the manifest/package version bump; then replace the
+4.0.1 release-note section and update the reviewed version/date above.
+
+```text
+Version 4.1 adds configurable click-to-save gestures, including multiple mouse-button and modifier combinations, double-click saving, and gesture-aware routing. Last used now remains reliable through private-window background sleeps while staying isolated by default. A new off-by-default option can remember private saves in local Last used, Recent locations, History, diagnostics, and restart recovery; webhooks and browser credentials remain disabled in private windows. History, Page Sources, and the Chrome/Firefox test harness also receive further performance and reliability improvements.
+```
+
 ## Reviewer notes
 
 Two sets, because the two stores are reviewing different behaviour from one

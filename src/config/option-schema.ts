@@ -139,6 +139,11 @@ export const OPTION_KEYS = defineOptions([
   ...CONTENT_FEATURE_OPTION_DEFINITIONS,
   { name: "debug", type: OPTION_TYPES.BOOL, fn: null, default: OPTION_DEFAULTS.debug },
   {
+    name: "persistPrivateActivity",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.persistPrivateActivity,
+  },
+  {
     name: "uiLocale",
     type: OPTION_TYPES.VALUE,
     validate: (value: unknown): value is "" | SelectableLocale =>

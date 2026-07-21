@@ -406,7 +406,7 @@ describe("onMessage", () => {
     });
   });
 
-  test("HISTORY_REROUTE restores recorded routing context and menu variables", async () => {
+  test("HISTORY_REROUTE restores recorded private routing context and menu variables", async () => {
     vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
       {
         id: "history-context",
@@ -414,6 +414,7 @@ describe("onMessage", () => {
         finalFullPath: "from/photo.png",
         downloadId: 62,
         status: "complete",
+        private: true,
         info: {
           context: DOWNLOAD_TYPES.MEDIA,
           sourceUrl: "https://cdn.test/photo.png",
@@ -461,7 +462,11 @@ describe("onMessage", () => {
       menuItemId: "save-in-2",
       menuItemTitle: "Pictures",
       menuItemPath: "new/path",
-      currentTab: { title: "Gallery", url: "https://page.test/gallery" },
+      currentTab: {
+        title: "Gallery",
+        url: "https://page.test/gallery",
+        incognito: true,
+      },
     });
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.HISTORY_REROUTE,
@@ -471,6 +476,41 @@ describe("onMessage", () => {
         pending: true,
         newHistoryId: "history-context-new",
       },
+    });
+  });
+
+  test("HISTORY_REROUTE keeps a private context without recorded page metadata", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-private-legacy",
+        url: "https://cdn.test/private.png",
+        finalFullPath: "from/private.png",
+        downloadId: 64,
+        status: "complete",
+        private: true,
+      },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 64, url: "https://cdn.test/private.png" } as never,
+    ]);
+    vi.mocked(Download.launchDownload).mockResolvedValue({
+      status: "started",
+      downloadId: 65,
+    });
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { historyId: "history-private-legacy", destination: "new/path" },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.currentTab).toEqual({
+      incognito: true,
     });
   });
 

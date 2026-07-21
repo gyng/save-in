@@ -15,7 +15,7 @@ import {
   expectDownload,
   reportDownloadFailure,
 } from "./notification.ts";
-import { options } from "../config/options-data.ts";
+import { options, shouldPersistActivity } from "../config/options-data.ts";
 import { downloadPorts } from "./ports.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { fetchUrlForDownload } from "./content-fetch.ts";
@@ -143,7 +143,7 @@ const releaseAcquiredDownload = async (acquired: AcquiredDownload): Promise<void
 const recordDownloadRequest = (plan: DownloadPlan): void => {
   const { state } = plan;
   const privateContext = isPrivateDownloadState(state);
-  if (!privateContext) {
+  if (shouldPersistActivity(privateContext)) {
     logPort.add("download requested", {
       url: historyDisplayUrl(state.info.url)?.slice(0, 200),
       path: plan.finalFullPath,
@@ -165,7 +165,7 @@ const recordDownloadRequest = (plan: DownloadPlan): void => {
     }
   }
 
-  if (!privateContext && !isSourceSidecar(state)) {
+  if (shouldPersistActivity(privateContext) && !isSourceSidecar(state)) {
     emitDownloaded(state);
     backgroundRuntime.lastDownloadState = retainedDownloadSnapshot(state);
   }
@@ -262,6 +262,7 @@ export const executeBrowserDownload = async (
 ): Promise<DownloadExecutionResult> => {
   const { state, finalFullPath, prompt, historyEntryId } = plan;
   const privateContext = state.info.currentTab?.incognito === true;
+  const persistActivity = shouldPersistActivity(privateContext);
   const pendingSourceSidecar = !prompt && !privateContext ? state.scratch.sourceSidecar : undefined;
   void historyPort.patch(historyEntryId, {
     mechanism: acquired.source === "fetched" ? "fetch-downloads-api" : "downloads-api",
@@ -281,9 +282,8 @@ export const executeBrowserDownload = async (
   const persistFilenameKey = !isDataUrl(acquired.url);
   throwIfAborted(signal);
   await Promise.all(
-    privateContext
-      ? []
-      : [
+    persistActivity
+      ? [
           updateSession<number>(
             sessionWriteState,
             extensionSessionStorage,
@@ -310,7 +310,8 @@ export const executeBrowserDownload = async (
                 ),
               ]
             : []),
-        ],
+        ]
+      : [],
   );
 
   const expected = expectDownload(acquired.url, {
@@ -414,9 +415,8 @@ export const executeBrowserDownload = async (
     }
   } finally {
     await Promise.all(
-      privateContext
-        ? []
-        : [
+      persistActivity
+        ? [
             updateSession<number>(
               sessionWriteState,
               extensionSessionStorage,
@@ -443,7 +443,8 @@ export const executeBrowserDownload = async (
                   ),
                 ]
               : []),
-          ],
+          ]
+        : [],
     );
   }
 };
@@ -490,11 +491,10 @@ export const renameAndDownload = async (
     ensureHistoryEntry(state, state.info.filename as string);
     registerTransfer(requestId);
     // Make an open options page render the cancellable preparation row.
-    // Never for a private save: the wire state carries the page URL, selection
-    // text and tab title, and ensureHistoryEntry above returns null for one, so
-    // there is no row to render — only a payload to leak. recordDownloadRequest
-    // guards the identical emit the same way.
-    if (!isPrivateDownloadState(state)) emitDownloaded(state);
+    // An isolated private save has no History row, so emitting its wire state
+    // would expose a payload with nothing to render. The explicit persistence
+    // opt-in admits both the row and this matching live update.
+    if (shouldPersistActivity(isPrivateDownloadState(state))) emitDownloaded(state);
   };
   const finishPreparation = () => {
     if (registeredHistoryId) finishActiveTransfer(registeredHistoryId, preparationController);

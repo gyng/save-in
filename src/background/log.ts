@@ -5,6 +5,7 @@
 // files that #159/#216 asked for is History (see background/history.ts).
 
 import { sessionWriteState } from "./application-state.ts";
+import { shouldPersistActivity } from "../config/options-data.ts";
 import { getSession, updateSession } from "../shared/session-state.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 
@@ -56,7 +57,7 @@ export const addLogEntry = (
   data?: unknown,
   writeOptions: PrivateWriteOptions = {},
 ) => {
-  if (writeOptions.privateContext) return Promise.resolve();
+  if (!shouldPersistActivity(writeOptions.privateContext === true)) return Promise.resolve();
 
   const entry = {
     at: new Date().toISOString(),

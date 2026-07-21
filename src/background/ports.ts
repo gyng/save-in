@@ -6,6 +6,7 @@ import { launchSourceSidecar } from "../downloads/source-sidecar.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { getMessage } from "../platform/localization.ts";
 import { currentTab } from "../platform/current-tab.ts";
+import { options } from "../config/options-data.ts";
 import { configureRoutingPorts } from "../routing/ports.ts";
 import { nextCounter, nextPrivateCounter, peekCounter } from "./counter.ts";
 import {
@@ -42,7 +43,10 @@ export const configureBackgroundPorts = () => {
     recordRuleErrors: (errors) => backgroundRuntime.optionErrors.filenamePatterns.push(...errors),
     logDebug: (...values) => console.log(...values), // eslint-disable-line no-console
     nextCounter: () => nextCounter(counterWriteState, webExtensionApi.storage.local),
-    nextPrivateCounter: () => nextPrivateCounter(counterWriteState, webExtensionApi.storage.local),
+    nextPrivateCounter: () =>
+      options.persistPrivateActivity
+        ? nextCounter(counterWriteState, webExtensionApi.storage.local)
+        : nextPrivateCounter(counterWriteState, webExtensionApi.storage.local),
     peekCounter: () => peekCounter(webExtensionApi.storage.local),
     resolveContent,
     withRequestReferer,

@@ -1,8 +1,12 @@
 import { hydrateDownloads, mergeDownload } from "../../src/downloads/download-state.ts";
 import { normalizeSessionCounter, updateSession } from "../../src/shared/session-state.ts";
 import { BackgroundState } from "../../src/background/application-state.ts";
+import { options } from "../../src/config/options-data.ts";
 
 describe("state service instances", () => {
+  beforeEach(() => {
+    options.persistPrivateActivity = false;
+  });
   test("session counters reject malformed and fractional persisted values", () => {
     expect(normalizeSessionCounter("2")).toBe(0);
     expect(normalizeSessionCounter(-1)).toBe(0);
@@ -120,6 +124,34 @@ describe("state service instances", () => {
     });
     expect(persisted[7]).toBeUndefined();
     expect(persisted[8]).toEqual({ url: "https://public.example/file", adopted: true });
+  });
+
+  test("persists the private marker with recovery state after opt-in", async () => {
+    options.persistPrivateActivity = true;
+    const state = { records: new Map(), hydration: null };
+    const writes = { queues: new Map<string, Promise<unknown>>() };
+    let persisted: Record<string, any> = {};
+    const storage = {
+      get: vi.fn(() => Promise.resolve({ siDownloads: persisted })),
+      set: vi.fn((value: Record<string, any>) => {
+        persisted = value.siDownloads;
+        return Promise.resolve();
+      }),
+    };
+
+    await mergeDownload(state, writes, storage, 7, {
+      url: "https://private.example/file",
+      privateContext: true,
+      adopted: true,
+      webhookEligible: false,
+    });
+
+    expect(persisted[7]).toEqual({
+      url: "https://private.example/file",
+      adopted: true,
+      webhookEligible: false,
+      privateContext: true,
+    });
   });
 
   test("does not serialize a false runtime privacy marker", async () => {

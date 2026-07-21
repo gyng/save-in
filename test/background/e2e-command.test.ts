@@ -196,7 +196,10 @@ test("waits for the production context-menu handler before acknowledging the com
   const response = handleBackgroundE2EContextMenuCommand(
     {
       type: BACKGROUND_E2E_CONTEXT_MENU_COMMAND,
-      body: { info: { menuItemId: "save-in-0" } },
+      body: {
+        info: { menuItemId: "save-in-0" },
+        tab: { id: 9, windowId: 7, incognito: true },
+      },
     },
     dispatch,
   ).then((value) => {
@@ -205,7 +208,10 @@ test("waits for the production context-menu handler before acknowledging the com
   });
 
   await Promise.resolve();
-  expect(dispatch).toHaveBeenCalledOnce();
+  expect(dispatch).toHaveBeenCalledWith(
+    { menuItemId: "save-in-0" },
+    { id: 9, windowId: 7, incognito: true },
+  );
   expect(settled).toBe(false);
   release?.();
   await expect(response).resolves.toEqual({

@@ -59,6 +59,7 @@ let browserLogPath = "";
 let browserPath = "";
 let browserVersion = "";
 let suiteFailed = false;
+let incognitoAccessEnabled = false;
 /** @type {ReturnType<typeof cdp.createPersistentTargetSession> | undefined} */
 let controlTarget;
 /** @type {import("./helpers.mjs").E2EResourceScope | undefined} */
@@ -313,6 +314,29 @@ const downloadUsingBrowserFilename = async (url) => {
 /** @param {number} baseline @param {string[]} messages @param {number} [deadlineMs] */
 const waitForLog = async (baseline, messages, deadlineMs = 8000) =>
   control.logs.wait({ baseline, messages, timeoutMs: deadlineMs });
+
+const ensureIncognitoAccess = async () => {
+  if (incognitoAccessEnabled) return;
+  // Chrome's CDP loader owns this ephemeral install, including its Incognito
+  // grant. Reloading it closes the old extension-page control target.
+  extensionId = await cdp.loadUnpacked(
+    PORT,
+    path.resolve(process.env.EXT_DIR || "dist/bundled-pkg"),
+    { enableInIncognito: true },
+  );
+  await cdp.openTab(PORT, `chrome-extension://${extensionId}/src/options/options.html`);
+  await poll(
+    async () =>
+      (await evalOptions(
+        `document.readyState === "complete" && chrome.runtime.id === ${JSON.stringify(extensionId)}`,
+      )) === true
+        ? true
+        : null,
+    { description: "Chrome extension reload after Incognito access change", ignoreErrors: true },
+  );
+  await control.runtime.ready();
+  incognitoAccessEnabled = true;
+};
 
 beforeAll(async () => {
   try {
@@ -929,32 +953,39 @@ test("download completes through the real pipeline with session tracking", async
 });
 
 test("private context-menu saves isolate Last used to the private session", async () => {
-  await runPrivateContextScenario({
-    control,
-    waitForDownloads,
-    filename: "private-chrome",
-  });
+  await ensureIncognitoAccess();
+  const privateWindow = await control.windows.create({ incognito: true, url: "about:blank" });
+  try {
+    await runPrivateContextScenario({
+      control,
+      waitForDownloads,
+      filename: "private-chrome",
+      privateWindowId: privateWindow.id,
+    });
+  } finally {
+    await control.windows.remove(privateWindow.id);
+    await control.storage.session.wait("siPrivateLastUsed", undefined);
+  }
+});
+
+test("private activity persistence uses normal local state without leaving Incognito", async () => {
+  await ensureIncognitoAccess();
+  const privateWindow = await control.windows.create({ incognito: true, url: "about:blank" });
+  try {
+    await runPrivateContextScenario({
+      control,
+      waitForDownloads,
+      filename: "private-persisted-chrome",
+      privateWindowId: privateWindow.id,
+      persistActivity: true,
+    });
+  } finally {
+    await control.windows.remove(privateWindow.id);
+  }
 });
 
 test("real Incognito activity stays out of routing, history, and automatic saves until opted in", async () => {
-  // Chrome's CDP loader owns this ephemeral install, including its Incognito
-  // grant. Reloading it closes the old extension-page control target.
-  extensionId = await cdp.loadUnpacked(
-    PORT,
-    path.resolve(process.env.EXT_DIR || "dist/bundled-pkg"),
-    { enableInIncognito: true },
-  );
-  await cdp.openTab(PORT, `chrome-extension://${extensionId}/src/options/options.html`);
-  await poll(
-    async () =>
-      (await evalOptions(
-        `document.readyState === "complete" && chrome.runtime.id === ${JSON.stringify(extensionId)}`,
-      )) === true
-        ? true
-        : null,
-    { description: "Chrome extension reload after Incognito access change", ignoreErrors: true },
-  );
-  await control.runtime.ready();
+  await ensureIncognitoAccess();
 
   await runPrivateBrowserActivityScenario({
     control,

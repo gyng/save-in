@@ -15,7 +15,7 @@ import type { DownloadRecord } from "./download-state.ts";
 import type { HistoryEntry } from "../shared/history-types.ts";
 import { sessionWriteState } from "./download-state-instances.ts";
 import { getSession, normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
-import { options } from "../config/options-data.ts";
+import { options, shouldPersistActivity } from "../config/options-data.ts";
 import { deliverDownloadOutcomeWebhook } from "./webhook-delivery.ts";
 import { BROWSER_DOWNLOAD_CONTEXT } from "../shared/constants.ts";
 import { PENDING_DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
@@ -105,10 +105,17 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
   const finalUrlValue: unknown = Reflect.get(item, "finalUrl");
   const finalUrl = typeof finalUrlValue === "string" ? finalUrlValue : undefined;
   const matched = findExpectedDownload(item.url, finalUrl);
-  // Private ordinary downloads are neither tracked nor experimentally
-  // replaced. Save In-owned private downloads are handled by the in-memory
-  // expected record below, without writing their metadata to storage.session.
-  if (item.incognito && !isPrivateDownloadRecord(matched?.record || {})) return;
+  // Private ordinary downloads are tracked only under both explicit opt-ins;
+  // they are never experimentally replaced. Save In-owned private downloads
+  // use the expected record below, whose storage policy follows the same
+  // private-activity setting.
+  if (
+    item.incognito &&
+    !isPrivateDownloadRecord(matched?.record || {}) &&
+    !(options.trackBrowserDownloads && shouldPersistActivity(true))
+  ) {
+    return;
+  }
   if (matched) {
     cancelExpectedDownload(matched);
     const observedBrowserDownload = matched.record?.observedBrowserDownload === true;
@@ -161,6 +168,7 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
 
   if (
     CURRENT_BROWSER === BROWSERS.FIREFOX &&
+    !item.incognito &&
     !WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
     options.routeBrowserDownloadsFirefox &&
     isReroutableBrowserDownload(item)
@@ -176,7 +184,7 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
           mechanism: "firefox-replacement",
           info: { context: BROWSER_DOWNLOAD_CONTEXT },
         },
-        { privateContext: item.incognito === true },
+        { privateContext: false },
       );
       const expected = expectDownload(browserDownloadUrl, {
         observedBrowserDownload: true,
@@ -209,14 +217,15 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
     }
   }
 
-  // KNOWN RESIDUAL, Chrome only: a private save of ours can be recorded here.
+  // KNOWN RESIDUAL, Chrome only, while private persistence is off: a private
+  // save of ours can be recorded here.
   // Every tell that would stop it is absent at once. Chrome has no Incognito
   // selector on downloads.download, so the item is not incognito and the guard
   // above lets it by; onCreated omits byExtensionId even for our own downloads,
-  // so isOrdinaryBrowserDownload says true; and a private save deliberately
-  // persists nothing, so once a worker restart has taken the in-memory record
-  // there is no counter to catch it either. The privacy measure is what removes
-  // the evidence.
+  // so isOrdinaryBrowserDownload says true; and an isolated private save
+  // deliberately persists nothing, so once a worker restart has taken the
+  // in-memory record there is no counter to catch it either. The privacy
+  // measure is what removes the evidence.
   //
   // Left as it is on purpose. Closing it needs a private counter — a bare
   // integer, since a URL here is the thing being avoided — incremented beside
@@ -231,6 +240,7 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
     const historyEntryId = historyPort.add(
       {
         timestamp: new Date().toISOString(),
+        ...(item.incognito ? { private: true } : {}),
         url: browserDownloadUrl,
         finalFullPath: item.filename,
         routed: false,
@@ -246,6 +256,7 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
       url: browserDownloadUrl,
       ...(historyEntryId ? { historyEntryId } : {}),
       allowOriginalUrlFallback: false,
+      privateContext: item.incognito === true,
     });
     void historyPort.setDownloadId(historyEntryId, item.id, item.startTime);
   }
@@ -606,10 +617,12 @@ const notifyDownloadSuccess = async (
     iconUrl: SUCCESS_ICON_URL,
     message: filename,
   };
-  // Undo button: Chrome-only (Firefox rejects `buttons`), and suppressed
-  // for private records to match the exclusion of private activity from
-  // history — undo marks a History entry, which private saves never have.
-  if (WEB_EXTENSION_CAPABILITIES.notificationButtons && !isPrivateDownloadRecord(record)) {
+  // Undo needs a History row to mark. Isolated private saves have no row;
+  // opted-in private saves carry one and can use the normal Chrome action.
+  if (
+    WEB_EXTENSION_CAPABILITIES.notificationButtons &&
+    (!isPrivateDownloadRecord(record) || Boolean(record.historyEntryId))
+  ) {
     Object.assign(successDetails, {
       buttons: [{ title: getMessage("notificationUndoSave") || "Undo save" }],
     });

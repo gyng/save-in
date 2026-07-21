@@ -853,6 +853,15 @@
   "o_cLastUsedMenu": {
     "message": "Toon het laatst gebruikte menu-item"
   },
+  "persistPrivateActivity": {
+    "message": "Activiteit tijdens privénavigatie onthouden"
+  },
+  "privateBrowsingHeading": {
+    "message": "Privénavigatie"
+  },
+  "persistPrivateActivityHelp": {
+    "message": "Voegt privé-opslagacties toe aan Laatst gebruikt, Recente locaties, Geschiedenis, de teller, diagnostiek en herstel na opnieuw opstarten. Deze gegevens kunnen zichtbaar blijven nadat privénavigatie is gesloten. Als u dit uitschakelt, worden geen nieuwe gegevens meer vastgelegd, maar bestaande gegevens worden niet verwijderd. Webhooks en browserreferenties blijven uitgeschakeld in privévensters."
+  },
   "o_cSaveLinks": {
     "message": "Toon acties voor links"
   },
@@ -1739,7 +1748,7 @@
     "message": "Opslag"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "Recente fouten blijven op dit apparaat staan totdat de browsersessie eindigt. Uitgebreide logboekregistratie schrijft ook routerings- en downloaddetails naar de ontwikkelaarsconsole van de browser en blijft ingeschakeld totdat u deze uitschakelt. Privéactiviteit wordt uitgesloten."
+    "message": "Recente fouten blijven op dit apparaat staan totdat de browsersessie eindigt. Uitgebreide logboekregistratie schrijft ook routerings- en downloaddetails naar de ontwikkelaarsconsole van de browser en blijft ingeschakeld totdat u deze uitschakelt. Privéactiviteit wordt uitgesloten, tenzij Activiteit tijdens privénavigatie onthouden is ingeschakeld."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "Verbinding maken: open deze pagina in een browser die WebMCP ondersteunt, laat de pagina open en wijs uw browseragent naar dit tabblad. Geef de agent een opdracht in gewone taal, bijvoorbeeld: “sorteer mijn downloads in mappen op website en datum, nummer elk bestand en meld het alleen als er één mislukt.”"

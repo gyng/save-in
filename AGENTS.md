@@ -114,10 +114,13 @@ modules, without a `window` shim) and ignores
 The shared manifest uses `incognito: spanning`. Firefox can associate
 extension-started downloads with Private Browsing; Chrome's downloads API has
 no Incognito selector, so a Save In download requested there may appear in the
-regular Chrome download manager. Save In still excludes private activity from
-its own history and debug log. Private Last used state is the narrow exception:
-it uses storage.session only, stays separate from the regular destination, and
-is cleared when private browsing ends. Add a background module by
+regular Chrome download manager. By default, Save In excludes private activity
+from its own history, recovery state, and debug log. Private Last used state is
+the narrow exception: it uses storage.session only, stays separate from the
+regular destination, and is cleared when private browsing ends. The explicit,
+off-by-default **Remember private browsing activity** option admits private
+saves to normal local activity storage without enabling webhooks, credentialed
+private fetches, or external private-tab access. Add a background module by
 importing it from the relevant entry
 — there is no hand-maintained file list to keep in sync anymore.
 

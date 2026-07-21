@@ -168,7 +168,8 @@ block saving a rule.
 Chrome cannot assign an extension-started download to its Incognito download
 context, so an allowed private automatic save may appear in Chrome's regular
 download manager. Save In still excludes private activity from its own history,
-restart state, debug log, and webhooks.
+restart state, and debug log unless **Remember private browsing activity** is
+also enabled. Webhooks remain excluded either way.
 
 Automatic source matching itself does not use Declarative Net Request and does
 not add another permission. The optional Referer feature may independently use

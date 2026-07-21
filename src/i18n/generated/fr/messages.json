@@ -865,6 +865,15 @@
   "o_cLastUsedMenu": {
     "message": "Afficher le dernier élément de menu utilisé"
   },
+  "persistPrivateActivity": {
+    "message": "Mémoriser l’activité de navigation privée"
+  },
+  "privateBrowsingHeading": {
+    "message": "Navigation privée"
+  },
+  "persistPrivateActivityHelp": {
+    "message": "Ajoute les enregistrements privés au dernier emplacement utilisé, aux emplacements récents, à l’historique, au compteur, aux diagnostics et à la récupération après redémarrage. Ces données peuvent rester visibles après la fermeture de la navigation privée. Désactiver cette option arrête les nouveaux enregistrements sans supprimer ceux qui existent déjà. Les webhooks et les identifiants du navigateur restent désactivés dans les fenêtres privées."
+  },
   "o_cSaveLinks": {
     "message": "Afficher les actions pour les liens"
   },
@@ -1751,7 +1760,7 @@
     "message": "Stockage"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "Les échecs récents restent sur cet appareil jusqu’à la fin de la session du navigateur. La journalisation détaillée écrit également les informations de routage et de téléchargement dans la console de développement du navigateur et reste activée jusqu’à ce que vous la désactiviez. L’activité privée est exclue."
+    "message": "Les échecs récents restent sur cet appareil jusqu’à la fin de la session du navigateur. La journalisation détaillée écrit également les informations de routage et de téléchargement dans la console de développement du navigateur et reste activée jusqu’à ce que vous la désactiviez. L’activité privée est exclue sauf si l’option « Mémoriser l’activité de navigation privée » est activée."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "Pour vous connecter : ouvrez cette page dans un navigateur prenant en charge WebMCP, laissez-la ouverte et dirigez votre agent intégré au navigateur vers cet onglet. Demandez-lui en langage courant, par exemple : « trie mes téléchargements dans des dossiers par site Web et par date, numérote chaque fichier et avertis-moi uniquement en cas d’échec »."
