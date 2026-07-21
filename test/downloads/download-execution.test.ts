@@ -474,10 +474,11 @@ describe("renameAndDownload: browserDownload", () => {
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ saveAs: true }),
     );
+    expect(downloadState.records.get(101)).toMatchObject({ saveAsPrompted: true });
     expect(downloadState.records.get(101)).not.toHaveProperty("pendingSourceSidecar");
     expect(Notifier.expectDownload).toHaveBeenCalledWith(
       state.info.url,
-      expect.not.objectContaining({ pendingSourceSidecar: expect.anything() }),
+      expect.objectContaining({ saveAsPrompted: true }),
     );
   });
 

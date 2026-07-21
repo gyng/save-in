@@ -43,7 +43,7 @@ export type DownloadPorts = {
     intendedFilename: string,
     currentFilename?: string,
   ): Promise<void>;
-  updateBrowserLastUsed?(path: string): Promise<void>;
+  updateBrowserLastUsed?(path: string): Promise<boolean>;
 };
 
 export type DownloadPortRegistry = {

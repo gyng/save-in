@@ -141,6 +141,21 @@ describe("findSource", () => {
     });
   });
 
+  test("prefers the media's wrapping link when an overlay owns the event", () => {
+    document.body.innerHTML =
+      '<div id="overlay"></div><a href="/page.html"><img id="i" src="http://x.test/pic.png"></a>';
+    const overlay = document.getElementById("overlay");
+    const img = document.getElementById("i");
+    document.elementsFromPoint = vi.fn(() =>
+      [overlay, img].filter((element): element is HTMLElement => element != null),
+    );
+
+    expect(ClickToSave.findSource(event(overlay), true, true)).toEqual({
+      url: "http://localhost/page.html",
+      kind: "link",
+    });
+  });
+
   test("ignores non-downloadable link schemes", () => {
     document.body.innerHTML = '<a href="javascript:void(0)"><span id="s">x</span></a>';
     const span = document.getElementById("s");

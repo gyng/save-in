@@ -13,6 +13,8 @@ export type OptionSchema = {
 
 export type SavedChange = { name: string; before: unknown; after: unknown };
 
+export const OPTIONS_SAVE_CANCELLED = Object.freeze({ cancelled: true as const });
+
 type OptionsPersistencePorts = {
   getSchema(): Promise<OptionSchema>;
   getStored(keys: string[]): Promise<JsonRecord>;
@@ -22,26 +24,62 @@ type OptionsPersistencePorts = {
   markSaved(changes?: SavedChange[], undo?: () => Promise<void>): void;
   assertUndoSafe(): void;
   onRestore(values: JsonRecord, schema: OptionSchema): void;
+  confirmChanges?(changes: SavedChange[]): Promise<boolean>;
+  onDecline?(values: JsonRecord, schema: OptionSchema): void;
 };
 
 export const createOptionsPersistence = (ports: OptionsPersistencePorts) => {
   const lastKnown: JsonRecord = {};
+  let activeRestore: Promise<void> | null = null;
 
-  const restore = async (): Promise<void> => {
-    const schema = await ports.getSchema();
-    const stored = await ports.getStored(schema.keys.map(({ name }) => name));
-    schema.keys.forEach((option) => {
-      lastKnown[option.name] =
-        typeof stored[option.name] === "undefined" ? option.default : stored[option.name];
+  const hydrateKnownValues = async (schema: OptionSchema, names: string[]): Promise<void> => {
+    const missing = names.filter((name) => !Object.hasOwn(lastKnown, name));
+    if (missing.length === 0) return;
+    const stored = await ports.getStored(missing);
+    missing.forEach((name) => {
+      const option = schema.keys.find((candidate) => candidate.name === name);
+      lastKnown[name] = typeof stored[name] === "undefined" ? option?.default : stored[name];
     });
-    ports.onRestore(stored, schema);
+  };
+
+  const restore = (): Promise<void> => {
+    if (activeRestore) return activeRestore;
+    const task = (async () => {
+      const schema = await ports.getSchema();
+      const stored = await ports.getStored(schema.keys.map(({ name }) => name));
+      schema.keys.forEach((option) => {
+        lastKnown[option.name] =
+          typeof stored[option.name] === "undefined" ? option.default : stored[option.name];
+      });
+      ports.onRestore(stored, schema);
+    })();
+    activeRestore = task;
+    void task.then(
+      () => {
+        activeRestore = null;
+      },
+      () => {
+        activeRestore = null;
+      },
+    );
+    return task;
   };
 
   const save = async (scope?: string, scopeValue?: unknown): Promise<unknown> => {
+    await activeRestore;
     const schema = await ports.getSchema();
     const config = ports.collect(schema, scope);
     if (scope && typeof scopeValue !== "undefined") config[scope] = scopeValue;
+    await hydrateKnownValues(schema, Object.keys(config));
     const previous = Object.fromEntries(Object.keys(config).map((name) => [name, lastKnown[name]]));
+    const proposedChanges: SavedChange[] = Object.entries(config)
+      .filter(([name, value]) => JSON.stringify(previous[name]) !== JSON.stringify(value))
+      .map(([name, after]) => ({ name, before: previous[name], after }));
+
+    if (ports.confirmChanges && !(await ports.confirmChanges(proposedChanges))) {
+      ports.onDecline?.(previous, schema);
+      return OPTIONS_SAVE_CANCELLED;
+    }
 
     const response = await ports.apply(config, undefined);
     const applied = ports.assertApplied(response).body.applied;

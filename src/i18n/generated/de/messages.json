@@ -1,17 +1,26 @@
 {
   "o_cBrowserDownloadsUpdateLastUsed": {
-    "message": "Browserordner aus „Speichern unter“ für „Zuletzt verwendet“ nutzen"
+    "message": "Browser-Unterordner aus „Speichern unter“ für „Zuletzt verwendet“ nutzen"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "Funktioniert für Ordner in Downloads nach einem Download mit Save In in dieser Browsersitzung. Die Browser-Verlaufsaufzeichnung ist nicht erforderlich."
+    "message": "Funktioniert für Unterordner in Downloads nach einem Download mit Save In ohne „Speichern unter“-Dialog in dieser Browsersitzung. Automatische Downloads direkt im Downloads-Ordner werden ignoriert. Die Browser-Verlaufsaufzeichnung ist nicht erforderlich."
   },
   "historyRetentionLimit": { "message": "Abgeschlossene Einträge behalten" },
   "historyRetentionLimitHelp": {
     "message": "Bei 0 bleiben aktive Speicherungen sichtbar, werden aber nach Abschluss entfernt."
   },
+  "historyRetentionConfirmTitle": { "message": "Verlaufslimit verringern?" },
+  "historyRetentionConfirmDescription": {
+    "message": "Ältere abgeschlossene Einträge oberhalb des neuen Limits werden dauerhaft gelöscht. Aktive Speicherungen bleiben erhalten. Dies kann nicht rückgängig gemacht werden."
+  },
+  "historyRetentionKeepLimit": { "message": "Aktuelles Limit beibehalten" },
+  "historyRetentionLowerLimit": { "message": "Limit verringern" },
   "browserLastUsedNoticeTitle": { "message": "„Zuletzt verwendet“ wurde nicht geändert" },
   "browserLastUsedOutsideDownloads": {
     "message": "Dieser Ordner liegt außerhalb von Downloads und kann von Save In nicht wiederverwendet werden."
+  },
+  "browserLastUsedUnsupportedPath": {
+    "message": "Dieser Ordner verwendet einen Pfad, den Save In nicht sicher wiederverwenden kann."
   },
   "browserLastUsedNeedsSave": {
     "message": "Speichern Sie zuerst eine Datei mit Save In, damit der Downloads-Ordner erkannt wird."
@@ -3350,7 +3359,7 @@
     "message": "Nur passende Download-URLs verarbeiten"
   },
   "o_cBrowserDownloadFiltersEnabledHelp": {
-    "message": "Gilt für die Verlaufserfassung und das Routing von Save In."
+    "message": "Gilt für die Verlaufserfassung, Aktualisierungen von „Zuletzt verwendet“ und das Routing von Save In."
   },
   "o_cBrowserDownloadFilterInvalid": {
     "message": "Ungültiges Muster. Wenn der URL-Filter aktiviert ist, stimmt kein Download überein, bis dies korrigiert wurde."

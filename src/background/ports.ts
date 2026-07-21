@@ -21,6 +21,7 @@ import { addLogEntry } from "./log.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { counterWriteState } from "./application-state.ts";
 import { setLastUsed, updateLastUsedMenu } from "./menu-build.ts";
+import { Path } from "../routing/path.ts";
 
 export const configureBackgroundPorts = () => {
   configureDownloadPorts({
@@ -37,9 +38,11 @@ export const configureBackgroundPorts = () => {
     retry: retryViaFetch,
     sourceSidecar: launchSourceSidecar,
     updateBrowserLastUsed: async (path) => {
+      if (!new Path(path).validate().valid) return false;
       const meta = { title: path };
       await setLastUsed(path, meta);
       if (options.enableLastLocation) await updateLastUsedMenu();
+      return true;
     },
   });
   configureRoutingPorts({

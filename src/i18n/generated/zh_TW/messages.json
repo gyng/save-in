@@ -1,13 +1,24 @@
 {
-  "o_cBrowserDownloadsUpdateLastUsed": { "message": "將瀏覽器「另存新檔」資料夾用作上次使用位置" },
+  "o_cBrowserDownloadsUpdateLastUsed": {
+    "message": "將瀏覽器「另存新檔」子資料夾用作上次使用位置"
+  },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "在本次瀏覽器工作階段使用 Save In 下載一次後，可用於「下載」內的資料夾。不需要追蹤瀏覽器下載記錄。"
+    "message": "在本次瀏覽器工作階段使用 Save In 下載一次且未開啟「另存新檔」對話框後，可用於「下載」內的子資料夾。會忽略直接儲存到「下載」根目錄的自動下載。不需要追蹤瀏覽器下載記錄。"
   },
   "historyRetentionLimit": { "message": "保留已完成的項目" },
   "historyRetentionLimitHelp": { "message": "設為 0 時會顯示進行中的儲存，但完成後會移除。" },
+  "historyRetentionConfirmTitle": { "message": "降低歷史記錄上限？" },
+  "historyRetentionConfirmDescription": {
+    "message": "超出新上限的較舊已完成項目將被永久刪除。進行中的儲存會保留。此操作無法復原。"
+  },
+  "historyRetentionKeepLimit": { "message": "保留目前上限" },
+  "historyRetentionLowerLimit": { "message": "降低上限" },
   "browserLastUsedNoticeTitle": { "message": "未變更上次使用位置" },
   "browserLastUsedOutsideDownloads": {
     "message": "該資料夾位於「下載」之外，因此 Save In 無法重複使用。"
+  },
+  "browserLastUsedUnsupportedPath": {
+    "message": "該資料夾使用了 Save In 無法安全重複使用的路徑。"
   },
   "browserLastUsedNeedsSave": {
     "message": "請先使用 Save In 儲存一個檔案，以便識別「下載」資料夾。"
@@ -3346,7 +3357,7 @@
     "message": "僅處理相符的下載 URL"
   },
   "o_cBrowserDownloadFiltersEnabledHelp": {
-    "message": "適用於 Save In 歷史記錄追蹤和路由。"
+    "message": "適用於 Save In 歷史記錄追蹤、上次使用位置更新和路由。"
   },
   "o_cBrowserDownloadFilterInvalid": {
     "message": "模式無效。啟用 URL 篩選時，在修正前不會有任何下載相符。"

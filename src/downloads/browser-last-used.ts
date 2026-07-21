@@ -6,7 +6,7 @@ const isWindowsPath = (value: string): boolean =>
   /^[A-Za-z]:[\\/]/.test(value) || value.includes("\\");
 
 const comparableParts = (parts: string[], windows: boolean): string =>
-  (windows ? parts.map((part) => part.toLocaleLowerCase()) : parts).join("\0");
+  (windows ? parts.map((part) => part.toLowerCase()) : parts).join("\0");
 
 export const deriveDownloadsRoot = (
   absoluteFilename: string,

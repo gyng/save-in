@@ -1,17 +1,26 @@
 {
   "o_cBrowserDownloadsUpdateLastUsed": {
-    "message": "Usa le cartelle Salva con nome del browser per Ultima usata"
+    "message": "Usa le sottocartelle Salva con nome del browser per Ultima usata"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "Funziona con cartelle dentro Download dopo un download di Save In nella sessione corrente. Non richiede il tracciamento della cronologia del browser."
+    "message": "Funziona con sottocartelle dentro Download dopo un download di Save In senza finestra Salva con nome nella sessione corrente. I download automatici nella cartella Download principale vengono ignorati. Non richiede il tracciamento della cronologia del browser."
   },
   "historyRetentionLimit": { "message": "Conserva le voci completate" },
   "historyRetentionLimitHelp": {
     "message": "0 mantiene visibili i salvataggi attivi, ma li rimuove al termine."
   },
+  "historyRetentionConfirmTitle": { "message": "Ridurre il limite della cronologia?" },
+  "historyRetentionConfirmDescription": {
+    "message": "Le voci completate meno recenti oltre il nuovo limite verranno eliminate definitivamente. I salvataggi attivi vengono conservati. L’operazione non può essere annullata."
+  },
+  "historyRetentionKeepLimit": { "message": "Mantieni il limite attuale" },
+  "historyRetentionLowerLimit": { "message": "Riduci il limite" },
   "browserLastUsedNoticeTitle": { "message": "Ultima usata non è cambiata" },
   "browserLastUsedOutsideDownloads": {
     "message": "La cartella è fuori da Download, quindi Save In non può riutilizzarla."
+  },
+  "browserLastUsedUnsupportedPath": {
+    "message": "La cartella usa un percorso che Save In non può riutilizzare in modo sicuro."
   },
   "browserLastUsedNeedsSave": {
     "message": "Salva prima un file con Save In per identificare la cartella Download."
@@ -3350,7 +3359,7 @@
     "message": "Gestisci solo gli URL di download corrispondenti"
   },
   "o_cBrowserDownloadFiltersEnabledHelp": {
-    "message": "Si applica al monitoraggio nella cronologia e al routing di Save In."
+    "message": "Si applica al monitoraggio nella cronologia, agli aggiornamenti di Ultima usata e al routing di Save In."
   },
   "o_cBrowserDownloadFilterInvalid": {
     "message": "Pattern non valido. Quando il filtro URL è attivo, nessun download corrisponderà finché non viene corretto."

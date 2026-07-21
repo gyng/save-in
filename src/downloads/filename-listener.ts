@@ -300,9 +300,9 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         // that a rule applied: onCreated wrote the History row before this
         // listener ran and could only claim routed:false, and mergeDownload
         // combines partials, so the flag survives whichever way the two events
-        // interleave. Only tracking creates a row worth correcting — without it
-        // this would strand a record no handler ever clears.
-        if (filename && options.trackBrowserDownloads) {
+        // interleave. History and Last used both create an observed record; if
+        // neither observer is enabled, writing this marker would strand it.
+        if (filename && (options.trackBrowserDownloads || options.browserDownloadsUpdateLastUsed)) {
           await mergeDownload(
             downloadsState,
             sessionWriteState,

@@ -38,6 +38,8 @@ import { createManualEditorActions } from "./manual-editor-actions.ts";
 import { setOptionFieldValue } from "./option-field-sync.ts";
 import { applyBrowserCapabilityUi } from "./browser-capability-ui.ts";
 import { setupOptionJumpLinks } from "./option-navigation.ts";
+import { showHistoryRetentionDialog } from "../history/history-retention-dialog.ts";
+import { lowersHistoryRetention } from "../history/history-retention-model.ts";
 
 const setupLastDownloadState = () => {
   document.querySelector("#last-dl-url")?.classList.add("is-empty");
@@ -67,12 +69,24 @@ const optionsPersistence = createOptionsPersistence({
   // Autosave is the only place a user's switch reaches storage, so it is where
   // a page-load option earns its reload.
   markSaved: (changes, undo) => {
-    markSavedNow(changes, undo);
+    // Increasing the limit can be undone, but lowering it may already have
+    // permanently pruned entries by the time the acknowledgement arrives.
+    markSavedNow(changes, lowersHistoryRetention(changes) ? undefined : undo);
     if (changesNeedPageReload(changes)) optionPageReload.request();
   },
   assertUndoSafe: () =>
     assertSettingsUndoSafe(pendingChanges.hasUnsavedField(), manualEditorState.anyDirty()),
   onRestore: restoreOptionsHandler,
+  confirmChanges: async (changes) =>
+    !lowersHistoryRetention(changes) || showHistoryRetentionDialog(),
+  onDecline: (values, schema) => {
+    schema.keys.forEach((option) => {
+      if (Object.hasOwn(values, option.name)) {
+        setOptionFieldValue(option, values[option.name], schema);
+      }
+    });
+    updateOptionDependencies();
+  },
 });
 
 const restoreOptions = () => optionsPersistence.restore();

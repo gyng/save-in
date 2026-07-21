@@ -740,6 +740,22 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     expect(await getTrackedDownload(92)).toBeNull();
   });
 
+  test("marks a route for the Last used observer when History is off", async () => {
+    freshOptions.routeBrowserDownloads = true;
+    freshOptions.trackBrowserDownloads = false;
+    freshOptions.browserDownloadsUpdateLastUsed = true;
+    vi.spyOn(freshDownload, "getRoutingMatches").mockReturnValue("sorted/:filename:");
+    vi.spyOn(freshDownload, "finalizeFullPath").mockReturnValue("sorted/cat.jpg");
+    const suggest = vi.fn();
+
+    listener({ id: 93, filename: "cat.jpg", url: "https://cdn.example/cat.jpg" }, suggest);
+
+    const { getTrackedDownload } = await import("../../src/downloads/expected-downloads.ts");
+    await vi.waitFor(async () =>
+      expect(await getTrackedDownload(93)).toMatchObject({ browserDownloadRouted: true }),
+    );
+  });
+
   test("keeps Chrome naming when an enabled ordinary route does not match", async () => {
     freshOptions.routeBrowserDownloads = true;
     vi.spyOn(freshDownload, "getRoutingMatches").mockReturnValue(null);

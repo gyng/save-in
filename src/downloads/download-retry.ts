@@ -184,6 +184,7 @@ export const retryViaFetch = async (
       Object.assign({}, record, {
         viaFetch: true,
         adopted: true,
+        saveAsPrompted: false,
         ...(offscreenRequestId ? { offscreenRequestId } : {}),
       }),
     );

@@ -227,6 +227,38 @@ describe("download lifecycle notifications", () => {
 
     expect(browserLastUsedHolder.update).toHaveBeenCalledWith("Work");
     expect(await SaveHistory.getHistoryEntries()).toEqual([]);
+    expect(global.browser.downloads.search).not.toHaveBeenCalled();
+  });
+
+  test("does not replace Last used for an automatic download in the Downloads root", async () => {
+    options.browserDownloadsUpdateLastUsed = true;
+    sessionStore.siDownloadsRoot = "C:\\Downloads\\";
+
+    await onCreated({
+      id: 152,
+      filename: "C:\\Downloads\\browser.zip",
+      url: "https://example.com/browser.zip",
+    });
+    await onChanged({ id: 152, state: { current: "complete", previous: "in_progress" } });
+
+    expect(browserLastUsedHolder.update).not.toHaveBeenCalled();
+    expect(global.browser.notifications.create).not.toHaveBeenCalled();
+  });
+
+  test("does not replace Last used with a folder chosen by browser-download routing", async () => {
+    options.browserDownloadsUpdateLastUsed = true;
+    sessionStore.siDownloadsRoot = "C:\\Downloads\\";
+    await onCreated({
+      id: 153,
+      filename: "C:\\Downloads\\Routed\\browser.zip",
+      url: "https://example.com/browser.zip",
+    });
+    const { mergeTrackedDownload } = await import("../../../src/downloads/expected-downloads.ts");
+    await mergeTrackedDownload(153, { browserDownloadRouted: true });
+
+    await onChanged({ id: 153, state: { current: "complete", previous: "in_progress" } });
+
+    expect(browserLastUsedHolder.update).not.toHaveBeenCalled();
   });
 
   test("explains once when the Downloads root is not known yet", async () => {
@@ -267,6 +299,26 @@ describe("download lifecycle notifications", () => {
     expect(global.browser.notifications.create).toHaveBeenCalledOnce();
   });
 
+  test("explains a folder inside Downloads that Save In cannot safely reuse", async () => {
+    options.browserDownloadsUpdateLastUsed = true;
+    sessionStore.siDownloadsRoot = "C:\\Downloads\\";
+    browserLastUsedHolder.update.mockResolvedValueOnce(false);
+    await onCreated({
+      id: 151,
+      filename: "C:\\Downloads\\.hidden\\browser.zip",
+      url: "https://example.com/browser.zip",
+    });
+
+    await onChanged({ id: 151, state: { current: "complete", previous: "in_progress" } });
+
+    expect(browserLastUsedHolder.update).toHaveBeenCalledWith(".hidden");
+    expect(sessionStore.siBrowserLastUsedNotice).toBe("unsupported");
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      "save-in-not-browser-last-used",
+      expect.objectContaining({ message: expect.any(String) }),
+    );
+  });
+
   test("refreshes the Downloads root after every successful Save In download", async () => {
     const { mergeTrackedDownload } = await import("../../../src/downloads/expected-downloads.ts");
     await mergeTrackedDownload(145, {
@@ -278,6 +330,20 @@ describe("download lifecycle notifications", () => {
     await onChanged({ id: 145, state: { current: "complete", previous: "in_progress" } });
 
     expect(sessionStore.siDownloadsRoot).toBe("D:\\New Downloads\\");
+  });
+
+  test("does not infer the Downloads root from a prompted Save In download", async () => {
+    const { mergeTrackedDownload } = await import("../../../src/downloads/expected-downloads.ts");
+    await mergeTrackedDownload(150, {
+      adopted: true,
+      filename: "photo.jpg",
+      currentFilename: "D:\\Outside Downloads\\photo.jpg",
+      saveAsPrompted: true,
+    });
+
+    await onChanged({ id: 150, state: { current: "complete", previous: "in_progress" } });
+
+    expect(sessionStore.siDownloadsRoot).toBeUndefined();
   });
 
   test("admits private browser folders only under the private persistence opt-in", async () => {
@@ -436,6 +502,7 @@ describe("download lifecycle notifications", () => {
     expect(sessionStore.siDownloads[99]!).toMatchObject({
       observedBrowserDownload: true,
       adopted: false,
+      browserDownloadRouted: true,
       historyEntryId: "h-reroute",
       allowOriginalUrlFallback: false,
     });

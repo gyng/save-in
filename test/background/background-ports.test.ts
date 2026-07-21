@@ -40,7 +40,7 @@ test("wires browser Save As folders to the Last used menu state", async () => {
   options.enableLastLocation = true;
   configureBackgroundPorts();
 
-  await downloadPorts.updateBrowserLastUsed?.("Work");
+  await expect(downloadPorts.updateBrowserLastUsed?.("Work")).resolves.toBe(true);
 
   expect(browser.storage.local.set).toHaveBeenCalledWith({
     lastUsedPath: "Work",
@@ -54,8 +54,19 @@ test("updates stored Last used without touching a hidden menu item", async () =>
   configureBackgroundPorts();
   vi.mocked(browser.contextMenus.update).mockClear();
 
-  await downloadPorts.updateBrowserLastUsed?.("Work");
+  await expect(downloadPorts.updateBrowserLastUsed?.("Work")).resolves.toBe(true);
 
   expect(browser.storage.local.set).toHaveBeenCalled();
+  expect(browser.contextMenus.update).not.toHaveBeenCalled();
+});
+
+test("refuses a native folder that Save In cannot safely reuse", async () => {
+  options.enableLastLocation = true;
+  configureBackgroundPorts();
+  vi.mocked(browser.storage.local.set).mockClear();
+
+  await expect(downloadPorts.updateBrowserLastUsed?.(".hidden")).resolves.toBe(false);
+
+  expect(browser.storage.local.set).not.toHaveBeenCalled();
   expect(browser.contextMenus.update).not.toHaveBeenCalled();
 });

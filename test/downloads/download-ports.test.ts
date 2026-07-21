@@ -41,7 +41,7 @@ describe("download ports", () => {
     const log = { add: vi.fn() };
     const retry = vi.fn(() => Promise.resolve(true));
     const sourceSidecar = vi.fn(() => Promise.resolve());
-    const updateBrowserLastUsed = vi.fn(() => Promise.resolve());
+    const updateBrowserLastUsed = vi.fn(() => Promise.resolve(true));
 
     const lastDownloadState = { info: { filename: "saved.png" } } as never;
     configureDownloadPorts({
@@ -64,7 +64,7 @@ describe("download ports", () => {
       downloadPorts.sourceSidecar({ sourceUrl: "https://example.com" }, "source.png"),
     ).resolves.toBeUndefined();
     expect(sourceSidecar).toHaveBeenCalledWith({ sourceUrl: "https://example.com" }, "source.png");
-    await expect(downloadPorts.updateBrowserLastUsed?.("Work")).resolves.toBeUndefined();
+    await expect(downloadPorts.updateBrowserLastUsed?.("Work")).resolves.toBe(true);
     expect(updateBrowserLastUsed).toHaveBeenCalledWith("Work");
   });
 });

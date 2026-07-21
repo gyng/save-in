@@ -1,17 +1,26 @@
 {
   "o_cBrowserDownloadsUpdateLastUsed": {
-    "message": "Usar las carpetas de Guardar como del navegador como Última ubicación"
+    "message": "Usar las subcarpetas de Guardar como del navegador como Última ubicación"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "Funciona con carpetas dentro de Descargas después de una descarga de Save In en esta sesión. No requiere registrar el historial del navegador."
+    "message": "Funciona con subcarpetas dentro de Descargas después de una descarga de Save In sin diálogo Guardar como en esta sesión. Se ignoran las descargas automáticas en la raíz de Descargas. No requiere registrar el historial del navegador."
   },
   "historyRetentionLimit": { "message": "Conservar entradas completadas" },
   "historyRetentionLimitHelp": {
     "message": "Con 0, las descargas activas permanecen visibles pero se eliminan al terminar."
   },
+  "historyRetentionConfirmTitle": { "message": "¿Reducir el límite del historial?" },
+  "historyRetentionConfirmDescription": {
+    "message": "Las entradas finalizadas más antiguas que superen el nuevo límite se eliminarán de forma permanente. Los guardados activos se conservan. Esta acción no se puede deshacer."
+  },
+  "historyRetentionKeepLimit": { "message": "Mantener el límite actual" },
+  "historyRetentionLowerLimit": { "message": "Reducir el límite" },
   "browserLastUsedNoticeTitle": { "message": "La última ubicación no cambió" },
   "browserLastUsedOutsideDownloads": {
     "message": "Esa carpeta está fuera de Descargas, por lo que Save In no puede reutilizarla."
+  },
+  "browserLastUsedUnsupportedPath": {
+    "message": "Esa carpeta usa una ruta que Save In no puede reutilizar de forma segura."
   },
   "browserLastUsedNeedsSave": {
     "message": "Primero guarda un archivo con Save In para identificar tu carpeta de Descargas."
@@ -3350,7 +3359,7 @@
     "message": "Gestionar solo URL de descarga coincidentes"
   },
   "o_cBrowserDownloadFiltersEnabledHelp": {
-    "message": "Se aplica al registro en el historial y al enrutamiento de Save In."
+    "message": "Se aplica al registro en el historial, las actualizaciones de Última ubicación y el enrutamiento de Save In."
   },
   "o_cBrowserDownloadFilterInvalid": {
     "message": "Patrón no válido. Cuando el filtro de URL está activado, ninguna descarga coincidirá hasta que se corrija."

@@ -1,17 +1,26 @@
 {
   "o_cBrowserDownloadsUpdateLastUsed": {
-    "message": "Utiliser les dossiers Enregistrer sous du navigateur pour Dernier utilisé"
+    "message": "Utiliser les sous-dossiers Enregistrer sous du navigateur pour Dernier utilisé"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "Fonctionne pour les dossiers dans Téléchargements après un téléchargement Save In pendant cette session. Le suivi de l’historique du navigateur n’est pas requis."
+    "message": "Fonctionne pour les sous-dossiers dans Téléchargements après un téléchargement Save In sans boîte de dialogue Enregistrer sous pendant cette session. Les téléchargements automatiques à la racine de Téléchargements sont ignorés. Le suivi de l’historique du navigateur n’est pas requis."
   },
   "historyRetentionLimit": { "message": "Conserver les entrées terminées" },
   "historyRetentionLimitHelp": {
     "message": "0 garde les enregistrements actifs visibles, puis les supprime lorsqu’ils se terminent."
   },
+  "historyRetentionConfirmTitle": { "message": "Réduire la limite de l’historique ?" },
+  "historyRetentionConfirmDescription": {
+    "message": "Les entrées terminées les plus anciennes au-delà de la nouvelle limite seront définitivement supprimées. Les enregistrements actifs sont conservés. Cette action est irréversible."
+  },
+  "historyRetentionKeepLimit": { "message": "Conserver la limite actuelle" },
+  "historyRetentionLowerLimit": { "message": "Réduire la limite" },
   "browserLastUsedNoticeTitle": { "message": "Dernier utilisé n’a pas changé" },
   "browserLastUsedOutsideDownloads": {
     "message": "Ce dossier se trouve hors de Téléchargements, Save In ne peut donc pas le réutiliser."
+  },
+  "browserLastUsedUnsupportedPath": {
+    "message": "Ce dossier utilise un chemin que Save In ne peut pas réutiliser en toute sécurité."
   },
   "browserLastUsedNeedsSave": {
     "message": "Enregistrez d’abord un fichier avec Save In afin d’identifier votre dossier Téléchargements."
@@ -3350,7 +3359,7 @@
     "message": "Gérer uniquement les URL de téléchargement correspondantes"
   },
   "o_cBrowserDownloadFiltersEnabledHelp": {
-    "message": "S’applique au suivi dans l’historique et au routage de Save In."
+    "message": "S’applique au suivi dans l’historique, aux mises à jour de Dernier utilisé et au routage de Save In."
   },
   "o_cBrowserDownloadFilterInvalid": {
     "message": "Modèle non valide. Lorsque le filtrage des URL est activé, aucun téléchargement ne correspond tant que ce problème n’est pas corrigé."

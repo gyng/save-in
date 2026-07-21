@@ -424,12 +424,12 @@
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cBrowserDownloadsUpdateLastUsed": {
-    "message": "Use browser Save As folders for Last used",
-    "description": "Checkbox that updates Save In's Last used destination from ordinary browser Save As folders. Used in src/options/options.html."
+    "message": "Use browser Save As subfolders for Last used",
+    "description": "Checkbox that updates Save In's Last used destination from ordinary browser Save As subfolders. Used in src/options/options.html."
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "Works for folders inside Downloads after one Save In download in this browser session. Browser history tracking is not required.",
-    "description": "Help text for updating Last used from browser Save As folders. Used in src/options/options.html."
+    "message": "Works for Save As subfolders inside Downloads after one Save In download without a Save As dialog in this browser session. Automatic downloads in the Downloads root are ignored. Browser history tracking is not required.",
+    "description": "Help text for updating Last used from browser Save As subfolders while explaining that automatic root downloads are ignored. Used in src/options/options.html."
   },
   "o_cRouteBrowserDownloads": {
     "message": "Route browser downloads with routing rules",
@@ -456,8 +456,8 @@
     "description": "Checkbox enabling the include and exclude URL filters for ordinary browser downloads. Used in src/options/options.html."
   },
   "o_cBrowserDownloadFiltersEnabledHelp": {
-    "message": "Applies to Save In history tracking and routing.",
-    "description": "Help below the browser-download URL filter checkbox explaining which workflows share the filter. Used in src/options/options.html."
+    "message": "Applies to Save In history tracking, Last used updates, and routing.",
+    "description": "Help below the browser-download URL filter checkbox explaining which browser-download workflows share the filter. Used in src/options/options.html."
   },
   "o_cBrowserDownloadFilter": {
     "message": "Include only matching download URLs (optional)",
@@ -3127,6 +3127,10 @@
     "message": "That folder is outside Downloads, so Save In cannot reuse it.",
     "description": "Notification explaining that a browser Save As folder outside Downloads cannot become Last used. Used in src/downloads/notification-events.ts."
   },
+  "browserLastUsedUnsupportedPath": {
+    "message": "That folder uses a path Save In cannot safely reuse.",
+    "description": "Notification explaining that a browser Save As folder inside Downloads cannot become Last used because its relative path is unsupported. Used in src/downloads/notification-events.ts."
+  },
   "browserLastUsedNeedsSave": {
     "message": "Save one file with Save In first so it can identify your Downloads folder.",
     "description": "Notification asking for one Save In download before browser Save As folders can update Last used. Used in src/downloads/notification-events.ts."
@@ -3282,6 +3286,22 @@
   "historyDeleteAll": {
     "message": "Delete all history",
     "description": "Confirm action in the dialog for deleting all History entries. Used in src/options/history-panel.ts."
+  },
+  "historyRetentionConfirmTitle": {
+    "message": "Lower History limit?",
+    "description": "Title of the confirmation dialog shown before lowering the number of retained History entries. Used in src/options/history/history-retention-dialog.ts."
+  },
+  "historyRetentionConfirmDescription": {
+    "message": "Older finished entries above the new limit will be permanently deleted. Active saves are kept. This cannot be undone.",
+    "description": "Warning shown before lowering the number of retained History entries. Used in src/options/history/history-retention-dialog.ts."
+  },
+  "historyRetentionKeepLimit": {
+    "message": "Keep current limit",
+    "description": "Cancel action in the dialog for lowering the History retention limit. Used in src/options/history/history-retention-dialog.ts."
+  },
+  "historyRetentionLowerLimit": {
+    "message": "Lower limit",
+    "description": "Confirm action in the dialog for lowering the History retention limit. Used in src/options/history/history-retention-dialog.ts."
   },
   "historyClearing": {
     "message": "Deleting history…",

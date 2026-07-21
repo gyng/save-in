@@ -1,17 +1,26 @@
 {
   "o_cBrowserDownloadsUpdateLastUsed": {
-    "message": "Använd webbläsarens Spara som-mappar för Senast använd"
+    "message": "Använd webbläsarens Spara som-undermappar för Senast använd"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "Fungerar för mappar i Hämtade filer efter en Save In-hämtning under den här sessionen. Spårning av webbläsarhistorik krävs inte."
+    "message": "Fungerar för undermappar i Hämtade filer efter en Save In-hämtning utan dialogrutan Spara som under den här sessionen. Automatiska hämtningar direkt i Hämtade filer ignoreras. Spårning av webbläsarhistorik krävs inte."
   },
   "historyRetentionLimit": { "message": "Behåll slutförda poster" },
   "historyRetentionLimitHelp": {
     "message": "0 visar aktiva hämtningar men tar bort dem när de är klara."
   },
+  "historyRetentionConfirmTitle": { "message": "Sänka historikgränsen?" },
+  "historyRetentionConfirmDescription": {
+    "message": "Äldre slutförda poster över den nya gränsen tas bort permanent. Aktiva sparningar behålls. Detta går inte att ångra."
+  },
+  "historyRetentionKeepLimit": { "message": "Behåll aktuell gräns" },
+  "historyRetentionLowerLimit": { "message": "Sänk gränsen" },
   "browserLastUsedNoticeTitle": { "message": "Senast använd ändrades inte" },
   "browserLastUsedOutsideDownloads": {
     "message": "Mappen ligger utanför Hämtade filer och kan därför inte återanvändas av Save In."
+  },
+  "browserLastUsedUnsupportedPath": {
+    "message": "Mappen använder en sökväg som Save In inte kan återanvända säkert."
   },
   "browserLastUsedNeedsSave": {
     "message": "Spara först en fil med Save In så att mappen Hämtade filer kan identifieras."
@@ -3350,7 +3359,7 @@
     "message": "Hantera endast matchande nedladdnings-URL:er"
   },
   "o_cBrowserDownloadFiltersEnabledHelp": {
-    "message": "Gäller historikspårning och routning i Save In."
+    "message": "Gäller historikspårning, uppdateringar av Senast använd och routning i Save In."
   },
   "o_cBrowserDownloadFilterInvalid": {
     "message": "Ogiltigt mönster. När URL-filtrering är aktiverad matchar inga nedladdningar förrän detta har åtgärdats."

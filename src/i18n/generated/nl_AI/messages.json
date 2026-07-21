@@ -1,17 +1,26 @@
 {
   "o_cBrowserDownloadsUpdateLastUsed": {
-    "message": "Browsermappen van Opslaan als gebruiken voor Laatst gebruikt"
+    "message": "Browsersubmappen van Opslaan als gebruiken voor Laatst gebruikt"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "Werkt voor mappen binnen Downloads na één Save In-download in deze browsersessie. Browsergeschiedenis bijhouden is niet vereist."
+    "message": "Werkt voor submappen binnen Downloads na één Save In-download zonder dialoogvenster Opslaan als in deze browsersessie. Automatische downloads in de hoofdmap Downloads worden genegeerd. Browsergeschiedenis bijhouden is niet vereist."
   },
   "historyRetentionLimit": { "message": "Voltooide items bewaren" },
   "historyRetentionLimitHelp": {
     "message": "Bij 0 blijven actieve downloads zichtbaar, maar worden ze na voltooiing verwijderd."
   },
+  "historyRetentionConfirmTitle": { "message": "Geschiedenislimiet verlagen?" },
+  "historyRetentionConfirmDescription": {
+    "message": "Oudere voltooide items boven de nieuwe limiet worden permanent verwijderd. Actieve downloads blijven behouden. Dit kan niet ongedaan worden gemaakt."
+  },
+  "historyRetentionKeepLimit": { "message": "Huidige limiet behouden" },
+  "historyRetentionLowerLimit": { "message": "Limiet verlagen" },
   "browserLastUsedNoticeTitle": { "message": "Laatst gebruikt is niet gewijzigd" },
   "browserLastUsedOutsideDownloads": {
     "message": "Die map staat buiten Downloads, dus Save In kan deze niet hergebruiken."
+  },
+  "browserLastUsedUnsupportedPath": {
+    "message": "Die map gebruikt een pad dat Save In niet veilig kan hergebruiken."
   },
   "browserLastUsedNeedsSave": {
     "message": "Sla eerst één bestand op met Save In zodat de map Downloads kan worden herkend."
@@ -3350,7 +3359,7 @@
     "message": "Alleen overeenkomende download-URL's verwerken"
   },
   "o_cBrowserDownloadFiltersEnabledHelp": {
-    "message": "Van toepassing op geschiedenisregistratie en routering van Save In."
+    "message": "Van toepassing op geschiedenisregistratie, updates van Laatst gebruikt en routering van Save In."
   },
   "o_cBrowserDownloadFilterInvalid": {
     "message": "Ongeldig patroon. Als URL-filtering is ingeschakeld, komt geen enkele download overeen totdat dit is gecorrigeerd."

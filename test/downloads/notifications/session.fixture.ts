@@ -35,7 +35,7 @@ const retryHolder = vi.hoisted(() => ({
   }),
 }));
 const browserLastUsedHolder = vi.hoisted(() => ({
-  update: vi.fn<(path: string) => Promise<void>>(() => Promise.resolve()),
+  update: vi.fn<(path: string) => Promise<boolean>>(() => Promise.resolve(true)),
 }));
 // notification.ts and its remaining deps (option, log) are re-imported after
 // each resetModules; grab the fresh singletons the notifier binds to so the
@@ -126,7 +126,9 @@ const setupGlobals = (sessionStore: Record<string, any>, searchResults: (query: 
     void downloadId;
     return Promise.resolve(false);
   });
-  browserLastUsedHolder.update = vi.fn<(path: string) => Promise<void>>(() => Promise.resolve());
+  browserLastUsedHolder.update = vi.fn<(path: string) => Promise<boolean>>(() =>
+    Promise.resolve(true),
+  );
 
   (global.browser as any).runtime = Object.assign(global.browser.runtime || {}, { id: "save-in" });
   (global.browser.storage as any).session = makeSessionMock(sessionStore);

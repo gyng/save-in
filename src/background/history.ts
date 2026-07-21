@@ -28,6 +28,9 @@ type HistoryIndex = {
   firstChunk: number;
   nextChunk: number;
   length: number;
+  // Optional so indexes written before 4.1 remain valid. The first retention
+  // pass derives it once; later completions can avoid rereading every entry.
+  terminalCount?: number;
 };
 
 const recordHistoryFailure = (
@@ -57,7 +60,16 @@ const normalizeHistoryIndex = (value: unknown): HistoryIndex | null => {
   ) {
     return null;
   }
-  return { version: HISTORY_STORE_VERSION, firstChunk, nextChunk, length };
+  const terminalCount = isNonnegativeSafeInteger(value.terminalCount)
+    ? Math.min(value.terminalCount, length)
+    : undefined;
+  return {
+    version: HISTORY_STORE_VERSION,
+    firstChunk,
+    nextChunk,
+    length,
+    ...(terminalCount === undefined ? {} : { terminalCount }),
+  };
 };
 
 const storageSnapshot = async (keys: string[] | null): Promise<Record<string, unknown>> => {
@@ -108,6 +120,7 @@ const migrateLegacyHistory = async (legacyValue: unknown[]): Promise<HistoryInde
   const writes: Record<string, unknown> = { [HISTORY_STORAGE_KEY]: [] };
   const keys: string[] = [];
   const usedKeys = new Set<string>();
+  let terminalCount = 0;
 
   legacy.forEach((rawEntry, index) => {
     const normalized = normalizeHistoryEntry(rawEntry);
@@ -117,6 +130,7 @@ const migrateLegacyHistory = async (legacyValue: unknown[]): Promise<HistoryInde
     if (usedKeys.has(key)) key = `${preferred}-legacy-${index}`;
     usedKeys.add(key);
     keys.push(key);
+    if (normalized.status !== "pending") terminalCount += 1;
     writes[historyEntryStorageKey(key)] = rawEntry;
   });
 
@@ -132,6 +146,7 @@ const migrateLegacyHistory = async (legacyValue: unknown[]): Promise<HistoryInde
     firstChunk: 0,
     nextChunk: chunks,
     length: keys.length,
+    terminalCount,
   };
   writes[HISTORY_INDEX_STORAGE_KEY] = index;
   await webExtensionApi.storage.local.set(writes);
@@ -153,7 +168,13 @@ const loadWritableIndex = async (
     return { index: await migrateLegacyHistory(snapshot[HISTORY_STORAGE_KEY]), snapshot: {} };
   }
   return {
-    index: { version: HISTORY_STORE_VERSION, firstChunk: 0, nextChunk: 0, length: 0 },
+    index: {
+      version: HISTORY_STORE_VERSION,
+      firstChunk: 0,
+      nextChunk: 0,
+      length: 0,
+      terminalCount: 0,
+    },
     snapshot,
   };
 };
@@ -170,7 +191,12 @@ const nextHistoryId = (): string => {
 
 const pruneTerminalHistory = async (index: HistoryIndex): Promise<HistoryIndex> => {
   const limit = options.historyRetentionLimit;
-  if (limit >= index.length || index.length === 0) return index;
+  if (index.terminalCount !== undefined && index.terminalCount <= limit) return index;
+  if (index.length === 0) {
+    const countedIndex = { ...index, terminalCount: 0 };
+    await webExtensionApi.storage.local.set({ [HISTORY_INDEX_STORAGE_KEY]: countedIndex });
+    return countedIndex;
+  }
   const chunkKeys = Array.from({ length: index.nextChunk - index.firstChunk }, (_, offset) =>
     historyIndexChunkStorageKey(index.firstChunk + offset),
   );
@@ -186,9 +212,13 @@ const pruneTerminalHistory = async (index: HistoryIndex): Promise<HistoryIndex> 
   const entries = await storageSnapshot(locators.map(historyEntryStorageKey));
   const terminalLocators = locators.filter((locator) => {
     const entry = normalizeHistoryEntry(entries[historyEntryStorageKey(locator)]);
-    return entry?.status !== "pending";
+    return entry !== null && entry.status !== "pending";
   });
-  if (terminalLocators.length <= limit) return index;
+  if (terminalLocators.length <= limit) {
+    const countedIndex = { ...index, terminalCount: terminalLocators.length };
+    await webExtensionApi.storage.local.set({ [HISTORY_INDEX_STORAGE_KEY]: countedIndex });
+    return countedIndex;
+  }
   const removeIds = new Set(terminalLocators.slice(0, terminalLocators.length - limit));
   const retained = locators.filter((id) => !removeIds.has(id));
   const writes: Record<string, unknown> = {};
@@ -204,6 +234,7 @@ const pruneTerminalHistory = async (index: HistoryIndex): Promise<HistoryIndex> 
     firstChunk: index.firstChunk,
     nextChunk: index.firstChunk + chunkCount,
     length: retained.length,
+    terminalCount: terminalLocators.length - removeIds.size,
   };
   writes[HISTORY_INDEX_STORAGE_KEY] = nextIndex;
   await webExtensionApi.storage.local.set(writes);
@@ -258,6 +289,7 @@ export const addHistoryEntry = (
       const removeKeys: string[] = [];
       let firstChunk = index.firstChunk;
       let length = index.length + 1;
+      let terminalCount = index.terminalCount;
       if (length > HISTORY_LIMIT) {
         const firstChunkKey = historyIndexChunkStorageKey(firstChunk);
         const firstSnapshot = await storageSnapshot([firstChunkKey]);
@@ -266,7 +298,21 @@ export const addHistoryEntry = (
           ? storedFirstChunk.filter((key): key is string => typeof key === "string")
           : [];
         const removed = trimmedFirstChunk.shift();
-        if (removed) removeKeys.push(historyEntryStorageKey(removed));
+        if (removed) {
+          const removedEntryKey = historyEntryStorageKey(removed);
+          removeKeys.push(removedEntryKey);
+          if (terminalCount !== undefined) {
+            const removedSnapshot = await storageSnapshot([removedEntryKey]);
+            const removedEntry = normalizeHistoryEntry(removedSnapshot[removedEntryKey]);
+            if (!removedEntry) {
+              terminalCount = undefined;
+            } else if (removedEntry.status !== "pending") {
+              terminalCount = Math.max(0, terminalCount - 1);
+            }
+          }
+        } else {
+          terminalCount = undefined;
+        }
         if (trimmedFirstChunk.length === 0) {
           removeKeys.push(firstChunkKey);
           firstChunk += 1;
@@ -280,6 +326,7 @@ export const addHistoryEntry = (
         firstChunk,
         nextChunk,
         length,
+        ...(terminalCount === undefined ? {} : { terminalCount }),
       };
       writes[HISTORY_INDEX_STORAGE_KEY] = nextIndex;
       await webExtensionApi.storage.local.set(writes);
@@ -322,10 +369,20 @@ export const patchHistoryEntry = (
       for (const key of Object.keys(resolved)) {
         if (mergedRecord[key] === undefined) delete mergedRecord[key];
       }
-      await webExtensionApi.storage.local.set({ [entryKey]: merged });
-      if (resolved.status !== undefined && resolved.status !== "pending") {
-        await pruneTerminalHistory(loaded.index);
+      const wasTerminal = entry.status !== "pending";
+      const isTerminal = merged.status !== "pending";
+      let nextIndex = loaded.index;
+      if (wasTerminal !== isTerminal && loaded.index.terminalCount !== undefined) {
+        nextIndex = {
+          ...loaded.index,
+          terminalCount: Math.max(0, loaded.index.terminalCount + (isTerminal ? 1 : -1)),
+        };
       }
+      await webExtensionApi.storage.local.set({
+        [entryKey]: merged,
+        ...(nextIndex === loaded.index ? {} : { [HISTORY_INDEX_STORAGE_KEY]: nextIndex }),
+      });
+      if (wasTerminal !== isTerminal) await pruneTerminalHistory(nextIndex);
     })
     .catch((error) => recordHistoryFailure("write", error));
 

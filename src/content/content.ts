@@ -128,7 +128,8 @@ const ClickToSave = {
       );
       const targetAnchor =
         e.target instanceof Element ? e.target.closest<HTMLAnchorElement>("a[href]") : null;
-      const anchor = pathAnchor ?? targetAnchor;
+      const sourceAnchor = source?.element.closest<HTMLAnchorElement>("a[href]");
+      const anchor = pathAnchor ?? targetAnchor ?? sourceAnchor;
       const href = anchor?.href;
       if (
         href &&

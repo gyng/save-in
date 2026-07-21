@@ -154,6 +154,18 @@ describe("SaveHistory", () => {
     expect(byId[id2!]).toBe("complete");
   });
 
+  test("decrements terminal-count metadata when an entry becomes active again", async () => {
+    const id = SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    await SaveHistory.setHistoryStatus(id, "complete");
+
+    await SaveHistory.patchHistoryEntry(id, { status: "pending" });
+
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({ terminalCount: 0 });
+    await expect(storedHistory()).resolves.toEqual([
+      expect.objectContaining({ id, status: "pending" }),
+    ]);
+  });
+
   test("removes terminal entries immediately when retention is zero", async () => {
     options.historyRetentionLimit = 0;
     const id = SaveHistory.addHistoryEntry({ url: "https://a/1" });
@@ -180,6 +192,46 @@ describe("SaveHistory", () => {
       expect.objectContaining({ id: active, status: "pending" }),
       expect.objectContaining({ id: latest, status: "complete" }),
     ]);
+  });
+
+  test("does not scan unrelated entries while the terminal count is within the limit", async () => {
+    options.historyRetentionLimit = 100;
+    const completed = SaveHistory.addHistoryEntry({ url: "https://a/complete" });
+    SaveHistory.addHistoryEntry({ url: "https://a/active" });
+    await flushWrites();
+    vi.mocked(global.browser.storage.local.get).mockClear();
+
+    await SaveHistory.setHistoryStatus(completed, "complete");
+
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({ terminalCount: 1 });
+    expect(global.browser.storage.local.get).not.toHaveBeenCalledWith([
+      `${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`,
+    ]);
+  });
+
+  test("derives terminal-count metadata from an older index on its next retention pass", async () => {
+    const id = SaveHistory.addHistoryEntry({ url: "https://a/complete" });
+    await flushWrites();
+    const current = store[HISTORY_INDEX_STORAGE_KEY];
+    if (!isStringKeyedRecord(current)) throw new Error("history index was not written");
+    delete current.terminalCount;
+
+    await SaveHistory.setHistoryStatus(id, "complete");
+
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({ terminalCount: 1 });
+  });
+
+  test("derives zero terminal entries from an older empty index", async () => {
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 0,
+      length: 0,
+    };
+
+    await SaveHistory.enforceHistoryRetention();
+
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({ terminalCount: 0 });
   });
 
   test("applies a lowered retention limit without waiting for another download", async () => {
@@ -396,6 +448,17 @@ describe("SaveHistory", () => {
     expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({ length: 2 });
   });
 
+  test("counts only finished entries while migrating legacy history", async () => {
+    store[HISTORY_KEY] = [
+      { id: "active", status: "pending", url: "https://a/active" },
+      { id: "finished", status: "complete", url: "https://a/finished" },
+    ];
+
+    await SaveHistory.getHistoryEntries();
+
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({ terminalCount: 1 });
+  });
+
   test("normalizes extended diagnostic metadata", async () => {
     const legacy = [
       {
@@ -547,6 +610,7 @@ describe("SaveHistory", () => {
       firstChunk: 0,
       nextChunk: 2,
       length: HISTORY_LIMIT,
+      terminalCount: 1,
     };
     store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`] = "not-an-array";
     store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}1`] = [];
@@ -554,6 +618,47 @@ describe("SaveHistory", () => {
     SaveHistory.addHistoryEntry({ url: "https://a/new" });
     await expect(flushWrites()).resolves.toBeUndefined();
     expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({ firstChunk: 1 });
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).not.toHaveProperty("terminalCount");
+  });
+
+  test("drops stale terminal-count metadata when a capped entry is malformed", async () => {
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 2,
+      length: HISTORY_LIMIT,
+      terminalCount: 1,
+    };
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`] = ["oldest"];
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}1`] = [];
+    store[`${HISTORY_ENTRY_STORAGE_PREFIX}oldest`] = null;
+
+    SaveHistory.addHistoryEntry({ url: "https://a/new" });
+    await flushWrites();
+
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).not.toHaveProperty("terminalCount");
+  });
+
+  test("keeps the terminal count when a capped active entry is removed", async () => {
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 2,
+      length: HISTORY_LIMIT,
+      terminalCount: 0,
+    };
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`] = ["oldest"];
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}1`] = [];
+    store[`${HISTORY_ENTRY_STORAGE_PREFIX}oldest`] = {
+      id: "oldest",
+      status: "pending",
+      url: "https://a/old",
+    };
+
+    SaveHistory.addHistoryEntry({ url: "https://a/new" });
+    await flushWrites();
+
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({ terminalCount: 0 });
   });
 
   test("add tolerates a storage backend returning nothing", async () => {

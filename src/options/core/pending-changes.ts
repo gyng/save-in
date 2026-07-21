@@ -9,6 +9,7 @@ import { createLatestTaskRunner } from "../ui/latest-task.ts";
 import { savedIndicatorTarget } from "./saved-indicator.ts";
 import { showUnsavedChangesDialog } from "../dialogs/unsaved-changes-dialog.ts";
 import { createFieldSaveState } from "./field-save-state.ts";
+import { OPTIONS_SAVE_CANCELLED } from "./options-persistence.ts";
 
 const AUTOSAVE_DEBOUNCE_MS = 400;
 
@@ -106,10 +107,10 @@ export const createPendingChangesTracker = (ports: PendingChangesPorts) => {
       clearAutosaveFailure(el);
       await ports
         .saveOptions(undefined, el.id, value)
-        .then(() => {
+        .then((result) => {
           if (fieldSaveState.succeed(el.id, token)) {
             clearAutosaveFailure(el);
-            showSavedIndicator();
+            if (result !== OPTIONS_SAVE_CANCELLED) showSavedIndicator();
           }
           window.setTimeout(ports.afterAutosave, 200);
         })
@@ -149,7 +150,7 @@ export const createPendingChangesTracker = (ports: PendingChangesPorts) => {
         cancelPending?.();
         queueSave();
       });
-    } else if (["text", "number"].includes(el.type)) {
+    } else if (["text", "number"].includes(el.type) && el.dataset.saveOnChange !== "true") {
       el.addEventListener("input", () => {
         fieldSaveState.markDirty(el.id);
         queueSave();

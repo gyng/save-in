@@ -5,6 +5,7 @@ import {
   type PendingChangesPorts,
 } from "../../../src/options/core/pending-changes.ts";
 import { showUnsavedChangesDialog } from "../../../src/options/dialogs/unsaved-changes-dialog.ts";
+import { OPTIONS_SAVE_CANCELLED } from "../../../src/options/core/options-persistence.ts";
 
 vi.mock("../../../src/options/dialogs/unsaved-changes-dialog.ts", () => ({
   showUnsavedChangesDialog: vi.fn(),
@@ -94,6 +95,40 @@ describe("field autosave", () => {
 
     expect(ports.saveOptions).toHaveBeenCalledWith(undefined, "notifyOnSuccess", true);
     await vi.advanceTimersByTimeAsync(0);
+  });
+
+  test("waits for a committed change before saving a destructive number field", async () => {
+    const ports = makePorts();
+    const tracker = createPendingChangesTracker(ports);
+    document.body.innerHTML = `<input id="historyRetentionLimit" type="number" data-save-on-change="true">`;
+    const input = document.querySelector<HTMLInputElement>("#historyRetentionLimit")!;
+    tracker.setupAutosave(input);
+
+    input.value = "1";
+    input.dispatchEvent(new Event("input"));
+    input.value = "1000";
+    input.dispatchEvent(new Event("input"));
+    expect(ports.saveOptions).not.toHaveBeenCalled();
+
+    input.dispatchEvent(new Event("change"));
+    expect(ports.saveOptions).toHaveBeenCalledOnce();
+    expect(ports.saveOptions).toHaveBeenCalledWith(undefined, "historyRetentionLimit", "1000");
+    await vi.advanceTimersByTimeAsync(0);
+  });
+
+  test("does not show a saved indicator when a destructive change is declined", async () => {
+    const ports = makePorts({ saveOptions: vi.fn().mockResolvedValue(OPTIONS_SAVE_CANCELLED) });
+    const tracker = createPendingChangesTracker(ports);
+    document.body.innerHTML = `<label data-saved-target><input id="historyRetentionLimit" type="number" data-save-on-change="true"></label>`;
+    const input = document.querySelector<HTMLInputElement>("#historyRetentionLimit")!;
+    tracker.setupAutosave(input);
+
+    input.value = "10";
+    input.dispatchEvent(new Event("change"));
+    await vi.advanceTimersByTimeAsync(100);
+
+    expect(input.parentElement?.classList.contains("saved")).toBe(false);
+    expect(tracker.hasUnsavedField()).toBe(false);
   });
 
   test("debounces a textarea edit and saves once after the delay, restarting on further input", async () => {

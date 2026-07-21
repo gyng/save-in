@@ -1,13 +1,22 @@
 {
-  "o_cBrowserDownloadsUpdateLastUsed": { "message": "将浏览器“另存为”文件夹用作上次使用位置" },
+  "o_cBrowserDownloadsUpdateLastUsed": { "message": "将浏览器“另存为”子文件夹用作上次使用位置" },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "本次浏览器会话中使用 Save In 下载一次后，可用于“下载”内的文件夹。无需跟踪浏览器下载历史。"
+    "message": "本次浏览器会话中使用 Save In 下载一次且未打开“另存为”对话框后，可用于“下载”内的子文件夹。会忽略直接保存到“下载”根目录的自动下载。无需跟踪浏览器下载历史。"
   },
   "historyRetentionLimit": { "message": "保留已完成的条目" },
   "historyRetentionLimitHelp": { "message": "设为 0 时会显示进行中的保存，但完成后会移除。" },
+  "historyRetentionConfirmTitle": { "message": "降低历史记录上限？" },
+  "historyRetentionConfirmDescription": {
+    "message": "超出新上限的较早已完成条目将被永久删除。进行中的保存会保留。此操作无法撤销。"
+  },
+  "historyRetentionKeepLimit": { "message": "保留当前上限" },
+  "historyRetentionLowerLimit": { "message": "降低上限" },
   "browserLastUsedNoticeTitle": { "message": "未更改上次使用位置" },
   "browserLastUsedOutsideDownloads": {
     "message": "该文件夹位于“下载”之外，因此 Save In 无法重复使用。"
+  },
+  "browserLastUsedUnsupportedPath": {
+    "message": "该文件夹使用了 Save In 无法安全重复使用的路径。"
   },
   "browserLastUsedNeedsSave": {
     "message": "请先使用 Save In 保存一个文件，以便识别“下载”文件夹。"
@@ -3346,7 +3355,7 @@
     "message": "仅处理匹配的下载 URL"
   },
   "o_cBrowserDownloadFiltersEnabledHelp": {
-    "message": "适用于 Save In 历史记录跟踪和路由。"
+    "message": "适用于 Save In 历史记录跟踪、上次使用位置更新和路由。"
   },
   "o_cBrowserDownloadFilterInvalid": {
     "message": "无效的模式。启用 URL 过滤时，在修复之前不会匹配任何下载。"

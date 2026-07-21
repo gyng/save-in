@@ -31,6 +31,14 @@ With **Remember private browsing activity** enabled, private selections instead
 update the normal Last used destination, so it remains available in regular and
 later private windows.
 
+With **Use browser Save As subfolders for Last used** enabled, an ordinary
+browser download saved to a subfolder inside Downloads can update the regular
+Last used destination without adding that download to Save In History. Save In
+must first finish one unprompted download in the browser session to identify the
+Downloads root. Automatic downloads saved directly in that root and destinations
+chosen by browser-download routing are ignored so they cannot erase an explicit
+folder choice.
+
 ## Recent locations
 
 Set **Recent locations** under **Options → Save menu → Save behavior** to show

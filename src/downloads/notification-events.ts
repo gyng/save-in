@@ -212,6 +212,7 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
       const expected = expectDownload(browserDownloadUrl, {
         observedBrowserDownload: true,
         adopted: false,
+        browserDownloadRouted: true,
         filename,
         url: browserDownloadUrl,
         ...(historyEntryId ? { historyEntryId } : {}),
@@ -433,7 +434,7 @@ const handleObservedBrowserDownload = async (
   if (!complete && !failed) return;
 
   let fileSize: number | undefined;
-  if (complete) {
+  if (complete && record.historyEntryId) {
     try {
       const [item] = await webExtensionApi.downloads.search({ id: downloadDelta.id });
       const bytes = item && (item.fileSize > 0 ? item.fileSize : item.totalBytes);
@@ -460,6 +461,7 @@ const handleObservedBrowserDownload = async (
   if (
     complete &&
     options.browserDownloadsUpdateLastUsed &&
+    record.browserDownloadRouted !== true &&
     shouldPersistActivity(isPrivateDownloadRecord(record))
   ) {
     const finalFilename = currentFilename || record.currentFilename;
@@ -469,11 +471,15 @@ const handleObservedBrowserDownload = async (
       finalFilename && typeof root === "string"
         ? relativeDirectoryWithinRoot(finalFilename, root)
         : null;
-    if (relative) {
-      await downloadPorts.updateBrowserLastUsed?.(relative);
-    } else {
+    let noticeReason: "needs-save" | "outside" | "unsupported" | null = null;
+    if (relative && relative !== ".") {
+      const updated = await downloadPorts.updateBrowserLastUsed?.(relative);
+      if (updated !== true) noticeReason = "unsupported";
+    } else if (relative !== ".") {
+      noticeReason = typeof root === "string" ? "outside" : "needs-save";
+    }
+    if (noticeReason) {
       const notice = await extensionSessionStorage.get(BROWSER_LAST_USED_NOTICE_SESSION_KEY);
-      const noticeReason = typeof root === "string" ? "outside" : "needs-save";
       if (Reflect.get(notice, BROWSER_LAST_USED_NOTICE_SESSION_KEY) !== noticeReason) {
         await extensionSessionStorage.set({
           [BROWSER_LAST_USED_NOTICE_SESSION_KEY]: noticeReason,
@@ -483,9 +489,11 @@ const handleObservedBrowserDownload = async (
           title: getMessage("browserLastUsedNoticeTitle"),
           iconUrl: ERROR_ICON_URL,
           message:
-            typeof root === "string"
-              ? getMessage("browserLastUsedOutsideDownloads")
-              : getMessage("browserLastUsedNeedsSave"),
+            noticeReason === "needs-save"
+              ? getMessage("browserLastUsedNeedsSave")
+              : noticeReason === "outside"
+                ? getMessage("browserLastUsedOutsideDownloads")
+                : getMessage("browserLastUsedUnsupportedPath"),
         });
       }
     }
@@ -741,7 +749,9 @@ export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
   }
 
   if (completed) {
-    const root = deriveDownloadsRoot(fullFilename, record.filename || "");
+    const root = record.saveAsPrompted
+      ? null
+      : deriveDownloadsRoot(fullFilename, record.filename || "");
     if (root && shouldPersistActivity(isPrivateDownloadRecord(record))) {
       await extensionSessionStorage.set({ [DOWNLOADS_ROOT_SESSION_KEY]: root });
     }

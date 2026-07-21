@@ -1,17 +1,26 @@
 {
   "o_cBrowserDownloadsUpdateLastUsed": {
-    "message": "ブラウザーの「名前を付けて保存」のフォルダーを前回使用した場所に使う"
+    "message": "ブラウザーの「名前を付けて保存」のサブフォルダーを前回使用した場所に使う"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "このブラウザーセッションで Save In を一度使用した後、ダウンロード内のフォルダーで動作します。ブラウザー履歴の記録は不要です。"
+    "message": "このブラウザーセッションで「名前を付けて保存」ダイアログを使わずに Save In で一度保存した後、ダウンロード内のサブフォルダーで動作します。ダウンロード直下への自動ダウンロードは無視されます。ブラウザー履歴の記録は不要です。"
   },
   "historyRetentionLimit": { "message": "完了した項目を保持" },
   "historyRetentionLimitHelp": {
     "message": "0 の場合、保存中は表示され、完了すると削除されます。"
   },
+  "historyRetentionConfirmTitle": { "message": "履歴の上限を減らしますか？" },
+  "historyRetentionConfirmDescription": {
+    "message": "新しい上限を超える古い完了済み項目は完全に削除されます。進行中の保存は保持されます。この操作は元に戻せません。"
+  },
+  "historyRetentionKeepLimit": { "message": "現在の上限を維持" },
+  "historyRetentionLowerLimit": { "message": "上限を減らす" },
   "browserLastUsedNoticeTitle": { "message": "前回使用した場所は変更されませんでした" },
   "browserLastUsedOutsideDownloads": {
     "message": "そのフォルダーはダウンロードの外にあるため、Save In では再利用できません。"
+  },
+  "browserLastUsedUnsupportedPath": {
+    "message": "そのフォルダーのパスは Save In で安全に再利用できません。"
   },
   "browserLastUsedNeedsSave": {
     "message": "ダウンロードフォルダーを特定するため、最初に Save In でファイルを1つ保存してください。"
@@ -3350,7 +3359,7 @@
     "message": "一致するダウンロード URL のみを処理"
   },
   "o_cBrowserDownloadFiltersEnabledHelp": {
-    "message": "Save In の履歴追跡とルーティングに適用されます。"
+    "message": "Save In の履歴追跡、前回使用した場所の更新、ルーティングに適用されます。"
   },
   "o_cBrowserDownloadFilterInvalid": {
     "message": "無効なパターンです。URL フィルターがオンの場合、修正するまでダウンロードは一致しません。"

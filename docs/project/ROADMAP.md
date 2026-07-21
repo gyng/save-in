@@ -83,13 +83,16 @@ Not features — release hygiene that gates the close-out of everything above.
 
 ## Landed for 4.1
 
-- Last used can follow an ordinary browser Save As folder (#201). The opt-in is
+- Last used can follow an ordinary browser Save As subfolder (#201). The opt-in is
   independent of browser-download History. Each successful Save In download
-  re-derives the Downloads root for the current browser session; only folders
-  beneath that root are accepted, and an unsupported or not-yet-known root is
-  explained once rather than failing silently.
+  without a Save As prompt re-derives the Downloads root for the current browser
+  session; only reusable subfolders beneath that root are accepted. Automatic
+  downloads in the root and browser-routed destinations do not overwrite Last
+  used, while an unsupported or not-yet-known root is explained once.
 - Completed History retention is configurable from 0 to 10,000. Active saves
   remain visible even at 0 and are removed only after reaching a terminal state.
+  Lowering the limit requires confirmation, cannot offer a misleading Undo, and
+  uses terminal-count metadata to avoid full-history reads before pruning is due.
 - Click-to-save uses the same Prefer links and page-filter decision as context
   menu saves, closing the remaining #226 behavior gap.
 

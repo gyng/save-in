@@ -34,6 +34,9 @@ export type DownloadRecord = {
   // put it on the row. Absent means no, which is what a record written before
   // this existed should mean.
   browserDownloadRouted?: boolean | undefined;
+  // A Save As dialog can place a Save In download outside the browser's
+  // Downloads root, so its absolute result must never be used to infer that root.
+  saveAsPrompted?: boolean | undefined;
   // Whether this download's outcome may be reported to a webhook, decided when
   // it started and persisted as the decision rather than recomputed from the
   // privacy state. Private records exist only under the explicit persistence
@@ -124,6 +127,7 @@ function normalizeDownloadRecord(value: unknown): PersistedDownloadRecord | null
     "sourceSidecar",
     "webhookEligible",
     "browserDownloadRouted",
+    "saveAsPrompted",
   ] as const;
   strings.forEach((key) => {
     const item = value[key];

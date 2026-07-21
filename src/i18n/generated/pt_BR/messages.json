@@ -1,17 +1,26 @@
 {
   "o_cBrowserDownloadsUpdateLastUsed": {
-    "message": "Usar pastas de Salvar como do navegador em Último local"
+    "message": "Usar subpastas de Salvar como do navegador em Último local"
   },
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
-    "message": "Funciona para pastas dentro de Downloads após um download do Save In nesta sessão. Não exige rastrear o histórico do navegador."
+    "message": "Funciona para subpastas dentro de Downloads após um download do Save In sem a caixa Salvar como nesta sessão. Downloads automáticos na raiz de Downloads são ignorados. Não exige rastrear o histórico do navegador."
   },
   "historyRetentionLimit": { "message": "Manter entradas concluídas" },
   "historyRetentionLimitHelp": {
     "message": "0 mantém os salvamentos ativos visíveis, mas os remove quando terminam."
   },
+  "historyRetentionConfirmTitle": { "message": "Reduzir o limite do histórico?" },
+  "historyRetentionConfirmDescription": {
+    "message": "As entradas concluídas mais antigas acima do novo limite serão excluídas permanentemente. Os salvamentos ativos serão mantidos. Isso não pode ser desfeito."
+  },
+  "historyRetentionKeepLimit": { "message": "Manter o limite atual" },
+  "historyRetentionLowerLimit": { "message": "Reduzir o limite" },
   "browserLastUsedNoticeTitle": { "message": "O último local não foi alterado" },
   "browserLastUsedOutsideDownloads": {
     "message": "Essa pasta está fora de Downloads, então o Save In não pode reutilizá-la."
+  },
+  "browserLastUsedUnsupportedPath": {
+    "message": "Essa pasta usa um caminho que o Save In não pode reutilizar com segurança."
   },
   "browserLastUsedNeedsSave": {
     "message": "Primeiro salve um arquivo com o Save In para identificar sua pasta Downloads."
@@ -3350,7 +3359,7 @@
     "message": "Processar somente URLs de download correspondentes"
   },
   "o_cBrowserDownloadFiltersEnabledHelp": {
-    "message": "Aplica-se ao registro no histórico e ao roteamento do Save In."
+    "message": "Aplica-se ao registro no histórico, às atualizações de Último local e ao roteamento do Save In."
   },
   "o_cBrowserDownloadFilterInvalid": {
     "message": "Padrão inválido. Quando a filtragem de URL estiver ativada, nenhum download corresponderá até que isso seja corrigido."
