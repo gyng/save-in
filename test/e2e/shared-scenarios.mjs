@@ -55,8 +55,8 @@ export const runContentDispositionScenario = async ({
 };
 
 /**
- * Drives a private context-menu save through the production pipeline and
- * verifies that private activity never reaches extension persistence.
+ * Drives private context-menu and Last used saves through the production
+ * pipeline while verifying that private activity never reaches persistence.
  *
  * @param {{
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
@@ -71,6 +71,7 @@ export const runPrivateContextScenario = async ({ control, waitForDownloads, fil
   });
   const port = await listenLocal(server);
   const privateUrl = `http://127.0.0.1:${port}/${filename}.txt`;
+  const repeatedName = `last-used-${filename}`;
   const [local, session, log] = await Promise.all([
     control.storage.local.get(["paths", "save-in-history", "lastUsedPath", "lastUsedMeta"]),
     control.storage.session.get(),
@@ -101,6 +102,29 @@ export const runPrivateContextScenario = async ({ control, waitForDownloads, fil
     expect(completed.state).toBe("complete");
     expect(fs.readFileSync(completed.filename, "utf8")).toBe("private context content");
 
+    // Force the same session hydration used after an idle event page or worker
+    // restart before exercising the private Last used destination.
+    await control.runtime.reset();
+    await control.background.clickContextMenu({
+      info: {
+        menuItemId: "save-in-last-used",
+        mediaType: "image",
+        srcUrl: `http://127.0.0.1:${port}/${repeatedName}.txt`,
+        pageUrl: "https://private.example/",
+      },
+      tab: {
+        id: 91,
+        title: repeatedName,
+        url: "https://private.example/",
+        incognito: true,
+      },
+    });
+    const repeatedDownloads = await waitForDownloads(repeatedName);
+    expect(repeatedDownloads).toHaveLength(1);
+    const repeated = requireValue(repeatedDownloads[0], "Private Last used save was not captured");
+    expect(repeated.state).toBe("complete");
+    expect(repeated.filename).toMatch(new RegExp(`e2e[\\\\/]private[\\\\/]${repeatedName}\\.txt$`));
+
     const [afterLocal, afterSession, afterLog] = await Promise.all([
       control.storage.local.get(["save-in-history", "lastUsedPath", "lastUsedMeta"]),
       control.storage.session.get(),
@@ -111,7 +135,12 @@ export const runPrivateContextScenario = async ({ control, waitForDownloads, fil
     expect(after.local.lastUsedPath).toEqual(snapshot.local.lastUsedPath);
     expect(after.local.lastUsedMeta).toEqual(snapshot.local.lastUsedMeta);
     expect(after.log).toEqual(snapshot.log);
+    expect(after.session.siPrivateLastUsed).toEqual({
+      path: "e2e/private",
+      meta: expect.objectContaining({ title: "e2e/private" }),
+    });
     expect(Object.keys(after.session.siActiveTransfers || {})).toHaveLength(0);
+    expect(Object.keys(after.session.siDownloads || {})).toHaveLength(0);
   } finally {
     const hadPaths = Object.hasOwn(snapshot.local, "paths");
     try {

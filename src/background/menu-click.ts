@@ -7,11 +7,15 @@ import { toggleSourcePanelForTab } from "./source-panel-state.ts";
 // Tab-strip clicks are handled in menu-tabs.ts.
 
 import {
+  clearPrivateLastUsed,
+  enablePrivateLastUsedMenu,
   menuState,
+  getLastUsed,
   recordRecentDestination,
-  setAccesskey,
   setLastUsed,
   setQuickSaveUseDirectory,
+  type LastUsedMeta,
+  updateLastUsedMenu,
 } from "./menu-build.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
 import { resolveDefaultDestination } from "../menus/quick-save-target.ts";
@@ -37,6 +41,58 @@ import { rebuildMenus } from "./menu-rebuild.ts";
 export { resolveClickTarget } from "./menu-target.ts";
 
 export type ContextMenuClickInfo = ClickInfo & { menuItemId: string | number };
+
+let dynamicLastUsedMenu = false;
+
+const getContextMenuListenerRegistrar = (
+  eventName: "onShown" | "onHidden",
+): ((listener: (...args: never[]) => unknown) => void) | null => {
+  const event: unknown = Reflect.get(webExtensionApi.contextMenus, eventName);
+  if (event === null || typeof event !== "object") return null;
+  const addListener: unknown = Reflect.get(event, "addListener");
+  if (typeof addListener !== "function") return null;
+  return (listener) => Reflect.apply(addListener, event, [listener]);
+};
+
+const getContextMenuRefresh = (): (() => Promise<void>) | null => {
+  const refresh: unknown = Reflect.get(webExtensionApi.contextMenus, "refresh");
+  if (typeof refresh !== "function") return null;
+  return () =>
+    Promise.resolve(Reflect.apply(refresh, webExtensionApi.contextMenus, [])).then(() => {});
+};
+
+const lastUsedMenuExists = (): boolean =>
+  options.enableLastLocation &&
+  !options.routeHideFolderChoices &&
+  !(options.quickSaveEnabled && options.quickSaveOnly);
+
+const registerDynamicLastUsedMenu = (): boolean => {
+  const addShown = getContextMenuListenerRegistrar("onShown");
+  const addHidden = getContextMenuListenerRegistrar("onHidden");
+  const refresh = getContextMenuRefresh();
+  if (!addShown || !addHidden || !refresh) return false;
+
+  addShown((_info: unknown, tab?: CurrentTab) =>
+    runBackgroundTask(
+      "context menu refresh failed",
+      async () => {
+        if (backgroundRuntime.ready) await backgroundRuntime.ready;
+        if (!lastUsedMenuExists()) return;
+        await updateLastUsedMenu(tab?.incognito === true);
+        await refresh();
+      },
+      { privateContext: tab?.incognito === true },
+    ),
+  );
+  addHidden(() =>
+    runBackgroundTask("context menu reset failed", async () => {
+      if (backgroundRuntime.ready) await backgroundRuntime.ready;
+      if (!lastUsedMenuExists()) return;
+      await updateLastUsedMenu();
+    }),
+  );
+  return true;
+};
 
 export const handleContextMenuClick = async (
   info: ContextMenuClickInfo,
@@ -80,6 +136,7 @@ export const handleContextMenuClick = async (
   // behind or belong to another window, and its title is mutated by
   // later tab updates (#172, #188)
   const clickTab = tab || currentTab;
+  const privateContext = clickTab?.incognito === true;
 
   const menuInfo = menuState.pathMappings[info.menuItemId];
   const isSpecialItem = [MENU_IDS.ROUTE_EXCLUSIVE, MENU_IDS.LAST_USED, MENU_IDS.QUICK_SAVE].some(
@@ -89,6 +146,7 @@ export const handleContextMenuClick = async (
   if (menuInfo || isSpecialItem) {
     let menuIndex: string | null | undefined = menuInfo?.menuIndex;
     let comment: string | null | undefined = menuInfo?.comment;
+    let lastUsedMeta: LastUsedMeta | null = null;
 
     const target = resolveClickTarget(info, options, clickTab);
     if (!target) {
@@ -139,14 +197,16 @@ export const handleContextMenuClick = async (
       // of the resolved default destination, only the folder tree is skipped.
       saveIntoPath = resolveDefaultDestination(options);
     } else if (info.menuItemId === MENU_IDS.LAST_USED) {
-      saveIntoPath = menuState.lastUsedPath;
+      const lastUsed = getLastUsed(privateContext);
+      saveIntoPath = lastUsed.path;
       if (!saveIntoPath) return;
-      if (menuState.lastUsedMeta) {
+      lastUsedMeta = lastUsed.meta;
+      if (lastUsedMeta) {
         // Keep routing metadata paired with the path that produced it. A
         // later tab/external download may replace lastDownloadState, but
         // must not change how the Last used destination routes.
-        comment = menuState.lastUsedMeta.comment;
-        menuIndex = menuState.lastUsedMeta.menuIndex;
+        comment = lastUsedMeta.comment;
+        menuIndex = lastUsedMeta.menuIndex;
       }
     } else {
       const mappedMenu = menuInfo as NonNullable<typeof menuInfo>;
@@ -217,7 +277,7 @@ export const handleContextMenuClick = async (
       comment,
       forcePrompt:
         menuInfo?.prompt === true ||
-        (info.menuItemId === MENU_IDS.LAST_USED && menuState.lastUsedMeta?.prompt === true),
+        (info.menuItemId === MENU_IDS.LAST_USED && lastUsedMeta?.prompt),
       modifiers: Array.isArray(modifiersValue)
         ? modifiersValue.filter((value): value is string => typeof value === "string")
         : undefined,
@@ -234,7 +294,6 @@ export const handleContextMenuClick = async (
       info: opts,
     };
 
-    const privateContext = clickTab?.incognito === true;
     if (
       !privateContext &&
       options.saveSourceSidecar &&
@@ -248,19 +307,18 @@ export const handleContextMenuClick = async (
     // reports a terminal failure to the user
     const result = await launchDownload(state);
 
-    if (result.status === "started" && selectedLocation && !privateContext) {
-      await setLastUsed(selectedLocation.path, selectedLocation.meta);
-      const recentDestinationsChanged = await recordRecentDestination(
-        selectedLocation.path,
-        selectedLocation.meta,
-      );
-      if (options.enableLastLocation) {
-        await webExtensionApi.contextMenus.update(MENU_IDS.LAST_USED, {
-          title: setAccesskey(selectedLocation.title, options.keyLastUsed),
-          enabled: true,
-        });
+    if (result.status === "started" && selectedLocation) {
+      await setLastUsed(selectedLocation.path, selectedLocation.meta, privateContext);
+      if (!privateContext) {
+        const recentDestinationsChanged = await recordRecentDestination(
+          selectedLocation.path,
+          selectedLocation.meta,
+        );
+        if (options.enableLastLocation) await updateLastUsedMenu();
+        if (options.recentDestinationCount > 0 && recentDestinationsChanged) await rebuildMenus();
+      } else if (options.enableLastLocation && !dynamicLastUsedMenu) {
+        await enablePrivateLastUsedMenu();
       }
-      if (options.recentDestinationCount > 0 && recentDestinationsChanged) await rebuildMenus();
     }
 
     // Close the tab a "save page" came from, mirroring the tab-strip
@@ -322,6 +380,15 @@ export const addDownloadListener = () => {
   webExtensionApi.contextMenus.onClicked.addListener((info, tab) =>
     runBackgroundTask("context menu click failed", () => handleContextMenuClick(info, tab), {
       privateContext: tab?.incognito === true,
+    }),
+  );
+  dynamicLastUsedMenu = registerDynamicLastUsedMenu();
+  webExtensionApi.windows.onRemoved.addListener(() =>
+    runBackgroundTask("private Last used cleanup failed", async () => {
+      if (backgroundRuntime.ready) await backgroundRuntime.ready;
+      const windows = await webExtensionApi.windows.getAll();
+      if (windows.some((window) => window.incognito)) return;
+      await clearPrivateLastUsed();
     }),
   );
 };

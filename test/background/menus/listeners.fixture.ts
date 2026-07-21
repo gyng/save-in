@@ -53,12 +53,19 @@ const setupBrowserMocks = () => {
   (global.browser as any).contextMenus = {
     create: vi.fn(),
     update: vi.fn(),
+    refresh: vi.fn(() => Promise.resolve()),
     removeAll: vi.fn(() => Promise.resolve()),
     onClicked: { addListener: vi.fn() },
+    onShown: { addListener: vi.fn() },
+    onHidden: { addListener: vi.fn() },
   };
   (global.browser.runtime as any).openOptionsPage = vi.fn();
   (global.browser.downloads as any).showDefaultFolder = vi.fn();
   global.browser.storage.local.set = vi.fn(() => Promise.resolve());
+  global.browser.storage.session.set = vi.fn(() => Promise.resolve());
+  global.browser.storage.session.remove = vi.fn(() => Promise.resolve());
+  global.browser.windows.getAll = vi.fn(() => Promise.resolve([]));
+  global.browser.windows.onRemoved.addListener = vi.fn();
 };
 
 // Seed the freshly-imported deps: spy the click-handler collaborators, mutate
@@ -89,6 +96,9 @@ const seedDeps = () => {
     saveSourceSidecar: false,
     closeTabOnSave: false,
     tabEnabled: true,
+    routeHideFolderChoices: false,
+    quickSaveEnabled: false,
+    quickSaveOnly: false,
     keyLastUsed: "",
     recentDestinationCount: 3,
   });
@@ -113,6 +123,8 @@ const importMenus = async () => {
   ({ setCurrentTab } = await import("../../../src/platform/current-tab.ts"));
   ({ backgroundRuntime: Runtime } = await import("../../../src/background/runtime.ts"));
   menuBuild.restoreLastUsed(undefined);
+  menuBuild.menuState.privateLastUsedPath = null;
+  menuBuild.menuState.privateLastUsedMeta = null;
   menuBuild.menuState.pathMappings = {};
   seedDeps();
   return {

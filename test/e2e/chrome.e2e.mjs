@@ -928,7 +928,7 @@ test("download completes through the real pipeline with session tracking", async
   expect(fs.readFileSync(file, "utf8")).toBe("e2e smoke test content");
 });
 
-test("private context-menu saves leave no extension history or session state", async () => {
+test("private context-menu saves isolate Last used to the private session", async () => {
   await runPrivateContextScenario({
     control,
     waitForDownloads,

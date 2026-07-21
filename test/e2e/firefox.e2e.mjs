@@ -515,7 +515,7 @@ test("download completes through the real pipeline", async () => {
   expect(fs.readFileSync(completed.filename, "utf8")).toBe("firefox e2e content");
 });
 
-test("private context-menu saves leave no extension history or session state", async () => {
+test("private context-menu saves isolate Last used to the private session", async () => {
   const privateWindow = await control.windows.create({ incognito: true, url: "about:blank" });
   try {
     await runPrivateContextScenario({
@@ -534,6 +534,7 @@ test("private context-menu saves leave no extension history or session state", a
     });
   } finally {
     await control.windows.remove(privateWindow.id);
+    await control.storage.session.wait("siPrivateLastUsed", undefined);
   }
 });
 

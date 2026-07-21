@@ -20,6 +20,14 @@ Work // (dialog: true)
 Removing the metadata returns the destination to normal direct saving. Aliases,
 comments, nesting, and variables can be used on the same destination line.
 
+## Last used
+
+**Last used** repeats the most recently selected explicit destination. Regular
+windows keep that destination on the device so it survives background and
+browser restarts. Private windows keep a separate Last used destination only in
+session storage: it survives background sleeps, is never shown in a regular
+window, and is removed when private browsing ends or the browser closes.
+
 ## Recent locations
 
 Set **Recent locations** under **Options → Save menu → Save behavior** to show

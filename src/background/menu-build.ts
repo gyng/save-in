@@ -10,6 +10,7 @@ import { options } from "../config/options-data.ts";
 import {
   LAST_USED_META_STORAGE_KEY,
   LAST_USED_PATH_STORAGE_KEY,
+  PRIVATE_LAST_USED_SESSION_KEY,
   RECENT_DESTINATIONS_STORAGE_KEY,
 } from "../shared/storage-keys.ts";
 import { MAX_RECENT_DESTINATIONS, MEDIA_TYPES } from "../shared/constants.ts";
@@ -19,6 +20,7 @@ import { backgroundRuntime } from "./runtime.ts";
 import type { MenuTree, TabAction } from "../menus/menu-tree.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
 import { resolveMenuAccessKey } from "../menus/access-key.ts";
+import { extensionSessionStorage } from "../platform/storage-areas.ts";
 
 export { MENU_IDS } from "../menus/menu-ids.ts";
 
@@ -30,7 +32,7 @@ const asMenuContexts = (contexts: readonly MenuContext[]): MenuContexts => {
   const [first, ...rest] = contexts;
   return first === undefined ? ["all"] : [first, ...rest];
 };
-type LastUsedMeta = {
+export type LastUsedMeta = {
   comment?: string;
   menuIndex?: string;
   title?: string;
@@ -55,11 +57,15 @@ type MenuPathMapping = {
 export const menuState: {
   lastUsedPath: string | null;
   lastUsedMeta: LastUsedMeta | null;
+  privateLastUsedPath: string | null;
+  privateLastUsedMeta: LastUsedMeta | null;
   recentDestinations: RecentDestination[];
   pathMappings: Record<string | number, MenuPathMapping>;
 } = {
   lastUsedPath: null,
   lastUsedMeta: null,
+  privateLastUsedPath: null,
+  privateLastUsedMeta: null,
   recentDestinations: [],
   pathMappings: {},
 };
@@ -68,12 +74,56 @@ export const menuState: {
 // background-main.ts restores it, menu-build renders it. MV3 service workers are
 // stateless, so it is mirrored to storage.local to survive restarts.
 export const setLastUsed = (path: string, meta: LastUsedMeta, privateContext = false) => {
-  if (privateContext) return Promise.resolve();
+  if (privateContext) {
+    menuState.privateLastUsedPath = path;
+    menuState.privateLastUsedMeta = meta;
+    return extensionSessionStorage
+      .set({ [PRIVATE_LAST_USED_SESSION_KEY]: { path, meta } })
+      .catch(() => {});
+  }
   menuState.lastUsedPath = path;
   menuState.lastUsedMeta = meta;
   return webExtensionApi.storage.local
     .set({ [LAST_USED_PATH_STORAGE_KEY]: path, [LAST_USED_META_STORAGE_KEY]: meta })
     .catch(() => {});
+};
+
+export const restorePrivateLastUsed = (stored: unknown): void => {
+  const value = isStringKeyedRecord(stored) ? stored[PRIVATE_LAST_USED_SESSION_KEY] : undefined;
+  const path = isStringKeyedRecord(value) ? value.path : undefined;
+  const meta = isStringKeyedRecord(value) ? normalizeLastUsedMeta(value.meta) : null;
+  menuState.privateLastUsedPath =
+    typeof path === "string" && path && new Path(path).validate().valid ? path : null;
+  menuState.privateLastUsedMeta = menuState.privateLastUsedPath ? meta : null;
+};
+
+export const clearPrivateLastUsed = (): Promise<void> => {
+  menuState.privateLastUsedPath = null;
+  menuState.privateLastUsedMeta = null;
+  return extensionSessionStorage.remove(PRIVATE_LAST_USED_SESSION_KEY).catch(() => {});
+};
+
+export const getLastUsed = (privateContext = false) =>
+  privateContext
+    ? { path: menuState.privateLastUsedPath, meta: menuState.privateLastUsedMeta }
+    : { path: menuState.lastUsedPath, meta: menuState.lastUsedMeta };
+
+export const updateLastUsedMenu = (privateContext = false): Promise<void> => {
+  const lastUsed = getLastUsed(privateContext);
+  const title = lastUsed.meta?.title || lastUsed.path || getMessage("contextMenuLastUsed");
+  return webExtensionApi.contextMenus.update(MENU_IDS.LAST_USED, {
+    title: setAccesskey(title, options.keyLastUsed),
+    enabled: Boolean(lastUsed.path),
+  });
+};
+
+export const enablePrivateLastUsedMenu = (): Promise<void> => {
+  const regular = getLastUsed();
+  const title = regular.meta?.title || regular.path || getMessage("contextMenuLastUsed");
+  return webExtensionApi.contextMenus.update(MENU_IDS.LAST_USED, {
+    title: setAccesskey(title, options.keyLastUsed),
+    enabled: Boolean(regular.path || menuState.privateLastUsedPath),
+  });
 };
 
 // The dynamic-default menu checkbox flips the effective Quick save destination
@@ -417,13 +467,13 @@ const createMenuWithThemedIcon = (
 };
 
 export const addLastUsed = (contexts: readonly MenuContext[]) => {
-  const lastUsedTitle =
-    menuState.lastUsedMeta?.title || menuState.lastUsedPath || getMessage("contextMenuLastUsed");
+  const lastUsed = getLastUsed();
+  const lastUsedTitle = lastUsed.meta?.title || lastUsed.path || getMessage("contextMenuLastUsed");
   createMenuWithThemedIcon(
     {
       id: MENU_IDS.LAST_USED,
       title: setAccesskey(lastUsedTitle, options.keyLastUsed),
-      enabled: Boolean(menuState.lastUsedPath),
+      enabled: Boolean(lastUsed.path),
       contexts: asMenuContexts(contexts),
       parentId: MENU_IDS.ROOT,
     },

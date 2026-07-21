@@ -243,7 +243,7 @@ describe("addDownloadListener", () => {
     expect(global.browser.contextMenus.removeAll).toHaveBeenCalledTimes(1);
   });
 
-  test("a private path click does not publish last-used state or menu UI", async () => {
+  test("a private path click remembers Last used without publishing it", async () => {
     Menus.addPaths(["private/path"], ["link"]);
 
     await listener(
@@ -251,13 +251,152 @@ describe("addDownloadListener", () => {
         menuItemId: "save-in-0",
         linkUrl: "https://example.com/private.png",
         pageUrl: "https://example.com/",
+        editable: false,
+        modifiers: [],
       },
-      { id: 8, incognito: true },
+      {
+        id: 8,
+        index: 0,
+        highlighted: false,
+        active: true,
+        pinned: false,
+        incognito: true,
+      },
     );
 
     expect(Menus.state.lastUsedPath).toBeNull();
+    expect(Menus.state.privateLastUsedPath).toBe("private/path");
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
     expect(global.browser.contextMenus.update).not.toHaveBeenCalled();
+
+    await listener(
+      {
+        menuItemId: Menus.IDS.LAST_USED,
+        linkUrl: "https://example.com/again.png",
+        pageUrl: "https://example.com/",
+      },
+      {
+        id: 8,
+        index: 0,
+        highlighted: false,
+        active: true,
+        pinned: false,
+        incognito: true,
+      },
+    );
+
+    expect(Download.launchDownload).toHaveBeenCalledTimes(2);
+    expect(Download.launchDownload.mock.calls[1]![0]!.path.raw).toBe("private/path");
+  });
+
+  test("private Last used state is unavailable to a regular click", async () => {
+    await Menus.setLastUsed("private/path", { title: "Private folder" }, true);
+
+    await listener({
+      menuItemId: Menus.IDS.LAST_USED,
+      linkUrl: "https://example.com/file.png",
+      pageUrl: "https://example.com/",
+    });
+
+    expect(Download.launchDownload).not.toHaveBeenCalled();
+  });
+
+  test("enables a generic private Last used item when dynamic menus are unavailable", async () => {
+    Reflect.deleteProperty(global.browser.contextMenus, "onShown");
+    Reflect.deleteProperty(global.browser.contextMenus, "onHidden");
+    Reflect.deleteProperty(global.browser.contextMenus, "refresh");
+    Menus.addDownloadListener();
+    const fallbackListener = vi
+      .mocked(global.browser.contextMenus.onClicked.addListener)
+      .mock.calls.at(-1)![0];
+    Menus.addPaths(["private/path"], ["link"]);
+    vi.mocked(global.browser.contextMenus.update).mockClear();
+
+    await fallbackListener(
+      {
+        menuItemId: "save-in-0",
+        linkUrl: "https://example.com/private.png",
+        pageUrl: "https://example.com/",
+        editable: false,
+        modifiers: [],
+      },
+      {
+        id: 8,
+        index: 0,
+        highlighted: false,
+        active: true,
+        pinned: false,
+        incognito: true,
+      },
+    );
+
+    expect(global.browser.contextMenus.update).toHaveBeenCalledWith(Menus.IDS.LAST_USED, {
+      title: expect.any(String),
+      enabled: true,
+    });
+    expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+  });
+
+  test("falls back when a dynamic menu event has no listener registrar", async () => {
+    Object.defineProperty(global.browser.contextMenus, "onShown", {
+      configurable: true,
+      value: { addListener: null },
+    });
+    Menus.addDownloadListener();
+    const fallbackListener = vi
+      .mocked(global.browser.contextMenus.onClicked.addListener)
+      .mock.calls.at(-1)![0];
+    Menus.addPaths(["private/path"], ["link"]);
+    vi.mocked(global.browser.contextMenus.update).mockClear();
+
+    await fallbackListener(
+      {
+        menuItemId: "save-in-0",
+        linkUrl: "https://example.com/private.png",
+        pageUrl: "https://example.com/",
+        editable: false,
+        modifiers: [],
+      },
+      {
+        id: 8,
+        index: 0,
+        highlighted: false,
+        active: true,
+        pinned: false,
+        incognito: true,
+      },
+    );
+
+    expect(global.browser.contextMenus.update).toHaveBeenCalledWith(Menus.IDS.LAST_USED, {
+      title: expect.any(String),
+      enabled: true,
+    });
+  });
+
+  test("clears private Last used state after the final private window closes", async () => {
+    await Menus.setLastUsed("private/path", { title: "Private folder" }, true);
+    const removed = vi.mocked(global.browser.windows.onRemoved.addListener).mock.calls[0]![0];
+    vi.mocked(global.browser.storage.session.remove).mockClear();
+    delete Runtime.ready;
+
+    await removed(7);
+
+    expect(Menus.state.privateLastUsedPath).toBeNull();
+    expect(global.browser.storage.session.remove).toHaveBeenCalledWith("siPrivateLastUsed");
+  });
+
+  test("keeps private Last used state while another private window is open", async () => {
+    await Menus.setLastUsed("private/path", { title: "Private folder" }, true);
+    vi.mocked(global.browser.windows.getAll).mockResolvedValueOnce([
+      { id: 9, incognito: true } as browser.windows.Window,
+    ]);
+    const removed = vi.mocked(global.browser.windows.onRemoved.addListener).mock.calls[0]![0];
+    vi.mocked(global.browser.storage.session.remove).mockClear();
+
+    await removed(7);
+
+    expect(Menus.state.privateLastUsedPath).toBe("private/path");
+    expect(global.browser.storage.session.remove).not.toHaveBeenCalled();
   });
 
   test("keeps the event handler alive until last-used persistence completes", async () => {
@@ -647,6 +786,52 @@ describe("addDownloadListener", () => {
         title: "dir1",
         enabled: true,
       });
+    });
+
+    test("refreshes Last used for the private menu and restores the regular title", async () => {
+      await Menus.setLastUsed("regular/path", { title: "Regular folder" });
+      await Menus.setLastUsed("private/path", { title: "Private folder" }, true);
+      const shown = vi.mocked(global.browser.contextMenus.onShown.addListener).mock.calls[0]![0];
+      const hidden = vi.mocked(global.browser.contextMenus.onHidden.addListener).mock.calls[0]![0];
+      vi.mocked(global.browser.contextMenus.update).mockClear();
+      delete Runtime.ready;
+
+      await shown(
+        { menuIds: [], contexts: [], editable: false },
+        { index: 0, highlighted: false, active: true, pinned: false, incognito: true },
+      );
+
+      expect(global.browser.contextMenus.update).toHaveBeenLastCalledWith(Menus.IDS.LAST_USED, {
+        title: "Private folder",
+        enabled: true,
+      });
+      expect(global.browser.contextMenus.refresh).toHaveBeenCalledOnce();
+
+      await hidden();
+
+      expect(global.browser.contextMenus.update).toHaveBeenLastCalledWith(Menus.IDS.LAST_USED, {
+        title: "Regular folder",
+        enabled: true,
+      });
+    });
+
+    test.each([
+      ["the setting is disabled", { enableLastLocation: false }],
+      ["folder choices are hidden", { routeHideFolderChoices: true }],
+      ["Quick save is the only page item", { quickSaveEnabled: true, quickSaveOnly: true }],
+    ])("does not refresh Last used when %s", async (_label, overrides) => {
+      Object.assign(options, overrides);
+      const shown = vi.mocked(global.browser.contextMenus.onShown.addListener).mock.calls[0]![0];
+      const hidden = vi.mocked(global.browser.contextMenus.onHidden.addListener).mock.calls[0]![0];
+
+      await shown(
+        { menuIds: [], contexts: [], editable: false },
+        { index: 0, highlighted: false, active: true, pinned: false, incognito: false },
+      );
+      await hidden();
+
+      expect(global.browser.contextMenus.update).not.toHaveBeenCalled();
+      expect(global.browser.contextMenus.refresh).not.toHaveBeenCalled();
     });
 
     test("the last-used title gets an access key where supported", async () => {

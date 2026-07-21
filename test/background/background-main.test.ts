@@ -37,6 +37,7 @@ vi.mock("../../src/background/menu-build.ts", async (importOriginal) => {
     addOptions: vi.fn(actual.addOptions),
     addSourcePanel: vi.fn(actual.addSourcePanel),
     restoreLastUsed: vi.fn(actual.restoreLastUsed),
+    restorePrivateLastUsed: vi.fn(actual.restorePrivateLastUsed),
   };
 });
 const downloadStateMocks = vi.hoisted(() => ({ hydrate: vi.fn(() => Promise.resolve()) }));
@@ -111,6 +112,7 @@ const setupGlobals = async ({
   vi.mocked(Menus.addOptions).mockImplementation(() => undefined);
   vi.mocked(Menus.addSourcePanel).mockImplementation(() => undefined);
   vi.mocked(Menus.restoreLastUsed).mockImplementation(() => undefined);
+  vi.mocked(Menus.restorePrivateLastUsed).mockImplementation(() => undefined);
 
   Object.assign(
     options,
@@ -384,6 +386,8 @@ describe("init", () => {
       "lastUsedMeta",
       "recentDestinations",
     ]);
+    expect(global.browser.storage.session.get).toHaveBeenCalledWith("siPrivateLastUsed");
+    expect(Menus.restorePrivateLastUsed).toHaveBeenCalledWith({});
     expect(global.browser.contextMenus.removeAll).toHaveBeenCalledTimes(1);
     expect(recoveryMocks.recover).toHaveBeenCalledTimes(1);
 

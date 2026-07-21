@@ -173,6 +173,10 @@ const createTestHost = (kind: TestHostKind): Record<string, unknown> => {
     getSessionRules: vi.fn(async () => []),
     updateSessionRules: vi.fn(async () => undefined),
   };
+  const windows = {
+    getAll: vi.fn(async () => []),
+    onRemoved: webExtensionEvent<[windowId: number]>(),
+  };
   return {
     contextMenus,
     menus: contextMenus,
@@ -218,6 +222,7 @@ const createTestHost = (kind: TestHostKind): Record<string, unknown> => {
       onChanged: webExtensionEvent(),
     },
     tabs,
+    windows,
     webNavigation: {
       getFrame: vi.fn(async () => null),
       getAllFrames: vi.fn(async () => []),

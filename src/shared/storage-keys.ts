@@ -8,6 +8,7 @@ export const HISTORY_INDEX_CHUNK_STORAGE_PREFIX = "save-in-history-index-v2:";
 export const HISTORY_ENTRY_STORAGE_PREFIX = "save-in-history-entry-v2:";
 export const LAST_USED_PATH_STORAGE_KEY = "lastUsedPath";
 export const LAST_USED_META_STORAGE_KEY = "lastUsedMeta";
+export const PRIVATE_LAST_USED_SESSION_KEY = "siPrivateLastUsed";
 export const RECENT_DESTINATIONS_STORAGE_KEY = "recentDestinations";
 export const DOWNLOADS_SESSION_KEY = "siDownloads";
 export const PENDING_DOWNLOADS_SESSION_KEY = "siPendingDownloads";

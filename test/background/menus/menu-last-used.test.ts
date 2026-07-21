@@ -1,9 +1,13 @@
 import {
   addRecentDestinations,
+  clearPrivateLastUsed,
+  enablePrivateLastUsedMenu,
   menuState,
   recordRecentDestination,
   restoreLastUsed,
+  restorePrivateLastUsed,
   setLastUsed,
+  updateLastUsedMenu,
 } from "../../../src/background/menu-build.ts";
 import { setupBrowserMocks } from "./listeners.fixture.ts";
 
@@ -11,6 +15,7 @@ describe("Menus last-used state", () => {
   beforeEach(() => {
     setupBrowserMocks();
     restoreLastUsed(undefined);
+    restorePrivateLastUsed(undefined);
   });
 
   test("restoreLastUsed maps a stored object into state, defaulting to null", () => {
@@ -82,11 +87,93 @@ describe("Menus last-used state", () => {
     });
   });
 
-  test("setLastUsed ignores private-window activity", async () => {
+  test("setLastUsed keeps private-window activity in session storage only", async () => {
     await setLastUsed("private/path", { comment: "secret", menuIndex: "9" }, true);
 
     expect(menuState.lastUsedPath).toBeNull();
+    expect(menuState.privateLastUsedPath).toBe("private/path");
+    expect(menuState.privateLastUsedMeta).toEqual({ comment: "secret", menuIndex: "9" });
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+    expect(global.browser.storage.session.set).toHaveBeenCalledWith({
+      siPrivateLastUsed: {
+        path: "private/path",
+        meta: { comment: "secret", menuIndex: "9" },
+      },
+    });
+  });
+
+  test("contains private-session persistence failures", async () => {
+    vi.mocked(global.browser.storage.session.set).mockRejectedValueOnce(new Error("unavailable"));
+
+    await expect(setLastUsed("private/path", { title: "Private folder" }, true)).resolves.toBe(
+      undefined,
+    );
+
+    expect(menuState.privateLastUsedPath).toBe("private/path");
+  });
+
+  test("restores and clears a private-session Last used destination", async () => {
+    restorePrivateLastUsed({
+      siPrivateLastUsed: {
+        path: "private/path",
+        meta: { comment: "private", menuIndex: "3", title: "Private folder" },
+      },
+    });
+
+    expect(menuState.privateLastUsedPath).toBe("private/path");
+    expect(menuState.privateLastUsedMeta).toEqual({
+      comment: "private",
+      menuIndex: "3",
+      title: "Private folder",
+    });
+
+    await clearPrivateLastUsed();
+
+    expect(menuState.privateLastUsedPath).toBeNull();
+    expect(menuState.privateLastUsedMeta).toBeNull();
+    expect(global.browser.storage.session.remove).toHaveBeenCalledWith("siPrivateLastUsed");
+  });
+
+  test("contains private-session cleanup failures", async () => {
+    await setLastUsed("private/path", { title: "Private folder" }, true);
+    vi.mocked(global.browser.storage.session.remove).mockRejectedValueOnce(
+      new Error("unavailable"),
+    );
+
+    await expect(clearPrivateLastUsed()).resolves.toBe(undefined);
+
+    expect(menuState.privateLastUsedPath).toBeNull();
+  });
+
+  test("renders an unavailable generic Last used item without stored state", async () => {
+    await updateLastUsedMenu();
+
+    expect(global.browser.contextMenus.update).toHaveBeenCalledWith("save-in-last-used", {
+      title: "Translat&ed<contextMenuLastUsed>",
+      enabled: false,
+    });
+  });
+
+  test("keeps the regular title when enabling private Last used on static menus", async () => {
+    await setLastUsed("regular/path", { title: "Regular folder" });
+    await setLastUsed("private/path", { title: "Private folder" }, true);
+    vi.mocked(global.browser.contextMenus.update).mockClear();
+
+    await enablePrivateLastUsedMenu();
+
+    expect(global.browser.contextMenus.update).toHaveBeenCalledWith("save-in-last-used", {
+      title: "R&egular folder",
+      enabled: true,
+    });
+  });
+
+  test("rejects malformed private-session Last used state", () => {
+    restorePrivateLastUsed({
+      siPrivateLastUsed: { path: "../escape", meta: { comment: 4 } },
+    });
+
+    expect(menuState.privateLastUsedPath).toBeNull();
+    expect(menuState.privateLastUsedMeta).toBeNull();
   });
 
   test("restores only valid recent destinations", () => {

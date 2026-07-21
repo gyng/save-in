@@ -7,12 +7,13 @@ import { downloadsState } from "./application-state.ts";
 import { hydrateDownloads } from "../downloads/download-state.ts";
 import { setHistoryStatus } from "./history.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
-import { restoreLastUsed } from "./menu-build.ts";
+import { restoreLastUsed, restorePrivateLastUsed } from "./menu-build.ts";
 import { addDownloadListener, quickSaveActiveTab } from "./menu-click.ts";
 import { addTabMenuListener } from "./menu-tabs.ts";
 import {
   LAST_USED_META_STORAGE_KEY,
   LAST_USED_PATH_STORAGE_KEY,
+  PRIVATE_LAST_USED_SESSION_KEY,
   RECENT_DESTINATIONS_STORAGE_KEY,
   WELCOME_PENDING_STORAGE_KEY,
   WELCOME_VERSION,
@@ -42,7 +43,7 @@ const seedCurrentTab = (candidate: CurrentTab): void => {
 const reloadConfigurationAndMenus = async (overrides?: Record<string, unknown>): Promise<void> => {
   resetRuntimeDiagnostics();
 
-  const [loaded, storedLastUsed] = await Promise.all([
+  const [loaded, storedLastUsed, storedPrivateLastUsed] = await Promise.all([
     OptionsManagement.loadOptions(overrides).then(async (loadedOptions) => {
       await initializeLocalization(loadedOptions.uiLocale);
       return loadedOptions;
@@ -52,10 +53,12 @@ const reloadConfigurationAndMenus = async (overrides?: Record<string, unknown>):
       LAST_USED_META_STORAGE_KEY,
       RECENT_DESTINATIONS_STORAGE_KEY,
     ]),
+    extensionSessionStorage.get(PRIVATE_LAST_USED_SESSION_KEY),
   ]);
 
   backgroundRuntime.debug = loaded.debug;
   restoreLastUsed(storedLastUsed);
+  restorePrivateLastUsed(storedPrivateLastUsed);
   await rebuildMenus();
 };
 
