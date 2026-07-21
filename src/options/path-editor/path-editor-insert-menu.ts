@@ -67,7 +67,8 @@ export const setupPathInsertMenu = (
         const button = document.createElement("button");
         button.type = "button";
         button.className = "variables-preview-insert";
-        button.dataset.insertLine = `${clause}: `;
+        const line = `${clause}: `;
+        button.dataset.insertLine = line;
         button.setAttribute(
           "aria-label",
           getMessage("referenceInsertValue", `${clause}:`) || `Insert ${clause}:`,
@@ -88,9 +89,6 @@ export const setupPathInsertMenu = (
         row.append(syntaxCell, currentValue, description);
         clauseBody.append(row);
         button.addEventListener("click", () => {
-          const line = button.dataset.insertLine;
-          /* v8 ignore next -- This button receives data-insert-line immediately above. */
-          if (line === undefined) return;
           insertLine(textarea, line);
           closeMenu();
         });

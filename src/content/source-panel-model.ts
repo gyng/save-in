@@ -36,6 +36,7 @@ export type PageSource = {
       }
     | undefined;
 };
+export type PageSourceCandidate = PageSource & { collectorOriginElements: Element[] };
 export type SourcePanelOptions = {
   enabled?: boolean;
   includeBackgrounds?: boolean;
@@ -98,8 +99,10 @@ export const mergeResourceTimings = (
     // recently observed version of a URL rather than its first occurrence.
     target.delete(entry.name);
     if (target.size >= SOURCE_PANEL_RESOURCE_TIMING_LIMIT) {
-      const oldest = target.keys().next().value;
-      if (oldest !== undefined) target.delete(oldest);
+      for (const oldest of target.keys()) {
+        target.delete(oldest);
+        break;
+      }
     }
     // Only these scalar fields are consumed. Holding the browser-owned timing
     // object would also retain optional detail such as a large Server-Timing
@@ -226,7 +229,7 @@ const createPageSourceCandidateAccumulator = (
     originSet?: Set<Element>;
   };
   const byUrl = new Map<string, CandidateEntry | Map<string, CandidateEntry>>();
-  const values: PageSource[] = [];
+  const values: PageSourceCandidate[] = [];
   const variantKey = (kind: PageSourceKind, channel?: PageSource["channel"]): string =>
     `${kind}\0${channel ?? ""}`;
   const add = (
@@ -257,7 +260,7 @@ const createPageSourceCandidateAccumulator = (
       const origins = preserveDuplicateOrigins
         ? [...new Set(sourceOrigins)]
         : sourceOrigins.slice(0, 1);
-      const source: PageSource = {
+      const source: PageSourceCandidate = {
         url,
         kind,
         element,
@@ -323,7 +326,9 @@ export const createPageSourceCandidateCollection = () => {
 // object for every origin. Compact exact URL/kind/channel variants as they are
 // collected so a gallery that repeats one asset retains one element reference
 // per occurrence rather than one listener-facing record per occurrence.
-export const compactPageSourceCandidates = (sources: Iterable<PageSource>): PageSource[] => {
+export const compactPageSourceCandidates = (
+  sources: Iterable<PageSource>,
+): PageSourceCandidate[] => {
   const collection = createPageSourceCandidateCollection();
   collection.addAll(sources);
   return collection.values;
@@ -633,7 +638,7 @@ export const resourceTimingByUrl = (
 export const collectResourceHintSources = (
   timingByUrl: ResourceTimingByUrl,
   element: Element = document.body,
-): PageSource[] =>
+): PageSourceCandidate[] =>
   [...timingByUrl.values()]
     .filter(({ name }) => /\.(?:m3u8|mpd)(?:$|[?#])/i.test(name))
     .flatMap((entry) => {
@@ -644,6 +649,7 @@ export const collectResourceHintSources = (
               url,
               kind: "stream" as const,
               element,
+              collectorOriginElements: [],
               bytes: resourceBytes(entry.encodedBodySize, entry.transferSize),
               channel: "resource-hint" as const,
             },
@@ -686,7 +692,7 @@ export const collectBackgroundSourceCandidates = (
   timingByUrl: ResourceTimingByUrl = resourceTimingByUrl(),
   payloadBudget: PageSourcePayloadBudget = createPageSourcePayloadBudget(),
   preserveDuplicateOrigins = true,
-): PageSource[] => {
+): PageSourceCandidate[] => {
   const found = createPageSourceCandidateAccumulator(false, preserveDuplicateOrigins);
   const admitUrl = createPageSourceUrlAdmission(payloadBudget);
   for (const element of elements) {
@@ -714,7 +720,7 @@ export const collectPageSourceCandidates = (
   timingByUrl: ResourceTimingByUrl = resourceTimingByUrl(),
   payloadBudget: PageSourcePayloadBudget = createPageSourcePayloadBudget(),
   preserveDuplicateOrigins = true,
-): PageSource[] => {
+): PageSourceCandidate[] => {
   const found = createPageSourceCandidateAccumulator(false, preserveDuplicateOrigins);
   const admitUrl = createPageSourceUrlAdmission(payloadBudget);
   const add = (
@@ -833,7 +839,7 @@ export const collectPageSourceCandidates = (
         source.previewable,
         source.responsive,
         source.channel,
-        source.collectorOriginElements ?? source.originElements,
+        source.collectorOriginElements,
       );
     }
   }
@@ -847,7 +853,7 @@ export const collectPageSourceCandidates = (
         source.previewable,
         source.responsive,
         source.channel,
-        source.collectorOriginElements ?? source.originElements,
+        source.collectorOriginElements,
       );
     }
   }

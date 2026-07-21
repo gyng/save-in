@@ -74,6 +74,24 @@ test("renders build identity and the live external API contract", async () => {
   });
 });
 
+test("does not wire malformed non-HTML API copy targets", async () => {
+  document.body.innerHTML = `<svg>
+    <text id="ext-id"></text>
+    <text id="api-snippet"></text>
+  </svg>`;
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockResolvedValue({
+    type: MESSAGE_TYPES.PONG,
+    body: { version: 1, capabilities: [] },
+  });
+
+  setupIntegrationPanel();
+
+  expect(document.querySelector("#ext-id")?.textContent).toBe(webExtensionApi.runtime.id);
+  expect(document.querySelector("#api-snippet")?.textContent).toContain('type: "DOWNLOAD"');
+  expect(document.querySelector("#ext-id")?.getAttribute("role")).toBeNull();
+  expect(document.querySelector("#api-snippet")?.getAttribute("role")).toBeNull();
+});
+
 test("lists rejected callers and adds an approved caller to the allowlist", async () => {
   document.body.innerHTML = `
     <a id="version-label"></a><span id="ext-id"></span><pre id="api-snippet"></pre>

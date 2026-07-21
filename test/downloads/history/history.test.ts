@@ -95,6 +95,16 @@ describe("SaveHistory", () => {
     ]);
   });
 
+  test("returns no sharded entry when the requested id is absent", async () => {
+    SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    await flushWrites();
+    vi.mocked(global.browser.storage.local.get).mockClear();
+
+    await expect(SaveHistory.getHistoryEntries("missing")).resolves.toEqual([]);
+
+    expect(global.browser.storage.local.get).toHaveBeenCalledTimes(2);
+  });
+
   test("does not persist entries from private browsing contexts", async () => {
     const id = SaveHistory.addHistoryEntry(
       { url: "https://private.example/secret.png" },

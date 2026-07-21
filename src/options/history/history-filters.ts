@@ -112,21 +112,12 @@ export const updateHistoryFilterUi = (): void => {
 };
 
 const bindHistoryFacet = (id: string, update: (value: string) => void, onChange: () => void) => {
-  document
-    .querySelector<HTMLInputElement | HTMLSelectElement>(id)
-    ?.addEventListener("change", (event) => {
-      /* v8 ignore next -- This listener is installed only on input and select elements. */
-      if (
-        !(
-          event.currentTarget instanceof HTMLInputElement ||
-          event.currentTarget instanceof HTMLSelectElement
-        )
-      )
-        return;
-      update(event.currentTarget.value);
-      historyState.page = 0;
-      onChange();
-    });
+  const control = document.querySelector<HTMLInputElement | HTMLSelectElement>(id);
+  control?.addEventListener("change", () => {
+    update(control.value);
+    historyState.page = 0;
+    onChange();
+  });
 };
 
 // Editing either date input implies a custom range, so the preset follows.

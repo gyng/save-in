@@ -426,6 +426,13 @@ describe("paginateHistory", () => {
     ).toBe(2);
   });
 
+  test("excludes timestamp-less entries from bounded date ranges", () => {
+    const entry = { finalFullPath: "undated.txt" };
+
+    expect(paginateHistory([entry], { dateFrom: "2024-01-01" }).matchCount).toBe(0);
+    expect(paginateHistory([entry], { dateTo: "2024-01-01" }).matchCount).toBe(1);
+  });
+
   test("filters by the user's local calendar day instead of the UTC date", () => {
     const timestamp = "2024-01-02T00:30:00.000Z";
     const expected = localHistoryDate(timestamp);

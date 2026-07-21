@@ -12,10 +12,12 @@ const sourceRoot = path.join(root, "src");
 // making them wrong: the assistant's single-rule check, which stays as the
 // guard for a future non-plan caller, and the path-variable fallback, which
 // stands for a caller that asks without naming a dimension. Both are kept for
-// their callers rather than deleted to satisfy a threshold.
+// their callers rather than deleted to satisfy a threshold. Capturing owned
+// DOM controls in their listeners and covering malformed integration copy
+// targets removed another six redundant ignores.
 // New ignores require an explicit rationale and a deliberate ceiling update so
 // uncovered branches cannot accumulate silently.
-const ignoreCeiling = 76;
+const ignoreCeiling = 70;
 
 const errors = [];
 const config = fs.readFileSync(configPath, "utf8");

@@ -536,3 +536,68 @@ test("ignores an observer delivery that races with shutdown", () => {
   expect(send).not.toHaveBeenCalled();
   vi.unstubAllGlobals();
 });
+
+test("bounds and coalesces adversarial live mutation roots", async () => {
+  vi.useFakeTimers();
+  let notify!: MutationCallback;
+  class FakeMutationObserver {
+    constructor(callback: MutationCallback) {
+      notify = callback;
+    }
+    observe = vi.fn();
+    disconnect = vi.fn();
+    takeRecords = vi.fn(() => []);
+  }
+  vi.stubGlobal("MutationObserver", FakeMutationObserver);
+  const controller = setupAutoDownloadDiscovery({
+    rules,
+    live: true,
+    maxPerPage: 100,
+    send: vi.fn(async () => "started" as const),
+  });
+
+  const mutation = (addedNodes: Node[], target: Node = document.body): MutationRecord =>
+    ({ type: "childList", target, addedNodes }) as unknown as MutationRecord;
+  const detached = document.createElement("img");
+  notify([mutation([detached]), mutation([], document)], {} as MutationObserver);
+  notify([mutation([detached])], {} as MutationObserver);
+  await vi.advanceTimersByTimeAsync(200);
+
+  const parent = document.createElement("div");
+  const child = document.createElement("img");
+  parent.append(child);
+  document.body.append(parent);
+  notify([mutation([parent, child])], {} as MutationObserver);
+  await vi.advanceTimersByTimeAsync(200);
+  notify([mutation([child, parent])], {} as MutationObserver);
+  await vi.advanceTimersByTimeAsync(200);
+
+  const picture = document.createElement("picture");
+  const responsive = document.createElement("source");
+  picture.append(responsive, document.createElement("img"));
+  document.body.append(picture);
+  const orphanSource = document.createElement("source");
+  notify([mutation([responsive, orphanSource])], {} as MutationObserver);
+  await vi.advanceTimersByTimeAsync(200);
+
+  const style = document.createElement("style");
+  document.head.append(style);
+  notify([mutation([], style)], {} as MutationObserver);
+  await vi.advanceTimersByTimeAsync(200);
+
+  const roots = Array.from({ length: 66 }, () => document.createElement("div"));
+  roots.forEach((root) => document.body.append(root));
+  notify(
+    [
+      ...roots.slice(0, 64).map((root) => mutation([root])),
+      mutation(roots.slice(64)),
+      mutation([document.createElement("span")]),
+    ],
+    {} as MutationObserver,
+  );
+  await vi.advanceTimersByTimeAsync(200);
+
+  controller.stop();
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
+});

@@ -133,7 +133,6 @@ export const setupAutoDownloadDiscovery = (
   let refreshTimer = 0;
   let refreshMaxWaitTimer = 0;
   let lastScannedPageUrl: string | undefined;
-  let outstandingDataCharacters = 0;
 
   const settleIdle = () => {
     if (draining || queue.length > 0) return;
@@ -148,27 +147,21 @@ export const setupAutoDownloadDiscovery = (
       const candidate = queue.shift();
       if (!candidate) break;
       const seenKey = seenKeyFor(candidate.sourceUrl);
+      // Re-check between queueing and dispatch: the page may have navigated
+      // onto the disable list while earlier candidates were being sent.
+      if (options.isPageDisabled()) {
+        releaseSlot(seenKey);
+        continue;
+      }
       try {
-        // Re-check between queueing and dispatch: the page may have navigated
-        // onto the disable list while earlier candidates were being sent.
-        if (options.isPageDisabled()) {
-          releaseSlot(seenKey);
-          continue;
-        }
-        try {
-          const result = await options.send(candidate);
-          // Only a started save holds its once-per-visit slot. A terminal
-          // non-start never consumed the candidate and can be offered again.
-          if (result !== "started") releaseSlot(seenKey);
-        } catch {
-          // Keep observing across a reloaded extension context or one rejected
-          // automatic download; neither consumed the candidate.
-          releaseSlot(seenKey);
-        }
-      } finally {
-        if (isDataUrl(candidate.sourceUrl)) {
-          outstandingDataCharacters -= candidate.sourceUrl.length;
-        }
+        const result = await options.send(candidate);
+        // Only a started save holds its once-per-visit slot. A terminal
+        // non-start never consumed the candidate and can be offered again.
+        if (result !== "started") releaseSlot(seenKey);
+      } catch {
+        // Keep observing across a reloaded extension context or one rejected
+        // automatic download; neither consumed the candidate.
+        releaseSlot(seenKey);
       }
     }
     draining = false;
@@ -269,11 +262,6 @@ export const setupAutoDownloadDiscovery = (
         if (selected) break;
       }
       if (!selected) continue;
-      if (
-        isDataUrl(sourceUrl) &&
-        outstandingDataCharacters + sourceUrl.length > AUTO_DATA_CHARACTER_BUDGET
-      )
-        continue;
       if (seen.size >= maxPerPage) {
         if (!dedup.limitNotified) {
           dedup.limitNotified = true;
@@ -283,7 +271,6 @@ export const setupAutoDownloadDiscovery = (
       }
       seen.add(seenKey);
       queue.push(selected);
-      if (isDataUrl(sourceUrl)) outstandingDataCharacters += sourceUrl.length;
     }
     void drain();
   };
@@ -415,9 +402,6 @@ export const setupAutoDownloadDiscovery = (
       if (queue.length > 0) {
         for (const candidate of queue) {
           seen.delete(seenKeyFor(candidate.sourceUrl));
-          if (isDataUrl(candidate.sourceUrl)) {
-            outstandingDataCharacters -= candidate.sourceUrl.length;
-          }
         }
         dedup.limitNotified = false;
         queue.length = 0;

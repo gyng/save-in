@@ -165,6 +165,25 @@ describe("findSource", () => {
     expect(ClickToSave.findSource(event(image), false)).toBeUndefined();
   });
 
+  test("rejects an oversized inline link payload", () => {
+    const link = document.createElement("a");
+    Object.defineProperty(link, "href", {
+      value: `data:text/plain,${"a".repeat(DATA_URL_MAX_LENGTH)}`,
+    });
+
+    expect(ClickToSave.findSource(event(link), true)).toBeUndefined();
+  });
+
+  test("accepts an inline link payload within the cap", () => {
+    const link = document.createElement("a");
+    link.href = "data:text/plain,hello";
+
+    expect(ClickToSave.findSource(event(link), true)).toEqual({
+      url: "data:text/plain,hello",
+      kind: "link",
+    });
+  });
+
   test("returns undefined for plain elements", () => {
     document.body.innerHTML = '<p id="p">text</p>';
     expect(ClickToSave.findSource(event(document.getElementById("p")), true)).toBeUndefined();
@@ -1399,6 +1418,16 @@ describe("content.js initialisation", () => {
           info: expect.objectContaining({ matchedCssSelectorsByOrigin: [["img"]] }),
         }),
       }),
+      expect.any(Function),
+    );
+
+    vi.mocked(global.chrome.runtime.sendMessage).mockClear();
+    document
+      .getElementById("save-in-source-panel")!
+      .shadowRoot!.querySelector<HTMLButtonElement>(".primary-action")!
+      .click();
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "DOWNLOAD" }),
       expect.any(Function),
     );
 

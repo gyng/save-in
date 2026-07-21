@@ -41,6 +41,21 @@ test("click-to-copy preserves a caller-provided accessible label", () => {
   expect(element.title).toBe("Copy the filename variable");
 });
 
+test("click-to-copy gives an empty caller label a useful title", () => {
+  vi.mocked(browser.i18n.getMessage).mockReturnValueOnce("");
+  const element = document.createElement("code");
+  element.textContent = ":filename:";
+  element.setAttribute("aria-label", "");
+
+  addClickToCopy(
+    element,
+    vi.fn(async () => undefined),
+  );
+
+  expect(element.getAttribute("aria-label")).toBe("");
+  expect(element.title).toContain(":filename:");
+});
+
 test("click-to-copy supports keyboard activation and announces success", async () => {
   const element = document.createElement("code");
   element.textContent = "extension-id";

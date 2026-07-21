@@ -980,6 +980,68 @@ describe("history filter controls", () => {
     expect(historyRuntime.search).toHaveBeenCalledTimes(2);
   });
 
+  test("drops a native progress result from an obsolete render", async () => {
+    vi.useFakeTimers();
+    historyRuntime.entries = [
+      { id: "h-pending", status: "pending", downloadId: 7, finalFullPath: "large.iso" },
+    ];
+    let resolveSearch: (items: Array<Record<string, unknown>>) => void = () => {};
+    historyRuntime.search.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveSearch = resolve;
+        }),
+    );
+    await historyPanel.renderHistory();
+
+    historyRuntime.entries = [];
+    await historyPanel.renderHistory();
+    resolveSearch([{ id: 7, state: "complete" }]);
+    await vi.runAllTicks();
+
+    expect(document.querySelector(".history-progress")).toBeNull();
+  });
+
+  test("does not schedule a retry for an obsolete failed poll", async () => {
+    vi.useFakeTimers();
+    historyRuntime.entries = [
+      { id: "h-pending", status: "pending", downloadId: 7, finalFullPath: "large.iso" },
+    ];
+    let rejectSearch: (error: Error) => void = () => {};
+    historyRuntime.search.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectSearch = reject;
+        }),
+    );
+    await historyPanel.renderHistory();
+
+    historyRuntime.entries = [];
+    await historyPanel.renderHistory();
+    rejectSearch(new Error("obsolete poll"));
+    await vi.runAllTicks();
+    const calls = historyRuntime.search.mock.calls.length;
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(historyRuntime.search).toHaveBeenCalledTimes(calls);
+  });
+
+  test("contains an already-queued poll callback after progress stops", async () => {
+    vi.useFakeTimers();
+    const timers = vi.spyOn(window, "setTimeout");
+    historyRuntime.entries = [{ id: "h-pending", status: "pending", finalFullPath: "large.iso" }];
+    await historyPanel.renderHistory();
+    const queuedPoll = timers.mock.calls.find(([, delay]) => delay === 1000)?.[0];
+    if (!queuedPoll) throw new Error("history progress poll was not scheduled");
+
+    historyRuntime.entries = [];
+    await historyPanel.renderHistory();
+    queuedPoll();
+    await vi.runAllTicks();
+
+    expect(historyRuntime.search).not.toHaveBeenCalled();
+  });
+
   test("refreshes durable history when native progress finishes", async () => {
     vi.useFakeTimers();
     historyRuntime.entries = [

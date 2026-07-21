@@ -11,6 +11,7 @@ import {
   mergePageSourcesByUrl,
   resourceTimingByUrl,
   type PageSource,
+  type PageSourceCandidate,
 } from "./source-panel-model.ts";
 import { PANEL_HOST_ID, cleanupPanelHost, panelOpenChanges } from "./source-panel-host.ts";
 import type { SourcePanelContext } from "./source-panel-context.ts";
@@ -30,9 +31,9 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
   const { host } = ctx;
   const timingByUrl = resourceTimingByUrl();
   let detectionSequence = 0;
-  let sourceCandidates: PageSource[] = [];
-  let backgroundCandidates: PageSource[] = [];
-  let resourceHintSources: PageSource[] = [];
+  let sourceCandidates: PageSourceCandidate[] = [];
+  let backgroundCandidates: PageSourceCandidate[] = [];
+  let resourceHintSources: PageSourceCandidate[] = [];
   let sourcesByUrl = new Map<string, PageSource>();
   const firstSeen = new Map<string, { at: number; order: number }>();
   const commitSources = () => {
@@ -139,9 +140,9 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
     commitSources();
   };
   const removeSourcesUnder = (root: Element) => {
-    const retainOutsideRoot = (sources: PageSource[]): PageSource[] =>
+    const retainOutsideRoot = (sources: PageSourceCandidate[]): PageSourceCandidate[] =>
       sources.flatMap((source) => {
-        const origins = source.collectorOriginElements ?? [source.element];
+        const origins = source.collectorOriginElements;
         const retained = origins.filter((element) => element !== root && !root.contains(element));
         if (retained.length === origins.length) return [source];
         if (retained.length === 0) return [];

@@ -751,9 +751,6 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
       visibleSourceCount,
       Math.max(renderedSourceEnd, renderedSourceStart + SOURCE_RENDER_CHUNK_SIZE),
     );
-    if (renderedSourceEnd - renderedSourceStart > CONNECTED_ROW_LIMIT) {
-      renderedSourceStart = renderedSourceEnd - CONNECTED_ROW_LIMIT;
-    }
     // A row owns previews, menus, selection controls, and several listeners.
     // Keep batch/filter semantics on the complete list while bounding the DOM
     // work and retained nodes for a page with thousands of distinct URLs. The
@@ -822,15 +819,14 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
     evictDetachedRows();
   };
   const moveRenderedWindow = (nextStart: number, nextEnd: number, anchorIndex: number) => {
-    const anchor = ctx.visibleSources[anchorIndex];
-    const anchorRow = anchor ? ctx.rowCache.get(anchor.url)?.row : undefined;
-    const anchorOffset = anchorRow?.offsetTop;
+    const anchorRow = ctx.list.children.item(anchorIndex - renderedSourceStart);
+    const anchorOffset = anchorRow?.getBoundingClientRect().top;
     const previousScrollTop = ctx.list.scrollTop;
     renderedSourceStart = nextStart;
     renderedSourceEnd = nextEnd;
     render();
     if (anchorOffset === undefined || !anchorRow?.isConnected) return;
-    ctx.list.scrollTop = previousScrollTop + anchorRow.offsetTop - anchorOffset;
+    ctx.list.scrollTop = previousScrollTop + anchorRow.getBoundingClientRect().top - anchorOffset;
   };
   const renderNearListEdge = () => {
     const nearEnd =

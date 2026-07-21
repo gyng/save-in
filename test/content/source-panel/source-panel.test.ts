@@ -607,6 +607,72 @@ describe("Page Sources panel interactions", () => {
     expect(copy.title).toContain("failed");
   });
 
+  test("ignores clipboard outcomes after the panel is disposed", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<img src="cat.jpg">`;
+    let resolveCopy: (() => void) | undefined;
+    let rejectCopy: ((error: Error) => void) | undefined;
+    const writeText = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveCopy = resolve;
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise<void>((_resolve, reject) => {
+            rejectCopy = reject;
+          }),
+      );
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    getSourcePanelHostForTesting()!
+      .shadowRoot!.querySelector<HTMLButtonElement>(".copy-urls")!
+      .click();
+    getSourcePanelHostForTesting()!.shadowRoot!.querySelector<HTMLButtonElement>(".close")!.click();
+    vi.advanceTimersByTime(90);
+    resolveCopy?.();
+    await Promise.resolve();
+
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    getSourcePanelHostForTesting()!
+      .shadowRoot!.querySelector<HTMLButtonElement>(".copy-urls")!
+      .click();
+    getSourcePanelHostForTesting()!.shadowRoot!.querySelector<HTMLButtonElement>(".close")!.click();
+    vi.advanceTimersByTime(90);
+    rejectCopy?.(new Error("late clipboard failure"));
+    await Promise.resolve();
+
+    expect(getSourcePanelHostForTesting()).toBeNull();
+  });
+
+  test("contains duplicate terminal callbacks for resize and floating drag", () => {
+    const registrations = vi.spyOn(HTMLElement.prototype, "addEventListener");
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const resize = shadow.querySelector<HTMLElement>(".resize")!;
+    resize.setPointerCapture = vi.fn();
+    resize.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, pointerId: 1 }));
+    const resizeFinish = registrations.mock.calls
+      .filter(([type]) => type === "pointerup")
+      .at(-1)?.[1] as EventListener;
+    resizeFinish.call(resize, new PointerEvent("pointerup"));
+    resizeFinish.call(resize, new PointerEvent("pointerup"));
+
+    shadow.querySelector<HTMLButtonElement>('[data-placement="floating"]')!.click();
+    const header = shadow.querySelector<HTMLElement>("header")!;
+    header.setPointerCapture = vi.fn();
+    header.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, pointerId: 2 }));
+    const dragFinish = registrations.mock.calls
+      .filter(([type]) => type === "pointerup")
+      .at(-1)?.[1] as EventListener;
+    dragFinish.call(header, new PointerEvent("pointerup"));
+    dragFinish.call(header, new PointerEvent("pointerup"));
+  });
+
   test("handles row keyboard, alternate-save, locate, sort, and escape boundaries", () => {
     vi.useFakeTimers();
     document.body.innerHTML = `<img id="cat" src="cat.jpg"><a href="paper.pdf">paper</a>`;
@@ -875,6 +941,7 @@ describe("Page Sources panel interactions", () => {
     list.dispatchEvent(new Event("scroll"));
     expect(shadow.querySelectorAll(".row")).toHaveLength(initialRows);
 
+    vi.spyOn(list.children, "item").mockReturnValueOnce(null);
     list.scrollTop = 900;
     list.dispatchEvent(new Event("scroll"));
 
@@ -1323,6 +1390,7 @@ describe("Page Sources panel interactions", () => {
   });
 
   test("contains live mutations whose target is not an element", () => {
+    vi.useFakeTimers();
     let mutationCallback: MutationCallback | undefined;
     class StubMutationObserver {
       constructor(callback: MutationCallback) {
@@ -1349,6 +1417,27 @@ describe("Page Sources panel interactions", () => {
     );
     expect(mutationCallback).toBeTypeOf("function");
     expect(() => mutationCallback?.(mutations, {} as MutationObserver)).not.toThrow();
+
+    const roots = Array.from({ length: 66 }, () => document.createElement("div"));
+    roots.forEach((root) => document.body.append(root));
+    const bounded = (addedNodes: Node[]): MutationRecord =>
+      ({
+        type: "childList",
+        target: document.body,
+        addedNodes,
+        removedNodes: [],
+      }) as unknown as MutationRecord;
+    expect(() =>
+      mutationCallback?.(
+        [
+          ...roots.slice(0, 64).map((root) => bounded([root])),
+          bounded(roots.slice(64)),
+          bounded([document.createElement("span")]),
+        ],
+        {} as MutationObserver,
+      ),
+    ).not.toThrow();
+    vi.advanceTimersByTime(200);
   });
 
   test("removes background candidates under a deleted ancestor", async () => {
@@ -1509,6 +1598,35 @@ describe("Page Sources panel interactions", () => {
     expect(getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".source-link")).toBeNull();
   });
 
+  test("drops a background chunk reconfigured while yielding", () => {
+    const idleCallbacks: IdleRequestCallback[] = [];
+    vi.stubGlobal("requestIdleCallback", (callback: IdleRequestCallback) => {
+      idleCallbacks.push(callback);
+      return idleCallbacks.length;
+    });
+    vi.stubGlobal("cancelIdleCallback", vi.fn());
+    document.body.innerHTML = Array.from(
+      { length: 51 },
+      (_, index) => `<div id="background-${index}"></div>`,
+    ).join("");
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: false });
+
+    let reconfigured = false;
+    idleCallbacks[0]!({
+      didTimeout: false,
+      timeRemaining: () => {
+        if (!reconfigured) {
+          reconfigured = true;
+          replaceSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+        }
+        return 0;
+      },
+    } as IdleDeadline);
+
+    expect(idleCallbacks).toHaveLength(1);
+    expect(getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".source-link")).toBeNull();
+  });
+
   test("restarts an active background scan after a live page mutation", async () => {
     vi.useFakeTimers();
     const idleCallbacks: IdleRequestCallback[] = [];
@@ -1660,6 +1778,28 @@ describe("Page Sources panel interactions", () => {
     expect(shadow.querySelector(".media-tooltip")).toBe(tooltip);
   });
 
+  test("refreshes stale cached row bytes from a reconciled source record", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<img id="source" src="https://cdn.test/reconciled.jpg">`;
+    let savedSource: { bytes?: number | undefined } | undefined;
+    toggleSourcePanel(
+      (source) => {
+        savedSource = source;
+      },
+      { includeBackgrounds: false, live: true, resourceHints: false },
+    );
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    shadow.querySelector<HTMLButtonElement>(".primary-action")!.click();
+    if (!savedSource) throw new Error("source action did not expose its record");
+    savedSource.bytes = 2048;
+
+    document.querySelector<HTMLElement>("#source")!.style.color = "red";
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    expect(shadow.querySelector(".source-size")?.textContent).toBe("size unknown");
+  });
+
   test("keeps late resource metadata when a duplicate source becomes representative", async () => {
     vi.useFakeTimers();
     let performanceCallback: PerformanceObserverCallback | undefined;
@@ -1728,10 +1868,18 @@ describe("Page Sources panel interactions", () => {
       } as unknown as PerformanceObserverEntryList,
       {} as PerformanceObserver,
     );
+    performanceCallback!(
+      {
+        getEntries: () => [
+          { name: "https://cdn.test/poster.jpg", encodedBodySize: 0, transferSize: 0 },
+        ],
+      } as unknown as PerformanceObserverEntryList,
+      {} as PerformanceObserver,
+    );
 
     expect(
       getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".source-size")?.textContent,
-    ).toBe("2 KB");
+    ).toBe("size unknown");
   });
 
   test("ignores unchanged foreground resource metadata", () => {
@@ -2298,15 +2446,20 @@ describe("Page Sources panel interactions", () => {
     [...shadow.querySelectorAll<HTMLButtonElement>(".selection-bar button")]
       .find(({ textContent }) => textContent === "Select filtered")!
       .click();
-    shadow.querySelector<HTMLButtonElement>(".batch-save")!.click();
     const proceed = [...shadow.querySelectorAll<HTMLButtonElement>(".batch-dialog button")].find(
       ({ textContent }) => textContent === "Save sources",
     )!;
+    const registrations = vi.spyOn(proceed, "addEventListener");
+
+    shadow.querySelector<HTMLButtonElement>(".batch-save")!.click();
+    const lateProceed = registrations.mock.calls.find(([type]) => type === "click")?.[1] as
+      | EventListener
+      | undefined;
 
     shadow.querySelector<HTMLButtonElement>(".close")!.click();
     vi.advanceTimersByTime(90);
     await Promise.resolve();
-    proceed.click();
+    lateProceed?.call(proceed, new MouseEvent("click"));
 
     expect(sendDownload).not.toHaveBeenCalled();
     expect(shadow.querySelector(".batch-dialog")?.hasAttribute("open")).toBe(false);

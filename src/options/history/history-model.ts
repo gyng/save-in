@@ -461,18 +461,16 @@ export const paginateHistory = (
 
   const rows = matchingEntries.map(historyRow);
 
-  if (!alreadyNewestFirst) {
-    rows.sort((a, b) => {
-      // String() so numeric columns (size) don't blow up localeCompare
-      const av = String(a[sort.key]);
-      const bv = String(b[sort.key]);
-      const cmp =
-        sort.key === "time"
-          ? av.localeCompare(bv)
-          : av.localeCompare(bv, undefined, { numeric: true });
-      return sort.dir === "asc" ? cmp : -cmp;
-    });
-  }
+  rows.sort((a, b) => {
+    // String() so numeric columns (size) don't blow up localeCompare
+    const av = String(a[sort.key]);
+    const bv = String(b[sort.key]);
+    const cmp =
+      sort.key === "time"
+        ? av.localeCompare(bv)
+        : av.localeCompare(bv, undefined, { numeric: true });
+    return sort.dir === "asc" ? cmp : -cmp;
+  });
 
   const matchCount = rows.length;
   const pageCount = Math.max(1, Math.ceil(matchCount / pageSize));

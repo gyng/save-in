@@ -5,12 +5,12 @@ export const addClickToCopy = (el: HTMLElement, copy: CopyText = copyText): void
   const refreshLabel = () => {
     const value = el.textContent?.trim() || "value";
     const action = getMessage("referenceCopyValue", value) || `Copy ${value}`;
-    if (!el.hasAttribute("aria-label") || el.dataset.copyLabelGenerated === "true") {
+    const generated = !el.hasAttribute("aria-label") || el.dataset.copyLabelGenerated === "true";
+    if (generated) {
       el.setAttribute("aria-label", action);
       el.dataset.copyLabelGenerated = "true";
     }
-    /* v8 ignore next -- The branch above guarantees a generated or caller-provided label. */
-    el.title = el.getAttribute("aria-label") || action;
+    el.title = generated ? action : el.getAttribute("aria-label") || action;
   };
   refreshLabel();
   if (el.dataset.copyToClipboard === "true") return;

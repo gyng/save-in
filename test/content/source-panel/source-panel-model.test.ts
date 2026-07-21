@@ -3,6 +3,7 @@ import {
   collectBackgroundElements,
   collectBackgroundSourceCandidates,
   collectPageSourceCandidates,
+  createPageSourceCandidateCollection,
   createPageSourcePayloadBudget,
   collectPageSources,
   collectResourceHintSources,
@@ -110,6 +111,77 @@ test("merges responsive metadata into an earlier plain source", () => {
   ]);
 
   expect(merged[0]?.responsive).toEqual({ selected: true, descriptor: "2x" });
+});
+
+test("merges responsive metadata and detached collector-origin arrays", () => {
+  const first = document.createElement("img");
+  const second = document.createElement("img");
+  const origins = [first];
+  const merged = mergePageSourcesByUrl([
+    {
+      url: "https://example.com/image.jpg",
+      kind: "image",
+      element: first,
+      collectorOriginElements: origins,
+      responsive: { selected: false },
+    },
+    {
+      url: "https://example.com/image.jpg",
+      kind: "image",
+      element: second,
+      responsive: { selected: true, descriptor: "2x" },
+    },
+  ]);
+
+  expect(merged[0]?.originElements).toEqual([first, second]);
+  expect(merged[0]?.originElements).not.toBe(origins);
+  expect(merged[0]?.responsive).toEqual({ selected: true, descriptor: "2x" });
+});
+
+test("keeps distinct kind and channel variants for one source URL", () => {
+  const image = document.createElement("img");
+  const video = document.createElement("video");
+  const hint = document.createElement("link");
+  const collection = createPageSourceCandidateCollection();
+  collection.addAll([
+    { url: "https://cdn.test/shared", kind: "image", element: image },
+    {
+      url: "https://cdn.test/shared",
+      kind: "video",
+      element: video,
+      previewable: false,
+    },
+    {
+      url: "https://cdn.test/shared",
+      kind: "video",
+      element: video,
+      previewable: true,
+      bytes: 42,
+      responsive: { selected: true, descriptor: "2x" },
+    },
+    {
+      url: "https://cdn.test/shared",
+      kind: "stream",
+      channel: "resource-hint",
+      element: hint,
+    },
+  ]);
+
+  expect(collection.values).toHaveLength(3);
+  expect(collection.values[1]).toMatchObject({
+    kind: "video",
+    previewable: true,
+    bytes: 42,
+    responsive: { selected: true, descriptor: "2x" },
+  });
+});
+
+test("counts each inline payload once when seeding a collection budget", () => {
+  const url = "data:image/png,duplicate";
+  const budget = createPageSourcePayloadBudget([{ url }, { url }]);
+
+  expect(budget.dataUrls).toEqual(new Set([url]));
+  expect(budget.dataUrlCharacters).toBe(url.length);
 });
 
 test("compacts repeated source origins during collection", () => {
@@ -239,6 +311,17 @@ test("accepts legacy and resource timing entries but rejects unrelated performan
   expect(isPerformanceResourceTiming({ entryType: "" } as PerformanceEntry)).toBe(true);
   expect(isPerformanceResourceTiming({ entryType: "resource" } as PerformanceEntry)).toBe(true);
   expect(isPerformanceResourceTiming({ entryType: "navigation" } as PerformanceEntry)).toBe(false);
+});
+
+test("skips invalid and duplicate resource timing observations", () => {
+  const timing = resourceTimingByUrl([
+    undefined as unknown as PerformanceEntry,
+    { entryType: "navigation", name: "ignored" } as PerformanceEntry,
+    { name: "https://cdn.test/repeated.js", encodedBodySize: 1 } as PerformanceResourceTiming,
+    { name: "https://cdn.test/repeated.js", encodedBodySize: 2 } as PerformanceResourceTiming,
+  ]);
+
+  expect(timing.get("https://cdn.test/repeated.js")?.encodedBodySize).toBe(2);
 });
 
 test("shares a bounded inline-payload budget across incremental source scans", () => {

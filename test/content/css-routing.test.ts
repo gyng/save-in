@@ -40,6 +40,12 @@ describe("content CSS routing", () => {
     ).toEqual([["article img, video", "img:not(.avatar)"]]);
   });
 
+  test("accepts a non-array iterable of origin elements", () => {
+    const image = document.createElement("img");
+
+    expect(matchedCssSelectorsByOrigin(new Set([image]), rulesWithCss("img"))).toEqual([["img"]]);
+  });
+
   test("emits a rule proof only when one origin satisfies every CSS clause", () => {
     const articleImage = document.createElement("img");
     articleImage.className = "article";
