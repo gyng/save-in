@@ -922,7 +922,11 @@ test("download completes through the real pipeline with session tracking", async
     pageUrl: "https://example.com/",
   });
   const downloads = await waitForDownloads("smoke");
-  expect(downloads.some((x) => x.state === "complete")).toBe(true);
+  const completed = requireValue(
+    downloads.find((download) => download.state === "complete"),
+    "Smoke download did not complete",
+  );
+  await control.downloads.waitReleased(completed.id);
 
   const [matchingDownloads, sessionState, history] = await Promise.all([
     control.downloads.search({ filenameRegex: "smoke" }),

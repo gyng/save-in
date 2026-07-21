@@ -371,6 +371,7 @@ export type ControlRequest =
       minimumComplete?: number;
       timeoutMs?: number;
     }
+  | { operation: "downloads.waitReleased"; id: number; timeoutMs?: number }
   | { operation: "downloads.cancel"; id: number }
   | { operation: "downloads.erase"; query?: chrome.downloads.DownloadQuery }
   | { operation: "tabs.query"; query?: chrome.tabs.QueryInfo }
@@ -425,6 +426,7 @@ export interface ControlResultMap {
   "storage.clear": true;
   "downloads.search": DownloadEntry[];
   "downloads.wait": DownloadEntry[];
+  "downloads.waitReleased": true;
   "downloads.cancel": null;
   "downloads.erase": number[];
   "tabs.query": TabEntry[];

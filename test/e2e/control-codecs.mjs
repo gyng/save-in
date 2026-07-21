@@ -109,6 +109,9 @@ export const decodeControlResult = (request, value) => {
       return /** @type {import("./control-protocol.mjs").ControlResult<Request>} */ (
         decodeDownloadEntries(value, `${operation} result`)
       );
+    case "downloads.waitReleased":
+      valid = value === true;
+      break;
     case "downloads.cancel":
     case "tabs.reload":
     case "tabs.remove":

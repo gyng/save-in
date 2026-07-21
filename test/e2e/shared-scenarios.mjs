@@ -1315,10 +1315,10 @@ into: e2e/css-manual-${browserLabel}/:filename:`,
     const manualTarget = `${target}?manual`;
     const manualTab = await control.tabs.create({ url: `${pageUrl}?manual`, active: true });
     tabId = manualTab.id;
-    await control.tabs.wait(tabId === undefined ? { urlIncludes: manualTarget } : { id: tabId });
-    const tab = (await control.tabs.query()).find((candidate) =>
-      candidate.url?.includes(manualTarget),
-    );
+    const tab = await control.tabs.wait({
+      ...(tabId === undefined ? {} : { id: tabId }),
+      urlIncludes: manualTarget,
+    });
     if (tab?.id === undefined) throw new Error("CSS routing fixture tab missing");
     await control.storage.session.set({ sourcePanelOpen: true });
     await control.tabs.sendMessage(tab.id, { type: "SET_SOURCE_PANEL", body: { open: true } });

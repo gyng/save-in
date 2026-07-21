@@ -97,6 +97,13 @@ export const dispatchControlRequest = async (
           hasOptionalPositiveInteger(value, "minimumComplete") &&
           hasOptionalTimeout(value, "timeoutMs")
         );
+      case "downloads.waitReleased":
+        return (
+          typeof value.id === "number" &&
+          Number.isSafeInteger(value.id) &&
+          value.id >= 0 &&
+          hasOptionalTimeout(value, "timeoutMs")
+        );
       case "downloads.cancel":
       case "tabs.reload":
         return typeof value.id === "number";
@@ -233,6 +240,63 @@ export const dispatchControlRequest = async (
           ),
         );
       browserApi.downloads.onChanged.addListener(onChanged);
+      timeout.addEventListener("abort", onTimeout, { once: true });
+      void check().catch((error) => finish(() => reject(error)));
+    });
+
+  /** @param {{id: number, timeoutMs?: number}} match */
+  const waitForDownloadRelease = ({ id, timeoutMs = 8000 }) =>
+    new Promise((resolve, reject) => {
+      const timeout = AbortSignal.timeout(timeoutMs);
+      let settled = false;
+      /** @type {{adopted: boolean, pending: number, finalFilenameCount: number} | undefined} */
+      let lastState;
+      /** @param {() => void} callback */
+      const finish = (callback) => {
+        if (settled) return;
+        settled = true;
+        browserApi.storage.onChanged.removeListener(onChanged);
+        timeout.removeEventListener("abort", onTimeout);
+        callback();
+      };
+      const check = async () => {
+        const stored = await browserApi.storage.session.get([
+          "siDownloads",
+          "siPendingDownloads",
+          "siFinalFilenames",
+        ]);
+        const storedDownloads = isRecord(stored.siDownloads) ? stored.siDownloads : {};
+        const records = isRecord(storedDownloads.records)
+          ? storedDownloads.records
+          : storedDownloads;
+        const record = records[String(id)];
+        const pending =
+          typeof stored.siPendingDownloads === "number" ? stored.siPendingDownloads : 0;
+        const finalFilenameState = isRecord(stored.siFinalFilenames) ? stored.siFinalFilenames : {};
+        const finalFilenames = isRecord(finalFilenameState.names) ? finalFilenameState.names : {};
+        lastState = {
+          adopted: isRecord(record) && record.adopted === true,
+          pending,
+          finalFilenameCount: Object.keys(finalFilenames).length,
+        };
+        if (!lastState.adopted && pending === 0 && lastState.finalFilenameCount === 0) {
+          finish(() => resolve(true));
+        }
+      };
+      /** @param {Record<string, chrome.storage.StorageChange>} changes @param {string} area */
+      const onChanged = (changes, area) => {
+        if (
+          area === "session" &&
+          ["siDownloads", "siPendingDownloads", "siFinalFilenames"].some((key) => changes[key])
+        ) {
+          void check().catch((error) => finish(() => reject(error)));
+        }
+      };
+      const onTimeout = () =>
+        finish(() =>
+          reject(new Error(`Timed out waiting for download release: ${JSON.stringify(lastState)}`)),
+        );
+      browserApi.storage.onChanged.addListener(onChanged);
       timeout.addEventListener("abort", onTimeout, { once: true });
       void check().catch((error) => finish(() => reject(error)));
     });
@@ -645,6 +709,9 @@ export const dispatchControlRequest = async (
       case "downloads.wait":
         result = await waitForDownload(request);
         break;
+      case "downloads.waitReleased":
+        result = await waitForDownloadRelease(request);
+        break;
       case "downloads.cancel":
         result = await browserApi.downloads.cancel(request.id);
         break;
@@ -772,6 +839,7 @@ export const controlRetryMode = (request) => {
       "storage.waitString",
       "downloads.search",
       "downloads.wait",
+      "downloads.waitReleased",
       "tabs.query",
       "tabs.wait",
       "notifications.getAll",
@@ -1004,6 +1072,16 @@ export const createE2EControlClient = ({ callFunction }) => {
       /** @param {{filenameRegex?: string, filenameIncludes?: string, url?: string, minimumComplete?: number, timeoutMs?: number}} match */
       wait: (match) =>
         call({ operation: "downloads.wait", ...match }, (match.timeoutMs ?? 8000) + 2000),
+      /** @param {number} id @param {number} [timeoutMs] */
+      waitReleased: (id, timeoutMs) =>
+        call(
+          {
+            operation: "downloads.waitReleased",
+            id,
+            ...(timeoutMs === undefined ? {} : { timeoutMs }),
+          },
+          (timeoutMs ?? 8000) + 2000,
+        ),
       /** @param {number} id */
       cancel: (id) => call({ operation: "downloads.cancel", id }),
       /** @param {chrome.downloads.DownloadQuery} [query] */

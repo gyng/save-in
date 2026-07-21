@@ -154,17 +154,20 @@ describe("structured E2E control client", () => {
           value:
             request?.operation === "storage.waitString"
               ? "mime: ^application/pdf$\ninto: documents/:filename:"
-              : request?.operation === "runtime.send"
-                ? {
-                    type: "SAVE_IN_E2E_NOTIFICATION_CALLS",
-                    body: { status: "OK", calls: [{ id: "7", message: "saved" }] },
-                  }
-                : [],
+              : request?.operation === "downloads.waitReleased"
+                ? true
+                : request?.operation === "runtime.send"
+                  ? {
+                      type: "SAVE_IN_E2E_NOTIFICATION_CALLS",
+                      body: { status: "OK", calls: [{ id: "7", message: "saved" }] },
+                    }
+                  : [],
         });
       },
     });
 
     await client.downloads.wait({ filenameIncludes: "automatic", minimumComplete: 2 });
+    await client.downloads.waitReleased(7);
     await client.history.wait({ status: "complete", context: "browser" });
     await expect(
       client.storage.local.waitString("filenamePatterns", "application/pdf"),
@@ -173,6 +176,7 @@ describe("structured E2E control client", () => {
 
     expect(requests).toEqual([
       { operation: "downloads.wait", filenameIncludes: "automatic", minimumComplete: 2 },
+      { operation: "downloads.waitReleased", id: 7 },
       { operation: "history.wait", status: "complete", context: "browser" },
       {
         operation: "storage.waitString",
@@ -529,6 +533,9 @@ describe("structured E2E control client", () => {
       dispatchControlRequest(JSON.stringify({ operation: "downloads.wait", filenameIncludes: "" })),
     ).rejects.toThrow("Invalid E2E control request");
     await expect(
+      dispatchControlRequest(JSON.stringify({ operation: "downloads.waitReleased", id: -1 })),
+    ).rejects.toThrow("Invalid E2E control request");
+    await expect(
       dispatchControlRequest(
         JSON.stringify({ operation: "logs.wait", messages: [], timeoutMs: 1000 }),
       ),
@@ -568,6 +575,40 @@ describe("structured E2E control client", () => {
         }),
       ),
     ).rejects.toThrow("Invalid E2E control request");
+  });
+
+  test("waits for terminal download state to finish releasing", async () => {
+    vi.mocked(browser.storage.session.get)
+      .mockResolvedValueOnce({
+        siDownloads: { 7: { adopted: true } },
+        siPendingDownloads: 1,
+        siFinalFilenames: { version: 1, names: { 7: "smoke.txt" } },
+      })
+      .mockResolvedValue({
+        siDownloads: { 7: { adopted: false } },
+        siPendingDownloads: 0,
+        siFinalFilenames: { version: 1, names: {} },
+      });
+
+    const response = dispatchControlRequest(
+      JSON.stringify({ operation: "downloads.waitReleased", id: 7 }),
+    );
+    await vi.waitFor(() => expect(browser.storage.session.get).toHaveBeenCalledOnce());
+
+    const onChanged = vi.mocked(browser.storage.onChanged.addListener).mock.calls[0]?.[0];
+    expect(onChanged).toBeDefined();
+    await onChanged?.(
+      {
+        siDownloads: {
+          oldValue: { 7: { adopted: true } },
+          newValue: { 7: { adopted: false } },
+        },
+      },
+      "session",
+    );
+
+    expect(JSON.parse(await response)).toEqual({ ok: true, value: true });
+    expect(browser.storage.onChanged.removeListener).toHaveBeenCalledWith(onChanged);
   });
 
   test("resets and verifies browser and worker state during case cleanup", async () => {
