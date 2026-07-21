@@ -1,5 +1,8 @@
 // @vitest-environment jsdom
-import { setupLanguageSelector } from "../../src/options/core/language-selector.ts";
+import {
+  afterNativePopupClose,
+  setupLanguageSelector,
+} from "../../src/options/core/language-selector.ts";
 
 const render = () => {
   document.body.innerHTML = `
@@ -8,6 +11,49 @@ const render = () => {
     </div>
     <span id="language-error" hidden></span>`;
 };
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});
+
+test("waits for a rendering turn when the options page remains visible", async () => {
+  vi.useFakeTimers();
+  vi.spyOn(globalThis, "requestAnimationFrame").mockImplementation((callback) => {
+    callback(0);
+    return 1;
+  });
+
+  await afterNativePopupClose();
+
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+test("continues immediately once the options page is hidden", async () => {
+  vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+  const requestFrame = vi.spyOn(globalThis, "requestAnimationFrame");
+
+  await afterNativePopupClose();
+
+  expect(requestFrame).not.toHaveBeenCalled();
+});
+
+test("uses a bounded fallback if a visible page suspends animation frames", async () => {
+  vi.useFakeTimers();
+  vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+  let frameCallback: FrameRequestCallback | undefined;
+  vi.spyOn(globalThis, "requestAnimationFrame").mockImplementation((callback) => {
+    frameCallback = callback;
+    return 1;
+  });
+
+  const closed = afterNativePopupClose();
+  await vi.advanceTimersByTimeAsync(100);
+  await closed;
+
+  frameCallback?.(0);
+  expect(vi.getTimerCount()).toBe(0);
+});
 
 test("saves the selected locale and reloads after acknowledgement", async () => {
   render();

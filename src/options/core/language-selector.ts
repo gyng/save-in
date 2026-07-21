@@ -9,12 +9,27 @@ type LanguageSelectorPorts = {
   afterClose?(): Promise<void>;
 };
 
-const afterNativePopupClose = (): Promise<void> =>
-  new Promise((resolve) => {
-    // Native select popups are browser UI. Give the browser a rendering turn
-    // after removing their anchor before starting extension messaging.
-    requestAnimationFrame(() => resolve());
+export const afterNativePopupClose = (): Promise<void> => {
+  // A native popup cannot remain visible after its document is hidden, so
+  // avoid waiting for a rendering signal the browser intentionally suspends.
+  if (document.visibilityState === "hidden") return Promise.resolve();
+
+  return new Promise((resolve) => {
+    // Native select popups are browser UI. Prefer a rendering turn after
+    // removing their anchor, but background tabs may suspend animation frames.
+    // The fallback keeps a selection from waiting forever if the user switches
+    // tabs immediately after choosing a language.
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(fallback);
+      resolve();
+    };
+    const fallback = setTimeout(finish, 100);
+    requestAnimationFrame(finish);
   });
+};
 
 const defaultPorts: LanguageSelectorPorts = {
   apply: (uiLocale) => optionsRuntime.apply({ uiLocale }),
