@@ -238,7 +238,12 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
     // tab must already be open (e.g. via browser.tabs.create from evaluate()).
     /** @param {string} urlSubstr @param {string} text @param {number} [timeoutMs] */
     const evaluateInTab = async (urlSubstr, text, timeoutMs) => {
-      const tabConsole = await connectedRdp.getTabConsoleActor(urlSubstr);
+      if (bidi) return bidi.evaluate(urlSubstr, text, timeoutMs);
+      const tabConsole = await retryUntil(
+        () => connectedRdp.getTabConsoleActor(urlSubstr),
+        5000,
+        `Firefox did not expose tab target ${urlSubstr}`,
+      );
       try {
         return await connectedRdp.evaluate(tabConsole, text, timeoutMs);
       } catch (error) {
@@ -264,7 +269,11 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
         connectedRdp = await connectWithRetry(port);
         const refreshedAddon = await connectedRdp.findAddonActor(ADDON_ID);
         consoleActor = await connectedRdp.getConsoleActor(refreshedAddon);
-        const refreshedConsole = await connectedRdp.getTabConsoleActor(urlSubstr);
+        const refreshedConsole = await retryUntil(
+          () => connectedRdp.getTabConsoleActor(urlSubstr),
+          5000,
+          `Firefox did not expose refreshed tab target ${urlSubstr}`,
+        );
         return connectedRdp.evaluate(refreshedConsole, text, timeoutMs);
       }
     };

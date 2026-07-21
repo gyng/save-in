@@ -14,6 +14,7 @@ const { FirefoxBidi, waitForSocketOpen } = require("../../scripts/lib/firefox-bi
       ): Promise<unknown>;
       close(): void;
     };
+    evaluate(urlSubstr: string, expression: string, timeoutMs?: number): Promise<unknown>;
     doubleClick(urlSubstr: string, x: number, y: number): Promise<unknown>;
     close(): void;
   };
@@ -133,5 +134,66 @@ test("sends two primary-button presses as one trusted pointer action", async () 
       },
     ],
   });
+  client.close();
+});
+
+test("evaluates against the current BiDi browsing context", async () => {
+  const socket = new FakeSocket();
+  const packets: Array<{ id: number; method: string; params: Record<string, unknown> }> = [];
+  socket.send.mockImplementation((serialized) => {
+    const packet = JSON.parse(String(serialized)) as (typeof packets)[number];
+    packets.push(packet);
+    const result =
+      packet.method === "browsingContext.getTree"
+        ? { contexts: [{ context: "page", url: "https://example.test/image" }] }
+        : packet.method === "script.evaluate"
+          ? { type: "success", result: { type: "boolean", value: true } }
+          : {};
+    socket.dispatchEvent(
+      new MessageEvent("message", {
+        data: JSON.stringify({ id: packet.id, type: "success", result }),
+      }),
+    );
+  });
+  const client = new FirefoxBidi(socket as unknown as WebSocket);
+
+  await expect(client.evaluate("example.test", "document.readyState === 'complete'")).resolves.toBe(
+    true,
+  );
+
+  expect(packets.find(({ method }) => method === "script.evaluate")?.params).toEqual({
+    expression: "document.readyState === 'complete'",
+    awaitPromise: true,
+    target: { context: "page" },
+  });
+  client.close();
+});
+
+test("waits for Firefox to publish a newly created browsing context", async () => {
+  const socket = new FakeSocket();
+  let treeReads = 0;
+  socket.send.mockImplementation((serialized) => {
+    const packet = JSON.parse(String(serialized)) as { id: number; method: string };
+    if (packet.method === "browsingContext.getTree") treeReads += 1;
+    const result =
+      packet.method === "browsingContext.getTree"
+        ? {
+            contexts:
+              treeReads === 1 ? [] : [{ context: "new-page", url: "https://example.test/new" }],
+          }
+        : packet.method === "script.evaluate"
+          ? { type: "success", result: { type: "string", value: "ready" } }
+          : {};
+    socket.dispatchEvent(
+      new MessageEvent("message", {
+        data: JSON.stringify({ id: packet.id, type: "success", result }),
+      }),
+    );
+  });
+  const client = new FirefoxBidi(socket as unknown as WebSocket);
+
+  await expect(client.evaluate("example.test/new", "document.readyState")).resolves.toBe("ready");
+
+  expect(treeReads).toBe(2);
   client.close();
 });

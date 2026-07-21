@@ -1,8 +1,8 @@
 // @ts-check
 
-// Minimal WebDriver BiDi client used only for trusted Firefox input. RDP
-// remains the extension/tab evaluation channel; BiDi supplies the browser's
-// native input source that DOM-dispatched events cannot emulate.
+// Minimal WebDriver BiDi client for Firefox page realms and trusted input.
+// RDP remains the extension-background channel; BiDi addresses content pages
+// by browsing context so navigation cannot strand evaluations in an old realm.
 
 /** @typedef {{context: string, url?: string, children?: BidiContext[]}} BidiContext */
 /** @typedef {{resolve: (value: unknown) => void, reject: (error: unknown) => void, timer: NodeJS.Timeout}} Pending */
@@ -20,6 +20,14 @@
  *     result: {
  *       type: string,
  *       result?: {type: string, value?: string},
+ *       exceptionDetails?: {text?: string}
+ *     }
+ *   },
+ *   "script.evaluate": {
+ *     params: Record<string, unknown>,
+ *     result: {
+ *       type: string,
+ *       result?: {type: string, value?: unknown},
  *       exceptionDetails?: {text?: string}
  *     }
  *   },
@@ -181,6 +189,24 @@ class FirefoxBidi {
     });
   }
 
+  /** @param {string} urlSubstr @param {number} [timeoutMs] */
+  async waitForContext(urlSubstr, timeoutMs = 5000) {
+    const deadline = Date.now() + timeoutMs;
+    let lastError;
+    await this.ensureLifecycleEvents();
+    while (Date.now() < deadline) {
+      try {
+        return await this.findContext(urlSubstr);
+      } catch (error) {
+        lastError = error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    throw new Error(`Firefox did not expose a BiDi context matching "${urlSubstr}"`, {
+      cause: lastError,
+    });
+  }
+
   async ensureLifecycleEvents() {
     this.lifecycleEventsReady ??= this.send("session.subscribe", {
       events: ["browsingContext.contextCreated", "browsingContext.contextDestroyed"],
@@ -337,8 +363,41 @@ class FirefoxBidi {
    * @param {number} [timeoutMs]
    */
   async callFunction(urlSubstr, functionDeclaration, args = [], timeoutMs = 15000) {
-    const context = await this.findContext(urlSubstr);
+    const context = await this.waitForContext(urlSubstr, Math.min(timeoutMs, 5000));
     return this.callFunctionInContext(context, functionDeclaration, args, timeoutMs);
+  }
+
+  /**
+   * Evaluates in the current document for a browser tab. BiDi addresses the
+   * browsing context rather than a document console actor, so a navigation
+   * cannot leave this call attached to the page that was replaced.
+   *
+   * @param {string} urlSubstr
+   * @param {string} expression
+   * @param {number} [timeoutMs]
+   */
+  async evaluate(urlSubstr, expression, timeoutMs = 15000) {
+    const context = await this.waitForContext(urlSubstr, Math.min(timeoutMs, 5000));
+    const result = await this.send(
+      "script.evaluate",
+      {
+        expression,
+        awaitPromise: true,
+        target: { context },
+      },
+      timeoutMs,
+    );
+    if (result?.type !== "success") {
+      throw new Error(result?.exceptionDetails?.text || "Firefox BiDi evaluation failed");
+    }
+    const remote = result.result;
+    if (!remote || typeof remote.type !== "string") {
+      throw new Error("Firefox BiDi evaluation returned no value");
+    }
+    if (remote.type === "undefined") return undefined;
+    if (remote.type === "null") return null;
+    if (["string", "boolean", "number"].includes(remote.type)) return remote.value;
+    throw new Error(`Firefox BiDi evaluation returned unsupported type: ${remote.type}`);
   }
 
   /**
