@@ -243,6 +243,60 @@ describe("structured E2E control client", () => {
     expect(callFunction).toHaveBeenCalledTimes(2);
   });
 
+  test("coalesces concurrent control-page recovery", async () => {
+    const failedCalls = new Set<string>();
+    const callFunction = vi.fn(async (_declaration: string, args: unknown[] = []) => {
+      const key = String(args[0]);
+      if (!failedCalls.has(key)) {
+        failedCalls.add(key);
+        throw new Error(`reply lost for ${key}`);
+      }
+      return `ready-${key}`;
+    });
+    let finishRecovery!: () => void;
+    const recover = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishRecovery = resolve;
+        }),
+    );
+    const call = createRecoveringControlTransport({ callFunction, recover });
+
+    const first = call("function () {}", ["first"], 100, "read");
+    const second = call("function () {}", ["second"], 100, "read");
+    await vi.waitFor(() => expect(recover).toHaveBeenCalledOnce());
+    finishRecovery();
+
+    await expect(Promise.all([first, second])).resolves.toEqual(["ready-first", "ready-second"]);
+    expect(recover).toHaveBeenCalledOnce();
+    expect(callFunction).toHaveBeenCalledTimes(4);
+  });
+
+  test("holds new control calls behind an in-progress recovery", async () => {
+    const missing = Object.assign(new Error("missing"), {
+      code: "E2E_CONTROL_TARGET_MISSING",
+    });
+    const callFunction = vi.fn().mockRejectedValueOnce(missing).mockResolvedValue("ready");
+    let finishRecovery!: () => void;
+    const recover = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishRecovery = resolve;
+        }),
+    );
+    const call = createRecoveringControlTransport({ callFunction, recover });
+
+    const recovering = call("function () {}", ["first"], 100, "read");
+    await vi.waitFor(() => expect(recover).toHaveBeenCalledOnce());
+    const later = call("function () {}", ["second"], 100, "read");
+    await Promise.resolve();
+    expect(callFunction).toHaveBeenCalledOnce();
+    finishRecovery();
+
+    await expect(Promise.all([recovering, later])).resolves.toEqual(["ready", "ready"]);
+    expect(callFunction).toHaveBeenCalledTimes(3);
+  });
+
   test("never recreates a one-shot request cache after an ambiguous replay failure", async () => {
     const firstFailure = new Error("reply lost");
     const secondFailure = Object.assign(new Error("realm disappeared"), {

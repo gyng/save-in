@@ -827,13 +827,23 @@ export const createRecoveringControlTransport = ({
 }) => {
   /** @type {Error | undefined} */
   let fatal;
+  /** @type {Promise<void> | undefined} */
+  let activeRecovery;
   const restore = async () => {
-    try {
-      await recover();
-    } catch (error) {
-      fatal = new Error("E2E control plane could not be recreated", { cause: error });
-      throw fatal;
+    if (!activeRecovery) {
+      const pending = Promise.resolve()
+        .then(recover)
+        .catch((error) => {
+          fatal = new Error("E2E control plane could not be recreated", { cause: error });
+          throw fatal;
+        });
+      activeRecovery = pending;
+      const clearRecovery = () => {
+        if (activeRecovery === pending) activeRecovery = undefined;
+      };
+      void pending.then(clearRecovery, clearRecovery);
     }
+    await activeRecovery;
   };
   /**
    * @param {string} functionDeclaration
@@ -842,6 +852,8 @@ export const createRecoveringControlTransport = ({
    * @param {"read" | "idempotent" | "one-shot"} [retryMode]
    */
   return async (functionDeclaration, args, timeoutMs, retryMode = "one-shot") => {
+    if (fatal) throw fatal;
+    if (activeRecovery) await activeRecovery;
     if (fatal) throw fatal;
     try {
       return await callFunction(functionDeclaration, args, timeoutMs, retryMode);

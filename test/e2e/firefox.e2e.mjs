@@ -398,10 +398,15 @@ test("background event page initialises cleanly", async () => {
   expect((await control.logs.get()).some((entry) => entry.message === "init failed")).toBe(false);
 });
 
-test("structured control restores its missing dedicated target", async () => {
+test("structured control coalesces recovery for its missing dedicated target", async () => {
   await session.bidi.closeContext(CONTROL_PAGE_PATH);
 
-  expect(await control.runtime.ready()).toEqual({ type: "OK" });
+  const [ready, stored] = await Promise.all([
+    control.runtime.ready(),
+    control.storage.local.get("contentClickToSave"),
+  ]);
+  expect(ready).toEqual({ type: "OK" });
+  expect(stored).toBeTypeOf("object");
   expect(await controlRealm?.callFunction(`() => String(${CONTROL_READY_EXPRESSION})`)).toBe(
     "true",
   );
