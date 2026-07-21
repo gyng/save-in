@@ -18,7 +18,10 @@ import { getSession, normalizeSessionCounter, updateSession } from "../shared/se
 import { options, shouldPersistActivity } from "../config/options-data.ts";
 import { deliverDownloadOutcomeWebhook } from "./webhook-delivery.ts";
 import { BROWSER_DOWNLOAD_CONTEXT } from "../shared/constants.ts";
-import { PENDING_DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
+import {
+  PENDING_DOWNLOADS_SESSION_KEY,
+  PRIVATE_PENDING_DOWNLOADS_SESSION_KEY,
+} from "../shared/storage-keys.ts";
 import {
   BROWSERS,
   CURRENT_BROWSER,
@@ -136,7 +139,21 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
   // between requesting the download and this event. siPendingDownloads is a
   // COUNTER (not a boolean) so several downloads created after one restart
   // are all recovered — a boolean dropped every one past the first.
-  const res = await getSession(extensionSessionStorage, PENDING_DOWNLOADS_SESSION_KEY);
+  const res = await getSession(extensionSessionStorage, [
+    PENDING_DOWNLOADS_SESSION_KEY,
+    PRIVATE_PENDING_DOWNLOADS_SESSION_KEY,
+  ]);
+  // Chrome strips both Incognito and extension ownership from our download's
+  // onCreated item. If an isolated private request survived a worker restart,
+  // every unclaimed item is ambiguous until the short recovery lease expires.
+  // Keep the counter untouched so concurrent event ordering cannot swap a
+  // public request into the private slot and then adopt the private one.
+  if (
+    CURRENT_BROWSER === BROWSERS.CHROME &&
+    normalizeSessionCounter(res[PRIVATE_PENDING_DOWNLOADS_SESSION_KEY]) > 0
+  ) {
+    return;
+  }
   if (normalizeSessionCounter(res[PENDING_DOWNLOADS_SESSION_KEY]) > 0) {
     await mergeTrackedDownload(item.id, {
       adopted: true,
@@ -217,25 +234,6 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
     }
   }
 
-  // KNOWN RESIDUAL, Chrome only, while private persistence is off: a private
-  // save of ours can be recorded here.
-  // Every tell that would stop it is absent at once. Chrome has no Incognito
-  // selector on downloads.download, so the item is not incognito and the guard
-  // above lets it by; onCreated omits byExtensionId even for our own downloads,
-  // so isOrdinaryBrowserDownload says true; and an isolated private save
-  // deliberately persists nothing, so once a worker restart has taken the
-  // in-memory record there is no counter to catch it either. The privacy
-  // measure is what removes the evidence.
-  //
-  // Left as it is on purpose. Closing it needs a private counter — a bare
-  // integer, since a URL here is the thing being avoided — incremented beside
-  // siPendingDownloads, consumed here, and expired by the same recovery lease,
-  // which trades "private activity leaves no restart state" for "leaves no
-  // identifying restart state". That is a bigger promise to reopen than this
-  // costs: trackBrowserDownloads is off by default, the window is one worker
-  // restart between downloads.download and this event, and Chrome has already
-  // put the file in its own download manager, which is where the disclosure
-  // actually happens.
   if (options.trackBrowserDownloads) {
     const historyEntryId = historyPort.add(
       {

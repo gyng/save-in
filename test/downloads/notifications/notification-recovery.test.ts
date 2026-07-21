@@ -94,6 +94,26 @@ describe("startup restore", () => {
     }
   });
 
+  test("clears an anonymous private-download guard after the grace window", async () => {
+    vi.useFakeTimers();
+    try {
+      const sessionStore = { siPrivatePendingDownloads: 2 } as Record<string, any>;
+      setupGlobals(sessionStore, () => []);
+
+      await loadNotification();
+
+      expect(sessionStore.siPrivatePendingDownloads).toBe(2);
+      expect(sessionStore.siNotificationRecovery).toMatchObject({
+        privatePendingDownloads: 2,
+      });
+
+      await vi.advanceTimersByTimeAsync(10_000);
+      expect(sessionStore.siPrivatePendingDownloads).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   test("cancels delayed recovery during an e2e worker-state reset", async () => {
     vi.useFakeTimers();
     const sessionStore = { siPendingDownloads: 3 } as Record<string, any>;

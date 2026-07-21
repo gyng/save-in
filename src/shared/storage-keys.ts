@@ -12,6 +12,9 @@ export const PRIVATE_LAST_USED_SESSION_KEY = "siPrivateLastUsed";
 export const RECENT_DESTINATIONS_STORAGE_KEY = "recentDestinations";
 export const DOWNLOADS_SESSION_KEY = "siDownloads";
 export const PENDING_DOWNLOADS_SESSION_KEY = "siPendingDownloads";
+// URL-free privacy barrier for Chrome, whose downloads.onCreated event loses
+// every Incognito/extension ownership signal across a service-worker restart.
+export const PRIVATE_PENDING_DOWNLOADS_SESSION_KEY = "siPrivatePendingDownloads";
 export const NOTIFICATION_RECOVERY_SESSION_KEY = "siNotificationRecovery";
 export const FINAL_FILENAMES_SESSION_KEY = "siFinalFilenames";
 export const DEFERRED_ROUTES_SESSION_KEY = "siDeferredRoutes";

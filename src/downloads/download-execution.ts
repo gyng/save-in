@@ -36,6 +36,7 @@ import type {
 } from "./download-types.ts";
 import { downloadRuntime } from "./download-runtime-instance.ts";
 import { resolveDownloadPlan } from "./download-plan.ts";
+import { beginAnonymousPrivateDownloadGuard } from "./private-download-guard.ts";
 import { ensureHistoryEntry } from "./history-entry.ts";
 import { historyDisplayUrl, isDataUrl, truncateDataUrlForDisplay } from "../shared/data-url.ts";
 import {
@@ -313,6 +314,7 @@ export const executeBrowserDownload = async (
         ]
       : [],
   );
+  const releasePrivateDownloadGuard = await beginAnonymousPrivateDownloadGuard(privateContext);
 
   const expected = expectDownload(acquired.url, {
     url: state.info.url,
@@ -414,8 +416,8 @@ export const executeBrowserDownload = async (
       return { status: "failed" };
     }
   } finally {
-    await Promise.all(
-      persistActivity
+    await Promise.all([
+      ...(persistActivity
         ? [
             updateSession<number>(
               sessionWriteState,
@@ -444,8 +446,9 @@ export const executeBrowserDownload = async (
                 ]
               : []),
           ]
-        : [],
-    );
+        : []),
+      ...(releasePrivateDownloadGuard ? [releasePrivateDownloadGuard()] : []),
+    ]);
   }
 };
 

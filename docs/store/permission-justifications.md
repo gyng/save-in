@@ -80,8 +80,11 @@ the peripheral features fit a single purpose:
 > window closes. An off-by-default setting can include private saves in the
 > normal local activity stores; its disclosure explains that those records can
 > outlive private browsing. Webhooks and browser credentials remain disabled in
-> private windows. All data stays on the device; none is transmitted to the
-> developer or any third party.
+> private windows. Chrome also keeps a bare, non-identifying pending count during
+> a private download handoff to prevent a service-worker restart from treating
+> it as an ordinary browser download; it is balanced normally or expires after
+> ten seconds. All data stays on the device; none is transmitted to the developer
+> or any third party.
 
 ### `offscreen`
 

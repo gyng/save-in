@@ -592,8 +592,13 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     Object.assign(freshOptions, { conflictAction: "uniquify" });
 
     const freshSessionState = await import("../../src/shared/session-state.ts");
-    vi.spyOn(freshSessionState, "getSession").mockImplementation((_storage: any, key: string) =>
-      Promise.resolve({ [key]: sessionStore[key] }),
+    vi.spyOn(freshSessionState, "getSession").mockImplementation(
+      (_storage: any, key: string | string[]) =>
+        Promise.resolve(
+          Object.fromEntries(
+            (Array.isArray(key) ? key : [key]).map((entry) => [entry, sessionStore[entry]]),
+          ),
+        ),
     );
     vi.spyOn(freshSessionState, "setSession").mockImplementation(
       (_storage: any, obj: Record<string, any>) => {

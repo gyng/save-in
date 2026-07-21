@@ -1510,7 +1510,7 @@ describe("owned object URL lifecycle", () => {
 });
 
 describe("private browsing persistence", () => {
-  test("keeps private save metadata out of local and session storage", async () => {
+  test("keeps private save metadata out of storage behind an anonymous Chrome guard", async () => {
     setCurrentBrowser("CHROME");
     vi.mocked(SaveHistory.addHistoryEntry).mockReturnValue(null);
     const state = makeState({ info: { currentTab: { incognito: true } } });
@@ -1521,6 +1521,7 @@ describe("private browsing persistence", () => {
       privateContext: true,
     });
     expect(sessionStore.siPendingDownloads).toBeUndefined();
+    expect(sessionStore.siPrivatePendingDownloads).toBe(0);
     expect(sessionStore.siFinalFilenames).toBeUndefined();
     expect(sessionStore.siDownloads?.[101]).toBeUndefined();
     expect(downloadState.records.get(101)).toMatchObject({

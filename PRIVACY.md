@@ -1,6 +1,6 @@
 # Save In Privacy Policy
 
-Last updated: July 21, 2026
+Last updated: July 22, 2026
 
 ## What information does Save In collect?
 
@@ -14,7 +14,11 @@ access this data. By default, private activity is excluded from durable storage,
 History, and diagnostic logs. The private **Last used** destination is kept
 separately in browser session storage so it survives a background sleep, then
 removed when the final private window closes or the browser exits. Other
-temporary private-save state remains in memory.
+temporary private-save state remains in memory. Chrome additionally keeps a
+bare count while an isolated private download is being handed to the browser.
+The count contains no URL, filename, destination, or tab data; it is balanced
+when the handoff finishes or removed by a ten-second recovery lease after a
+background restart.
 
 **Remember private browsing activity** is a separate option and defaults to
 off. When enabled, private saves can enter Save In's normal local Last used,

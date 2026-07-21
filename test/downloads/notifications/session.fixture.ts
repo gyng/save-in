@@ -84,7 +84,15 @@ const loadNotification = async () => {
 };
 
 const makeSessionMock = (store: Record<string, any>) => ({
-  get: vi.fn((key: string) => Promise.resolve(key == null ? { ...store } : { [key]: store[key] })),
+  get: vi.fn((key: string | string[]) =>
+    Promise.resolve(
+      key == null
+        ? { ...store }
+        : Array.isArray(key)
+          ? Object.fromEntries(key.map((entry) => [entry, store[entry]]))
+          : { [key]: store[key] },
+    ),
+  ),
   set: vi.fn((obj: Record<string, any>) => {
     Object.assign(store, obj);
     return Promise.resolve();

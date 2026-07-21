@@ -119,6 +119,53 @@ describe("download lifecycle notifications", () => {
     expect(sessionStore.siDownloads?.[8]).toBeUndefined();
   });
 
+  test("quarantines an unclaimed Chrome download while an isolated private save is pending", async () => {
+    options.trackBrowserDownloads = true;
+    sessionStore.siPrivatePendingDownloads = 1;
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry");
+
+    // Chrome reports an extension-started Incognito save as a regular item and
+    // omits byExtensionId. After a worker restart there is no URL expectation
+    // left, so the anonymous guard is the only safe ownership evidence.
+    await onCreated({
+      id: 9,
+      filename: "C:\\Downloads\\private.png",
+      url: "https://private.example/p.png",
+    });
+
+    expect(history.addHistoryEntry).not.toHaveBeenCalled();
+    expect(sessionStore.siDownloads?.[9]).toBeUndefined();
+    // Keep the barrier for the whole recovery lease: event ordering is not
+    // enough to correlate concurrent public and private requests safely.
+    expect(sessionStore.siPrivatePendingDownloads).toBe(1);
+  });
+
+  test("fails closed when public and isolated private requests overlap across restart", async () => {
+    options.trackBrowserDownloads = true;
+    sessionStore.siPendingDownloads = 1;
+    sessionStore.siPrivatePendingDownloads = 1;
+
+    await onCreated({
+      id: 10,
+      filename: "C:\\Downloads\\first.png",
+      url: "https://example.test/first.png",
+    });
+    await onCreated({
+      id: 11,
+      filename: "C:\\Downloads\\second.png",
+      url: "https://example.test/second.png",
+    });
+
+    // onCreated order is not proof of which concurrent downloads.download call
+    // produced an item. Dropping both ownership recoveries is safer than
+    // adopting the private item into normal History or notifications.
+    expect(adoptedIds(sessionStore)).toEqual([]);
+    expect(sessionStore.siDownloads).toBeUndefined();
+    expect(sessionStore.siPendingDownloads).toBe(1);
+    expect(sessionStore.siPrivatePendingDownloads).toBe(1);
+  });
+
   test("records an ordinary browser download without adopting or retrying it", async () => {
     options.trackBrowserDownloads = true;
     const history = await import("../../../src/background/history.ts");

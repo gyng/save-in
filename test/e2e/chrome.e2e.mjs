@@ -1078,6 +1078,63 @@ test("lastUsedPath survives re-initialisation", async () => {
   expect(lastUsed).toBe("e2e/persisted");
 });
 
+test("cold-start private handoff guard cannot become ordinary Chrome History", async () => {
+  const filename = "private-handoff-guard.bin";
+  const server = http.createServer((req, res) => {
+    if (req.url === `/${filename}`) {
+      res.writeHead(200, {
+        "Content-Type": "application/octet-stream",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+      });
+      res.end("anonymous private handoff guard");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(`<a id="guarded" href="/${filename}">download</a>`);
+  });
+  const port = await listenLocal(server);
+  const pageUrl = `http://127.0.0.1:${port}/`;
+  const target = `127.0.0.1:${port}`;
+  const beforeHistory = await control.history.get();
+
+  try {
+    await control.options.set({
+      trackBrowserDownloads: true,
+      routeBrowserDownloads: false,
+      browserDownloadFilter: "*://127.0.0.1/*",
+    });
+    await control.storage.session.set({ siPrivatePendingDownloads: 1 });
+    expect(await cdp.stopServiceWorker(PORT, extensionId)).toBe(true);
+    await control.options.all();
+
+    await cdp.openTab(PORT, pageUrl);
+    await waitForPageCondition(
+      (expression, timeoutMs) => cdp.evalInTarget(PORT, target, expression, timeoutMs),
+      "Boolean(document.querySelector('#guarded'))",
+      { description: "guarded ordinary download page" },
+    );
+    await cdp.evalInTarget(PORT, target, "document.querySelector('#guarded').click(); true");
+
+    const [download] = await waitForDownloads(filename);
+    expect(download?.state).toBe("complete");
+    const [afterHistory, session] = await Promise.all([
+      control.history.get(),
+      control.storage.session.get(),
+    ]);
+    expect(afterHistory).toEqual(beforeHistory);
+    expect(session.siPrivatePendingDownloads).toBe(1);
+    expect(decodeRecord(session.siDownloads ?? {})[String(download?.id)]).toBeUndefined();
+  } finally {
+    await control.options.set({
+      trackBrowserDownloads: false,
+      routeBrowserDownloads: false,
+      browserDownloadFilter: "",
+    });
+    await control.storage.session.remove(["siPrivatePendingDownloads", "siNotificationRecovery"]);
+    await closeLocal(server);
+  }
+});
+
 test("ordinary browser downloads can be routed and tracked without adoption", async () => {
   const server = http.createServer((req, res) => {
     if (req.url === "/native.bin") {

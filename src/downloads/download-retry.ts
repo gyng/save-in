@@ -18,6 +18,7 @@ import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
 import { downloadPorts } from "./ports.ts";
 import { backfillDownloadStartTime } from "./undo-download.ts";
+import { beginAnonymousPrivateDownloadGuard } from "./private-download-guard.ts";
 import { isPrivateDownloadRecord } from "./download-state.ts";
 import type { DownloadRecordUpdate } from "./download-state.ts";
 import {
@@ -97,6 +98,7 @@ export const retryViaFetch = async (
   let expected: unknown;
   let newId: number | undefined;
   let offscreenRequestId: string | undefined;
+  let releasePrivateDownloadGuard: (() => Promise<void>) | null = null;
   try {
     const content = await fetchUrlForDownload(
       url,
@@ -109,6 +111,7 @@ export const retryViaFetch = async (
     blobUrl = downloadUrl;
     offscreenRequestId = content.offscreenRequestId;
     runtime.pendingRetryFilenames.set(downloadUrl, filename);
+    releasePrivateDownloadGuard = await beginAnonymousPrivateDownloadGuard(privateContext);
     expected = services.notifier.expectDownload(downloadUrl, {
       privateContext,
       ...(record.sourceSidecar === true ? { sourceSidecar: true } : {}),
@@ -212,15 +215,16 @@ export const retryViaFetch = async (
     if (cleanupUrl && !filenameListenerWillConsume) {
       runtime.pendingRetryFilenames.delete(cleanupUrl);
     }
+    const cleanup: Promise<unknown>[] = [];
     if (cleanupUrl && persistActivity) {
-      const cleanup: Promise<unknown>[] = [
+      cleanup.push(
         updateSession<number>(
           sessionWriteState,
           extensionSessionStorage,
           PENDING_DOWNLOADS_SESSION_KEY,
           (n) => Math.max(0, normalizeSessionCounter(n) - 1),
         ),
-      ];
+      );
       // A successful downloads.download() can resolve before Chrome dispatches
       // onDeterminingFilename. Keep the restart-safe filename queued until the
       // listener consumes it; deleting it here races Chrome and produces a
@@ -236,7 +240,8 @@ export const retryViaFetch = async (
           ),
         );
       }
-      await Promise.all(cleanup);
     }
+    if (releasePrivateDownloadGuard) cleanup.push(releasePrivateDownloadGuard());
+    await Promise.all(cleanup);
   }
 };

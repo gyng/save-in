@@ -5,7 +5,8 @@
   Routing rules and the debugger can distinguish them with `gesture:`.
 - Made **Last used** reliable in Private Browsing and Incognito across event-page
   and service-worker sleeps. Private Last used remains separate and clears when
-  private browsing ends by default.
+  private browsing ends by default. Chrome worker restarts can no longer
+  misclassify an isolated private save as an ordinary browser download.
 - Added the off-by-default **Remember private browsing activity** option. It
   includes private saves in normal local Last used, Recent locations, History,
   counter, diagnostics, and restart-recovery state, while webhooks and browser

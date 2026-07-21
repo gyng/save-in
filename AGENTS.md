@@ -115,14 +115,24 @@ The shared manifest uses `incognito: spanning`. Firefox can associate
 extension-started downloads with Private Browsing; Chrome's downloads API has
 no Incognito selector, so a Save In download requested there may appear in the
 regular Chrome download manager. By default, Save In excludes private activity
-from its own history, recovery state, and debug log. Private Last used state is
-the narrow exception: it uses storage.session only, stays separate from the
-regular destination, and is cleared when private browsing ends. The explicit,
+from its own history, identifying recovery state, and debug log. Private Last
+used state is the narrow data-bearing exception: it uses storage.session only,
+stays separate from the regular destination, and is cleared when private
+browsing ends. The explicit,
 off-by-default **Remember private browsing activity** option admits private
 saves to normal local activity storage without enabling webhooks, credentialed
 private fetches, or external private-tab access. Add a background module by
 importing it from the relevant entry
 — there is no hand-maintained file list to keep in sync anymore.
+
+Chrome's `downloads.onCreated` removes both Incognito and extension ownership
+signals from an extension-started private download. While private retention is
+off, `private-download-guard.ts` therefore persists only a bare pending count
+around the `downloads.download` handoff. After a worker restart, any unclaimed
+Chrome download remains unadopted while that count is nonzero; never consume the
+count event-by-event, because concurrent public/private event order is not
+identity evidence. The existing ten-second notification-recovery lease removes
+a stale count. Do not add URLs, filenames, paths, or tab data to this guard.
 
 |                 | Firefox (event page)                                      | Chrome (service worker)                                   |
 | --------------- | --------------------------------------------------------- | --------------------------------------------------------- |

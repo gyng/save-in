@@ -72,7 +72,10 @@ is no account and no first-party server.
   `storage.session` and is removed when the final private window closes. The
   explicit **Remember private browsing activity** option is off by default and
   admits private saves to normal local activity storage; it never enables
-  webhooks or browser credentials in private windows.
+  webhooks or browser credentials in private windows. Chrome also keeps a bare,
+  non-identifying pending count during a private download handoff so a worker
+  restart cannot misclassify it as an ordinary browser download; the count is
+  balanced when the handoff returns or expires after ten seconds.
 - The optional on-device rule assistant runs Gemini Nano locally (Chrome Prompt
   API); prompts are not sent to any server. Webhooks and the external Download
   API are opt-in integrations the user configures explicitly.

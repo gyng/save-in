@@ -13,13 +13,13 @@ export const normalizeSessionCounter = (value: unknown): number =>
 
 export const getSession = (
   storage: StorageReader | undefined,
-  key: string,
+  key: string | string[],
 ): Promise<Record<string, unknown>> =>
   storage
     ? storage.get(key).then(
         (stored) => stored,
         (error) => {
-          recordPersistenceFailure({ area: "session", operation: "read", key }, error);
+          recordPersistenceFailure({ area: "session", operation: "read", key: String(key) }, error);
           return {};
         },
       )

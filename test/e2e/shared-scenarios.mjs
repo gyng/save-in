@@ -188,6 +188,7 @@ export const runPrivateContextScenario = async ({
       });
       expect(Object.keys(after.session.siDownloads || {})).toHaveLength(0);
     }
+    expect(after.session.siPrivatePendingDownloads ?? 0).toBe(0);
     expect(Object.keys(after.session.siActiveTransfers || {})).toHaveLength(0);
   } finally {
     const hadPaths = Object.hasOwn(snapshot.local, "paths");
