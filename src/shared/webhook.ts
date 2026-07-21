@@ -216,8 +216,12 @@ export const parseWebhookEndpoints = (
   // an issue and was never going to be sent to.
   const overflow = parsed.entries
     .slice(WEBHOOK_TARGET_LIMIT)
-    .map(({ value: _endpoint, ...rest }) => ({
-      ...rest,
+    .map(({ source, start, end, line, column }) => ({
+      source,
+      start,
+      end,
+      line,
+      column,
       error: new WebhookEndpointError(
         WEBHOOK_ENDPOINT_REASONS.OVER_LIMIT,
         `Only the first ${WEBHOOK_TARGET_LIMIT} endpoints are sent`,
@@ -225,7 +229,7 @@ export const parseWebhookEndpoints = (
     }));
   return {
     entries: parsed.entries.slice(0, WEBHOOK_TARGET_LIMIT),
-    issues: [...parsed.issues, ...overflow].sort((a, b) => a.start - b.start),
+    issues: [...parsed.issues, ...overflow].toSorted((a, b) => a.start - b.start),
   };
 };
 

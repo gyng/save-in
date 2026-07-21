@@ -878,7 +878,8 @@ const PathEditorHelpers = {
       rebuild();
       const input = container
         .querySelectorAll<HTMLElement>(".path-editor-row")
-        [nodes.length - 1]?.querySelector<HTMLInputElement>(".path-editor-dir");
+        .item(nodes.length - 1)
+        ?.querySelector<HTMLInputElement>(".path-editor-dir");
       input?.focus();
       input?.select();
     });

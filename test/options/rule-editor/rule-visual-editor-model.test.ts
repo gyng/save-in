@@ -211,8 +211,8 @@ describe("routing visual editor model", () => {
   });
 
   test("adds an enabled, guarded automatic-source rule", () => {
-    const source = addAutomaticRoutingRule("filename: jpg\ninto: images/:filename:\n");
-    expect(source).toContain(
+    const automaticSource = addAutomaticRoutingRule("filename: jpg\ninto: images/:filename:\n");
+    expect(automaticSource).toContain(
       [
         "context: ^auto$",
         "pageurl: ^https://example\\.com/",

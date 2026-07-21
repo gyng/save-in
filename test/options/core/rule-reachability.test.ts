@@ -31,7 +31,7 @@ const automatic = (...extra: Array<{ name: string; value: string | RegExp; flags
 
 describe("producibleSourceKinds", () => {
   test("embedded media kinds are always producible", () => {
-    expect([...producibleSourceKinds(allOff)].sort()).toEqual(["audio", "image", "video"]);
+    expect([...producibleSourceKinds(allOff)].toSorted()).toEqual(["audio", "image", "video"]);
   });
 
   test("documents unlock document and stream; manifests unlock stream", () => {
@@ -94,7 +94,7 @@ describe("matchableSourceKinds", () => {
     const global = matchableSourceKinds(
       automatic({ name: "sourcekind", value: "image|video", flags: "g" }),
     );
-    expect(global && [...global].sort()).toEqual(["image", "video"]);
+    expect(global && [...global].toSorted()).toEqual(["image", "video"]);
   });
 
   test("a RegExp clause value and an uncompilable pattern", () => {
@@ -119,7 +119,8 @@ describe("ruleReachabilityDiagnostics", () => {
     ["AUTO|CLICK", "i", "a case-insensitive alternation (contexts match lowercased)"],
     [".*", undefined, "a match-everything pattern"],
     ["auto|selection", undefined, "a selection alternation"],
-  ])("a mixed context (%s /%s/ — %s) suppresses every diagnostic", (context, flags, _why) => {
+  ])("a mixed context (%s /%s/ — %s) suppresses every diagnostic", (...testCase) => {
+    const [context, flags] = testCase;
     // The copy claims the rule cannot run; a rule that still fires on
     // interactive saves must stay silent even with the master switch off,
     // unreachable kinds, and an always-empty variable.
@@ -139,9 +140,11 @@ describe("ruleReachabilityDiagnostics", () => {
     // toLocaleLowerCase would turn CLICK into "clıck" under tr/az and
     // reintroduce the mixed-context false hints for those users.
     const original = String.prototype.toLocaleLowerCase;
-    String.prototype.toLocaleLowerCase = function (this: string) {
-      return original.call(this).replace(/i/g, "ı");
-    } as typeof String.prototype.toLocaleLowerCase;
+    const localeLowerCase = vi
+      .spyOn(String.prototype, "toLocaleLowerCase")
+      .mockImplementation(function (this: string) {
+        return original.call(this).replace(/i/g, "ı");
+      });
     try {
       vi.resetModules();
       const model = await import("../../../src/options/core/rule-reachability-model.ts");
@@ -153,7 +156,7 @@ describe("ruleReachabilityDiagnostics", () => {
       ];
       expect(model.ruleReachabilityDiagnostics(clauses, allOff)).toEqual([]);
     } finally {
-      String.prototype.toLocaleLowerCase = original;
+      localeLowerCase.mockRestore();
       vi.resetModules();
     }
   });

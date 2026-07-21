@@ -72,7 +72,9 @@ test("filters non-previewable and malformed collector results at the discovery b
     { url: "http://[", kind: "image", previewable: true },
     { url: "https://cdn.test/visible.png#preview", kind: "image", previewable: true },
   ];
-  const send = vi.fn(async (_candidate: AutomaticRoutingCandidate) => "started" as const);
+  const send = vi.fn<(candidate: AutomaticRoutingCandidate) => Promise<"started">>(async () =>
+    Promise.resolve("started"),
+  );
   const controller = setupAutoDownloadDiscovery({ rules, live: false, maxPerPage: 10, send });
   await controller.idle();
 
@@ -93,7 +95,9 @@ test("attests selectors per origin and only queues a complete same-element CSS m
     { url: "https://cdn.test/avatar.png", kind: "image", element: avatar },
     { url: "https://cdn.test/hero.png", kind: "image", element: hero },
   ];
-  const send = vi.fn(async () => "started" as const);
+  const send = vi.fn<(candidate: AutomaticRoutingCandidate) => Promise<"started">>(async () =>
+    Promise.resolve("started"),
+  );
   const controller = setupAutoDownloadDiscovery({
     rules: cssRules,
     live: false,
@@ -171,7 +175,9 @@ test("does not lose a later matching rule when one origin matches more than 64 s
       `into: rule-${index}/`,
     ].join("\n"),
   ).join("\n\n");
-  const send = vi.fn(async (_candidate: AutomaticRoutingCandidate) => "started" as const);
+  const send = vi.fn<(candidate: AutomaticRoutingCandidate) => Promise<"started">>(async () =>
+    Promise.resolve("started"),
+  );
   const controller = setupAutoDownloadDiscovery({
     rules: denseRules,
     live: false,
