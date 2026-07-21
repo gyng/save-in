@@ -17,10 +17,7 @@ const rotateRight = (value: number, bits: number): number =>
   (value >>> bits) | (value << (32 - bits));
 
 const uint32At = (values: Uint32Array, index: number): number => {
-  const value = values[index];
-  /* v8 ignore next -- Callers use fixed-size arrays and bounded SHA-256 indexes. */
-  if (value === undefined) throw new RangeError(`Missing 32-bit word at index ${index}`);
-  return value;
+  return values[index] as number;
 };
 
 export class Sha256 {

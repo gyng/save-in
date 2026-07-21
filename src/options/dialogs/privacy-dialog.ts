@@ -26,9 +26,7 @@ const renderPrivacyMarkdown = (container: HTMLElement, markdown: string) => {
   let index = 0;
 
   while (index < lines.length) {
-    const line = lines[index];
-    /* v8 ignore next -- The loop bound guarantees a line at this index. */
-    if (line === undefined) break;
+    const line = lines[index] as string;
     if (!line.trim()) {
       index += 1;
       continue;

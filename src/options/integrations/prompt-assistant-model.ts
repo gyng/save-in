@@ -77,12 +77,7 @@ const PATH_DIMENSIONS: { readonly names: RegExp; readonly variables: readonly st
 ];
 
 const requestedPathVariables = (request: string): string[] => {
-  const offered = PATH_DIMENSIONS.filter((d) => d.names.test(request)).flatMap((d) => [
-    ...d.variables,
-  ]);
-  // The fallback stands for a caller that asks without naming a dimension.
-  /* v8 ignore next -- unreachable from rulePlanConstraint: it only asks once namesPathOrganisation matches, and every word that trips that also names a dimension above. */
-  return offered.length > 0 ? offered : [...PATH_VARIABLES];
+  return PATH_DIMENSIONS.filter((d) => d.names.test(request)).flatMap((d) => [...d.variables]);
 };
 
 // Whether the request asks for its saves to be grouped at all. Nesting the

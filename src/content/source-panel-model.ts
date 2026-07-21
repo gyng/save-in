@@ -122,9 +122,8 @@ export const isPerformanceResourceTiming = (
 
 export const urlsFromCss = (value: string): string[] =>
   [...value.matchAll(/url\((?:"([^"]+)"|'([^']+)'|([^)'"\s]+))\)/g)].flatMap((match) => {
-    const url = match[1] || match[2] || match[3];
-    /* v8 ignore next -- The CSS URL expression always captures one supported form. */
-    return url ? [url] : [];
+    const url = (match[1] || match[2] || match[3]) as string;
+    return [url];
   });
 
 const isAsciiWhitespace = (value: string | undefined): boolean =>
@@ -515,8 +514,7 @@ export const createSourceTooltip = (source: PageSource): HTMLElement | null => {
       media.playsInline = true;
     }
   } else {
-    /* v8 ignore next -- Supported preview kinds create either media or image elements. */
-    if (media instanceof HTMLImageElement) media.alt = "";
+    (media as HTMLImageElement).alt = "";
   }
   tooltip.append(media);
   return tooltip;

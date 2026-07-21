@@ -26,9 +26,8 @@ const applyStaticCopy = (ctx: SourcePanelContext) => {
   ctx.filter.setAttribute("aria-label", copy.filterLabel);
   ctx.sort.setAttribute("aria-label", copy.sortLabel);
   [...ctx.sort.options].forEach((option, index) => {
-    const entry = ctx.sortOptions[index];
-    /* v8 ignore next -- Options are created one-for-one from sortOptions. */
-    if (entry) option.textContent = copy.sort[entry[1]];
+    const entry = ctx.sortOptions[index] as (typeof ctx.sortOptions)[number];
+    option.textContent = copy.sort[entry[1]];
   });
   ctx.placementButtons.forEach((button, placement) => {
     button.textContent = copy.dockPositions[placement];

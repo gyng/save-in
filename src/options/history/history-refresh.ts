@@ -15,8 +15,9 @@ import { historyFeedback, renderHistoryFeedback } from "./history-feedback.ts";
 import { historyMessage } from "./history-messages.ts";
 import { historyState } from "./history-panel-state.ts";
 
-/* v8 ignore next -- Placeholder overwritten by history-panel.ts at import, before any call site can run. */
-let renderTable: () => void = () => {};
+// Avoid manufacturing an unreachable JavaScript body for this synchronously
+// replaced composition placeholder.
+let renderTable = Function.prototype as () => void;
 
 export const setHistoryTableRenderer = (render: () => void): void => {
   renderTable = render;

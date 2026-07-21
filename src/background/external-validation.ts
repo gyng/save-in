@@ -123,16 +123,13 @@ export const isSafeExternalRegex = (regex: RegExp | string): boolean => {
   const { source } = regex;
   if (source.length > MAX_REGEX_CHARACTERS) return false;
 
-  const groups: Array<{ hasAlternation: boolean; hasQuantifier: boolean }> = [
-    { hasAlternation: false, hasQuantifier: false },
-  ];
+  type GroupState = { hasAlternation: boolean; hasQuantifier: boolean };
+  const groups: GroupState[] = [{ hasAlternation: false, hasQuantifier: false }];
   let inCharacterClass = false;
   let quantifierCount = 0;
   let repeatingQuantifierCount = 0;
   for (let index = 0; index < source.length; index += 1) {
-    const token = source[index];
-    /* v8 ignore next -- The loop bound guarantees a character at this index. */
-    if (token === undefined) return false;
+    const token = source.charAt(index);
     if (token === "\\") {
       const escaped = source[index + 1];
       if (
@@ -160,21 +157,15 @@ export const isSafeExternalRegex = (regex: RegExp | string): boolean => {
       continue;
     }
     if (token === ")" && groups.length > 1) {
-      const group = groups.pop();
-      /* v8 ignore next -- The guarded stack depth guarantees a group to pop. */
-      if (!group) return false;
+      const group = groups.pop() as GroupState;
       const repeated = repeatingQuantifierAt(source, index + 1);
       if (repeated && (group.hasAlternation || group.hasQuantifier)) return false;
-      const parent = groups.at(-1);
-      /* v8 ignore next -- The root group is never popped. */
-      if (!parent) return false;
+      const parent = groups.at(-1) as GroupState;
       parent.hasAlternation ||= group.hasAlternation;
       parent.hasQuantifier ||= group.hasQuantifier || repeated;
       continue;
     }
-    const current = groups.at(-1);
-    /* v8 ignore next -- The root group keeps the stack non-empty. */
-    if (!current) return false;
+    const current = groups.at(-1) as GroupState;
     if (token === "|") current.hasAlternation = true;
     const previous = source[index - 1];
     const lazyModifier =

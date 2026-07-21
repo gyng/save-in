@@ -86,16 +86,14 @@ export const hardenLinks = () => {
 
 export const localizeDocument = (getMessage: GetMessage = nativeGetMessage) => {
   const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_TEXT);
-  const texts: Node[] = [];
+  const texts: Text[] = [];
   while (walker.nextNode()) {
     if (walker.currentNode.nodeValue?.includes("__MSG_")) {
-      texts.push(walker.currentNode);
+      texts.push(walker.currentNode as Text);
     }
   }
   texts.forEach((node) => {
-    const value = node.nodeValue;
-    /* v8 ignore next -- Only text nodes with a matching non-null nodeValue enter this list. */
-    if (value !== null) node.nodeValue = localizeString(value, getMessage);
+    node.data = localizeString(node.data, getMessage);
   });
 
   document.querySelectorAll("*").forEach((el) => {

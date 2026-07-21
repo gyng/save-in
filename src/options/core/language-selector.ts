@@ -18,8 +18,7 @@ const afterNativePopupClose = (): Promise<void> =>
 
 const defaultPorts: LanguageSelectorPorts = {
   apply: (uiLocale) => optionsRuntime.apply({ uiLocale }),
-  /* v8 ignore next -- navigation is owned by the real options-page browser context. */
-  reload: () => location.reload(),
+  reload: location.reload.bind(location),
   getMessage,
   afterClose: afterNativePopupClose,
 };
@@ -29,11 +28,9 @@ export const setupLanguageSelector = (ports: LanguageSelectorPorts = defaultPort
   const error = document.querySelector<HTMLElement>("#language-error");
   if (!select || !error) return;
   const container = select.closest<HTMLElement>(".language-selector");
-  const parent = select.parentNode;
+  const parent = select.parentNode as ParentNode;
   const nextSibling = select.nextSibling;
-  /* v8 ignore next -- The options document contract owns the selector container. */
   const originalContainerWidth = container?.style.width ?? "";
-  /* v8 ignore next -- The options document contract owns the selector container. */
   const originalContainerHeight = container?.style.height ?? "";
 
   // `change` may arrive only after a native select popup has decided to close.
@@ -57,10 +54,8 @@ export const setupLanguageSelector = (ports: LanguageSelectorPorts = defaultPort
       error.textContent =
         ports.getMessage("o_lLanguageChangeFailed") || "Could not change the language. Try again.";
       error.hidden = false;
-      /* v8 ignore next -- A selector found in the document always has its captured parent. */
-      if (parent && !select.isConnected) parent.insertBefore(select, nextSibling);
+      parent.insertBefore(select, nextSibling);
       select.disabled = false;
-      /* v8 ignore next -- The options document contract owns the selector container. */
       if (container) {
         container.style.width = originalContainerWidth;
         container.style.height = originalContainerHeight;

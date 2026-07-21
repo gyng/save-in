@@ -32,6 +32,28 @@ type PromptAssistantPorts = {
 
 const AVAILABILITY_RECHECK_MS = 1_000;
 
+export const promptAssistantCandidateIssues = async (
+  request: string,
+  candidate: string,
+  singleRuleMessage: string,
+): Promise<string[]> => {
+  const issues = ruleRequestGuardrailIssues(request, candidate);
+  if (!isSingleRuleSuggestion(candidate)) return [singleRuleMessage, ...issues];
+  const invalidCss = cssSelectorErrors(candidate)[0];
+  if (invalidCss) return [...issues, invalidCss.message];
+  const response = await sendInternalMessage(webExtensionApi.runtime, {
+    type: MESSAGE_TYPES.VALIDATE,
+    body: { filenamePatterns: candidate },
+  });
+  if (!("version" in response.body)) throw new Error("Rule validation is unavailable");
+  return [
+    ...issues,
+    ...(response.body.ruleErrors ?? [])
+      .filter((error) => !error.warning)
+      .map((error) => error.message),
+  ];
+};
+
 const routingGrammar = async (): Promise<WireIntegrationGrammar> => {
   const response = await sendInternalMessage(webExtensionApi.runtime, {
     type: MESSAGE_TYPES.GET_GRAMMARS,
@@ -164,26 +186,6 @@ export const setupPromptAssistantPanel = (
     result.hidden = false;
   };
 
-  const validationIssues = async (request: string, candidate: string): Promise<string[]> => {
-    const issues = ruleRequestGuardrailIssues(request, candidate);
-    // Kept so a candidate from any future non-plan source is checked, not trusted.
-    /* v8 ignore next -- assembleRule emits one rule by construction: every plan field reaching the text rejects \p{Cc}, so none can open a second rule. */
-    if (!isSingleRuleSuggestion(candidate)) return [copy.singleRule, ...issues];
-    const invalidCss = cssSelectorErrors(candidate)[0];
-    if (invalidCss) return [...issues, invalidCss.message];
-    const response = await sendInternalMessage(webExtensionApi.runtime, {
-      type: MESSAGE_TYPES.VALIDATE,
-      body: { filenamePatterns: candidate },
-    });
-    if (!("version" in response.body)) throw new Error("Rule validation is unavailable");
-    return [
-      ...issues,
-      ...(response.body.ruleErrors ?? [])
-        .filter((error) => !error.warning)
-        .map((error) => error.message),
-    ];
-  };
-
   const refreshAvailability = async () => {
     if (availabilityTimer) {
       clearTimeout(availabilityTimer);
@@ -284,7 +286,7 @@ export const setupPromptAssistantPanel = (
       let candidate = plan ? assembleRule(plan) : null;
       if (!candidate) throw new Error(copy.unusable);
 
-      let issues = await validationIssues(request, candidate);
+      let issues = await promptAssistantCandidateIssues(request, candidate, copy.singleRule);
       if (!isCurrent()) return;
       const critiqueOutput = await runPrompt(
         buildRuleCritiquePrompt(request, candidate, issues, grammar, vocabulary),
@@ -313,7 +315,7 @@ export const setupPromptAssistantPanel = (
       const repaired = critiqueRule;
       if (!repaired) throw new Error(copy.unusable);
       candidate = repaired;
-      issues = await validationIssues(request, candidate);
+      issues = await promptAssistantCandidateIssues(request, candidate, copy.singleRule);
       if (!isCurrent()) return;
       const finalReviewOutput = await runPrompt(
         buildRuleCritiquePrompt(request, candidate, issues, grammar, vocabulary),

@@ -35,11 +35,7 @@ const toAsciiHost = (value: string): string => {
 const parseMatchPattern = (pattern: string): ParsedMatchPattern | Error => {
   const parts = pattern.match(/^(\*|https?|file|ftp):\/\/([^/]*)(\/.*)$/);
   if (!parts) return new Error("Invalid WebExtension match pattern");
-  const [, rawScheme, host, path] = parts;
-  /* v8 ignore next -- A successful fixed-capture match always supplies all three groups. */
-  if (rawScheme === undefined || host === undefined || path === undefined) {
-    return new Error("Invalid WebExtension match pattern");
-  }
+  const [, rawScheme, host, path] = parts as RegExpMatchArray & [string, string, string, string];
   if (rawScheme !== "file" && host.length === 0) {
     return new Error("Network match patterns require a host");
   }

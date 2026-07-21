@@ -82,10 +82,8 @@ const parseWithUnits = (source: string) => {
       rule.span.start.offset,
       rule.span.end.offset,
     );
-    const firstLine = ruleLines[0];
-    const lastLine = ruleLines.at(-1);
-    /* v8 ignore next -- A parsed rule span always contains at least one clause line. */
-    if (!firstLine || !lastLine) return [];
+    const firstLine = ruleLines[0] as (typeof ruleLines)[number];
+    const lastLine = ruleLines.at(-1) as (typeof ruleLines)[number];
     const attached = attachedCommentNodes(parsed.ast.lines, firstLine.cst.line.span.start.offset);
     const start = attached[0]?.cst.line.span.start.offset ?? firstLine.cst.line.span.start.offset;
     const end = lastLine.cst.line.span.end.offset;
@@ -210,8 +208,8 @@ export const setRoutingRuleEnabled = (
     });
   }
   const newline = newlineFor(source);
-  /* v8 ignore next -- Every editable rule has at least one parsed clause. */
-  const offset = unit.rule.clauses.at(-1)?.span.end.offset ?? unit.end;
+  const lastClause = unit.rule.clauses.at(-1) as (typeof unit.rule.clauses)[number];
+  const offset = lastClause.span.end.offset;
   return `${source.slice(0, offset)}${newline}disabled: true${source.slice(offset)}`;
 };
 
@@ -366,9 +364,7 @@ export const deleteRoutingRule = (source: string, ruleIndex: number): string => 
   if (units.length === 1) return `${source.slice(0, unit.start)}${source.slice(unit.end)}`;
   const next = units[ruleIndex + 1];
   if (next) return `${source.slice(0, unit.start)}${source.slice(next.start)}`;
-  const previous = units[ruleIndex - 1];
-  /* v8 ignore next -- A non-single last rule always has a previous unit. */
-  if (!previous) throw new RangeError(`Routing rule ${ruleIndex + 1} does not exist.`);
+  const previous = units[ruleIndex - 1] as (typeof units)[number];
   return `${source.slice(0, previous.end)}${source.slice(unit.end)}`;
 };
 
@@ -376,19 +372,15 @@ export const moveRoutingRule = (source: string, from: number, to: number): strin
   const { units } = editableRule(source, from);
   if (to < 0 || to >= units.length) throw new RangeError(`Routing rule ${to + 1} does not exist.`);
   if (from === to) return source;
-  const first = units[0];
-  const last = units.at(-1);
-  /* v8 ignore next -- editableRule guarantees a non-empty unit list. */
-  if (!first || !last) throw new RangeError(`Routing rule ${from + 1} does not exist.`);
+  const first = units[0] as (typeof units)[number];
+  const last = units.at(-1) as (typeof units)[number];
   const separators = units
     .slice(0, -1)
     .map((unit, index) =>
       source.slice(unit.end, (units[index + 1] as (typeof units)[number]).start),
     );
   const ordered = [...units];
-  const [moved] = ordered.splice(from, 1);
-  /* v8 ignore next -- editableRule validates the source index. */
-  if (!moved) throw new RangeError(`Routing rule ${from + 1} does not exist.`);
+  const [moved] = ordered.splice(from, 1) as [(typeof units)[number]];
   ordered.splice(to, 0, moved);
   const body = ordered.map((unit, index) => `${unit.content}${separators[index] ?? ""}`).join("");
   return `${source.slice(0, first.start)}${body}${source.slice(last.end)}`;

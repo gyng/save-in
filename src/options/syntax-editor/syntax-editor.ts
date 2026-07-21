@@ -147,10 +147,8 @@ const renderOverlay = (
   const positions = [...boundaries].toSorted((left, right) => left - right);
   const fragment = document.createDocumentFragment();
   for (let index = 0; index < positions.length - 1; index += 1) {
-    const start = positions[index];
-    const end = positions[index + 1];
-    /* v8 ignore next -- The loop bound guarantees this adjacent boundary pair. */
-    if (start === undefined || end === undefined) continue;
+    const start = positions[index] as number;
+    const end = positions[index + 1] as number;
     const value = snapshot.source.slice(start, end);
     const syntaxToken = snapshot.tokens.findLast(
       (candidate) => candidate.start <= start && candidate.end >= end,
@@ -402,12 +400,9 @@ export const createSyntaxEditor = (
   };
 
   const lineAtOffset = (offset: number) => {
-    const line = snapshot.lines.find(
+    return snapshot.lines.find(
       (candidate) => offset >= candidate.start && offset <= candidate.end,
-    );
-    /* v8 ignore next -- Callers pass caret and diagnostic offsets from snapshot.source. */
-    if (!line) throw new RangeError(`No syntax line contains offset ${offset}.`);
-    return line;
+    ) as (typeof snapshot.lines)[number];
   };
 
   const showTooltipForCaret = () => {

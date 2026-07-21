@@ -75,10 +75,7 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
     const path = decodeSourcePart(parsed.pathname);
     const filename = path.split("/").filter(Boolean).at(-1);
     return {
-      name:
-        filename ||
-        /* v8 ignore next -- Every non-data/blob discoverable URL has a hostname. */
-        parsed.hostname,
+      name: filename || parsed.hostname,
       url: `${parsed.hostname}${path === "/" ? "" : path}`,
     };
   };
@@ -308,8 +305,7 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
       const detectedAt = formatSourcePanelCopy(
         copy.detectedAtTemplate,
         SOURCE_PANEL_COPY_VALUE_SLOT,
-        /* v8 ignore next -- commitSources stamps every rendered source. */
-        formatters.date.format(new Date(source.detectedAt ?? Date.now())),
+        formatters.date.format(new Date(source.detectedAt as number)),
       );
       meta.title = detectedAt;
       meta.replaceChildren(kindBadge, detailText);
@@ -541,9 +537,7 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
     let previewActive = false;
 
     const showTooltip = () => {
-      richTooltip = createSourceTooltip(source);
-      /* v8 ignore next -- Rich-tooltip eligibility and tooltip creation use the same kinds. */
-      if (!richTooltip) return;
+      richTooltip = createSourceTooltip(source) as HTMLElement;
       const tooltipId = `source-tooltip-${source.detectedOrder}`;
       richTooltip.id = tooltipId;
       sourceLink.setAttribute("aria-describedby", tooltipId);
@@ -806,12 +800,7 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
     });
 
     while (list.children.length > rowIndex) {
-      const last = list.lastElementChild;
-      /* v8 ignore next -- This renderer appends only HTML row elements to the list. */
-      if (!(last instanceof HTMLElement)) {
-        last?.remove();
-        continue;
-      }
+      const last = list.lastElementChild as HTMLElement;
       const cached = cachedRows.get(last);
       if (cached) deactivateAndRemove(cached);
       else last.remove();

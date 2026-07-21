@@ -92,9 +92,8 @@ export const localHistoryDate = (iso?: string): string => {
   if (!iso) return "";
   const match = DATE_ONLY.exec(iso);
   if (match) {
-    const [, yearText, monthText, dayText] = match;
-    /* v8 ignore next -- A successful fixed-capture DATE_ONLY match always supplies all groups. */
-    if (yearText === undefined || monthText === undefined || dayText === undefined) return "";
+    const [, yearText, monthText, dayText] = match as RegExpExecArray &
+      [string, string, string, string];
     const year = Number(yearText);
     const month = Number(monthText);
     const day = Number(dayText);

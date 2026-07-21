@@ -89,6 +89,22 @@ test("uses fallback error copy when localization is unavailable", async () => {
   );
 });
 
+test("restores a selector without its optional layout container", async () => {
+  document.body.innerHTML =
+    '<select id="uiLocale"><option value="fr">Français</option></select><span id="language-error" hidden></span>';
+  setupLanguageSelector({
+    apply: vi.fn(() => Promise.reject(new Error("failed"))),
+    reload: vi.fn(),
+    getMessage: vi.fn(),
+  });
+
+  const select = document.querySelector<HTMLSelectElement>("#uiLocale")!;
+  select.dispatchEvent(new Event("input"));
+
+  await vi.waitFor(() => expect(select.isConnected).toBe(true));
+  expect(select.disabled).toBe(false);
+});
+
 test("default ports save through the runtime and surface a rejected acknowledgement", async () => {
   render();
   vi.mocked(browser.runtime.sendMessage).mockResolvedValue({

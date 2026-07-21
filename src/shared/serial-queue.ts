@@ -13,7 +13,7 @@ export interface SerialQueue {
 }
 
 export const createSerialQueue = (): SerialQueue => {
-  let tail: Promise<unknown> = Promise.resolve();
+  let tail: Promise<void> = Promise.resolve();
   return {
     enqueue: <T>(task: () => Promise<T>): Promise<T> => {
       // Run regardless of whether the previous task fulfilled or rejected, and
@@ -25,11 +25,6 @@ export const createSerialQueue = (): SerialQueue => {
       );
       return run;
     },
-    settled: (): Promise<void> =>
-      tail.then(
-        () => undefined,
-        /* v8 ignore next -- enqueue only ever assigns never-rejecting promises to tail; this arm keeps the never-rejects contract explicit. */
-        () => undefined,
-      ),
+    settled: (): Promise<void> => tail,
   };
 };

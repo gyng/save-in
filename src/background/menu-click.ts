@@ -149,9 +149,7 @@ export const handleContextMenuClick = async (
         menuIndex = menuState.lastUsedMeta.menuIndex;
       }
     } else {
-      const mappedMenu = menuInfo;
-      /* v8 ignore next -- The outer guard admits an ordinary item only when its mapping exists. */
-      if (!mappedMenu) return;
+      const mappedMenu = menuInfo as NonNullable<typeof menuInfo>;
       saveIntoPath = mappedMenu.parsedDir;
       const title = mappedMenu.title || saveIntoPath;
       selectedLocation = {

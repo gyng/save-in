@@ -16,7 +16,10 @@ vi.mock("../../../src/platform/web-extension-api.ts", () => ({
   webExtensionApi: { runtime: { sendMessage: mocks.sendMessage } },
 }));
 
-import { setupPromptAssistantPanel } from "../../../src/options/integrations/prompt-assistant-panel.ts";
+import {
+  promptAssistantCandidateIssues,
+  setupPromptAssistantPanel,
+} from "../../../src/options/integrations/prompt-assistant-panel.ts";
 import * as CssValidation from "../../../src/options/core/css-selector-validation.ts";
 
 const copy: Record<string, string> = {
@@ -79,6 +82,17 @@ const enable = async () => {
 };
 
 const setup = () => setupPromptAssistantPanel(localize, { appendRule: mocks.appendRule });
+
+test("rejects a multi-rule candidate before background validation", async () => {
+  const issues = await promptAssistantCandidateIssues(
+    "Save PNG and JPG files",
+    "fileext: ^png$\ninto: Images/\n\nfileext: ^jpg$\ninto: Photos/",
+    "Exactly one rule",
+  );
+
+  expect(issues[0]).toBe("Exactly one rule");
+  expect(mocks.sendMessage).not.toHaveBeenCalled();
+});
 
 const submitRequest = (request = "Put PNG files in Images") => {
   const input = element<HTMLTextAreaElement>("prompt-assistant-input");

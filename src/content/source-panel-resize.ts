@@ -19,7 +19,6 @@ export const wirePanelResize = (ctx: SourcePanelContext): void => {
   const { host } = ctx;
   ctx.layout = { ...sourcePanelLayout };
   const currentDock = (): PanelDock =>
-    /* v8 ignore next -- The host dock is written exclusively from this fixed list. */
     PANEL_DOCKS.find((candidate) => candidate === host.dataset.dock) ?? "right";
   ctx.currentDock = currentDock;
   const resize = document.createElement("div");

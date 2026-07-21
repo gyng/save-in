@@ -50,9 +50,7 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
           .filter((row): row is HTMLElement => row !== null),
       ),
     ];
-    const firstActionRow = actionRows[0];
-    /* v8 ignore next -- Connected action buttons always contribute a parent row. */
-    if (!firstActionRow) return;
+    const firstActionRow = actionRows[0] as HTMLElement;
     const visualSurfaces = buttons
       .map((button) => button.closest<HTMLElement>("#paths-visual, #rules-visual"))
       .filter((surface, index, surfaces): surface is HTMLElement =>
@@ -82,9 +80,7 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
       row.insertBefore(status, row.querySelector(`[data-discard="${id}"]`));
       return status;
     });
-    const firstStatus = statuses[0];
-    /* v8 ignore next -- Each non-empty action-row list produces one status. */
-    if (!firstStatus) return;
+    const firstStatus = statuses[0] as HTMLElement;
     const saveStatus = document.createElement("span");
     saveStatus.className = "editor-save-status";
     saveStatus.setAttribute("role", "status");

@@ -155,6 +155,7 @@ test("tolerates missing optional reference controls and panels", async () => {
   expect(browser.runtime.sendMessage).not.toHaveBeenCalled();
 
   document.body.innerHTML = referenceMarkup({ filter: false });
+  document.querySelector(".reference-dialog-descriptions")?.remove();
   vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
     body: { variables: [":date:"], matchers: ["into"] },
   });

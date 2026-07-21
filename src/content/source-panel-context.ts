@@ -109,11 +109,13 @@ export type SourcePanelContext = {
   render: () => void;
 };
 
-// Placeholder for every void-returning field: every builder overwrites its
-// fields before toggleSourcePanel returns, and no panel event can fire
-// until then, so this body never actually runs.
-/* v8 ignore next -- Placeholder overwritten by its owning builder before any call site can run. */
-const noop = () => {};
+// Reuse native functions for placeholders so the composition scaffold does
+// not manufacture unreachable JavaScript bodies. Every builder overwrites
+// these fields before toggleSourcePanel returns.
+const noop = Function.prototype as (...args: unknown[]) => undefined;
+const defaultCurrentDock = String.prototype.valueOf.bind(
+  DEFAULT_SOURCE_PANEL_LAYOUT.placement,
+) as () => PanelDock;
 const detachedDiv = () => document.createElement("div");
 const detachedButton = () => document.createElement("button");
 
@@ -142,16 +144,14 @@ export const createSourcePanelContext = (
   layout: { ...DEFAULT_SOURCE_PANEL_LAYOUT },
   applyLayout: noop,
   commitLayout: noop,
-  /* v8 ignore next -- Placeholder overwritten by wirePanelResize before any call site can run. */
-  currentDock: () => "right",
+  currentDock: defaultCurrentDock,
   updatePlacementControls: noop,
   resize: detachedDiv(),
 
   setPanelMenuOpen: noop,
   wirePanelMenu: noop,
   schedulePanelMenuPosition: noop,
-  /* v8 ignore next -- Placeholder overwritten by wirePanelMenus before any call site can run. */
-  closeOpenMenus: () => false,
+  closeOpenMenus: Boolean,
 
   header: document.createElement("header"),
   title: document.createElement("h2"),

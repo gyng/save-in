@@ -202,9 +202,7 @@ const parseSemanticRule = (
 
   const controls = rule.clauses.filter((line) => line.name === "disabled");
   if (controls.length > 1) {
-    const duplicateControl = controls[1];
-    /* v8 ignore next -- Two parsed controls necessarily provide a second control node. */
-    if (!duplicateControl) return false;
+    const duplicateControl = controls[1] as (typeof controls)[number];
     appendError(
       errors,
       routingPorts.getMessage("ruleBadClause"),
@@ -286,8 +284,7 @@ const parseSemanticRule = (
           errors,
           routingPorts.getMessage("ruleInvalidRegex"),
           flags ? `invalid regex flags: ${flags} (${error})` : `${error}`,
-          /* v8 ignore next -- Parsed flags always carry a flags span. */
-          flags ? (line.flagsSpan ?? line.valueSpan) : line.valueSpan,
+          flags ? (line.flagsSpan as typeof line.valueSpan) : line.valueSpan,
         );
         return false;
       }
@@ -339,8 +336,7 @@ const parseSemanticRule = (
         errors,
         routingPorts.getMessage("ruleInvalidRegex"),
         flags ? `invalid regex flags: ${flags} (${error})` : `${error}`,
-        /* v8 ignore next -- Parsed flags always carry a flags span. */
-        flags ? (line.flagsSpan ?? line.valueSpan) : line.valueSpan,
+        flags ? (line.flagsSpan as typeof line.valueSpan) : line.valueSpan,
       );
       return false;
     }
@@ -608,10 +604,8 @@ const parseSemanticRule = (
     return false;
   }
   if (captures.length === 1) {
-    const capture = captures[0];
-    const captureNode = captureNodes[0];
-    /* v8 ignore next -- A parsed capture clause supplies both representations. */
-    if (!capture || !captureNode) return false;
+    const capture = captures[0] as (typeof captures)[number];
+    const captureNode = captureNodes[0] as (typeof captureNodes)[number];
     const names = capture.value.split(",").map((name) => name.trim().toLowerCase());
     const capturedMatchers: RegexMatcherClause[] = [];
     let missing = false;
@@ -714,9 +708,7 @@ export const parseRulesCollecting = (
   }
   const rules = parsedRules.map((entry) => entry.rule);
   for (let index = 1; index < parsedRules.length; index += 1) {
-    const laterEntry = parsedRules[index];
-    /* v8 ignore next -- The loop bound guarantees an entry at this index. */
-    if (!laterEntry) continue;
+    const laterEntry = parsedRules[index] as (typeof parsedRules)[number];
     const laterRule = laterEntry.rule;
     const shadowed = parsedRules.slice(0, index).some(({ rule: earlier }) => {
       if (isAutomaticRuleClauses(earlier) !== isAutomaticRuleClauses(laterRule)) return false;

@@ -76,7 +76,6 @@ export const setupOptionsReferences = () => {
       (candidate) => candidate.dataset.referenceDescription === id,
     );
     descriptions.forEach((candidate) => (candidate.hidden = candidate !== description));
-    /* v8 ignore next -- The options document contract owns the description region. */
     if (descriptionRegion) descriptionRegion.hidden = !description;
     if (description) filter?.setAttribute("aria-describedby", description.id);
     else filter?.removeAttribute("aria-describedby");

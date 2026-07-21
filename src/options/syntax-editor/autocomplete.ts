@@ -393,9 +393,8 @@ export const attachAutocomplete = (
         render(current);
       } else if (key === "Enter" || key === "Tab") {
         e.preventDefault();
-        const selected = current.suggestions[current.selected];
-        /* v8 ignore next -- An open completion always has a modulo-bounded selected index. */
-        if (selected) accept(selected);
+        const selected = current.suggestions[current.selected] as string;
+        accept(selected);
       } else if (key === "Escape") {
         close();
       }
@@ -443,15 +442,12 @@ export const attachAutocomplete = (
     cleaned = true;
     controller.abort();
     dropdown.remove();
-    /* v8 ignore next -- A first cleanup owns the map entry; replacement cleans it before installing another. */
-    if (autocompleteCleanups.get(textarea) === cleanup) {
-      autocompleteCleanups.delete(textarea);
-      textarea.removeAttribute("role");
-      textarea.removeAttribute("aria-autocomplete");
-      textarea.removeAttribute("aria-controls");
-      textarea.removeAttribute("aria-expanded");
-      textarea.removeAttribute("aria-activedescendant");
-    }
+    autocompleteCleanups.delete(textarea);
+    textarea.removeAttribute("role");
+    textarea.removeAttribute("aria-autocomplete");
+    textarea.removeAttribute("aria-controls");
+    textarea.removeAttribute("aria-expanded");
+    textarea.removeAttribute("aria-activedescendant");
   };
   autocompleteCleanups.set(textarea, cleanup);
   return cleanup;

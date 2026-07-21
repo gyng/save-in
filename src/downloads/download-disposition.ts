@@ -35,7 +35,6 @@ export const resolveDispositionFilename = async (state: DownloadPipelineState): 
   // The Content-Disposition HEAD is an HTTP-only optimization. A non-HTTP URL
   // (a data: source, a blob:) carries no server filename, so skip the fetch
   // entirely — a data: acquisition must never issue a lazy-metadata HEAD.
-  /* v8 ignore next -- requireDownloadUrl guarantees info.url before the plan reaches disposition; the fallback only satisfies the optional type. */
   const downloadUrl = state.info.url ?? "";
   if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) return;
   if (!state.info.contentFetchDisabled && isHttpDownloadUrl(downloadUrl)) {
@@ -102,11 +101,8 @@ const finalizeFullPathWithMimeExtension = (
   if (finalFilename) {
     if (finalFilenameIsRoutePath) {
       const components = finalFilename.split("/");
-      const filename = components.pop();
-      /* v8 ignore next -- Splitting a string always yields at least one component to pop. */
-      if (filename !== undefined) {
-        components.push(sanitizeFilename(filename, options.truncateLength, true, true));
-      }
+      const filename = components.pop() as string;
+      components.push(sanitizeFilename(filename, options.truncateLength, true, true));
       finalFilename = components.join("/");
     } else {
       // Server-, URL-, and browser-derived names are one untrusted component.

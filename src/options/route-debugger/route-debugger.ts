@@ -760,10 +760,10 @@ export const setupRouteDebugger = (): void => {
           throw new Error(response.body.message || response.body.error);
         }
         const errors = response.body.ruleErrors?.filter((error) => !error.warning) ?? [];
-        if (errors.length > 0) return { errors, trace: null };
+        if (errors.length > 0) return { status: "invalid" as const, errors };
         const trace = parseRouteDebuggerTrace(response.body.ruleTrace);
         if (!trace) throw new Error("Invalid route debugger trace");
-        return { errors, trace };
+        return { status: "valid" as const, trace };
       };
       let validation: Awaited<ReturnType<typeof requestValidation>>;
       try {
@@ -774,7 +774,7 @@ export const setupRouteDebugger = (): void => {
         validation = await requestValidation();
       }
       if (mine !== generation) return;
-      if (validation.errors.length > 0) {
+      if (validation.status === "invalid") {
         renderMessage(
           "invalid",
           localize(
@@ -782,14 +782,6 @@ export const setupRouteDebugger = (): void => {
             `Fix the highlighted routing issues before testing. Issue count: ${validation.errors.length}.`,
             validation.errors.length,
           ),
-        );
-        return;
-      }
-      /* v8 ignore next -- A null trace is returned only alongside blocking errors handled above. */
-      if (!validation.trace) {
-        renderMessage(
-          "error",
-          localize("routeDebuggerUnavailable", "Could not run the route debugger."),
         );
         return;
       }

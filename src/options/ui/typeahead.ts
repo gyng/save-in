@@ -96,9 +96,7 @@ export const attachTypeahead = (
     if (rows.length === 0) return close();
     active = (next + rows.length) % rows.length;
     rows.forEach((row, index) => row.setAttribute("aria-selected", String(index === active)));
-    const selected = rows[active];
-    /* v8 ignore next -- A non-empty row list and modulo index always select a row. */
-    if (!selected) return;
+    const selected = rows[active] as HTMLElement;
     input.setAttribute("aria-activedescendant", selected.id);
     selected.scrollIntoView?.({ block: "nearest" });
   };

@@ -124,30 +124,21 @@ export const createPendingChangesTracker = (ports: PendingChangesPorts) => {
       el.addEventListener("input", () => {
         fieldSaveState.markDirty(el.id);
         cancelPending?.();
+        function cancel() {
+          window.clearTimeout(timer);
+          debounceTimer = null;
+          pendingSaveCancellers.delete(cancel);
+          cancelPending = null;
+        }
         const timer = window.setTimeout(() => {
-          // This callback only runs when the debounce completed uninterrupted,
-          // so `cancelPending` still holds this same timer's own cancel
-          // closure (any restart or flush would have nulled it via that
-          // closure first). The guard proves the value to the type checker
-          // without a non-null assertion; it cannot observe null here.
-          /* v8 ignore next -- see comment above: always true when reached. */
-          if (cancelPending) pendingSaveCancellers.delete(cancelPending);
+          pendingSaveCancellers.delete(cancel);
           cancelPending = null;
           debounceTimer = null;
           queueSave();
         }, AUTOSAVE_DEBOUNCE_MS);
         debounceTimer = timer;
-        cancelPending = () => {
-          window.clearTimeout(timer);
-          debounceTimer = null;
-          // Only ever invoked as `cancelPending()` itself (from the input
-          // restart above, blur-flush, or a pending-changes discard), so
-          // `cancelPending` still equals this very closure when it runs.
-          /* v8 ignore next -- see comment above: always true when reached. */
-          if (cancelPending) pendingSaveCancellers.delete(cancelPending);
-          cancelPending = null;
-        };
-        pendingSaveCancellers.add(cancelPending);
+        cancelPending = cancel;
+        pendingSaveCancellers.add(cancel);
       });
 
       // Flush on blur so a quick click-away right after typing isn't lost

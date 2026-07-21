@@ -140,8 +140,7 @@ export const resolveDownloadPlan = async (
   resolveRefererState(state);
 
   await resolveDispositionFilename(state);
-  /* v8 ignore next -- The initial filename assignment above always populates this field. */
-  const resolvedFilename = state.info.filename ?? initialFilename;
+  const resolvedFilename = state.info.filename as string;
   state.info.filename = resolvedFilename;
 
   const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];

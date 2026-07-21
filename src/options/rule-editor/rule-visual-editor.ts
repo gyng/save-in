@@ -213,9 +213,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   document.addEventListener(
     "click",
     (event) => {
-      const target = event.target;
-      /* v8 ignore next -- DOM-dispatched click targets are Nodes or null. */
-      if (!(target instanceof Node)) return;
+      const target = event.target as Node;
       document.querySelectorAll<HTMLDetailsElement>(openMenuSelector).forEach((menu) => {
         if (!menu.contains(target)) menu.open = false;
       });

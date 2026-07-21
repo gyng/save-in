@@ -36,6 +36,8 @@ these documents assume.
 - [Browser E2E harness](contributing/E2E.md) — the persistent control plane,
   lifecycle and retry-safety contract, RSS measurement, CI-constrained stress
   workflow, and artifact triage.
+- [Coverage policy](contributing/COVERAGE.md) — full-source 100% thresholds,
+  the zero-ignore ceiling, and patterns for unreachable composition seams.
 
 ## Reviewing — [`reviewing/`](reviewing/)
 

@@ -28,10 +28,8 @@ export const setupPathInsertMenu = (
     )
     .forEach((button) => button.parentElement?.append(button));
   lineButtons.forEach((button) => {
+    const line = button.dataset.insertLine as string;
     button.addEventListener("click", () => {
-      const line = button.dataset.insertLine;
-      /* v8 ignore next -- lineButtons contains only elements selected by data-insert-line. */
-      if (line === undefined) return;
       insertLine(textarea, line);
       closeMenu();
     });

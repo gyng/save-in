@@ -487,11 +487,7 @@ export const renameAndDownload = async (
     }
   };
   state.info.onContentFetchStart = (requestId) => {
-    ensureHistoryEntry(
-      state,
-      /* v8 ignore next -- Pipeline preparation always resolves a filename before fetching. */
-      state.info.filename ?? state.info.suggestedFilename ?? state.info.url ?? "",
-    );
+    ensureHistoryEntry(state, state.info.filename as string);
     registerTransfer(requestId);
     // Make an open options page render the cancellable preparation row.
     // Never for a private save: the wire state carries the page URL, selection

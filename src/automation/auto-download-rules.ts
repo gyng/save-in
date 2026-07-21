@@ -180,9 +180,7 @@ const parseRule = (
       ),
     );
   } else if (pageClauses.every((clause) => isMatchAll(clause.value))) {
-    const firstPageClause = pageClauses[0];
-    /* v8 ignore next -- A non-empty page matcher list always has a first clause. */
-    if (!firstPageClause) throw new Error("Page matcher validation lost its first clause");
+    const firstPageClause = pageClauses[0] as (typeof pageClauses)[number];
     errors.push(
       errorFor(
         "unsafe-page-matcher",
@@ -202,9 +200,7 @@ const parseRule = (
       ),
     );
   } else if (sourceClauses.every((clause) => isMatchAll(clause.value))) {
-    const firstSourceClause = sourceClauses[0];
-    /* v8 ignore next -- A non-empty source matcher list always has a first clause. */
-    if (!firstSourceClause) throw new Error("Source matcher validation lost its first clause");
+    const firstSourceClause = sourceClauses[0] as (typeof sourceClauses)[number];
     errors.push(
       errorFor(
         "unsafe-source-matcher",

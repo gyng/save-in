@@ -57,9 +57,7 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
       if (!firstSeen.has(source.url)) {
         firstSeen.set(source.url, { at: Date.now(), order: ++detectionSequence });
       }
-      const detection = firstSeen.get(source.url);
-      /* v8 ignore next -- The immediately preceding block initializes every absent URL. */
-      if (!detection) return;
+      const detection = firstSeen.get(source.url) as { at: number; order: number };
       source.detectedAt = detection.at;
       source.detectedOrder = detection.order;
     });
@@ -148,9 +146,7 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
         if (retained.length === 0) return [];
         source.collectorOriginElements = retained;
         if (!retained.includes(source.element)) {
-          const first = retained[0];
-          /* v8 ignore next -- A non-empty retained array always has a first element. */
-          if (first) source.element = first;
+          source.element = retained[0] as Element;
         }
         return [source];
       });
