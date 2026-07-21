@@ -1,6 +1,8 @@
 import { availableParallelism } from "node:os";
 import { defineConfig } from "vitest/config";
 
+const AUTOMATIC_WORKER_CEILING = 8;
+
 export const resolveMaxWorkers = ({
   requested = process.env.TEST_MAX_WORKERS,
   ci = process.env.CI,
@@ -8,7 +10,8 @@ export const resolveMaxWorkers = ({
 } = {}) => {
   const requestedWorkers = Number.parseInt(requested ?? "", 10);
   if (Number.isFinite(requestedWorkers)) return Math.max(1, requestedWorkers);
-  return ci === "true" || ci === "1" ? Math.max(1, cores) : Math.max(1, cores - 4);
+  const availableWorkers = ci === "true" || ci === "1" ? cores : cores - 4;
+  return Math.min(AUTOMATIC_WORKER_CEILING, Math.max(1, availableWorkers));
 };
 
 const maxWorkers = resolveMaxWorkers();
@@ -16,7 +19,10 @@ const maxWorkers = resolveMaxWorkers();
 export default defineConfig({
   test: {
     // jsdom workers are CPU- and memory-heavy. Leave four logical CPUs for the
-    // local desktop; disposable CI runners use every available CPU.
+    // local desktop, but cap automatic concurrency: beyond eight workers,
+    // instrumented module initialization can starve individual five-second
+    // tests even on a high-core host. TEST_MAX_WORKERS remains an explicit
+    // escape hatch for measured environments.
     maxWorkers,
     globals: true,
     environment: "node",

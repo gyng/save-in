@@ -293,9 +293,13 @@ const finish = async () => {
   // resolveMaxWorkers defaults `ci` to process.env.CI, so the checks that
   // assert local behavior must pin it or they inherit a runner's CI=true and
   // assert the CI branch instead.
-  check(resolveMaxWorkers({ cores: 32, ci: "" }) === 28, "Vitest must reserve four local CPUs");
+  check(
+    resolveMaxWorkers({ cores: 32, ci: "" }) === 8,
+    "local Vitest workers must keep the measured ceiling",
+  );
   check(resolveMaxWorkers({ cores: 2, ci: "" }) === 1, "local Vitest workers need a floor");
-  check(resolveMaxWorkers({ ci: "true", cores: 8 }) === 8, "CI must use available CPUs");
+  check(resolveMaxWorkers({ ci: "true", cores: 32 }) === 8, "CI must keep the measured ceiling");
+  check(resolveMaxWorkers({ ci: "true", cores: 6 }) === 6, "CI may use CPUs below the ceiling");
   check(
     resolveMaxWorkers({ requested: "5", ci: "true", cores: 8 }) === 5 &&
       resolveMaxWorkers({ requested: "0", cores: 8 }) === 1,
