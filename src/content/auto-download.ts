@@ -133,6 +133,7 @@ export const setupAutoDownloadDiscovery = (
   let refreshTimer = 0;
   let refreshMaxWaitTimer = 0;
   let lastScannedPageUrl: string | undefined;
+  let outstandingDataCharacters = 0;
 
   const settleIdle = () => {
     if (draining || queue.length > 0) return;
@@ -147,21 +148,27 @@ export const setupAutoDownloadDiscovery = (
       const candidate = queue.shift();
       if (!candidate) break;
       const seenKey = seenKeyFor(candidate.sourceUrl);
-      // Re-check between queueing and dispatch: the page may have navigated
-      // onto the disable list while earlier candidates were being sent.
-      if (options.isPageDisabled()) {
-        releaseSlot(seenKey);
-        continue;
-      }
       try {
-        const result = await options.send(candidate);
-        // Only a started save holds its once-per-visit slot. A terminal
-        // non-start never consumed the candidate and can be offered again.
-        if (result !== "started") releaseSlot(seenKey);
-      } catch {
-        // Keep observing across a reloaded extension context or one rejected
-        // automatic download; neither consumed the candidate.
-        releaseSlot(seenKey);
+        // Re-check between queueing and dispatch: the page may have navigated
+        // onto the disable list while earlier candidates were being sent.
+        if (options.isPageDisabled()) {
+          releaseSlot(seenKey);
+          continue;
+        }
+        try {
+          const result = await options.send(candidate);
+          // Only a started save holds its once-per-visit slot. A terminal
+          // non-start never consumed the candidate and can be offered again.
+          if (result !== "started") releaseSlot(seenKey);
+        } catch {
+          // Keep observing across a reloaded extension context or one rejected
+          // automatic download; neither consumed the candidate.
+          releaseSlot(seenKey);
+        }
+      } finally {
+        if (isDataUrl(candidate.sourceUrl)) {
+          outstandingDataCharacters -= candidate.sourceUrl.length;
+        }
       }
     }
     draining = false;
@@ -262,6 +269,11 @@ export const setupAutoDownloadDiscovery = (
         if (selected) break;
       }
       if (!selected) continue;
+      if (
+        isDataUrl(sourceUrl) &&
+        outstandingDataCharacters + sourceUrl.length > AUTO_DATA_CHARACTER_BUDGET
+      )
+        continue;
       if (seen.size >= maxPerPage) {
         if (!dedup.limitNotified) {
           dedup.limitNotified = true;
@@ -271,6 +283,7 @@ export const setupAutoDownloadDiscovery = (
       }
       seen.add(seenKey);
       queue.push(selected);
+      if (isDataUrl(sourceUrl)) outstandingDataCharacters += sourceUrl.length;
     }
     void drain();
   };
@@ -326,6 +339,12 @@ export const setupAutoDownloadDiscovery = (
       refreshMaxWaitTimer = window.setTimeout(flushLiveScan, LIVE_SCAN_MAX_WAIT_MS);
     }
   };
+  const scheduleResponsiveScan = () => {
+    if (stopped) return;
+    fullScanPending = true;
+    pendingRoots.clear();
+    scheduleLiveScan();
+  };
 
   const observer = new MutationObserver((mutations) => {
     if (stopped) return;
@@ -346,10 +365,18 @@ export const setupAutoDownloadDiscovery = (
       const changedElements = [...mutation.addedNodes].filter(
         (node): node is Element => node instanceof Element,
       );
+      const removedElements = [...mutation.removedNodes].filter(
+        (node): node is Element => node instanceof Element,
+      );
+      const stylesheetRelationshipChanged =
+        mutation.type === "attributes" &&
+        mutation.attributeName === "rel" &&
+        target?.matches("link") === true;
       const affectsGlobalDiscovery =
+        stylesheetRelationshipChanged ||
         target?.matches("base, style, link[rel~='stylesheet']") === true ||
         Boolean(target?.closest("style")) ||
-        changedElements.some(
+        [...changedElements, ...removedElements].some(
           (element) =>
             element.matches("base, style, link[rel~='stylesheet']") ||
             Boolean(element.querySelector("base, style, link[rel~='stylesheet']")),
@@ -373,12 +400,20 @@ export const setupAutoDownloadDiscovery = (
   });
 
   if (options.live && automaticRules.length > 0) {
+    // Background discovery reads computed styles, so any attribute can change
+    // a selector match and reveal a new URL. Media-only scans retain the narrow
+    // filter unless CSS routing itself needs arbitrary selector attributes.
+    const observesStyleSensitiveAttributes = cssSelectors.length > 0 || options.includeBackgrounds;
     observer.observe(document.documentElement, {
       childList: true,
       subtree: true,
       attributes: true,
-      ...(cssSelectors.length > 0 ? {} : { attributeFilter: ["href", "src", "srcset"] }),
+      ...(observesStyleSensitiveAttributes ? {} : { attributeFilter: ["href", "src", "srcset"] }),
     });
+    if (options.includeBackgrounds) {
+      window.addEventListener("resize", scheduleResponsiveScan);
+      window.visualViewport?.addEventListener("resize", scheduleResponsiveScan);
+    }
   }
   scan(document);
 
@@ -392,6 +427,8 @@ export const setupAutoDownloadDiscovery = (
       if (stopped) return;
       stopped = true;
       observer.disconnect();
+      window.removeEventListener("resize", scheduleResponsiveScan);
+      window.visualViewport?.removeEventListener("resize", scheduleResponsiveScan);
       window.clearTimeout(refreshTimer);
       window.clearTimeout(refreshMaxWaitTimer);
       pendingRoots.clear();
@@ -402,6 +439,9 @@ export const setupAutoDownloadDiscovery = (
       if (queue.length > 0) {
         for (const candidate of queue) {
           seen.delete(seenKeyFor(candidate.sourceUrl));
+          if (isDataUrl(candidate.sourceUrl)) {
+            outstandingDataCharacters -= candidate.sourceUrl.length;
+          }
         }
         dedup.limitNotified = false;
         queue.length = 0;

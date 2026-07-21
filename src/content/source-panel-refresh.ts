@@ -286,9 +286,14 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
         return;
       }
       const target = mutation.target instanceof Element ? mutation.target : null;
+      const stylesheetRelationshipChanged =
+        mutation.type === "attributes" &&
+        mutation.attributeName === "rel" &&
+        target?.matches("link") === true;
       const affectsStylesheet =
         ctx.panelOptions.includeBackgrounds !== false &&
-        (Boolean(target?.closest("style")) ||
+        (stylesheetRelationshipChanged ||
+          Boolean(target?.closest("style")) ||
           target?.matches('link[rel~="stylesheet"]') === true ||
           [...mutation.addedNodes, ...mutation.removedNodes].some(
             (node) =>
@@ -373,13 +378,17 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
     resourceObserver?.disconnect();
     cancelResourceRefresh();
     if (ctx.panelOptions.live === false) return;
-    const attributeFilter = ["src", "srcset", "style", "href"];
-    if (ctx.panelOptions.includeBackgrounds !== false) attributeFilter.push("class", "id");
     observer.observe(document.documentElement, {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter,
+      // Computed backgrounds can depend on any attribute selector. Keep the
+      // narrow media/link filter only when background discovery is disabled;
+      // the bounded reconciliation queue contains noisy pages while the panel
+      // is open.
+      ...(ctx.panelOptions.includeBackgrounds === false
+        ? { attributeFilter: ["src", "srcset", "style", "href"] }
+        : {}),
     });
     try {
       resourceObserver?.observe({ type: "resource", buffered: true });

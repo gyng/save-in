@@ -557,7 +557,7 @@ test("bounds and coalesces adversarial live mutation roots", async () => {
   });
 
   const mutation = (addedNodes: Node[], target: Node = document.body): MutationRecord =>
-    ({ type: "childList", target, addedNodes }) as unknown as MutationRecord;
+    ({ type: "childList", target, addedNodes, removedNodes: [] }) as unknown as MutationRecord;
   const detached = document.createElement("img");
   notify([mutation([detached]), mutation([], document)], {} as MutationObserver);
   notify([mutation([detached])], {} as MutationObserver);

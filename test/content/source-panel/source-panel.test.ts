@@ -1517,6 +1517,38 @@ describe("Page Sources panel interactions", () => {
     );
   });
 
+  test("refreshes computed backgrounds after an attribute-selector change", async () => {
+    vi.useFakeTimers();
+    document.head.innerHTML = `<style>[data-poster] { background-image: url(attribute-poster.jpg) }</style>`;
+    document.body.innerHTML = `<div id="dynamic-background"></div>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: true, includeLinks: false });
+    const host = document.getElementById("save-in-source-panel")!;
+    vi.advanceTimersByTime(0);
+    expect(host.shadowRoot!.querySelector(".source-link")).toBeNull();
+
+    document.querySelector("#dynamic-background")!.setAttribute("data-poster", "");
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    expect(host.shadowRoot!.querySelector<HTMLAnchorElement>(".source-link")!.href).toBe(
+      "http://localhost/attribute-poster.jpg",
+    );
+  });
+
+  test("fully refreshes backgrounds when a link stops being a stylesheet", async () => {
+    vi.useFakeTimers();
+    document.head.innerHTML = `<link rel="stylesheet" href="theme.css">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: true, includeLinks: false });
+    const documentQueries = vi.spyOn(Document.prototype, "querySelectorAll");
+    documentQueries.mockClear();
+
+    document.querySelector("link")!.setAttribute("rel", "alternate");
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    expect(documentQueries).toHaveBeenCalled();
+  });
+
   test("scans initial computed backgrounds in idle chunks", () => {
     const idleCallbacks: IdleRequestCallback[] = [];
     vi.stubGlobal("requestIdleCallback", (callback: IdleRequestCallback) => {

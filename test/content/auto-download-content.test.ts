@@ -472,6 +472,105 @@ describe("automatic source discovery", () => {
     controller.stop();
   });
 
+  test("rescans live CSS backgrounds after a class change", async () => {
+    vi.useFakeTimers();
+    document.head.insertAdjacentHTML(
+      "beforeend",
+      "<style>.live-background { background-image: url('https://cdn.test/live-bg.png'); }</style>",
+    );
+    document.body.innerHTML = '<div id="background-target"></div>';
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: true,
+      maxPerPage: 20,
+      includeBackgrounds: true,
+      send,
+    });
+    await controller.idle();
+    expect(send).not.toHaveBeenCalled();
+
+    document.querySelector("#background-target")?.classList.add("live-background");
+    await flushLiveScan();
+    await controller.idle();
+
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceUrl: "https://cdn.test/live-bg.png",
+        sourceChannel: "background",
+      }),
+    );
+    controller.stop();
+    document.querySelector("style")?.remove();
+  });
+
+  test("rescans the document when a link stops being a stylesheet", async () => {
+    vi.useFakeTimers();
+    const stylesheet = document.createElement("link");
+    stylesheet.rel = "stylesheet";
+    stylesheet.href = "https://cdn.test/theme.css";
+    document.head.append(stylesheet);
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: true,
+      maxPerPage: 20,
+      includeBackgrounds: true,
+      send: vi.fn(() => Promise.resolve("started" as const)),
+    });
+    await controller.idle();
+    const documentQueries = vi.spyOn(Document.prototype, "querySelectorAll");
+    documentQueries.mockClear();
+
+    stylesheet.rel = "alternate";
+    await flushLiveScan();
+    await controller.idle();
+
+    expect(documentQueries).toHaveBeenCalled();
+    controller.stop();
+    stylesheet.remove();
+  });
+
+  test("rescans responsive backgrounds after a viewport resize", async () => {
+    vi.useFakeTimers();
+    const previousVisualViewport = window.visualViewport;
+    const addVisualViewportListener = vi.fn();
+    const removeVisualViewportListener = vi.fn();
+    Object.defineProperty(window, "visualViewport", {
+      configurable: true,
+      value: {
+        addEventListener: addVisualViewportListener,
+        removeEventListener: removeVisualViewportListener,
+      },
+    });
+    document.body.innerHTML = '<div class="responsive-background"></div>';
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: true,
+      maxPerPage: 20,
+      includeBackgrounds: true,
+      send: vi.fn(() => Promise.resolve("started" as const)),
+    });
+    await controller.idle();
+    expect(addVisualViewportListener).toHaveBeenCalledWith("resize", expect.any(Function));
+    const documentQueries = vi.spyOn(Document.prototype, "querySelectorAll");
+    documentQueries.mockClear();
+
+    window.dispatchEvent(new Event("resize"));
+    await flushLiveScan();
+    await controller.idle();
+
+    expect(documentQueries).toHaveBeenCalled();
+    controller.stop();
+    expect(removeVisualViewportListener).toHaveBeenCalledWith("resize", expect.any(Function));
+    const staleResizeListener = addVisualViewportListener.mock.calls[0]?.[1];
+    expect(staleResizeListener).toBeTypeOf("function");
+    staleResizeListener(new Event("resize"));
+    Object.defineProperty(window, "visualViewport", {
+      configurable: true,
+      value: previousVisualViewport,
+    });
+  });
+
   test("does not read resource timings when manifest discovery is disabled", async () => {
     const resourceEntries = vi.spyOn(performance, "getEntriesByType").mockReturnValue([]);
     const controller = setupAutoDownloadDiscovery({
@@ -571,6 +670,37 @@ describe("automatic source discovery", () => {
       ),
     ).toHaveLength(0);
     expect(send).toHaveBeenCalledTimes(65);
+    controller.stop();
+  });
+
+  test("rescans relative sources when a base element is removed", async () => {
+    vi.useFakeTimers();
+    const base = document.createElement("base");
+    base.href = "https://old.test/assets/";
+    document.head.append(base);
+    document.body.innerHTML = '<img src="picture.png">';
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({
+      rules: `context: ^auto$
+pageurl: ^http://localhost/
+sourceurl: /picture\\.png$
+into: automatic/`,
+      live: true,
+      maxPerPage: 20,
+      send,
+    });
+    await controller.idle();
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceUrl: "https://old.test/assets/picture.png" }),
+    );
+
+    base.remove();
+    await flushLiveScan();
+    await controller.idle();
+
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceUrl: "http://localhost/picture.png" }),
+    );
     controller.stop();
   });
 
@@ -951,6 +1081,41 @@ into: automatic/
     // would test a different bound. That is ~0.5s alone here and ~7s on a
     // 2-vCPU runner sharing itself with every other worker, so the default 5s
     // makes a correct test fail on the runner and nowhere else.
+  }, 20_000);
+
+  test("shares the queued data: payload budget across live scans", async () => {
+    const payloads = Array.from({ length: 3 }, (_, index) => bigDataUrl(1_500_000 + index));
+    document.body.innerHTML = `<img src="${payloads[0]}">`;
+    let releaseFirst!: () => void;
+    const firstSend = new Promise<"started">((resolve) => {
+      releaseFirst = () => resolve("started");
+    });
+    const send = vi.fn(() =>
+      send.mock.calls.length === 1 ? firstSend : Promise.resolve("started" as const),
+    );
+    const controller = setupAutoDownloadDiscovery({
+      rules: dataRules,
+      live: false,
+      maxPerPage: 20,
+      includeDataUrls: true,
+      send,
+    });
+    await vi.waitFor(() => expect(send).toHaveBeenCalledOnce());
+
+    const image = document.querySelector("img")!;
+    image.setAttribute("src", payloads[1]!);
+    controller.scan();
+    image.setAttribute("src", payloads[2]!);
+    controller.scan();
+
+    releaseFirst();
+    await controller.idle();
+    expect(send).toHaveBeenCalledTimes(2);
+
+    controller.scan();
+    await controller.idle();
+    expect(send).toHaveBeenCalledTimes(3);
+    controller.stop();
   }, 20_000);
 
   test("returns queued data: payload budget when discovery stops", async () => {
