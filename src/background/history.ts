@@ -1,5 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
-import { shouldPersistActivity } from "../config/options-data.ts";
+import { options, shouldPersistActivity } from "../config/options-data.ts";
 import type { HistoryEntry, HistoryEntryInput } from "../shared/history-types.ts";
 import type { PrivateWriteOptions } from "../shared/persistence-context.ts";
 import { recordPersistenceFailure } from "../shared/persistence-diagnostics.ts";
@@ -168,6 +168,53 @@ const nextHistoryId = (): string => {
   return `h${Date.now()}-${idCounter}`;
 };
 
+const pruneTerminalHistory = async (index: HistoryIndex): Promise<HistoryIndex> => {
+  const limit = options.historyRetentionLimit;
+  if (limit >= index.length || index.length === 0) return index;
+  const chunkKeys = Array.from({ length: index.nextChunk - index.firstChunk }, (_, offset) =>
+    historyIndexChunkStorageKey(index.firstChunk + offset),
+  );
+  const chunks = await storageSnapshot(chunkKeys);
+  const locators = chunkKeys
+    .flatMap((chunkKey) => {
+      const chunk = chunks[chunkKey];
+      return Array.isArray(chunk)
+        ? chunk.filter((key): key is string => typeof key === "string")
+        : [];
+    })
+    .slice(-index.length);
+  const entries = await storageSnapshot(locators.map(historyEntryStorageKey));
+  const terminalLocators = locators.filter((locator) => {
+    const entry = normalizeHistoryEntry(entries[historyEntryStorageKey(locator)]);
+    return entry?.status !== "pending";
+  });
+  if (terminalLocators.length <= limit) return index;
+  const removeIds = new Set(terminalLocators.slice(0, terminalLocators.length - limit));
+  const retained = locators.filter((id) => !removeIds.has(id));
+  const writes: Record<string, unknown> = {};
+  const chunkCount = Math.ceil(retained.length / HISTORY_INDEX_CHUNK_SIZE);
+  for (let offset = 0; offset < chunkCount; offset += 1) {
+    writes[historyIndexChunkStorageKey(index.firstChunk + offset)] = retained.slice(
+      offset * HISTORY_INDEX_CHUNK_SIZE,
+      (offset + 1) * HISTORY_INDEX_CHUNK_SIZE,
+    );
+  }
+  const nextIndex: HistoryIndex = {
+    version: HISTORY_STORE_VERSION,
+    firstChunk: index.firstChunk,
+    nextChunk: index.firstChunk + chunkCount,
+    length: retained.length,
+  };
+  writes[HISTORY_INDEX_STORAGE_KEY] = nextIndex;
+  await webExtensionApi.storage.local.set(writes);
+  const obsoleteChunks = chunkKeys.slice(chunkCount);
+  await webExtensionApi.storage.local.remove([
+    ...Array.from(removeIds, historyEntryStorageKey),
+    ...obsoleteChunks,
+  ]);
+  return nextIndex;
+};
+
 // Returns the entry id synchronously (the write itself is queued) so the
 // caller can update the entry's status once the download resolves.
 export const addHistoryEntry = (
@@ -276,6 +323,9 @@ export const patchHistoryEntry = (
         if (mergedRecord[key] === undefined) delete mergedRecord[key];
       }
       await webExtensionApi.storage.local.set({ [entryKey]: merged });
+      if (resolved.status !== undefined && resolved.status !== "pending") {
+        await pruneTerminalHistory(loaded.index);
+      }
     })
     .catch((error) => recordHistoryFailure("write", error));
 
@@ -375,6 +425,17 @@ export const getHistoryEntries = (onlyId?: string): Promise<HistoryEntry[]> => {
     () => undefined,
     () => undefined,
   );
+  return task;
+};
+
+export const enforceHistoryRetention = (): Promise<void> => {
+  const task = writeQueue
+    .catch(() => {})
+    .then(async () => {
+      const { index } = await loadWritableIndex();
+      await pruneTerminalHistory(index);
+    });
+  writeQueue = task.catch((error) => recordHistoryFailure("remove", error));
   return task;
 };
 

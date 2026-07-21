@@ -1,4 +1,21 @@
 {
+  "o_cBrowserDownloadsUpdateLastUsed": {
+    "message": "Usar pastas de Salvar como do navegador em Último local"
+  },
+  "o_cBrowserDownloadsUpdateLastUsedHelp": {
+    "message": "Funciona para pastas dentro de Downloads após um download do Save In nesta sessão. Não exige rastrear o histórico do navegador."
+  },
+  "historyRetentionLimit": { "message": "Manter entradas concluídas" },
+  "historyRetentionLimitHelp": {
+    "message": "0 mantém os salvamentos ativos visíveis, mas os remove quando terminam."
+  },
+  "browserLastUsedNoticeTitle": { "message": "O último local não foi alterado" },
+  "browserLastUsedOutsideDownloads": {
+    "message": "Essa pasta está fora de Downloads, então o Save In não pode reutilizá-la."
+  },
+  "browserLastUsedNeedsSave": {
+    "message": "Primeiro salve um arquivo com o Save In para identificar sua pasta Downloads."
+  },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "PDFs por tipo de conteúdo"
   },
@@ -295,7 +312,7 @@
     }
   },
   "historyStorageLimit": {
-    "message": "O histórico permanece neste dispositivo, com até 10.000 entradas."
+    "message": "O histórico permanece neste dispositivo."
   },
   "historyTableCaption": {
     "message": "Histórico de downloads salvos"

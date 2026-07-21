@@ -78,6 +78,9 @@ export type ResolvedContentOptions = {
   contentClickToSaveButton: ClickType;
   contentClickToSaveUseDefault: boolean;
   links: boolean;
+  preferLinks: boolean;
+  preferLinksFilterEnabled: boolean;
+  preferLinksFilter: string;
   perSiteDisableList: string;
   quickSaveEnabled: boolean;
   quickSaveOnly: boolean;
@@ -115,6 +118,9 @@ export const CONTENT_OPTION_DEFAULTS: ResolvedContentOptions = {
   // later click. Off keeps the inheriting behavior that predates this option.
   contentClickToSaveUseDefault: false,
   links: true,
+  preferLinks: false,
+  preferLinksFilterEnabled: false,
+  preferLinksFilter: ".*commons.wikimedia.org/wiki/File:.*",
   perSiteDisableList: "",
   // Quick save keeps the menu unchanged until explicitly opted into, so the
   // context menu never grows a root save item without the user asking for it.
@@ -204,6 +210,9 @@ const CONTENT_OPTION_NORMALIZERS: ContentOptionNormalizers = {
   contentClickToSaveButton: (stored) =>
     isClickType(stored) ? stored : CONTENT_OPTION_DEFAULTS.contentClickToSaveButton,
   links: booleanOption(CONTENT_OPTION_DEFAULTS.links),
+  preferLinks: booleanOption(CONTENT_OPTION_DEFAULTS.preferLinks),
+  preferLinksFilterEnabled: booleanOption(CONTENT_OPTION_DEFAULTS.preferLinksFilterEnabled),
+  preferLinksFilter: stringOption(CONTENT_OPTION_DEFAULTS.preferLinksFilter),
   perSiteDisableList: stringOption(CONTENT_OPTION_DEFAULTS.perSiteDisableList),
   quickSaveEnabled: booleanOption(CONTENT_OPTION_DEFAULTS.quickSaveEnabled),
   quickSaveDirectory: stringOption(CONTENT_OPTION_DEFAULTS.quickSaveDirectory),

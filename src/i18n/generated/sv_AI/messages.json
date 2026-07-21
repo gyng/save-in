@@ -1,4 +1,21 @@
 {
+  "o_cBrowserDownloadsUpdateLastUsed": {
+    "message": "Använd webbläsarens Spara som-mappar för Senast använd"
+  },
+  "o_cBrowserDownloadsUpdateLastUsedHelp": {
+    "message": "Fungerar för mappar i Hämtade filer efter en Save In-hämtning under den här sessionen. Spårning av webbläsarhistorik krävs inte."
+  },
+  "historyRetentionLimit": { "message": "Behåll slutförda poster" },
+  "historyRetentionLimitHelp": {
+    "message": "0 visar aktiva hämtningar men tar bort dem när de är klara."
+  },
+  "browserLastUsedNoticeTitle": { "message": "Senast använd ändrades inte" },
+  "browserLastUsedOutsideDownloads": {
+    "message": "Mappen ligger utanför Hämtade filer och kan därför inte återanvändas av Save In."
+  },
+  "browserLastUsedNeedsSave": {
+    "message": "Spara först en fil med Save In så att mappen Hämtade filer kan identifieras."
+  },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "PDF-filer efter innehållstyp"
   },
@@ -295,7 +312,7 @@
     }
   },
   "historyStorageLimit": {
-    "message": "Historiken lagras på den här enheten, upp till 10 000 poster."
+    "message": "Historiken lagras på den här enheten."
   },
   "historyTableCaption": {
     "message": "Historik över sparade nedladdningar"

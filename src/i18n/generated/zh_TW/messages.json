@@ -1,4 +1,17 @@
 {
+  "o_cBrowserDownloadsUpdateLastUsed": { "message": "將瀏覽器「另存新檔」資料夾用作上次使用位置" },
+  "o_cBrowserDownloadsUpdateLastUsedHelp": {
+    "message": "在本次瀏覽器工作階段使用 Save In 下載一次後，可用於「下載」內的資料夾。不需要追蹤瀏覽器下載記錄。"
+  },
+  "historyRetentionLimit": { "message": "保留已完成的項目" },
+  "historyRetentionLimitHelp": { "message": "設為 0 時會顯示進行中的儲存，但完成後會移除。" },
+  "browserLastUsedNoticeTitle": { "message": "未變更上次使用位置" },
+  "browserLastUsedOutsideDownloads": {
+    "message": "該資料夾位於「下載」之外，因此 Save In 無法重複使用。"
+  },
+  "browserLastUsedNeedsSave": {
+    "message": "請先使用 Save In 儲存一個檔案，以便識別「下載」資料夾。"
+  },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "依內容類型分類 PDF"
   },
@@ -2196,7 +2209,7 @@
     }
   },
   "historyStorageLimit": {
-    "message": "歷史記錄會保留在此裝置上，最多 10,000 筆。"
+    "message": "歷史記錄會保留在此裝置上。"
   },
   "historyTableCaption": {
     "message": "已儲存的下載歷史記錄"

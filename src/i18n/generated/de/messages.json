@@ -1,4 +1,21 @@
 {
+  "o_cBrowserDownloadsUpdateLastUsed": {
+    "message": "Browserordner aus „Speichern unter“ für „Zuletzt verwendet“ nutzen"
+  },
+  "o_cBrowserDownloadsUpdateLastUsedHelp": {
+    "message": "Funktioniert für Ordner in Downloads nach einem Download mit Save In in dieser Browsersitzung. Die Browser-Verlaufsaufzeichnung ist nicht erforderlich."
+  },
+  "historyRetentionLimit": { "message": "Abgeschlossene Einträge behalten" },
+  "historyRetentionLimitHelp": {
+    "message": "Bei 0 bleiben aktive Speicherungen sichtbar, werden aber nach Abschluss entfernt."
+  },
+  "browserLastUsedNoticeTitle": { "message": "„Zuletzt verwendet“ wurde nicht geändert" },
+  "browserLastUsedOutsideDownloads": {
+    "message": "Dieser Ordner liegt außerhalb von Downloads und kann von Save In nicht wiederverwendet werden."
+  },
+  "browserLastUsedNeedsSave": {
+    "message": "Speichern Sie zuerst eine Datei mit Save In, damit der Downloads-Ordner erkannt wird."
+  },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "PDFs nach Inhaltstyp"
   },
@@ -295,7 +312,7 @@
     }
   },
   "historyStorageLimit": {
-    "message": "Der Verlauf bleibt auf diesem Gerät und umfasst bis zu 10.000 Einträge."
+    "message": "Der Verlauf bleibt auf diesem Gerät."
   },
   "historyTableCaption": {
     "message": "Verlauf gespeicherter Downloads"

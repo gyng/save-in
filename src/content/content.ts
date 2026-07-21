@@ -39,6 +39,7 @@ import {
   type ClickGesture,
 } from "../shared/click-gesture.ts";
 import { createDoubleClickTracker, isSingleGestureButton } from "./click-gesture-model.ts";
+import { parseRegularExpressionList } from "../shared/pattern-list.ts";
 import { configureContentPorts } from "./ports.ts";
 import {
   cssSelectorsForRules,
@@ -69,6 +70,7 @@ const ClickToSave = {
       composedPath?: () => Array<EventTarget | null>;
     },
     allowLinks: boolean,
+    preferLink = false,
   ): { url: string; kind: PageSource["kind"]; element: Element } | undefined => {
     const withElement = (
       url: string,
@@ -120,7 +122,7 @@ const ClickToSave = {
       source = mediaSource(e.target);
     }
 
-    if (!source && allowLinks) {
+    if (allowLinks) {
       const pathAnchor = path.find(
         (el): el is HTMLAnchorElement => el instanceof HTMLAnchorElement && el.matches("a[href]"),
       );
@@ -133,7 +135,7 @@ const ClickToSave = {
         /^(https?|ftp|blob|data):/i.test(href) &&
         (!isDataUrl(href) || isDataUrlWithinCap(href))
       ) {
-        source = withElement(href, "link", anchor);
+        if (!source || preferLink) source = withElement(href, "link", anchor);
       }
     }
 
@@ -201,7 +203,10 @@ const sendRuntimeDownload = (
 type ResolvedClickToSaveOptions = Pick<
   ResolvedContentOptions,
   "contentClickToSaveCombo" | "contentClickToSaveButton" | "links"
-> & { contentClickToSaveBindings?: string; filenamePatterns?: string };
+> &
+  Partial<
+    Pick<ResolvedContentOptions, "preferLinks" | "preferLinksFilterEnabled" | "preferLinksFilter">
+  > & { contentClickToSaveBindings?: string; filenamePatterns?: string };
 type ResolvedAutoDownloadOptions = Pick<
   ResolvedContentOptions,
   | "autoDownloadLive"
@@ -221,6 +226,13 @@ const setupClickToSave = (
 ) => {
   const routingRules = parseRulesCollecting(options.filenamePatterns ?? "").rules;
   const cssSelectors = cssSelectorsForRules(routingRules);
+  const preferLinkPatterns = options.preferLinksFilterEnabled
+    ? parseRegularExpressionList(options.preferLinksFilter ?? "")
+    : null;
+  const preferLinkAtCurrentPage = (): boolean =>
+    options.preferLinks === true ||
+    (preferLinkPatterns?.issues.length === 0 &&
+      preferLinkPatterns.entries.some(({ value }) => value.test(`${window.location}`)));
   const controller = new AbortController();
   const listenerOptions = { capture: true, signal: controller.signal };
   const shortcutOptions = resolveClickToSaveBindings(
@@ -307,7 +319,7 @@ const setupClickToSave = (
         doubleClick.reset();
         return;
       }
-      const source = ClickToSave.findSource(e, options.links);
+      const source = ClickToSave.findSource(e, options.links, preferLinkAtCurrentPage());
       if (!source) {
         doubleClick.reset();
         return;
@@ -491,6 +503,9 @@ const applyOptions = (next: ContentOptions) => {
       "contentClickToSaveCombo",
       "contentClickToSaveButton",
       "links",
+      "preferLinks",
+      "preferLinksFilterEnabled",
+      "preferLinksFilter",
       "filenamePatterns",
     ] as const
   ).some((key) => previous[key] !== currentOptions[key]);

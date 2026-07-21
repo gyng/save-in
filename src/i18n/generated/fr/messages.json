@@ -1,4 +1,21 @@
 {
+  "o_cBrowserDownloadsUpdateLastUsed": {
+    "message": "Utiliser les dossiers Enregistrer sous du navigateur pour Dernier utilisé"
+  },
+  "o_cBrowserDownloadsUpdateLastUsedHelp": {
+    "message": "Fonctionne pour les dossiers dans Téléchargements après un téléchargement Save In pendant cette session. Le suivi de l’historique du navigateur n’est pas requis."
+  },
+  "historyRetentionLimit": { "message": "Conserver les entrées terminées" },
+  "historyRetentionLimitHelp": {
+    "message": "0 garde les enregistrements actifs visibles, puis les supprime lorsqu’ils se terminent."
+  },
+  "browserLastUsedNoticeTitle": { "message": "Dernier utilisé n’a pas changé" },
+  "browserLastUsedOutsideDownloads": {
+    "message": "Ce dossier se trouve hors de Téléchargements, Save In ne peut donc pas le réutiliser."
+  },
+  "browserLastUsedNeedsSave": {
+    "message": "Enregistrez d’abord un fichier avec Save In afin d’identifier votre dossier Téléchargements."
+  },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "PDF par type de contenu"
   },
@@ -295,7 +312,7 @@
     }
   },
   "historyStorageLimit": {
-    "message": "L’historique reste sur cet appareil, dans la limite de 10 000 entrées."
+    "message": "L’historique reste sur cet appareil."
   },
   "historyTableCaption": {
     "message": "Historique des téléchargements enregistrés"

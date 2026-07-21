@@ -583,6 +583,20 @@ Briefly explain the structure, check that every line follows this syntax, then p
           </div>
         </div>
 
+        <div class="described-checkbox browser-download-choice">
+          <input
+            type="checkbox"
+            id="browserDownloadsUpdateLastUsed"
+            aria-describedby="browser-downloads-last-used-help"
+          />
+          <label for="browserDownloadsUpdateLastUsed" data-saved-target
+            >__MSG_o_cBrowserDownloadsUpdateLastUsed__</label
+          >
+          <div class="caption caption-line" id="browser-downloads-last-used-help">
+            __MSG_o_cBrowserDownloadsUpdateLastUsedHelp__
+          </div>
+        </div>
+
         <div class="browser-download-route-group">
           <div class="described-checkbox browser-download-choice filename-suggestion-only">
             <input
@@ -1940,6 +1954,21 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
       <h2 id="section-history">__MSG_o_sHistory__</h2>
       <p class="caption history-storage-note">__MSG_historyStorageLimit__</p>
+      <label class="inline-control-label history-retention-limit">
+        <span data-saved-target>__MSG_historyRetentionLimit__</span>
+        <input
+          type="number"
+          id="historyRetentionLimit"
+          min="0"
+          max="10000"
+          step="1"
+          inputmode="numeric"
+          aria-describedby="history-retention-limit-help"
+        />
+        <span class="caption" id="history-retention-limit-help"
+          >__MSG_historyRetentionLimitHelp__</span
+        >
+      </label>
       <div class="history-query-row">
         <input
           type="search"

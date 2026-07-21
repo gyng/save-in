@@ -2,6 +2,7 @@ import { configureBackgroundPorts } from "../../src/background/ports.ts";
 import { backgroundRuntime } from "../../src/background/runtime.ts";
 import { options } from "../../src/config/options-data.ts";
 import { routingPorts } from "../../src/routing/ports.ts";
+import { downloadPorts } from "../../src/downloads/ports.ts";
 
 beforeEach(() => {
   backgroundRuntime.debug = false;
@@ -33,4 +34,28 @@ test("uses the durable counter for opted-in private activity", async () => {
   // save instead of reusing a filename counter when the option changes.
   await expect(routingPorts.nextPrivateCounter()).resolves.toBe(3);
   await expect(routingPorts.peekCounter()).resolves.toBe(3);
+});
+
+test("wires browser Save As folders to the Last used menu state", async () => {
+  options.enableLastLocation = true;
+  configureBackgroundPorts();
+
+  await downloadPorts.updateBrowserLastUsed?.("Work");
+
+  expect(browser.storage.local.set).toHaveBeenCalledWith({
+    lastUsedPath: "Work",
+    lastUsedMeta: { title: "Work" },
+  });
+  expect(browser.contextMenus.update).toHaveBeenCalled();
+});
+
+test("updates stored Last used without touching a hidden menu item", async () => {
+  options.enableLastLocation = false;
+  configureBackgroundPorts();
+  vi.mocked(browser.contextMenus.update).mockClear();
+
+  await downloadPorts.updateBrowserLastUsed?.("Work");
+
+  expect(browser.storage.local.set).toHaveBeenCalled();
+  expect(browser.contextMenus.update).not.toHaveBeenCalled();
 });

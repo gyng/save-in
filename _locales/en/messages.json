@@ -423,6 +423,14 @@
     "message": "Records matching downloads in Save In history without taking ownership of them. They are not retried and do not trigger Save In prompts or notifications.",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
+  "o_cBrowserDownloadsUpdateLastUsed": {
+    "message": "Use browser Save As folders for Last used",
+    "description": "Checkbox that updates Save In's Last used destination from ordinary browser Save As folders. Used in src/options/options.html."
+  },
+  "o_cBrowserDownloadsUpdateLastUsedHelp": {
+    "message": "Works for folders inside Downloads after one Save In download in this browser session. Browser history tracking is not required.",
+    "description": "Help text for updating Last used from browser Save As folders. Used in src/options/options.html."
+  },
   "o_cRouteBrowserDownloads": {
     "message": "Route browser downloads with routing rules",
     "description": "Checkbox that applies routing rules to browser downloads when native routing is supported. Used in src/options/options.html."
@@ -3100,8 +3108,28 @@
     }
   },
   "historyStorageLimit": {
-    "message": "History stays on this device, up to 10,000 entries.",
+    "message": "History stays on this device.",
     "description": "History result-count tooltip explaining local storage and its entry limit. Used in src/options/history-panel.ts."
+  },
+  "historyRetentionLimit": {
+    "message": "Keep completed entries",
+    "description": "Label for the maximum number of completed History entries retained locally. Used in src/options/options.html."
+  },
+  "historyRetentionLimitHelp": {
+    "message": "0 keeps active saves visible but removes them when they finish.",
+    "description": "Help text for the History retention limit. Used in src/options/options.html."
+  },
+  "browserLastUsedNoticeTitle": {
+    "message": "Last used was not changed",
+    "description": "Notification title when a browser Save As folder cannot update Last used. Used in src/downloads/notification-events.ts."
+  },
+  "browserLastUsedOutsideDownloads": {
+    "message": "That folder is outside Downloads, so Save In cannot reuse it.",
+    "description": "Notification explaining that a browser Save As folder outside Downloads cannot become Last used. Used in src/downloads/notification-events.ts."
+  },
+  "browserLastUsedNeedsSave": {
+    "message": "Save one file with Save In first so it can identify your Downloads folder.",
+    "description": "Notification asking for one Save In download before browser Save As folders can update Last used. Used in src/downloads/notification-events.ts."
   },
   "historyTableCaption": {
     "message": "Saved download history",

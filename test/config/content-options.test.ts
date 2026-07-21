@@ -198,6 +198,14 @@ test("validates the bounded recent-destination count", () => {
   ).toBe(false);
 });
 
+test("validates the completed-history retention limit", () => {
+  const definition = OPTION_KEYS.find(({ name }) => name === "historyRetentionLimit")!;
+  const validate = "validate" in definition ? definition.validate : () => false;
+
+  expect([0, 10000, " 250 "].every((value) => validate(value))).toBe(true);
+  expect([null, "", "   ", 1.5, -1, 10001].some((value) => validate(value))).toBe(false);
+});
+
 test.each([-1, 0, 1.5, "-1", "0", "1.5", "toString"])(
   "rejects malformed legacy shortcut key code %j",
   (value) => {

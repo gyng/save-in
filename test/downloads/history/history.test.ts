@@ -29,6 +29,7 @@ describe("SaveHistory", () => {
 
   beforeEach(() => {
     options.persistPrivateActivity = false;
+    options.historyRetentionLimit = HISTORY_LIMIT;
     clearPersistenceDiagnostics();
     store = {};
     global.browser.storage.local.get = vi.fn((keys: string | string[] | null) => {
@@ -151,6 +152,61 @@ describe("SaveHistory", () => {
     );
     expect(byId[id1!]).toBe("pending");
     expect(byId[id2!]).toBe("complete");
+  });
+
+  test("removes terminal entries immediately when retention is zero", async () => {
+    options.historyRetentionLimit = 0;
+    const id = SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    await flushWrites();
+
+    await expect(storedHistory()).resolves.toEqual([
+      expect.objectContaining({ id, status: "pending" }),
+    ]);
+    await SaveHistory.setHistoryStatus(id, "complete");
+
+    await expect(storedHistory()).resolves.toEqual([]);
+  });
+
+  test("retains active entries while pruning the oldest terminal entries", async () => {
+    options.historyRetentionLimit = 1;
+    const first = SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    const active = SaveHistory.addHistoryEntry({ url: "https://a/active" });
+    const latest = SaveHistory.addHistoryEntry({ url: "https://a/2" });
+    await flushWrites();
+    await SaveHistory.setHistoryStatus(first, "complete");
+    await SaveHistory.setHistoryStatus(latest, "complete");
+
+    await expect(storedHistory()).resolves.toEqual([
+      expect.objectContaining({ id: active, status: "pending" }),
+      expect.objectContaining({ id: latest, status: "complete" }),
+    ]);
+  });
+
+  test("applies a lowered retention limit without waiting for another download", async () => {
+    const first = SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    const second = SaveHistory.addHistoryEntry({ url: "https://a/2" });
+    await SaveHistory.setHistoryStatus(first, "complete");
+    await SaveHistory.setHistoryStatus(second, "complete");
+    options.historyRetentionLimit = 1;
+
+    await SaveHistory.enforceHistoryRetention();
+
+    await expect(storedHistory()).resolves.toEqual([
+      expect.objectContaining({ id: second, status: "complete" }),
+    ]);
+  });
+
+  test("tolerates a malformed index chunk while enforcing retention", async () => {
+    options.historyRetentionLimit = 0;
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 1,
+      length: 1,
+    };
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`] = "malformed";
+
+    await expect(SaveHistory.enforceHistoryRetention()).resolves.toBeUndefined();
   });
 
   test("setStatus with no id is a no-op", async () => {
@@ -784,6 +840,22 @@ describe("SaveHistory", () => {
     expect(global.browser.storage.local.remove).toHaveBeenCalledWith(
       expect.arrayContaining([HISTORY_KEY]),
     );
+  });
+
+  test("retention enforcement recovers from an already rejected write queue", async () => {
+    SaveHistory.seedHistoryWriteQueueForTest(Promise.reject(new Error("earlier write failed")));
+
+    await expect(SaveHistory.enforceHistoryRetention()).resolves.toBeUndefined();
+  });
+
+  test("retention enforcement reports a storage failure", async () => {
+    global.browser.storage.local.get = vi.fn(() => Promise.reject(new Error("retention denied")));
+
+    await expect(SaveHistory.enforceHistoryRetention()).rejects.toThrow("retention denied");
+    await flushWrites();
+    expect(getPersistenceDiagnostics()).toEqual([
+      expect.objectContaining({ operation: "remove", key: HISTORY_KEY }),
+    ]);
   });
 
   test("clear skips storage removal when history is already absent", async () => {

@@ -1,4 +1,21 @@
 {
+  "o_cBrowserDownloadsUpdateLastUsed": {
+    "message": "Usa le cartelle Salva con nome del browser per Ultima usata"
+  },
+  "o_cBrowserDownloadsUpdateLastUsedHelp": {
+    "message": "Funziona con cartelle dentro Download dopo un download di Save In nella sessione corrente. Non richiede il tracciamento della cronologia del browser."
+  },
+  "historyRetentionLimit": { "message": "Conserva le voci completate" },
+  "historyRetentionLimitHelp": {
+    "message": "0 mantiene visibili i salvataggi attivi, ma li rimuove al termine."
+  },
+  "browserLastUsedNoticeTitle": { "message": "Ultima usata non è cambiata" },
+  "browserLastUsedOutsideDownloads": {
+    "message": "La cartella è fuori da Download, quindi Save In non può riutilizzarla."
+  },
+  "browserLastUsedNeedsSave": {
+    "message": "Salva prima un file con Save In per identificare la cartella Download."
+  },
   "extensionName": {
     "message": "Save In"
   },
@@ -1963,7 +1980,7 @@
     }
   },
   "historyStorageLimit": {
-    "message": "La cronologia rimane su questo dispositivo, fino a 10.000 voci."
+    "message": "La cronologia rimane su questo dispositivo."
   },
   "historyTableCaption": {
     "message": "Cronologia dei download salvati"

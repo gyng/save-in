@@ -43,6 +43,7 @@ export type DownloadPorts = {
     intendedFilename: string,
     currentFilename?: string,
   ): Promise<void>;
+  updateBrowserLastUsed?(path: string): Promise<void>;
 };
 
 export type DownloadPortRegistry = {
@@ -86,6 +87,11 @@ export const createDownloadPortRegistry = (): DownloadPortRegistry => {
     log: { add: (...args) => requirePort("log").add(...args) },
     retry: (...args) => requirePort("retry")(...args),
     sourceSidecar: (...args) => requirePort("sourceSidecar")(...args),
+    updateBrowserLastUsed: (...args) => {
+      const update = installed?.updateBrowserLastUsed;
+      if (!update) throw new Error("Download port has not been configured: updateBrowserLastUsed");
+      return update(...args);
+    },
   };
 
   return {

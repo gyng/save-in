@@ -5,7 +5,7 @@ import { initializeLocalization } from "../platform/localization.ts";
 import { OptionsManagement } from "../config/option.ts";
 import { downloadsState } from "./application-state.ts";
 import { hydrateDownloads } from "../downloads/download-state.ts";
-import { setHistoryStatus } from "./history.ts";
+import { enforceHistoryRetention, setHistoryStatus } from "./history.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { restoreLastUsed, restorePrivateLastUsed } from "./menu-build.ts";
 import { addDownloadListener, quickSaveActiveTab } from "./menu-click.ts";
@@ -57,6 +57,7 @@ const reloadConfigurationAndMenus = async (overrides?: Record<string, unknown>):
   ]);
 
   backgroundRuntime.debug = loaded.debug;
+  await enforceHistoryRetention();
   restoreLastUsed(storedLastUsed);
   restorePrivateLastUsed(storedPrivateLastUsed);
   await rebuildMenus();

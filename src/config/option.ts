@@ -75,6 +75,7 @@ export const OptionsManagement: OptionsManagementApi = {
     uiLocale: "Options, menu, and notification language (blank = browser default).",
     enableLastLocation: "Show a 'last used' item at the top of the menu.",
     recentDestinationCount: "Number of recently used destinations shown in the context menu (0–5).",
+    historyRetentionLimit: "Maximum completed activity entries retained locally (0–10,000).",
     enableNumberedItems: "Add number-key access keys to submenu items.",
     filenamePatterns:
       "Routing/rename rules, including guarded automatic-source rules with context: auto.",
@@ -131,6 +132,8 @@ export const OptionsManagement: OptionsManagementApi = {
     webhookIncludePageTitle: "Include the containing page title in save webhooks.",
     webhookIncludeSelectionText: "Include selected text in save webhooks when available.",
     trackBrowserDownloads: "Include ordinary browser downloads in local Save In history.",
+    browserDownloadsUpdateLastUsed:
+      "Use ordinary browser Save As folders inside Downloads as the Last used destination.",
     routeBrowserDownloads:
       "Apply matching filename routing rules to ordinary browser downloads on Chrome.",
     browserDownloadFiltersEnabled:

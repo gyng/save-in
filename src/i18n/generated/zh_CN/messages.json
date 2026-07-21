@@ -1,4 +1,17 @@
 {
+  "o_cBrowserDownloadsUpdateLastUsed": { "message": "将浏览器“另存为”文件夹用作上次使用位置" },
+  "o_cBrowserDownloadsUpdateLastUsedHelp": {
+    "message": "本次浏览器会话中使用 Save In 下载一次后，可用于“下载”内的文件夹。无需跟踪浏览器下载历史。"
+  },
+  "historyRetentionLimit": { "message": "保留已完成的条目" },
+  "historyRetentionLimitHelp": { "message": "设为 0 时会显示进行中的保存，但完成后会移除。" },
+  "browserLastUsedNoticeTitle": { "message": "未更改上次使用位置" },
+  "browserLastUsedOutsideDownloads": {
+    "message": "该文件夹位于“下载”之外，因此 Save In 无法重复使用。"
+  },
+  "browserLastUsedNeedsSave": {
+    "message": "请先使用 Save In 保存一个文件，以便识别“下载”文件夹。"
+  },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "按内容类型分类 PDF"
   },
@@ -2196,7 +2209,7 @@
     }
   },
   "historyStorageLimit": {
-    "message": "历史记录保留在此设备上，最多 10,000 条。"
+    "message": "历史记录保留在此设备上。"
   },
   "historyTableCaption": {
     "message": "已保存的下载历史记录"

@@ -49,8 +49,9 @@ Features
 - Use click-to-save for quick downloads and Page Sources to find media exposed by the current page.
 - Optionally save newly discovered Page Sources automatically with site-scoped routing rules, private-window controls, and a per-page limit.
 - Save links or pages as .webloc or HTML redirect shortcuts.
-- Search and filter local download history, with JSON and spreadsheet-safe CSV/TSV export.
+- Search and filter local download history, choose how many completed entries to keep, and export JSON or spreadsheet-safe CSV/TSV.
 - Optionally record matching ordinary Firefox downloads in Save In history.
+- Optionally use browser Save As folders inside Downloads as the Last used destination.
 
 Browsers only allow for saving into directories relative to the default download directory. Symlinks can be used to get around this limitation:
 
@@ -79,8 +80,9 @@ Features
 - Use click-to-save for quick downloads and Page Sources to find media exposed by the current page.
 - Optionally save newly discovered Page Sources automatically with site-scoped routing rules, private-window controls, and a per-page limit.
 - Save links or pages as .url, .webloc, .desktop, or HTML redirect shortcuts.
-- Search and filter local download history, with JSON and spreadsheet-safe CSV/TSV export.
+- Search and filter local download history, choose how many completed entries to keep, and export JSON or spreadsheet-safe CSV/TSV.
 - Optionally record or route matching ordinary Chrome downloads before they are saved.
+- Optionally use browser Save As folders inside Downloads as the Last used destination.
 
 Browsers only allow saving into directories relative to the default download directory. Chrome rejects symlinked destinations, so use real subfolders or change your default download folder. On Linux you can bind-mount a folder onto a subfolder (sudo mount --bind /target ~/Downloads/sub); on macOS, an Automator Folder Action can move files after they land. Other Windows workarounds exist (junctions) but can be dangerous — see the Save In wiki.
 
@@ -106,7 +108,7 @@ Keep this draft until the manifest/package version bump; then replace the
 4.0.1 release-note section and update the reviewed version/date above.
 
 ```text
-Version 4.1 adds configurable click-to-save gestures, including multiple mouse-button and modifier combinations, double-click saving, and gesture-aware routing. Last used now remains reliable through private-window background sleeps while staying isolated by default. A new off-by-default option can remember private saves in local Last used, Recent locations, History, diagnostics, and restart recovery; webhooks and browser credentials remain disabled in private windows. History, Page Sources, and the Chrome/Firefox test harness also receive further performance and reliability improvements.
+Version 4.1 adds configurable click-to-save gestures, including multiple mouse-button and modifier combinations, double-click saving, and gesture-aware routing. Click-to-save now also honors Prefer links and its page filter. Last used remains reliable through private-window background sleeps while staying isolated by default, and a separate opt-in can use ordinary browser Save As folders inside Downloads as Last used without enabling browser-download History. Completed History retention is configurable from 0 to 10,000 entries; active saves remain visible until they finish. A new off-by-default option can remember private saves in local Last used, Recent locations, History, diagnostics, and restart recovery; webhooks and browser credentials remain disabled in private windows. History, Page Sources, and the Chrome/Firefox test harness also receive further performance and reliability improvements.
 ```
 
 ## Reviewer notes

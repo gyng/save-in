@@ -88,6 +88,17 @@ export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
     default: CONTENT_OPTION_DEFAULTS.sourcePanelResourceHints,
   },
   { name: "sourcePanelLinks", type: "BOOL", default: CONTENT_OPTION_DEFAULTS.sourcePanelLinks },
+  { name: "preferLinks", type: "BOOL", default: CONTENT_OPTION_DEFAULTS.preferLinks },
+  {
+    name: "preferLinksFilterEnabled",
+    type: "BOOL",
+    default: CONTENT_OPTION_DEFAULTS.preferLinksFilterEnabled,
+  },
+  {
+    name: "preferLinksFilter",
+    type: "VALUE",
+    default: CONTENT_OPTION_DEFAULTS.preferLinksFilter,
+  },
   {
     name: "uiTheme",
     type: "VALUE",

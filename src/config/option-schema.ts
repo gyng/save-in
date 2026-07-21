@@ -169,6 +169,19 @@ export const OPTION_KEYS = defineOptions([
     default: OPTION_DEFAULTS.recentDestinationCount,
   },
   {
+    name: "historyRetentionLimit",
+    type: OPTION_TYPES.VALUE,
+    onLoad: normalizeWholeNumber,
+    onSave: normalizeWholeNumber,
+    validate: (value: unknown): value is string | number => {
+      if ((typeof value !== "number" && typeof value !== "string") || String(value).trim() === "")
+        return false;
+      const count = Number(value);
+      return Number.isSafeInteger(count) && count >= 0 && count <= 10000;
+    },
+    default: OPTION_DEFAULTS.historyRetentionLimit,
+  },
+  {
     name: "enableNumberedItems",
     type: OPTION_TYPES.BOOL,
     default: OPTION_DEFAULTS.enableNumberedItems,
@@ -183,17 +196,6 @@ export const OPTION_KEYS = defineOptions([
   { name: "keyLastUsed", type: OPTION_TYPES.VALUE, default: OPTION_DEFAULTS.keyLastUsed },
   { name: "keyRoot", type: OPTION_TYPES.VALUE, default: OPTION_DEFAULTS.keyRoot },
   LINKS_OPTION_DEFINITION,
-  { name: "preferLinks", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.preferLinks },
-  {
-    name: "preferLinksFilterEnabled",
-    type: OPTION_TYPES.BOOL,
-    default: OPTION_DEFAULTS.preferLinksFilterEnabled,
-  },
-  {
-    name: "preferLinksFilter",
-    type: OPTION_TYPES.VALUE,
-    default: OPTION_DEFAULTS.preferLinksFilter,
-  },
   {
     name: "notifyDuration",
     type: OPTION_TYPES.VALUE,
@@ -388,6 +390,11 @@ export const OPTION_KEYS = defineOptions([
     name: "trackBrowserDownloads",
     type: OPTION_TYPES.BOOL,
     default: OPTION_DEFAULTS.trackBrowserDownloads,
+  },
+  {
+    name: "browserDownloadsUpdateLastUsed",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.browserDownloadsUpdateLastUsed,
   },
   {
     name: "routeBrowserDownloads",

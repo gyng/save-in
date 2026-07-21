@@ -2,6 +2,7 @@ import {
   downloadState,
   browserState,
   retryHolder,
+  browserLastUsedHolder,
   Notifier,
   options,
   Log,
@@ -200,6 +201,99 @@ describe("download lifecycle notifications", () => {
     expect(sessionStore.siDownloads[44]!.observedBrowserDownload).toBe(false);
     expect(retryHolder.retry).not.toHaveBeenCalled();
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
+  });
+
+  test("updates Last used from a browser download without enabling History", async () => {
+    options.browserDownloadsUpdateLastUsed = true;
+    sessionStore.siDownloadsRoot = "C:\\Downloads\\";
+
+    await onCreated({
+      id: 144,
+      filename: "C:\\Downloads\\Work\\browser.zip",
+      url: "https://example.com/browser.zip",
+    });
+
+    expect(sessionStore.siDownloads[144]).toMatchObject({
+      observedBrowserDownload: true,
+      adopted: false,
+    });
+    expect(sessionStore.siDownloads[144]).not.toHaveProperty("historyEntryId");
+
+    await onChanged({
+      id: 144,
+      filename: { current: "C:\\Downloads\\Work\\browser.zip" },
+      state: { current: "complete", previous: "in_progress" },
+    });
+
+    expect(browserLastUsedHolder.update).toHaveBeenCalledWith("Work");
+    expect(await SaveHistory.getHistoryEntries()).toEqual([]);
+  });
+
+  test("explains once when the Downloads root is not known yet", async () => {
+    options.browserDownloadsUpdateLastUsed = true;
+    await onCreated({
+      id: 146,
+      filename: "C:\\Downloads\\Work\\browser.zip",
+      url: "https://example.com/browser.zip",
+    });
+
+    await onChanged({ id: 146, state: { current: "complete", previous: "in_progress" } });
+
+    expect(sessionStore.siBrowserLastUsedNotice).toBe("needs-save");
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      "save-in-not-browser-last-used",
+      expect.objectContaining({ message: expect.any(String) }),
+    );
+  });
+
+  test("explains an outside-Downloads folder without repeating the notice", async () => {
+    options.browserDownloadsUpdateLastUsed = true;
+    sessionStore.siDownloadsRoot = "C:\\Downloads\\";
+    await onCreated({
+      id: 147,
+      filename: "D:\\Elsewhere\\browser.zip",
+      url: "https://example.com/browser.zip",
+    });
+    await onChanged({ id: 147, state: { current: "complete", previous: "in_progress" } });
+    expect(global.browser.notifications.create).toHaveBeenCalledOnce();
+
+    await onCreated({
+      id: 148,
+      filename: "D:\\Elsewhere\\again.zip",
+      url: "https://example.com/again.zip",
+    });
+    await onChanged({ id: 148, state: { current: "complete", previous: "in_progress" } });
+
+    expect(global.browser.notifications.create).toHaveBeenCalledOnce();
+  });
+
+  test("refreshes the Downloads root after every successful Save In download", async () => {
+    const { mergeTrackedDownload } = await import("../../../src/downloads/expected-downloads.ts");
+    await mergeTrackedDownload(145, {
+      adopted: true,
+      filename: "Pictures/photo.jpg",
+      currentFilename: "D:\\New Downloads\\Pictures\\photo (1).jpg",
+    });
+
+    await onChanged({ id: 145, state: { current: "complete", previous: "in_progress" } });
+
+    expect(sessionStore.siDownloadsRoot).toBe("D:\\New Downloads\\");
+  });
+
+  test("admits private browser folders only under the private persistence opt-in", async () => {
+    options.browserDownloadsUpdateLastUsed = true;
+    options.persistPrivateActivity = true;
+    sessionStore.siDownloadsRoot = "C:\\Downloads\\";
+
+    await onCreated({
+      id: 149,
+      incognito: true,
+      filename: "C:\\Downloads\\Private\\browser.zip",
+      url: "https://example.com/browser.zip",
+    });
+    await onChanged({ id: 149, state: { current: "complete", previous: "in_progress" } });
+
+    expect(browserLastUsedHolder.update).toHaveBeenCalledWith("Private");
   });
 
   test("marks an ordinary browser download that Chrome routed as routed", async () => {

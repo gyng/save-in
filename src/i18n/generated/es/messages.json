@@ -1,4 +1,21 @@
 {
+  "o_cBrowserDownloadsUpdateLastUsed": {
+    "message": "Usar las carpetas de Guardar como del navegador como Última ubicación"
+  },
+  "o_cBrowserDownloadsUpdateLastUsedHelp": {
+    "message": "Funciona con carpetas dentro de Descargas después de una descarga de Save In en esta sesión. No requiere registrar el historial del navegador."
+  },
+  "historyRetentionLimit": { "message": "Conservar entradas completadas" },
+  "historyRetentionLimitHelp": {
+    "message": "Con 0, las descargas activas permanecen visibles pero se eliminan al terminar."
+  },
+  "browserLastUsedNoticeTitle": { "message": "La última ubicación no cambió" },
+  "browserLastUsedOutsideDownloads": {
+    "message": "Esa carpeta está fuera de Descargas, por lo que Save In no puede reutilizarla."
+  },
+  "browserLastUsedNeedsSave": {
+    "message": "Primero guarda un archivo con Save In para identificar tu carpeta de Descargas."
+  },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "PDFs por tipo de contenido"
   },
@@ -295,7 +312,7 @@
     }
   },
   "historyStorageLimit": {
-    "message": "El historial permanece en este dispositivo, hasta 10.000 entradas."
+    "message": "El historial permanece en este dispositivo."
   },
   "historyTableCaption": {
     "message": "Historial de descargas guardadas"

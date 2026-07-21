@@ -87,6 +87,7 @@ test("keeps Browser routings actions concise, described, and task ordered", () =
   const panel = document.getElementById("section-browser-downloads")?.parentElement;
   const controls = [
     ["trackBrowserDownloads", "track-browser-downloads-help"],
+    ["browserDownloadsUpdateLastUsed", "browser-downloads-last-used-help"],
     ["routeBrowserDownloads", "route-browser-downloads-help"],
     ["routeBrowserDownloadsFirefox", "route-browser-downloads-firefox-help"],
   ] as const;

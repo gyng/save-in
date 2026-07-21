@@ -131,6 +131,16 @@ describe("findSource", () => {
     });
   });
 
+  test("prefers an enclosing link when requested", () => {
+    document.body.innerHTML = '<a href="/page.html"><img id="i" src="http://x.test/pic.png"></a>';
+    const img = document.getElementById("i");
+
+    expect(ClickToSave.findSource(event(img), true, true)).toEqual({
+      url: "http://localhost/page.html",
+      kind: "link",
+    });
+  });
+
   test("ignores non-downloadable link schemes", () => {
     document.body.innerHTML = '<a href="javascript:void(0)"><span id="s">x</span></a>';
     const span = document.getElementById("s");
@@ -1617,6 +1627,56 @@ describe("setupClickToSave", () => {
       }),
       expect.any(Function),
     );
+    remove();
+  });
+
+  test("click-to-save honors the Prefer links page filter", () => {
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveCombo: "Ctrl",
+        contentClickToSaveButton: "BACK_CLICK",
+        links: true,
+        preferLinks: false,
+        preferLinksFilterEnabled: true,
+        preferLinksFilter: "localhost",
+      },
+      acceptTestInput,
+    );
+    document.body.innerHTML =
+      '<a href="/original-page"><img id="wrapped" src="http://x.test/preview.png"></a>';
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(document.getElementById("wrapped"), 8);
+
+    expect(downloadsSent().at(-1)?.[0]).toMatchObject({
+      body: {
+        url: "http://localhost/original-page",
+        info: { sourceKind: "link" },
+      },
+    });
+    remove();
+  });
+
+  test.each([
+    [{ preferLinks: true }, "http://localhost/original-page", "link"],
+    [{ preferLinksFilterEnabled: true }, "http://x.test/preview.png", "image"],
+  ] as const)("click-to-save resolves partial preference settings", (preference, url, kind) => {
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveCombo: "Ctrl",
+        contentClickToSaveButton: "BACK_CLICK",
+        links: true,
+        ...preference,
+      },
+      acceptTestInput,
+    );
+    document.body.innerHTML =
+      '<a href="/original-page"><img id="wrapped" src="http://x.test/preview.png"></a>';
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(document.getElementById("wrapped"), 8);
+
+    expect(downloadsSent().at(-1)?.[0]).toMatchObject({
+      body: { url, info: { sourceKind: kind } },
+    });
     remove();
   });
 

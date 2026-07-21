@@ -148,7 +148,7 @@ const renderCount = (countEl: Element, matchCount: number, total: number): void 
       : historyMessage("historyResultCount", `${total} results`, total);
   countEl.setAttribute(
     "title",
-    historyMessage("historyStorageLimit", "History stays on this device, up to 10,000 entries."),
+    historyMessage("historyStorageLimit", "History stays on this device."),
   );
 };
 

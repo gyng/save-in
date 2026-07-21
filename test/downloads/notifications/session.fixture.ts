@@ -34,6 +34,9 @@ const retryHolder = vi.hoisted(() => ({
     return Promise.resolve(false);
   }),
 }));
+const browserLastUsedHolder = vi.hoisted(() => ({
+  update: vi.fn<(path: string) => Promise<void>>(() => Promise.resolve()),
+}));
 // notification.ts and its remaining deps (option, log) are re-imported after
 // each resetModules; grab the fresh singletons the notifier binds to so the
 // tests mutate/assert the same instances.
@@ -71,6 +74,7 @@ const loadNotification = async () => {
     log: { add: (...args: unknown[]) => Log.addLogEntry(...args) },
     retry: (downloadId) => retryHolder.retry(downloadId),
     sourceSidecar: () => Promise.resolve(),
+    updateBrowserLastUsed: (path) => browserLastUsedHolder.update(path),
   });
   // Reset the real options bag to empty; each test sets the fields it needs
   for (const k of Object.keys(options)) delete options[k];
@@ -122,6 +126,7 @@ const setupGlobals = (sessionStore: Record<string, any>, searchResults: (query: 
     void downloadId;
     return Promise.resolve(false);
   });
+  browserLastUsedHolder.update = vi.fn<(path: string) => Promise<void>>(() => Promise.resolve());
 
   (global.browser as any).runtime = Object.assign(global.browser.runtime || {}, { id: "save-in" });
   (global.browser.storage as any).session = makeSessionMock(sessionStore);
@@ -174,6 +179,7 @@ export {
   downloadState,
   browserState,
   retryHolder,
+  browserLastUsedHolder,
   Notifier,
   options,
   Log,

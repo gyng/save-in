@@ -1,4 +1,21 @@
 {
+  "o_cBrowserDownloadsUpdateLastUsed": {
+    "message": "ブラウザーの「名前を付けて保存」のフォルダーを前回使用した場所に使う"
+  },
+  "o_cBrowserDownloadsUpdateLastUsedHelp": {
+    "message": "このブラウザーセッションで Save In を一度使用した後、ダウンロード内のフォルダーで動作します。ブラウザー履歴の記録は不要です。"
+  },
+  "historyRetentionLimit": { "message": "完了した項目を保持" },
+  "historyRetentionLimitHelp": {
+    "message": "0 の場合、保存中は表示され、完了すると削除されます。"
+  },
+  "browserLastUsedNoticeTitle": { "message": "前回使用した場所は変更されませんでした" },
+  "browserLastUsedOutsideDownloads": {
+    "message": "そのフォルダーはダウンロードの外にあるため、Save In では再利用できません。"
+  },
+  "browserLastUsedNeedsSave": {
+    "message": "ダウンロードフォルダーを特定するため、最初に Save In でファイルを1つ保存してください。"
+  },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "コンテンツタイプで PDF を分類"
   },
@@ -2196,7 +2213,7 @@
     }
   },
   "historyStorageLimit": {
-    "message": "履歴はこのデバイスに保存されます（最大 10,000 件）。"
+    "message": "履歴はこのデバイスに保存されます。"
   },
   "historyTableCaption": {
     "message": "保存したダウンロードの履歴"

@@ -1,4 +1,21 @@
 {
+  "o_cBrowserDownloadsUpdateLastUsed": {
+    "message": "Browsermappen van Opslaan als gebruiken voor Laatst gebruikt"
+  },
+  "o_cBrowserDownloadsUpdateLastUsedHelp": {
+    "message": "Werkt voor mappen binnen Downloads na één Save In-download in deze browsersessie. Browsergeschiedenis bijhouden is niet vereist."
+  },
+  "historyRetentionLimit": { "message": "Voltooide items bewaren" },
+  "historyRetentionLimitHelp": {
+    "message": "Bij 0 blijven actieve downloads zichtbaar, maar worden ze na voltooiing verwijderd."
+  },
+  "browserLastUsedNoticeTitle": { "message": "Laatst gebruikt is niet gewijzigd" },
+  "browserLastUsedOutsideDownloads": {
+    "message": "Die map staat buiten Downloads, dus Save In kan deze niet hergebruiken."
+  },
+  "browserLastUsedNeedsSave": {
+    "message": "Sla eerst één bestand op met Save In zodat de map Downloads kan worden herkend."
+  },
   "ruleTemplatePdfsByContentTypeName": {
     "message": "PDF's op inhoudstype"
   },
@@ -295,7 +312,7 @@
     }
   },
   "historyStorageLimit": {
-    "message": "De geschiedenis blijft op dit apparaat staan, tot maximaal 10.000 items."
+    "message": "De geschiedenis blijft op dit apparaat staan."
   },
   "historyTableCaption": {
     "message": "Geschiedenis van opgeslagen downloads"

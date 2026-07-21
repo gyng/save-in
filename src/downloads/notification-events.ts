@@ -19,6 +19,8 @@ import { options, shouldPersistActivity } from "../config/options-data.ts";
 import { deliverDownloadOutcomeWebhook } from "./webhook-delivery.ts";
 import { BROWSER_DOWNLOAD_CONTEXT } from "../shared/constants.ts";
 import {
+  BROWSER_LAST_USED_NOTICE_SESSION_KEY,
+  DOWNLOADS_ROOT_SESSION_KEY,
   PENDING_DOWNLOADS_SESSION_KEY,
   PRIVATE_PENDING_DOWNLOADS_SESSION_KEY,
 } from "../shared/storage-keys.ts";
@@ -56,6 +58,7 @@ import {
 } from "./undo-download.ts";
 import { isDataUrl } from "../shared/data-url.ts";
 import { abandonPendingHistoryMove, completePendingHistoryMove } from "./history-move.ts";
+import { deriveDownloadsRoot, relativeDirectoryWithinRoot } from "./browser-last-used.ts";
 
 type HostDownloadItem = Parameters<
   Parameters<typeof webExtensionApi.downloads.onCreated.addListener>[0]
@@ -115,7 +118,10 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
   if (
     item.incognito &&
     !isPrivateDownloadRecord(matched?.record || {}) &&
-    !(options.trackBrowserDownloads && shouldPersistActivity(true))
+    !(
+      (options.trackBrowserDownloads || options.browserDownloadsUpdateLastUsed) &&
+      shouldPersistActivity(true)
+    )
   ) {
     return;
   }
@@ -234,19 +240,21 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
     }
   }
 
-  if (options.trackBrowserDownloads) {
-    const historyEntryId = historyPort.add(
-      {
-        timestamp: new Date().toISOString(),
-        ...(item.incognito ? { private: true } : {}),
-        url: browserDownloadUrl,
-        finalFullPath: item.filename,
-        routed: false,
-        mechanism: "browser-download",
-        info: { context: BROWSER_DOWNLOAD_CONTEXT },
-      },
-      { privateContext: item.incognito === true },
-    );
+  if (options.trackBrowserDownloads || options.browserDownloadsUpdateLastUsed) {
+    const historyEntryId = options.trackBrowserDownloads
+      ? historyPort.add(
+          {
+            timestamp: new Date().toISOString(),
+            ...(item.incognito ? { private: true } : {}),
+            url: browserDownloadUrl,
+            finalFullPath: item.filename,
+            routed: false,
+            mechanism: "browser-download",
+            info: { context: BROWSER_DOWNLOAD_CONTEXT },
+          },
+          { privateContext: item.incognito === true },
+        )
+      : null;
     await mergeTrackedDownload(item.id, {
       observedBrowserDownload: true,
       adopted: false,
@@ -414,9 +422,11 @@ const handleObservedBrowserDownload = async (
   record: DownloadRecord,
 ): Promise<void> => {
   const currentFilename = downloadDelta.filename?.current;
-  if (currentFilename && record.historyEntryId) {
+  if (currentFilename) {
     await mergeTrackedDownload(downloadDelta.id, { currentFilename });
-    await historyPort.patch(record.historyEntryId, { finalFullPath: currentFilename });
+    if (record.historyEntryId) {
+      await historyPort.patch(record.historyEntryId, { finalFullPath: currentFilename });
+    }
   }
   const complete = downloadDelta.state?.current === "complete";
   const failed = isDownloadFailure(downloadDelta, WEB_EXTENSION_CAPABILITIES.downloadDeltaFilename);
@@ -436,15 +446,50 @@ const handleObservedBrowserDownload = async (
   // so it could only claim routed:false. Chrome's answer reaches the record
   // instead, and this delta is the first point where it has certainly landed —
   // the Firefox path already knows its answer when it writes the row.
-  if (record.browserDownloadRouted === true) {
+  if (record.browserDownloadRouted === true && record.historyEntryId) {
     await historyPort.patch(record.historyEntryId, { routed: true });
   }
-  await historyPort.setStatus(
-    record.historyEntryId,
-    complete ? "complete" : downloadFailureReason(failed) || "failed",
-    downloadDelta.id,
-    fileSize,
-  );
+  if (record.historyEntryId) {
+    await historyPort.setStatus(
+      record.historyEntryId,
+      complete ? "complete" : downloadFailureReason(failed) || "failed",
+      downloadDelta.id,
+      fileSize,
+    );
+  }
+  if (
+    complete &&
+    options.browserDownloadsUpdateLastUsed &&
+    shouldPersistActivity(isPrivateDownloadRecord(record))
+  ) {
+    const finalFilename = currentFilename || record.currentFilename;
+    const rootValue = await extensionSessionStorage.get(DOWNLOADS_ROOT_SESSION_KEY);
+    const root = Reflect.get(rootValue, DOWNLOADS_ROOT_SESSION_KEY);
+    const relative =
+      finalFilename && typeof root === "string"
+        ? relativeDirectoryWithinRoot(finalFilename, root)
+        : null;
+    if (relative) {
+      await downloadPorts.updateBrowserLastUsed?.(relative);
+    } else {
+      const notice = await extensionSessionStorage.get(BROWSER_LAST_USED_NOTICE_SESSION_KEY);
+      const noticeReason = typeof root === "string" ? "outside" : "needs-save";
+      if (Reflect.get(notice, BROWSER_LAST_USED_NOTICE_SESSION_KEY) !== noticeReason) {
+        await extensionSessionStorage.set({
+          [BROWSER_LAST_USED_NOTICE_SESSION_KEY]: noticeReason,
+        });
+        createNotification("save-in-not-browser-last-used", {
+          type: "basic",
+          title: getMessage("browserLastUsedNoticeTitle"),
+          iconUrl: ERROR_ICON_URL,
+          message:
+            typeof root === "string"
+              ? getMessage("browserLastUsedOutsideDownloads")
+              : getMessage("browserLastUsedNeedsSave"),
+        });
+      }
+    }
+  }
   await mergeTrackedDownload(downloadDelta.id, { observedBrowserDownload: false });
 };
 
@@ -696,6 +741,10 @@ export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
   }
 
   if (completed) {
+    const root = deriveDownloadsRoot(fullFilename, record.filename || "");
+    if (root && shouldPersistActivity(isPrivateDownloadRecord(record))) {
+      await extensionSessionStorage.set({ [DOWNLOADS_ROOT_SESSION_KEY]: root });
+    }
     await recordHistoryStatus(downloadDelta.id, "complete");
     await completePendingHistoryMove(downloadDelta.id);
   }
