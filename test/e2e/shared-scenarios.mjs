@@ -72,12 +72,7 @@ export const runPrivateContextScenario = async ({ control, waitForDownloads, fil
   const port = await listenLocal(server);
   const privateUrl = `http://127.0.0.1:${port}/${filename}.txt`;
   const [local, session, log] = await Promise.all([
-    control.storage.local.get([
-      "paths",
-      "save-in-history",
-      "save-in-last-used-path",
-      "save-in-last-used-meta",
-    ]),
+    control.storage.local.get(["paths", "save-in-history", "lastUsedPath", "lastUsedMeta"]),
     control.storage.session.get(),
     control.logs.get(),
   ]);
@@ -107,18 +102,14 @@ export const runPrivateContextScenario = async ({ control, waitForDownloads, fil
     expect(fs.readFileSync(completed.filename, "utf8")).toBe("private context content");
 
     const [afterLocal, afterSession, afterLog] = await Promise.all([
-      control.storage.local.get([
-        "save-in-history",
-        "save-in-last-used-path",
-        "save-in-last-used-meta",
-      ]),
+      control.storage.local.get(["save-in-history", "lastUsedPath", "lastUsedMeta"]),
       control.storage.session.get(),
       control.logs.get(),
     ]);
     const after = { local: afterLocal, session: afterSession, log: afterLog };
     expect(after.local["save-in-history"]).toEqual(snapshot.local["save-in-history"]);
-    expect(after.local["save-in-last-used-path"]).toEqual(snapshot.local["save-in-last-used-path"]);
-    expect(after.local["save-in-last-used-meta"]).toEqual(snapshot.local["save-in-last-used-meta"]);
+    expect(after.local.lastUsedPath).toEqual(snapshot.local.lastUsedPath);
+    expect(after.local.lastUsedMeta).toEqual(snapshot.local.lastUsedMeta);
     expect(after.log).toEqual(snapshot.log);
     expect(Object.keys(after.session.siActiveTransfers || {})).toHaveLength(0);
   } finally {
@@ -895,6 +886,24 @@ export const runContextMenuScenario = async ({ control, waitForDownloads }) => {
     /e2e[\\/]context-menu[\\/]context-menu-smoke\.selection\.txt$/,
   );
   expect(fs.readFileSync(completed.filename, "utf8")).toBe("context menu content");
+
+  expect((await control.storage.local.get("lastUsedPath")).lastUsedPath).toBe("e2e/context-menu");
+  await control.runtime.reset();
+  await control.background.clickContextMenu({
+    info: {
+      menuItemId: "save-in-last-used",
+      selectionText: "last used content",
+      pageUrl: "https://example.com/",
+    },
+    tab: { id: 1, title: "last-used-smoke", url: "https://example.com/" },
+  });
+
+  const repeatedDownloads = await waitForDownloads("last-used-smoke");
+  expect(repeatedDownloads).toHaveLength(1);
+  const repeated = requireValue(repeatedDownloads[0], "Last-used download was not captured");
+  expect(repeated.state).toBe("complete");
+  expect(repeated.filename).toMatch(/e2e[\\/]context-menu[\\/]last-used-smoke\.selection\.txt$/);
+  expect(fs.readFileSync(repeated.filename, "utf8")).toBe("last used content");
 };
 
 /**
