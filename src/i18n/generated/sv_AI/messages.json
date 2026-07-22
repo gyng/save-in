@@ -528,6 +528,9 @@
   "notificationSuccessTitle": {
     "message": "Sparad"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "Ett objekt från privat surfning sparades."
+  },
   "notificationFailureTitle": {
     "message": "Det gick inte att spara $FILENAME$.",
     "placeholders": {
@@ -536,6 +539,9 @@
         "example": "my_filename.jpg"
       }
     }
+  },
+  "notificationPrivateFailureTitle": {
+    "message": "Det gick inte att spara ett objekt från privat surfning."
   },
   "notificationUndoSave": {
     "message": "Ångra sparning"

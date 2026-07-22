@@ -528,6 +528,9 @@
   "notificationSuccessTitle": {
     "message": "Gespeichert"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "Ein Element aus einem privaten Fenster wurde gespeichert."
+  },
   "notificationFailureTitle": {
     "message": "$FILENAME$ konnte nicht gespeichert werden.",
     "placeholders": {
@@ -536,6 +539,9 @@
         "example": "my_filename.jpg"
       }
     }
+  },
+  "notificationPrivateFailureTitle": {
+    "message": "Ein Element aus einem privaten Fenster konnte nicht gespeichert werden."
   },
   "notificationUndoSave": {
     "message": "Speichern rückgängig machen"

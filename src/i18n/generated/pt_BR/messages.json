@@ -528,6 +528,9 @@
   "notificationSuccessTitle": {
     "message": "Salvo"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "Um item da navegação privativa foi salvo."
+  },
   "notificationFailureTitle": {
     "message": "Falha ao salvar $FILENAME$.",
     "placeholders": {
@@ -536,6 +539,9 @@
         "example": "my_filename.jpg"
       }
     }
+  },
+  "notificationPrivateFailureTitle": {
+    "message": "Não foi possível salvar um item da navegação privativa."
   },
   "notificationUndoSave": {
     "message": "Desfazer salvamento"

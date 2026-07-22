@@ -528,6 +528,9 @@
   "notificationSuccessTitle": {
     "message": "Opgeslagen"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "Een item uit privénavigatie is opgeslagen."
+  },
   "notificationFailureTitle": {
     "message": "Kan $FILENAME$ niet opslaan.",
     "placeholders": {
@@ -536,6 +539,9 @@
         "example": "my_filename.jpg"
       }
     }
+  },
+  "notificationPrivateFailureTitle": {
+    "message": "Een item uit privénavigatie kon niet worden opgeslagen."
   },
   "notificationUndoSave": {
     "message": "Opslaan ongedaan maken"

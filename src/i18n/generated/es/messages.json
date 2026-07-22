@@ -528,6 +528,9 @@
   "notificationSuccessTitle": {
     "message": "Guardado"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "Se guardó un elemento de navegación privada."
+  },
   "notificationFailureTitle": {
     "message": "No se pudo guardar $FILENAME$.",
     "placeholders": {
@@ -536,6 +539,9 @@
         "example": "my_filename.jpg"
       }
     }
+  },
+  "notificationPrivateFailureTitle": {
+    "message": "No se pudo guardar un elemento de navegación privada."
   },
   "notificationUndoSave": {
     "message": "Deshacer guardado"

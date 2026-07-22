@@ -128,6 +128,8 @@ The attributes are not available to automatic Page Sources saves.
 
 Private activity is excluded from Save In History by default. Enabling
 **Remember private browsing activity** records it with a visible private marker.
+Save In's success and failure notifications still report whether a private save
+worked, but do not show its filename, path, URL, size, or media type.
 
 ## Source-link sidecars
 

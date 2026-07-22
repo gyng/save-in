@@ -271,6 +271,57 @@ describe("notification variants", () => {
     );
   });
 
+  test("private success notifications omit identifying file metadata", async () => {
+    await install({ notifyOnSuccess: true, notifyDuration: 1000 }, () => [
+      { id: 8, fileSize: 2500000, mime: "image/png" },
+    ]);
+    Notifier.expectDownload("https://private.example/secret.png", { privateContext: true });
+    await onCreated({
+      id: 8,
+      incognito: true,
+      filename: "/dl/secret.png",
+      url: "https://private.example/secret.png",
+    });
+
+    await onChanged({ id: 8, state: { current: "complete", previous: "in_progress" } });
+
+    expect(global.browser.downloads.search).not.toHaveBeenCalled();
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      "8",
+      expect.objectContaining({
+        title: "Translated<notificationSuccessTitle>",
+        message: "Translated<notificationPrivateSuccessMessage>",
+      }),
+    );
+    expect(JSON.stringify(vi.mocked(global.browser.notifications.create).mock.calls)).not.toMatch(
+      /secret\.png|image\/png|2\.5 MB/,
+    );
+  });
+
+  test("private failure notifications omit the filename", async () => {
+    await install({ notifyOnFailure: true, notifyDuration: 1000 });
+    Notifier.expectDownload("https://private.example/secret.png", { privateContext: true });
+    await onCreated({
+      id: 8,
+      incognito: true,
+      filename: "/dl/secret.png",
+      url: "https://private.example/secret.png",
+    });
+
+    await onChanged({ id: 8, error: { current: "FILE_FAILED" } });
+
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      "8",
+      expect.objectContaining({
+        title: "Translated<notificationPrivateFailureTitle>",
+        message: "FILE_FAILED",
+      }),
+    );
+    expect(JSON.stringify(vi.mocked(global.browser.notifications.create).mock.calls)).not.toContain(
+      "secret.png",
+    );
+  });
+
   test("notifyOnSuccess false suppresses the success notification", async () => {
     await install({ notifyOnSuccess: false, notifyOnFailure: true, notifyDuration: 1000 });
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });

@@ -528,6 +528,9 @@
   "notificationSuccessTitle": {
     "message": "Enregistré"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "Un élément de navigation privée a été enregistré."
+  },
   "notificationFailureTitle": {
     "message": "Échec de l’enregistrement de $FILENAME$.",
     "placeholders": {
@@ -536,6 +539,9 @@
         "example": "my_filename.jpg"
       }
     }
+  },
+  "notificationPrivateFailureTitle": {
+    "message": "Un élément de navigation privée n’a pas pu être enregistré."
   },
   "notificationUndoSave": {
     "message": "Annuler l’enregistrement"

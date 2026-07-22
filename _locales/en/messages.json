@@ -73,17 +73,25 @@
   },
   "notificationSuccessTitle": {
     "message": "Saved",
-    "description": "Notification title for a successful download. Used in src/downloads/notification.ts."
+    "description": "Notification title for a successful download. Used in src/downloads/notification-events.ts."
+  },
+  "notificationPrivateSuccessMessage": {
+    "message": "A private browsing item was saved.",
+    "description": "Non-identifying notification message for a successful private browsing download. It must not include the filename, path, URL, media type, or file size. Used in src/downloads/notification-events.ts."
   },
   "notificationFailureTitle": {
     "message": "Failed to save $FILENAME$.",
-    "description": "Notification title for a failed download. Used in src/downloads/notification.ts.",
+    "description": "Notification title for a failed download. Used in src/downloads/notification-events.ts.",
     "placeholders": {
       "filename": {
         "content": "$1",
         "example": "my_filename.jpg"
       }
     }
+  },
+  "notificationPrivateFailureTitle": {
+    "message": "A private browsing item could not be saved.",
+    "description": "Non-identifying notification title for a failed private browsing download. It must not include the filename, path, or URL. Used in src/downloads/notification-events.ts."
   },
   "notificationUndoSave": {
     "message": "Undo save",

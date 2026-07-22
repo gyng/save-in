@@ -84,6 +84,9 @@
   "notificationSuccessTitle": {
     "message": "Salvato"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "È stato salvato un elemento di navigazione privata."
+  },
   "notificationFailureTitle": {
     "message": "Impossibile salvare $FILENAME$.",
     "placeholders": {
@@ -92,6 +95,9 @@
         "example": "my_filename.jpg"
       }
     }
+  },
+  "notificationPrivateFailureTitle": {
+    "message": "Non è stato possibile salvare un elemento di navigazione privata."
   },
   "notificationUndoSave": {
     "message": "Annulla salvataggio"

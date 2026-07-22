@@ -104,6 +104,9 @@
   "notificationSuccessTitle": {
     "message": "已儲存"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "已儲存一個隱私瀏覽項目。"
+  },
   "notificationFailureTitle": {
     "message": "無法儲存 $FILENAME$。",
     "placeholders": {
@@ -112,6 +115,9 @@
         "example": "my_filename.jpg"
       }
     }
+  },
+  "notificationPrivateFailureTitle": {
+    "message": "無法儲存隱私瀏覽項目。"
   },
   "notificationUndoSave": {
     "message": "復原儲存"

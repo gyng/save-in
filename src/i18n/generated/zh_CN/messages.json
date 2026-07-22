@@ -102,6 +102,9 @@
   "notificationSuccessTitle": {
     "message": "已保存"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "已保存一个隐私浏览项目。"
+  },
   "notificationFailureTitle": {
     "message": "无法保存 $FILENAME$。",
     "placeholders": {
@@ -110,6 +113,9 @@
         "example": "my_filename.jpg"
       }
     }
+  },
+  "notificationPrivateFailureTitle": {
+    "message": "无法保存隐私浏览项目。"
   },
   "notificationUndoSave": {
     "message": "撤销保存"

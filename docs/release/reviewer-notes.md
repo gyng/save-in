@@ -75,7 +75,9 @@ is no account and no first-party server.
   webhooks or browser credentials in private windows. Chrome also keeps a bare,
   non-identifying pending count during a private download handoff so a worker
   restart cannot misclassify it as an ordinary browser download; the count is
-  balanced when the handoff returns or expires after ten seconds.
+  balanced when the handoff returns or expires after ten seconds. Save In's own
+  success and failure notifications remain available but omit private filenames,
+  paths, URLs, sizes, and media types.
 - The optional on-device rule assistant runs Gemini Nano locally (Chrome Prompt
   API); prompts are not sent to any server. Webhooks and the external Download
   API are opt-in integrations the user configures explicitly.
