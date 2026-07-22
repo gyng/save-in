@@ -1,9 +1,9 @@
-import { copyText, type CopyText } from "./clipboard.ts";
+import { copyText, copyValueFor, type CopyText } from "./clipboard.ts";
 import { getMessage } from "../../platform/localization.ts";
 
 export const addClickToCopy = (el: HTMLElement, copy: CopyText = copyText): void => {
   const refreshLabel = () => {
-    const value = el.textContent?.trim() || "value";
+    const value = copyValueFor(el).trim() || "value";
     const action = getMessage("referenceCopyValue", value) || `Copy ${value}`;
     const generated = !el.hasAttribute("aria-label") || el.dataset.copyLabelGenerated === "true";
     if (generated) {
@@ -19,7 +19,7 @@ export const addClickToCopy = (el: HTMLElement, copy: CopyText = copyText): void
   el.setAttribute("role", "button");
 
   const activate = () => {
-    void copy(el.textContent ?? "")
+    void copy(copyValueFor(el))
       .then(() => {
         el.classList.add("copied");
         window.setTimeout(() => el.classList.remove("copied"), 1000);

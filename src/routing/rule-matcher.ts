@@ -13,6 +13,7 @@ import type {
 } from "./rule-types.ts";
 import { isCssMatcherClause, isRegexMatcherClause } from "./rule-types.ts";
 import { isSafeRelativeDestination } from "./destination-safety.ts";
+import { ROUTING_ACTION_VALUES } from "./action-values.ts";
 
 export type EvaluatedMatcherClause = {
   clause: MatcherClause;
@@ -238,7 +239,9 @@ export const evaluateRule = (rule: RoutingRule, info: RoutingInfo): RuleEvaluati
       : false,
     tabAction: rule.some(
       (clause) =>
-        clause.type === RULE_TYPES.ACTION && clause.name === "tab" && clause.value === "close",
+        clause.type === RULE_TYPES.ACTION &&
+        clause.name === "tab" &&
+        clause.value === ROUTING_ACTION_VALUES.tab,
     )
       ? "close"
       : false,

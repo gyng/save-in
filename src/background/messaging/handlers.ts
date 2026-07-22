@@ -33,6 +33,7 @@ import {
 } from "../../routing/automatic-rule.ts";
 import { getFilenameFromUrl } from "../../routing/filename.ts";
 import { isDataUrl, parseDataUrlMediaType } from "../../shared/data-url.ts";
+import { ROUTING_ACTION_VALUES } from "../../routing/action-values.ts";
 import {
   createExternalValidationRateLimiter,
   externalValidationRequestError,
@@ -198,7 +199,9 @@ export const handleGetKeywords = (
     body: {
       matchers: [...Object.keys(matcherFunctions), "css"],
       variables: Object.keys(transformers),
-      routingActions: ["exclude: true", "tab: close"],
+      routingActions: Object.entries(ROUTING_ACTION_VALUES).map(
+        ([name, value]) => `${name}: ${value}`,
+      ),
       automaticMatchers: [...AUTOMATIC_PAGE_MATCHERS, ...AUTOMATIC_SOURCE_MATCHERS],
       // Context matchers normalize their input before testing. Expose the
       // value an integration should place in its case-sensitive pattern,

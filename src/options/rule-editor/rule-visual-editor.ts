@@ -44,6 +44,7 @@ import {
   validationFeedbackLabel,
   type EditorValidationFeedback,
 } from "../syntax-editor/editor-validation.ts";
+import { routingActionValue } from "../../routing/action-values.ts";
 
 const DEFAULT_MATCHERS = [
   "context",
@@ -418,8 +419,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       row.append(name);
     }
 
-    const expectedActionValue =
-      clause.name === "exclude" ? "true" : clause.name === "tab" ? "close" : undefined;
+    const expectedActionValue = routingActionValue(clause.name);
     const validAction =
       clause.kind === "action" &&
       expectedActionValue !== undefined &&

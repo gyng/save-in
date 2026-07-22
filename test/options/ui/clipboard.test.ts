@@ -27,6 +27,23 @@ test("click-to-copy delegates the element text", async () => {
   expect(element.tabIndex).toBe(0);
 });
 
+test("click-to-copy can expose concise text while copying a complete value", async () => {
+  vi.mocked(browser.i18n.getMessage).mockImplementationOnce(
+    (_key, substitutions) =>
+      `Copy ${Array.isArray(substitutions) ? substitutions[0] : substitutions}`,
+  );
+  const element = document.createElement("code");
+  element.textContent = "exclude:";
+  element.dataset.copyValue = "exclude: true";
+  const copy = vi.fn(async () => undefined);
+  addClickToCopy(element, copy);
+
+  element.click();
+
+  await vi.waitFor(() => expect(copy).toHaveBeenCalledWith("exclude: true"));
+  expect(element.getAttribute("aria-label")).toContain("exclude: true");
+});
+
 test("click-to-copy preserves a caller-provided accessible label", () => {
   const element = document.createElement("code");
   element.textContent = ":filename:";

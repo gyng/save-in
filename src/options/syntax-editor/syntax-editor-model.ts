@@ -1,5 +1,6 @@
 import { parsePathLineAst } from "../../config/path-syntax.ts";
 import { FETCH_URL_BANNED_VARIABLES } from "../../routing/path-variables.ts";
+import { routingActionValue } from "../../routing/action-values.ts";
 import { RENAME_SEPARATOR } from "../../routing/rename.ts";
 import { parseRoutingRuleAst, type RoutingLineNode } from "../../routing/rule-syntax.ts";
 import { parseMatchPatternList } from "../../shared/match-pattern.ts";
@@ -71,6 +72,7 @@ export type SyntaxCompletion = {
   readonly end: number;
   readonly suggestions: readonly string[];
   readonly suffix: string;
+  readonly suggestionSuffixes?: Readonly<Record<string, string>> | undefined;
 };
 
 export type EditorValidationError = {
@@ -538,8 +540,19 @@ const matcherCompletion = (
   if (!/^[a-z]*$/i.test(prefix) || (!prefix && !explicit)) return null;
   const normalized = prefix.toLocaleLowerCase();
   const suggestions = matchers.filter((name) => name.toLocaleLowerCase().startsWith(normalized));
+  const suggestionSuffixes: Record<string, string> = {};
+  suggestions.forEach((name) => {
+    const actionValue = routingActionValue(name);
+    if (actionValue !== undefined) suggestionSuffixes[name] = `: ${actionValue}`;
+  });
   return suggestions.length
-    ? { start: lineStart + leading, end: caret, suggestions, suffix: ": " }
+    ? {
+        start: lineStart + leading,
+        end: caret,
+        suggestions,
+        suffix: ": ",
+        ...(Object.keys(suggestionSuffixes).length > 0 ? { suggestionSuffixes } : {}),
+      }
     : null;
 };
 

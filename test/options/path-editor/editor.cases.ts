@@ -855,6 +855,13 @@ describe("insert menu targets its editor via data-insert-target", () => {
     element<HTMLElement>('[data-insert-line="into: "]').click();
 
     expect(textarea.value).toBe("fileext: pdf\ninto: ");
+    expect(element<HTMLElement>('[data-insert-line="exclude: true"]').textContent).toBe("exclude:");
+    expect(element<HTMLElement>('[data-insert-line="tab: close"]').textContent).toBe("tab:");
+    expect(
+      element<HTMLElement>('[data-insert-line="exclude: true"]')
+        .closest("tr")
+        ?.querySelector(".variables-preview-value")?.textContent,
+    ).toBe("true");
     expect(
       [...document.querySelectorAll(".clause-preview-table code")].map((node) => node.textContent),
     ).toEqual([

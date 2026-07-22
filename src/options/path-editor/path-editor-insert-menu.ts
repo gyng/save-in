@@ -6,6 +6,7 @@ import { compareClauses, CLAUSE_GROUPS, clauseGroup } from "../core/vocabulary-g
 import { matcherTestValue } from "../core/matcher-descriptions.ts";
 import { referenceDescription } from "../core/reference-descriptions.ts";
 import { closeDetailsAndRestoreFocus } from "../ui/dismissible-details.ts";
+import { routingActionValue } from "../../routing/action-values.ts";
 
 export const setupPathInsertMenu = (
   menuSelector: string,
@@ -72,7 +73,8 @@ export const setupPathInsertMenu = (
         const button = document.createElement("button");
         button.type = "button";
         button.className = "variables-preview-insert";
-        const line = `${clause}: `;
+        const fixedActionValue = routingActionValue(clause);
+        const line = `${clause}: ${fixedActionValue ?? ""}`;
         button.dataset.insertLine = line;
         button.setAttribute(
           "aria-label",
@@ -84,7 +86,7 @@ export const setupPathInsertMenu = (
         syntaxCell.append(button);
         const currentValue = document.createElement("td");
         currentValue.className = "variables-preview-value";
-        const testValue = matcherTestValue(clause);
+        const testValue = fixedActionValue ?? matcherTestValue(clause);
         currentValue.textContent = testValue;
         currentValue.title = testValue;
         const description = document.createElement("td");

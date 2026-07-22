@@ -17,6 +17,7 @@ import {
   type SyntaxCompletion,
 } from "./syntax-editor-model.ts";
 import { positionFloatingElement } from "../../shared/floating-position.ts";
+import { routingActionValue } from "../../routing/action-values.ts";
 
 export type AutocompleteStrategy = {
   match: RegExp;
@@ -63,9 +64,10 @@ type SuggestionDetails = {
 
 const suggestionDetails = (name: string, options: AutocompleteOptions): SuggestionDetails => {
   if (!name.startsWith(":")) {
+    const actionValue = routingActionValue(name);
     return {
       description: matcherDescription(name),
-      meta: matcherTestValue(name),
+      meta: actionValue ?? matcherTestValue(name),
       placeholder: false,
     };
   }
@@ -251,10 +253,13 @@ export const attachAutocomplete = (
     return {
       suggestions: result.suggestions,
       selected: 0,
-      apply: (name) => ({
-        value: `${textarea.value.slice(0, result.start)}${name}${result.suffix}${textarea.value.slice(result.end)}`,
-        caret: result.start + name.length + result.suffix.length,
-      }),
+      apply: (name) => {
+        const suffix = result.suggestionSuffixes?.[name] ?? result.suffix;
+        return {
+          value: `${textarea.value.slice(0, result.start)}${name}${suffix}${textarea.value.slice(result.end)}`,
+          caret: result.start + name.length + suffix.length,
+        };
+      },
     };
   };
 

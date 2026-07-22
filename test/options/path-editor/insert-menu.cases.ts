@@ -141,12 +141,17 @@ describe("path editor insert menu", () => {
         <input class="clause-preview-filter">
         <table class="clause-preview-table"><tbody></tbody></table>
       </details>`;
-    setupPathInsertMenu("#menu", vi.fn());
+    const insert = vi.fn();
+    setupPathInsertMenu("#menu", insert);
 
     await vi.waitFor(() =>
       expect(document.querySelector('[data-insert-line="capturegroups: "]')).not.toBeNull(),
     );
     expect(document.querySelector('[data-insert-line="fetch: "]')).not.toBeNull();
+    expect(document.querySelector('[data-insert-line="exclude: true"]')).not.toBeNull();
+    expect(document.querySelector('[data-insert-line="tab: close"]')).not.toBeNull();
     expect(document.querySelector('[data-insert-line="invalid: "]')).toBeNull();
+    document.querySelector<HTMLButtonElement>('[data-insert-line="exclude: true"]')?.click();
+    expect(insert).toHaveBeenCalledWith(document.querySelector("#paths"), "exclude: true");
   });
 });

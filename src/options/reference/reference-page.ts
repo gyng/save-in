@@ -8,7 +8,7 @@ import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
 import { sendInternalMessage } from "../../platform/messaging.ts";
 import { getMessage } from "../../platform/localization.ts";
-import { copyText, type CopyText } from "../ui/clipboard.ts";
+import { copyText, copyValueFor, type CopyText } from "../ui/clipboard.ts";
 
 type ReferenceKind = "variables" | "clauses";
 type RuntimeVocabulary = { variables: string[]; matchers: string[] };
@@ -303,14 +303,14 @@ export const setupReferencePage = (
   root.querySelectorAll<HTMLElement>(".click-to-copy").forEach((token) => {
     token.tabIndex = 0;
     token.setAttribute("role", "button");
-    const value = token.textContent?.trim() || "value";
+    const value = copyValueFor(token).trim() || "value";
     token.setAttribute("aria-label", localize("referenceCopyValue", value) || `Copy ${value}`);
   });
 
   const activate = async (target: EventTarget | null) => {
     const token = target instanceof Element ? target.closest<HTMLElement>(".click-to-copy") : null;
     if (!token) return;
-    const value = token.textContent?.trim() || "";
+    const value = copyValueFor(token).trim();
     await copy(value);
     token.classList.add("copied");
     window.setTimeout(() => token.classList.remove("copied"), 1000);

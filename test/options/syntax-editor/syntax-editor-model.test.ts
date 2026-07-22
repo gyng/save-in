@@ -240,6 +240,28 @@ describe("syntax editor model", () => {
     );
   });
 
+  test("completes fixed routing actions with their only valid values", () => {
+    const vocabulary = {
+      matchers: ["exclude", "filename", "tab"],
+      variables: [],
+    };
+
+    expect(completeRoutingSyntax("excl", 4, vocabulary)).toEqual({
+      start: 0,
+      end: 4,
+      suggestions: ["exclude"],
+      suffix: ": ",
+      suggestionSuffixes: { exclude: ": true" },
+    });
+    expect(completeRoutingSyntax("tab", 3, vocabulary)).toEqual({
+      start: 0,
+      end: 3,
+      suggestions: ["tab"],
+      suffix: ": ",
+      suggestionSuffixes: { tab: ": close" },
+    });
+  });
+
   test("rejects completion outside grammar slots and filters explicit capture values", () => {
     const variables = [":date:", ":day:"];
     const matchers = ["into", "capturegroups", "fileext", "filename"];

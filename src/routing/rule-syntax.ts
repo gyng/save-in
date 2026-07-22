@@ -13,6 +13,7 @@ import {
   type SourceFragment,
   type SourceSpan,
 } from "../shared/syntax-parser.ts";
+import { isRoutingActionName } from "./action-values.ts";
 export const ROUTING_RULE_GRAMMAR = String.raw`
 routing-document = { blank-line | comment-line | rule } ;
 rule             = clause-line, { comment-line | clause-line } ;
@@ -193,7 +194,7 @@ const clauseKind = (name: string): RoutingClauseNode["clauseKind"] =>
       ? "fetch"
       : name === "rename"
         ? "rename"
-        : name === "exclude" || name === "tab"
+        : isRoutingActionName(name)
           ? "action"
           : name === "capture" || name === "capturegroups"
             ? "capture"

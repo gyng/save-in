@@ -1,5 +1,8 @@
 export type CopyText = (text: string) => Promise<void>;
 
+export const copyValueFor = (element: HTMLElement): string =>
+  element.dataset.copyValue ?? element.textContent ?? "";
+
 export const copyText = async (
   text: string,
   clipboard: Pick<Clipboard, "writeText"> | null | undefined = navigator.clipboard,

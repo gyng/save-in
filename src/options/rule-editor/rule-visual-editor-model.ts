@@ -5,6 +5,7 @@ import {
   type RoutingTriviaNode,
   type RuleSyntaxIssue,
 } from "../../routing/rule-syntax.ts";
+import { ROUTING_ACTION_VALUES } from "../../routing/action-values.ts";
 
 export type VisualRoutingClause = {
   index: number;
@@ -370,7 +371,7 @@ export const addExclusionRoutingRule = (source: string): string => {
         : source.endsWith(newline)
           ? newline
           : `${newline}${newline}`;
-  return `${source}${separator}filename: .*${newline}exclude: true${newline}`;
+  return `${source}${separator}filename: .*${newline}exclude: ${ROUTING_ACTION_VALUES.exclude}${newline}`;
 };
 
 export const setRoutingRuleTabAction = (
@@ -383,9 +384,12 @@ export const setRoutingRuleTabAction = (
   if (enabled) {
     return action
       ? updateRoutingClause(source, ruleIndex, unit.rule.clauses.indexOf(action), {
-          value: "close",
+          value: ROUTING_ACTION_VALUES.tab,
         })
-      : addRoutingClause(source, ruleIndex, { name: "tab", value: "close" });
+      : addRoutingClause(source, ruleIndex, {
+          name: "tab",
+          value: ROUTING_ACTION_VALUES.tab,
+        });
   }
   return action
     ? deleteRoutingClause(source, ruleIndex, unit.rule.clauses.indexOf(action))

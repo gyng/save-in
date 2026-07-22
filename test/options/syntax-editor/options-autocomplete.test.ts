@@ -336,8 +336,16 @@ describe("setupRoutingAutocomplete wiring", () => {
     textarea.value = "excl";
     textarea.setSelectionRange(textarea.value.length, textarea.value.length);
     textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    dropdown = document.getElementById(textarea.getAttribute("aria-controls")!)!;
+    expect(dropdown.querySelector(".autocomplete-option-meta")?.textContent).toBe("true");
     textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
-    expect(textarea.value).toBe("exclude: ");
+    expect(textarea.value).toBe("exclude: true");
+
+    textarea.value = "tab";
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
+    expect(textarea.value).toBe("tab: close");
 
     textarea.value = "fileext: pdf\ninto: :f";
     textarea.setSelectionRange(textarea.value.length, textarea.value.length);

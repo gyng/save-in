@@ -30,6 +30,7 @@ import { isSafeRoutingRegex } from "./regex-safety.ts";
 import { isUsableFetchTemplate } from "./fetch-url.ts";
 import { invalidDestinationRange } from "./destination-safety.ts";
 import { ROUTES_TO_FOLDER_REGEX } from "./path.ts";
+import { isRoutingActionName, ROUTING_ACTION_VALUES } from "./action-values.ts";
 
 // A trailing separator routes into a directory and keeps the download's own
 // name. Shared with the router and the download plan so the warning below can
@@ -267,29 +268,20 @@ const parseSemanticRule = (
       // template is accidental and would corrupt the request line.
       return { name, value: rawValue.trim(), type: RULE_TYPES.FETCH };
     }
-    if (name === "exclude") {
-      if (rawValue.trim().toLowerCase() !== "true") {
+    if (isRoutingActionName(name)) {
+      const expectedValue = ROUTING_ACTION_VALUES[name];
+      if (rawValue.trim().toLowerCase() !== expectedValue) {
         appendError(
           errors,
           routingPorts.getMessage("ruleBadClause"),
-          "exclude must be true",
+          `${name} must be ${expectedValue}`,
           line.valueSpan,
         );
         return false;
       }
-      return { name, value: "true", type: RULE_TYPES.ACTION };
-    }
-    if (name === "tab") {
-      if (rawValue.trim().toLowerCase() !== "close") {
-        appendError(
-          errors,
-          routingPorts.getMessage("ruleBadClause"),
-          "tab must be close",
-          line.valueSpan,
-        );
-        return false;
-      }
-      return { name, value: "close", type: RULE_TYPES.ACTION };
+      return name === "exclude"
+        ? { name, value: ROUTING_ACTION_VALUES.exclude, type: RULE_TYPES.ACTION }
+        : { name, value: ROUTING_ACTION_VALUES.tab, type: RULE_TYPES.ACTION };
     }
     if (name === "rename") {
       const parts = splitRenameValue(rawValue);

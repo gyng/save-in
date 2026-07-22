@@ -92,6 +92,23 @@ describe("reference controller", () => {
     expect(token.getAttribute("aria-label")).toContain(":date:");
   });
 
+  test("copies an explicit complete value from a concise syntax token", async () => {
+    document.body.innerHTML = `
+      <span class="reference-copy-status" role="status"></span>
+      <table><tbody><tr><th>
+        <code class="click-to-copy" data-copy-value="tab: close">tab:</code>
+      </th><td>Close the source tab</td></tr></tbody></table>`;
+    const copy = vi.fn(async () => undefined);
+    setupReferencePage(document, copy, referenceMessage);
+
+    const token = document.querySelector<HTMLElement>(".click-to-copy")!;
+    token.click();
+
+    await vi.waitFor(() => expect(copy).toHaveBeenCalledWith("tab: close"));
+    expect(token.getAttribute("aria-label")).toBe("Copy tab: close");
+    expect(document.querySelector(".reference-copy-status")?.textContent).toBe("Copied tab: close");
+  });
+
   test("syncs rows to the runtime vocabulary and adds fallbacks for new terms", () => {
     const getMessage = (key: string) =>
       ({
