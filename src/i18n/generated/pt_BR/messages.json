@@ -4387,7 +4387,7 @@
     "message": "O destino deve ser relativo e não pode conter componentes de caminho .."
   },
   "html_gestureMatcherDescription": {
-    "message": "Corresponde ao gesto usado por «Clique para salvar»."
+    "message": "Corresponde ao gesto usado por «Clique para salvar». Os padrões correspondem a qualquer parte do valor, então ancore-os (^left-click$) para impedir que left-click também corresponda a double-left-click."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Clique duplo com o botão esquerdo"

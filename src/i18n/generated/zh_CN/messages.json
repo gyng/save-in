@@ -4383,7 +4383,7 @@
     "message": "目标必须是相对路径，且不能包含 .. 路径组件"
   },
   "html_gestureMatcherDescription": {
-    "message": "匹配点击保存时使用的点击手势。"
+    "message": "匹配点击保存时使用的点击手势。模式会匹配值中的任意位置，因此请锚定它们 (^left-click$)，以避免 left-click 也匹配 double-left-click。"
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "双击鼠标左键"

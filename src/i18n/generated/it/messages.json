@@ -4389,7 +4389,7 @@
     "message": "La destinazione deve essere relativa e non può contenere componenti di percorso .."
   },
   "html_gestureMatcherDescription": {
-    "message": "Corrisponde al gesto usato da «Clic per salvare»."
+    "message": "Corrisponde al gesto usato da «Clic per salvare». I pattern corrispondono in qualsiasi punto del valore, quindi ancorali (^left-click$) per evitare che left-click corrisponda anche a double-left-click."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Doppio clic sinistro"

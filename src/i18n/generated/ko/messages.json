@@ -4387,7 +4387,7 @@
     "message": "대상은 상대 경로여야 하며 .. 경로 구성 요소를 포함할 수 없습니다"
   },
   "html_gestureMatcherDescription": {
-    "message": "클릭하여 저장할 때 사용된 클릭 제스처와 일치합니다."
+    "message": "클릭하여 저장할 때 사용된 클릭 제스처와 일치합니다. 패턴은 값 안 어디에서나 일치하므로, left-click이 double-left-click과도 일치하지 않도록 (^left-click$)처럼 고정하세요."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "왼쪽 버튼 두 번 클릭"

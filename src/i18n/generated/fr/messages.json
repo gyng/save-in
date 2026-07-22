@@ -4387,7 +4387,7 @@
     "message": "La destination doit être relative et ne peut pas contenir de composants de chemin .."
   },
   "html_gestureMatcherDescription": {
-    "message": "Correspond au geste de clic de « Enregistrement au clic »."
+    "message": "Correspond au geste de clic de « Enregistrement au clic ». Les motifs correspondent n’importe où dans la valeur ; ancrez-les donc (^left-click$) pour empêcher left-click de correspondre aussi à double-left-click."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Double-clic gauche"

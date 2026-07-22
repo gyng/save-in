@@ -4387,7 +4387,7 @@
     "message": "El destino debe ser relativo y no puede contener componentes de ruta .."
   },
   "html_gestureMatcherDescription": {
-    "message": "Coincide con el gesto usado por «Clic para guardar»."
+    "message": "Coincide con el gesto usado por «Clic para guardar». Los patrones coinciden en cualquier parte del valor, así que ánclelos (^left-click$) para evitar que left-click también coincida con double-left-click."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Doble clic izquierdo"

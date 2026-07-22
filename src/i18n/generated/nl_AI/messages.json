@@ -4387,7 +4387,7 @@
     "message": "De bestemming moet relatief zijn en mag geen ..-padcomponenten bevatten"
   },
   "html_gestureMatcherDescription": {
-    "message": "Komt overeen met het klikgebaar voor ‘Klikken om op te slaan’."
+    "message": "Komt overeen met het klikgebaar voor ‘Klikken om op te slaan’. Patronen komen overeen op elke plek in de waarde, dus veranker ze (^left-click$) zodat left-click niet ook overeenkomt met double-left-click."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Dubbelklik met de linkermuisknop"

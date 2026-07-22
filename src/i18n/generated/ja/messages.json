@@ -4387,7 +4387,7 @@
     "message": "保存先は相対パスにし、.. パス要素を含めないでください"
   },
   "html_gestureMatcherDescription": {
-    "message": "クリックして保存で使われたクリック操作に一致します。"
+    "message": "クリックして保存で使われたクリック操作に一致します。パターンは値内の任意の位置に一致するため、left-click が double-left-click にも一致しないように (^left-click$) のように固定してください。"
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "左ボタンのダブルクリック"

@@ -4387,7 +4387,7 @@
     "message": "Målet måste vara relativt och får inte innehålla ..-sökvägskomponenter"
   },
   "html_gestureMatcherDescription": {
-    "message": "Matchar klickgesten för ”Klicka för att spara”."
+    "message": "Matchar klickgesten för ”Klicka för att spara”. Mönster matchar var som helst i värdet, så förankra dem (^left-click$) för att förhindra att left-click även matchar double-left-click."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Dubbelklick med vänsterknappen"

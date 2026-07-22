@@ -4387,7 +4387,7 @@
     "message": "Das Ziel muss relativ sein und darf keine ..-Pfadbestandteile enthalten"
   },
   "html_gestureMatcherDescription": {
-    "message": "Entspricht der Klickgeste, die für „Speichern per Klick“ verwendet wurde."
+    "message": "Entspricht der Klickgeste, die für „Speichern per Klick“ verwendet wurde. Muster werden an einer beliebigen Stelle im Wert abgeglichen. Verankern Sie sie daher (^left-click$), damit left-click nicht auch double-left-click erfasst."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Doppelklick mit der linken Maustaste"

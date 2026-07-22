@@ -4385,7 +4385,7 @@
     "message": "目的地必須是相對路徑，且不能包含 .. 路徑元件"
   },
   "html_gestureMatcherDescription": {
-    "message": "比對點選儲存時使用的點選手勢。"
+    "message": "比對點選儲存時使用的點選手勢。模式會比對值中的任意位置，因此請將其錨定 (^left-click$)，避免 left-click 也比對到 double-left-click。"
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "按兩下滑鼠左鍵"
