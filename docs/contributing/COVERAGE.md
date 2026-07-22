@@ -8,9 +8,11 @@ ceiling at zero, so an ignored body cannot make those percentages appear
 complete.
 
 The authoritative exclusion list is the `coverage.exclude` array in
-`config/vitest/base.mjs`; each entry there carries a comment explaining why it
-is delegated to e2e instead of unit coverage. As of this writing it holds nine
-files, falling into four justified classes:
+`config/vitest/base.mjs`; each entry there is covered by a comment explaining
+why it is delegated to e2e instead of unit coverage — most carry their own,
+and two ride on the comment for the entry immediately above them. As of this
+writing it holds nine entries (two of them globs), falling into four justified
+classes:
 
 - Vendored code (`src/vendor/**`): not ours to cover.
 - Rolldown bundle entries (`src/entries/**`) and the Chrome offscreen-document
