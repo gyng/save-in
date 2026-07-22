@@ -5399,6 +5399,10 @@
     "message": "Finish or discard your other edits before undoing",
     "description": "Error shown when saved settings cannot be undone while another editor has pending changes. Used in src/options/saved-indicator.ts."
   },
+  "savedUndoDeclined": {
+    "message": "Undo cancelled",
+    "description": "Shown on the saved-change Undo action when the user declines a confirmation the undo itself required (for example, undoing a History retention increase would lower the limit again and prune entries). Used in src/options/core/options-persistence.ts."
+  },
   "externalApiUnknown": {
     "message": "Unknown",
     "description": "External integration API version status when no version is reported. Used in src/options/integration-panel.ts."

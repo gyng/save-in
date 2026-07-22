@@ -3,6 +3,7 @@ import type {
   ApplyConfigResponse,
   SuccessfulApplyConfigResponse,
 } from "../../shared/message-protocol.ts";
+import { getMessage } from "../../platform/localization.ts";
 
 export type JsonRecord = Record<string, unknown>;
 
@@ -90,6 +91,21 @@ export const createOptionsPersistence = (ports: OptionsPersistencePorts) => {
 
     ports.markSaved(changes, async () => {
       ports.assertUndoSafe();
+      // The undo itself is a config change (it applies `before` over `after`)
+      // and can be just as destructive as the save it reverses — e.g.
+      // undoing a History retention raise re-lowers the limit and prunes.
+      // Gate it through the same confirmation the forward save used, on the
+      // reversed changes.
+      if (ports.confirmChanges) {
+        const reverted: SavedChange[] = changes.map(({ name, before, after }) => ({
+          name,
+          before: after,
+          after: before,
+        }));
+        if (!(await ports.confirmChanges(reverted))) {
+          throw new Error(getMessage("savedUndoDeclined") || "Undo cancelled");
+        }
+      }
       const undoConfig = Object.fromEntries(changes.map(({ name, before }) => [name, before]));
       const expected = Object.fromEntries(changes.map(({ name, after }) => [name, after]));
       const undoResponse = await ports.apply(undoConfig, expected);

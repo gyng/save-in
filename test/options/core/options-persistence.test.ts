@@ -241,6 +241,81 @@ describe("options persistence", () => {
     ]);
   });
 
+  test("gates the saved-indicator undo behind the same confirmation as the forward save", async () => {
+    let undo: (() => Promise<void>) | undefined;
+    const apply = vi.fn(async () => acknowledgement({ historyRetentionLimit: 5000 }));
+    const markSaved = vi.fn((_changes, callback?: () => Promise<void>) => {
+      undo = callback;
+    });
+    const confirmChanges = vi.fn(() => Promise.resolve(true));
+    const persistence = createOptionsPersistence({
+      getSchema: () => Promise.resolve(schema),
+      getStored: vi.fn(() => Promise.resolve({ historyRetentionLimit: 100 })),
+      apply,
+      collect: vi.fn(() => ({ historyRetentionLimit: 5000 })),
+      assertApplied: assertApplySucceeded,
+      markSaved,
+      assertUndoSafe: vi.fn(),
+      onRestore: vi.fn(),
+      confirmChanges,
+    });
+    await persistence.restore();
+
+    await persistence.save();
+    expect(confirmChanges).toHaveBeenCalledWith([
+      { name: "historyRetentionLimit", before: 100, after: 5000 },
+    ]);
+    expect(apply).toHaveBeenCalledOnce();
+
+    // Undoing the raise means applying the lower value again — the same
+    // shape of change the forward save already had to confirm. Decline it.
+    confirmChanges.mockClear();
+    confirmChanges.mockResolvedValueOnce(false);
+    vi.mocked(browser.i18n.getMessage).mockReturnValueOnce("");
+    await expect(undo?.()).rejects.toThrow("Undo cancelled");
+    expect(confirmChanges).toHaveBeenCalledWith([
+      { name: "historyRetentionLimit", before: 5000, after: 100 },
+    ]);
+    // Declining must never reach the undo apply, and lastKnown must stay at
+    // the raised value it already reports as saved.
+    expect(apply).toHaveBeenCalledOnce();
+    expect(persistence.lastKnown.historyRetentionLimit).toBe(5000);
+  });
+
+  test("applies a confirmed saved-indicator undo", async () => {
+    let undo: (() => Promise<void>) | undefined;
+    const apply = vi
+      .fn()
+      .mockResolvedValueOnce(acknowledgement({ historyRetentionLimit: 5000 }))
+      .mockResolvedValueOnce(acknowledgement({ historyRetentionLimit: 100 }));
+    const markSaved = vi.fn((_changes, callback?: () => Promise<void>) => {
+      undo = callback;
+    });
+    const confirmChanges = vi.fn(() => Promise.resolve(true));
+    const persistence = createOptionsPersistence({
+      getSchema: () => Promise.resolve(schema),
+      getStored: vi.fn(() => Promise.resolve({ historyRetentionLimit: 100 })),
+      apply,
+      collect: vi.fn(() => ({ historyRetentionLimit: 5000 })),
+      assertApplied: assertApplySucceeded,
+      markSaved,
+      assertUndoSafe: vi.fn(),
+      onRestore: vi.fn(),
+      confirmChanges,
+    });
+    await persistence.restore();
+    await persistence.save();
+
+    await undo?.();
+
+    expect(apply).toHaveBeenNthCalledWith(
+      2,
+      { historyRetentionLimit: 100 },
+      { historyRetentionLimit: 5000 },
+    );
+    expect(persistence.lastKnown.historyRetentionLimit).toBe(100);
+  });
+
   test("restores a declined destructive change without applying or reporting it", async () => {
     const apply = vi.fn(() => Promise.resolve(acknowledgement({ paths: "fewer" })));
     const confirmChanges = vi.fn(() => Promise.resolve(false));
