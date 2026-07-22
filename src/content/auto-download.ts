@@ -387,12 +387,24 @@ export const setupAutoDownloadDiscovery = (
         relevant = true;
         continue;
       }
+      // An attribute change can also reveal a computed background elsewhere in
+      // the document through a sibling or ancestor combinator. Rescanning only
+      // the mutated element is the accepted bound: chasing selector reach
+      // would turn every attribute flip into a document scan, and the panel
+      // observer accepts the same bound.
       if (mutation.type === "attributes" && target) {
         queueRoot(target);
         relevant = true;
       }
       for (const element of changedElements) {
         queueRoot(element);
+        relevant = true;
+      }
+      // Removing a <source> child changes the owner's selected media without
+      // adding any element; rescan the media owner itself, as the panel
+      // observer does.
+      if (mutation.type === "childList" && target?.matches("video, audio, picture")) {
+        queueRoot(target);
         relevant = true;
       }
     }

@@ -472,6 +472,42 @@ describe("automatic source discovery", () => {
     controller.stop();
   });
 
+  test("rescans a media owner when its selected <source> child is removed", async () => {
+    vi.useFakeTimers();
+    const video = document.createElement("video");
+    const primary = document.createElement("source");
+    primary.setAttribute("src", "https://cdn.test/primary.mp4");
+    const fallback = document.createElement("source");
+    fallback.setAttribute("src", "https://cdn.test/fallback.mp4");
+    video.append(primary, fallback);
+    document.body.append(video);
+    // jsdom never resolves media selection; emulate the browser choosing the
+    // first <source> and falling back once that child is removed.
+    let selected = "https://cdn.test/primary.mp4";
+    Object.defineProperty(video, "currentSrc", { get: () => selected });
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({
+      rules: anyKindRules,
+      live: true,
+      maxPerPage: 20,
+      send,
+    });
+    await controller.idle();
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceUrl: "https://cdn.test/primary.mp4" }),
+    );
+
+    selected = "https://cdn.test/fallback.mp4";
+    primary.remove();
+    await flushLiveScan();
+    await controller.idle();
+
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceUrl: "https://cdn.test/fallback.mp4" }),
+    );
+    controller.stop();
+  });
+
   test("rescans live CSS backgrounds after a class change", async () => {
     vi.useFakeTimers();
     document.head.insertAdjacentHTML(
