@@ -363,25 +363,30 @@ export const setupRouteDebugger = (): void => {
     appendText(
       message,
       "route-debugger-message-title",
-      matchedRuleCount === 0
-        ? localize("routeDebuggerNoMatch", "No routing rule matched.")
-        : matchedRuleCount === 1
-          ? localize(
-              "routeDebuggerOneRuleMatched",
-              "1 rule matched and was used.",
-              matchedRuleCount,
-            )
-          : laterMatchCount === 1
+      trace.selectedOutcome === "exclude"
+        ? localize(
+            "routeDebuggerExcluded",
+            "A rule matched. This save is excluded, so later rules are not evaluated.",
+          )
+        : matchedRuleCount === 0
+          ? localize("routeDebuggerNoMatch", "No routing rule matched.")
+          : matchedRuleCount === 1
             ? localize(
-                "routeDebuggerOneLaterRuleMatches",
-                "1 rule used; 1 later rule also matches.",
-                laterMatchCount,
+                "routeDebuggerOneRuleMatched",
+                "1 rule matched and was used.",
+                matchedRuleCount,
               )
-            : localize(
-                "routeDebuggerLaterRulesMatch",
-                `1 rule used; ${laterMatchCount} later rules also match.`,
-                laterMatchCount,
-              ),
+            : laterMatchCount === 1
+              ? localize(
+                  "routeDebuggerOneLaterRuleMatches",
+                  "1 rule used; 1 later rule also matches.",
+                  laterMatchCount,
+                )
+              : localize(
+                  "routeDebuggerLaterRulesMatch",
+                  `1 rule used; ${laterMatchCount} later rules also match.`,
+                  laterMatchCount,
+                ),
     );
     return message;
   };
@@ -510,11 +515,14 @@ export const setupRouteDebugger = (): void => {
     const destination = document.createElement("code");
     destination.className = "route-debugger-rule-destination";
     destination.dataset.path = rule.destination;
-    destination.textContent = localize(
-      "routeDebuggerRuleDestination",
-      `Saves to ${rule.destination}`,
-      rule.destination,
-    );
+    destination.textContent =
+      rule.outcome === "exclude"
+        ? localize("routeDebuggerRuleExcluded", "Does not save matching items")
+        : localize(
+            "routeDebuggerRuleDestination",
+            `Saves to ${rule.destination}`,
+            rule.destination,
+          );
     titleGroup.append(titleLine, destination);
 
     const meta = document.createElement("span");
@@ -532,7 +540,9 @@ export const setupRouteDebugger = (): void => {
     const badge = document.createElement("span");
     badge.className = "route-debugger-rule-badge";
     badge.textContent = selected
-      ? localize("routeDebuggerSelected", "Used")
+      ? rule.outcome === "exclude"
+        ? localize("routeDebuggerSelectedExcluded", "Excluded")
+        : localize("routeDebuggerSelected", "Used")
       : rule.matched
         ? localize("routeDebuggerAlsoMatches", "Matched, not used")
         : localize("routeDebuggerDidNotMatch", "Conditions not met");
@@ -595,6 +605,12 @@ export const setupRouteDebugger = (): void => {
       ],
       [localize("routeDebuggerRenamedName", "Renamed name"), renamed],
       [localize("routeDebuggerFinalPath", "Final path"), trace.finalPath],
+      [
+        localize("routeVisualAfterSaveLabel", "After saving"),
+        trace.selectedTabAction === "close"
+          ? localize("routeVisualCloseTabValue", "Close source tab")
+          : null,
+      ],
     ];
     stages.forEach(([label, value]) => {
       if (value === null) return;
@@ -734,7 +750,9 @@ export const setupRouteDebugger = (): void => {
     card.append(buildRuleHeader(rule, selected));
     // Only the winning rule produced a path, so only it shows the pipeline.
     const output = buildRuleOutput(
-      selected && trace.destination ? buildRulePipeline(trace) : null,
+      selected && trace.selectedOutcome !== "exclude" && trace.destination
+        ? buildRulePipeline(trace)
+        : null,
       buildRuleSourceLink(rule),
     );
     if (output) card.append(output);

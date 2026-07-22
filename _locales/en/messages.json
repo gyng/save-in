@@ -121,8 +121,16 @@
       }
     }
   },
+  "notificationPrivateDetailsHidden": {
+    "message": "Private save details are hidden",
+    "description": "Generic OS-notification body used for private saves so URLs, filenames, and destinations never leave the private browsing surface. Used in background and download notification paths."
+  },
+  "notificationPrivateFailureTitle": {
+    "message": "Save In: Private save failed",
+    "description": "OS-notification title for a failed private save. Do not add the filename or URL. Used in download failure notification paths."
+  },
   "ruleMissingMatcher": {
-    "message": "Add at least one match condition before into:",
+    "message": "Add at least one match condition to the rule",
     "description": "Error message for missing matcher in rule. Used in src/routing/rule-parser.ts."
   },
   "ruleAutomaticMissingPage": {
@@ -2098,8 +2106,8 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Every rule must end with an",
-    "description": "Text in the options page. Used in src/options/options.html."
+    "message": "Every rule that saves must end with an",
+    "description": "Routing guide text before the literal into: destination. Exclusion rules are documented separately in the next list item. Used in src/options/options.html."
   },
   "html_filterClauses": {
     "message": "Filter clauses",
@@ -5710,5 +5718,71 @@
   "ruleDestinationMustBeRelative": {
     "message": "Destination must be relative and cannot contain .. path components",
     "description": "Validation error for an absolute routing destination or one containing parent-directory components. Keep the literal .. token. Used in src/routing/rule-parser.ts."
+  },
+  "notificationRuleExcludedTitle": {
+    "message": "Save In: Save excluded",
+    "description": "Notification title when a terminal exclusion routing rule prevents a requested save. Used in src/downloads/download-execution.ts."
+  },
+  "notificationRuleExcludedMessage": {
+    "message": "A routing rule excluded $URL$",
+    "description": "Notification message when a terminal exclusion routing rule prevents a requested save. Used in src/downloads/download-execution.ts.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/tracker.gif"
+      }
+    }
+  },
+  "notificationRuleExcludedPrivateMessage": {
+    "message": "A routing rule excluded this private save",
+    "description": "Privacy-preserving notification message when an exclusion rule prevents a save from a private window. Do not add the private URL or filename. Used in src/downloads/download-execution.ts and src/downloads/filename-listener.ts."
+  },
+  "o_lRoutingExcluded": {
+    "message": "excluded by routing rule",
+    "description": "Status in the latest-download routing preview when an exclusion rule matched. Used in src/options/core/routing-preview-panel.ts."
+  },
+  "routeDebuggerExcluded": {
+    "message": "A rule matched. This save is excluded, so later rules are not evaluated.",
+    "description": "Route debugger summary when a terminal exclusion rule is selected. Used in src/options/route-debugger/route-debugger.ts."
+  },
+  "routeDebuggerRuleExcluded": {
+    "message": "Does not save matching items",
+    "description": "Plain-language outcome shown below an exclusion rule in the route debugger. Used in src/options/route-debugger/route-debugger.ts."
+  },
+  "routeDebuggerSelectedExcluded": {
+    "message": "Excluded",
+    "description": "Badge on the terminal exclusion rule selected by the route debugger. Used in src/options/route-debugger/route-debugger.ts."
+  },
+  "routeVisualAddExclusionRule": {
+    "message": "Add exclusion rule",
+    "description": "Button that appends a terminal exclusion rule in the visual routing editor. Used in src/options/options.html."
+  },
+  "routeVisualAfterSaveLabel": {
+    "message": "After saving",
+    "description": "Label for a routing rule action that runs only after a save starts, shown in the visual editor and route debugger. Used in src/options/rule-editor/rule-visual-editor.ts and src/options/route-debugger/route-debugger.ts."
+  },
+  "routeVisualCloseSourceTab": {
+    "message": "Close source tab after saving",
+    "description": "Rule action that adds tab: close in the visual routing editor. Used in src/options/rule-editor/rule-visual-editor.ts."
+  },
+  "routeVisualCloseTabValue": {
+    "message": "Close source tab",
+    "description": "Outcome of a tab: close routing action, shown in the visual editor and route debugger. Used in src/options/rule-editor/rule-visual-editor.ts and src/options/route-debugger/route-debugger.ts."
+  },
+  "routeVisualExcludeLabel": {
+    "message": "Matching items",
+    "description": "Subject label for an exclude: true action in the visual routing editor. Used in src/options/rule-editor/rule-visual-editor.ts."
+  },
+  "routeVisualExcludeValue": {
+    "message": "Do not save",
+    "description": "Outcome of an exclude: true action in the visual routing editor. Used in src/options/rule-editor/rule-visual-editor.ts."
+  },
+  "routeVisualKeepSourceTab": {
+    "message": "Keep source tab after saving",
+    "description": "Rule action that removes tab: close in the visual routing editor. Used in src/options/rule-editor/rule-visual-editor.ts."
+  },
+  "html_routingActionClauses": {
+    "message": "Use exclude: true instead of into: to stop matching saves. Add tab: close to a save rule to close its source tab after the save starts; automatic rules cannot close tabs.",
+    "description": "Routing guide summary of the two action clauses. Keep the literal exclude: true, into:, and tab: close tokens. Used in src/options/options.html."
   }
 }

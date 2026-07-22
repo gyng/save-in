@@ -122,6 +122,10 @@
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In：無法路由或重新命名下載"
   },
+  "notificationPrivateDetailsHidden": {
+    "message": "私密儲存的詳細資料已隱藏"
+  },
+  "notificationPrivateFailureTitle": { "message": "Save In：私密儲存失敗" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "找不到符合 $URL$ 的規則",
     "placeholders": {
@@ -132,7 +136,7 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "請在 into: 前新增至少一個比對條件"
+    "message": "請為規則新增至少一個比對條件"
   },
   "ruleCaptureMissingMatcher": {
     "message": "擷取目標與此規則的任何條件都不相符"
@@ -945,7 +949,7 @@
     "message": "規則中的每個比對器都必須相符。"
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "每條規則都必須以"
+    "message": "每條執行儲存的規則都必須以"
   },
   "html_filterClauses": {
     "message": "篩選子句"
@@ -4428,5 +4432,29 @@
   "html_linkTitleMatcherDescription": { "message": "比對所點選連結的 title 屬性。" },
   "html_linkDownloadMatcherDescription": { "message": "比對連結建議的下載名稱。" },
   "routeDebuggerLinkTitle": { "message": "連結標題" },
-  "routeDebuggerLinkDownload": { "message": "連結下載名稱" }
+  "routeDebuggerLinkDownload": { "message": "連結下載名稱" },
+  "notificationRuleExcludedTitle": { "message": "Save In：已排除儲存" },
+  "notificationRuleExcludedPrivateMessage": {
+    "message": "路由規則排除了此次私密儲存"
+  },
+  "notificationRuleExcludedMessage": {
+    "message": "路由規則排除了 $URL$",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "o_lRoutingExcluded": { "message": "已被路由規則排除" },
+  "routeDebuggerExcluded": {
+    "message": "有一條規則相符。此次儲存已被排除，因此不再評估後續規則。"
+  },
+  "routeDebuggerRuleExcluded": { "message": "不儲存相符項目" },
+  "routeDebuggerSelectedExcluded": { "message": "已排除" },
+  "routeVisualAddExclusionRule": { "message": "新增排除規則" },
+  "routeVisualAfterSaveLabel": { "message": "儲存後" },
+  "routeVisualCloseSourceTab": { "message": "儲存後關閉來源分頁" },
+  "routeVisualCloseTabValue": { "message": "關閉來源分頁" },
+  "routeVisualExcludeLabel": { "message": "相符項目" },
+  "routeVisualExcludeValue": { "message": "不儲存" },
+  "routeVisualKeepSourceTab": { "message": "儲存後保持來源分頁開啟" },
+  "html_routingActionClauses": {
+    "message": "使用 exclude: true 取代 into: 可停止相符的儲存。在儲存規則中加入 tab: close，可在儲存開始後關閉來源分頁；自動規則不能關閉分頁。"
+  }
 }

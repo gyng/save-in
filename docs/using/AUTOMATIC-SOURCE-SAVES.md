@@ -36,6 +36,13 @@ The `into:` value uses the normal routing path and variable syntax. A trailing
 slash preserves the resolved source filename. Rules can instead rename the file
 with variables such as `:filename:`, `:pagedomain:`, or date components.
 
+An automatic exclusion rule uses `exclude: true` instead of `into:`. It must
+keep the same explicit automatic context, page matcher, and source matcher as
+an automatic save rule. A matching exclusion is terminal: that source is not
+saved, later rules are ignored for it, and it does not consume the page's save
+limit. Automatic rules cannot use `tab: close` because discovery is unattended
+and may match many sources from one page.
+
 An automatic rule may also carry a `fetch:` clause. When the rule matches, Save
 In downloads from the expanded template instead of the discovered source URL —
 for example, to save the original-resolution asset behind a preview the page

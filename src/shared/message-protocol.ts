@@ -225,6 +225,7 @@ export type InternalResponseMap = {
     {
       matchers: string[];
       variables: string[];
+      routingActions?: string[] | undefined;
       automaticMatchers: string[];
       automaticContext: string;
       sourceKinds: PageSourceKind[];

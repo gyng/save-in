@@ -546,6 +546,10 @@
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: No se pudo enrutar o cambiar el nombre de la descarga"
   },
+  "notificationPrivateDetailsHidden": {
+    "message": "Los detalles del guardado privado están ocultos"
+  },
+  "notificationPrivateFailureTitle": { "message": "Save In: Error al guardar en privado" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "No se encontró ninguna regla coincidente para $URL$",
     "placeholders": {
@@ -556,7 +560,7 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "Añada al menos una condición de coincidencia antes de into:"
+    "message": "Añada al menos una condición de coincidencia a la regla"
   },
   "ruleCaptureMissingMatcher": {
     "message": "El destino de captura no coincide con ninguna condición de esta regla"
@@ -1369,7 +1373,7 @@
     "message": "Todos los comparadores de una regla deben coincidir."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Toda regla debe terminar con una"
+    "message": "Toda regla que guarde debe terminar con una"
   },
   "html_filterClauses": {
     "message": "Cláusulas de filtro"
@@ -4438,5 +4442,33 @@
     "message": "Coincide con el nombre de descarga sugerido por el enlace."
   },
   "routeDebuggerLinkTitle": { "message": "Título del enlace" },
-  "routeDebuggerLinkDownload": { "message": "Nombre de descarga del enlace" }
+  "routeDebuggerLinkDownload": { "message": "Nombre de descarga del enlace" },
+  "notificationRuleExcludedTitle": { "message": "Save In: guardado excluido" },
+  "notificationRuleExcludedPrivateMessage": {
+    "message": "Una regla de enrutamiento excluyó este guardado privado"
+  },
+  "notificationRuleExcludedMessage": {
+    "message": "Una regla de enrutamiento excluyó $URL$",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "o_lRoutingExcluded": { "message": "excluido por una regla de enrutamiento" },
+  "routeDebuggerExcluded": {
+    "message": "Una regla coincidió. Este guardado está excluido, por lo que no se evalúan las reglas posteriores."
+  },
+  "routeDebuggerRuleExcluded": { "message": "No guarda los elementos coincidentes" },
+  "routeDebuggerSelectedExcluded": { "message": "Excluido" },
+  "routeVisualAddExclusionRule": { "message": "Añadir regla de exclusión" },
+  "routeVisualAfterSaveLabel": { "message": "Después de guardar" },
+  "routeVisualCloseSourceTab": {
+    "message": "Cerrar la pestaña de origen después de guardar"
+  },
+  "routeVisualCloseTabValue": { "message": "Cerrar la pestaña de origen" },
+  "routeVisualExcludeLabel": { "message": "Elementos coincidentes" },
+  "routeVisualExcludeValue": { "message": "No guardar" },
+  "routeVisualKeepSourceTab": {
+    "message": "Mantener abierta la pestaña de origen después de guardar"
+  },
+  "html_routingActionClauses": {
+    "message": "Usa exclude: true en lugar de into: para detener los guardados coincidentes. Añade tab: close a una regla de guardado para cerrar su pestaña de origen después de iniciar el guardado; las reglas automáticas no pueden cerrar pestañas."
+  }
 }

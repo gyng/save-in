@@ -10,6 +10,7 @@ import {
   type MenusFixture,
   type TestMenuListener,
 } from "./listeners.fixture.ts";
+import type { DownloadPipelineState } from "../../../src/downloads/download-types.ts";
 
 describe("addTabMenuListener", () => {
   test("registers a synchronous listener that ignores non-tabstrip items", async () => {
@@ -245,6 +246,21 @@ describe("addTabMenuListener tabstrip downloads", () => {
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
 
     expect(downloads()).toHaveLength(1);
+    expect(global.browser.tabs.remove).toHaveBeenCalledWith(2);
+  });
+
+  test("a matched rule can close a saved tab without the global option", async () => {
+    options.closeTabOnSave = false;
+    vi.mocked(Download.launchDownload).mockImplementationOnce(
+      async (state: DownloadPipelineState) => {
+        state.scratch.routeTabAction = "close";
+        return { status: "started", downloadId: 1 };
+      },
+    );
+
+    await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
+
+    expect(global.browser.tabs.remove).toHaveBeenCalledOnce();
     expect(global.browser.tabs.remove).toHaveBeenCalledWith(2);
   });
 

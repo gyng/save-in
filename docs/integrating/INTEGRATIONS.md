@@ -95,7 +95,7 @@ There is no `externally_connectable` declaration, so web pages cannot call Save 
 ## Config messages
 
 - `GET_SCHEMA` returns option names, types, defaults, and descriptions.
-- `GET_KEYWORDS` returns path variables, routing matchers, automatic-routing matchers and context, and supported source kinds.
+- `GET_KEYWORDS` returns path variables, routing matchers and actions, automatic-routing matchers and context, and supported source kinds.
 - `GET_GRAMMARS` returns the EBNF, semantic constraints, option name, and examples for the directory and unified routing languages.
 - `VALIDATE` dry-runs `paths` and/or `filenamePatterns`. It returns structured errors, a menu preview, and optional sample traces without saving.
 - `GET_CONFIG` returns the current saved values in apply-ready form. It is same-extension only and unavailable through `onMessageExternal`.
@@ -134,6 +134,24 @@ An automatic save carries the tab it came from, so a candidate may name that pag
 A rule may also carry one `fetch:` clause: a literal `http://` or `https://` URL template that Save In downloads from instead of the matched source once the rule wins, while `into:` keeps setting the destination. `VALIDATE` reports violations in `ruleErrors[].message`: `ruleExtraFetch` (a rule has more than one `fetch:` clause), `ruleFetchNotHttp` (the template is not a usable literal http(s) URL), and `ruleFetchUnsupportedVariable` (the template references a variable that would fetch the URL being replaced, such as `:mime:` or `:sha256:`). If expansion does not produce a usable HTTP(S) URL, the selected save fails rather than downloading the original source under the rewritten route. Rules carrying `fetch:` are skipped by ordinary-browser-download routing, which can only rename a download, not redirect it to a different URL; the first matching rule without `fetch:` applies there instead.
 
 A rule may also carry one `rename:` clause written as `find -> replacement`, split on the first raw ` -> ` sequence. `find` is a regular expression in the matcher dialect (flags follow the clause name, for example `rename/gi:`), and `replacement` is literal text in which routing variables and capture references expand; an empty replacement deletes matches. The transform edits the final filename component after the name fully resolves — including any `fetch:` rewrite — and before length limits; the directory part is never parsed, and separators a replacement introduces are sanitized as ordinary filename characters. A pattern that needs a literal ` -> ` writes it with regex escapes (for example `\x20->`) so the raw clause text never contains the separator. `VALIDATE` reports `ruleRenameMissingSeparator` (no ` -> ` separator), `ruleExtraRename` (more than one `rename:` clause), `ruleInvalidRegex` (the find pattern or flags do not compile), `ruleUnknownDestinationVariable` (an unknown variable in the replacement), and `ruleMissingCapture` (a capture reference without a usable capture clause). Unlike `fetch:`, ordinary `rename:` rules stay eligible for ordinary-browser-download routing when their output can resolve without reading file content. Rules whose `into:` destination or `rename:` replacement uses `:sha256:` or `:sha256full:` are skipped for downloads already in flight: hashing would require Save In to fetch and buffer the browser-owned download a second time. Hash variables remain available to downloads started through Save In's normal pipeline.
+
+An exclusion rule uses `exclude: true` instead of `into:` and must contain at
+least one matcher. It cannot contain `capture:`, `capturegroups:`, `fetch:`,
+`rename:`, `tab:`, or `into:`. A matching exclusion is terminal: Save In does
+not start the requested save and does not evaluate later rules. In ordinary
+browser-download routing it leaves the browser-owned download unchanged while
+still preventing later Save In routing rules from adopting it. Automatic
+exclusions retain the normal explicit context, page, and source requirements
+and do not consume the per-page save limit.
+
+A save rule may carry `tab: close`. Once that rule wins and the browser accepts
+the Save In download, the extension closes the source tab. The action does not
+run for a skipped or failed save, and an explicit per-menu-item tab action takes
+precedence. Automatic rules reject `tab: close`; ordinary browser downloads do
+not expose a source tab for this action.
+
+External `DOWNLOAD` requests never execute `tab: close`; allowing another
+extension grants it download access, not authority to close browser tabs.
 
 Check for the `vocabulary`, `grammar`, and `automatic_routing_validation` capabilities before using these additive API v1 features. Older callers can ignore the new capability and response fields.
 

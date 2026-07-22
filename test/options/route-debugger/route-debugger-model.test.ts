@@ -51,6 +51,22 @@ test("accepts a complete route trace received from the background", () => {
   expect(parseRouteDebuggerTrace(trace)).toEqual(trace);
 });
 
+test("carries terminal and post-save routing outcomes while accepting legacy traces", () => {
+  const withActions = {
+    ...trace,
+    selectedOutcome: "exclude" as const,
+    selectedTabAction: null,
+    rules: trace.rules.map((rule, index) => ({
+      ...rule,
+      outcome: index === 1 ? ("exclude" as const) : null,
+    })),
+  };
+  expect(parseRouteDebuggerTrace(withActions)).toEqual(withActions);
+  expect(parseRouteDebuggerTrace(trace)).toEqual(trace);
+  expect(parseRouteDebuggerTrace({ ...trace, selectedOutcome: "stop" })).toBeNull();
+  expect(parseRouteDebuggerTrace({ ...trace, selectedTabAction: "reload" })).toBeNull();
+});
+
 test("carries fetch rewrite fields and tolerates their absence", () => {
   const withFetch = {
     ...trace,

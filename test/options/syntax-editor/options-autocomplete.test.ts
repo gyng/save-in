@@ -333,6 +333,12 @@ describe("setupRoutingAutocomplete wiring", () => {
     textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
     expect(textarea.value).toBe("filename: ");
 
+    textarea.value = "excl";
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
+    expect(textarea.value).toBe("exclude: ");
+
     textarea.value = "fileext: pdf\ninto: :f";
     textarea.setSelectionRange(textarea.value.length, textarea.value.length);
     textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
@@ -348,7 +354,17 @@ describe("setupRoutingAutocomplete wiring", () => {
     expect(textarea.getAttribute("aria-expanded")).toBe("true");
     expect(
       [...dropdown.querySelectorAll(".autocomplete-option-label")].map((item) => item.textContent),
-    ).toEqual(["into", "fetch", "filename", "fileext"]);
+    ).toEqual([
+      "into",
+      "fetch",
+      "rename",
+      "exclude",
+      "tab",
+      "capture",
+      "capturegroups",
+      "filename",
+      "fileext",
+    ]);
   });
 
   test("attaches directory completion to the paths textarea", () => {

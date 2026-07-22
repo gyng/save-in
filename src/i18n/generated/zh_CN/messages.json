@@ -120,6 +120,10 @@
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In：无法路由或重命名下载"
   },
+  "notificationPrivateDetailsHidden": {
+    "message": "隐私保存的详细信息已隐藏"
+  },
+  "notificationPrivateFailureTitle": { "message": "Save In：隐私保存失败" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "找不到 $URL$ 的匹配规则",
     "placeholders": {
@@ -130,7 +134,7 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "在 into: 之前添加至少一个匹配条件"
+    "message": "向规则添加至少一个匹配条件"
   },
   "ruleCaptureMissingMatcher": {
     "message": "捕获目标与此规则中的任何条件都不匹配"
@@ -943,7 +947,7 @@
     "message": "规则中的每个匹配器都必须匹配。"
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "每条规则都必须以"
+    "message": "每条执行保存的规则都必须以"
   },
   "html_filterClauses": {
     "message": "筛选子句"
@@ -4426,5 +4430,29 @@
   "html_linkTitleMatcherDescription": { "message": "匹配所点击链接的 title 属性。" },
   "html_linkDownloadMatcherDescription": { "message": "匹配链接建议的下载名称。" },
   "routeDebuggerLinkTitle": { "message": "链接标题" },
-  "routeDebuggerLinkDownload": { "message": "链接下载名称" }
+  "routeDebuggerLinkDownload": { "message": "链接下载名称" },
+  "notificationRuleExcludedTitle": { "message": "Save In：已排除保存" },
+  "notificationRuleExcludedPrivateMessage": {
+    "message": "路由规则排除了此次隐私保存"
+  },
+  "notificationRuleExcludedMessage": {
+    "message": "路由规则排除了 $URL$",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "o_lRoutingExcluded": { "message": "已被路由规则排除" },
+  "routeDebuggerExcluded": {
+    "message": "一条规则已匹配。此次保存已被排除，因此不再评估后续规则。"
+  },
+  "routeDebuggerRuleExcluded": { "message": "不保存匹配的项目" },
+  "routeDebuggerSelectedExcluded": { "message": "已排除" },
+  "routeVisualAddExclusionRule": { "message": "添加排除规则" },
+  "routeVisualAfterSaveLabel": { "message": "保存后" },
+  "routeVisualCloseSourceTab": { "message": "保存后关闭来源标签页" },
+  "routeVisualCloseTabValue": { "message": "关闭来源标签页" },
+  "routeVisualExcludeLabel": { "message": "匹配的项目" },
+  "routeVisualExcludeValue": { "message": "不保存" },
+  "routeVisualKeepSourceTab": { "message": "保存后保持来源标签页打开" },
+  "html_routingActionClauses": {
+    "message": "使用 exclude: true 代替 into: 可停止匹配的保存。在保存规则中添加 tab: close，可在保存开始后关闭来源标签页；自动规则不能关闭标签页。"
+  }
 }

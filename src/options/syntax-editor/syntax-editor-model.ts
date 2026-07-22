@@ -29,11 +29,13 @@ export type SyntaxTokenKind =
   | "matcher"
   | "capture"
   | "destination"
+  | "action"
   | "flags"
   | "punctuation"
   | "regex"
   | "capture-value"
   | "destination-value"
+  | "action-value"
   | "invalid";
 
 export type SyntaxToken = {
@@ -209,9 +211,11 @@ const addRoutingClauseTokens = (
   const nameKind =
     line.clauseKind === "destination" || line.clauseKind === "fetch" || line.clauseKind === "rename"
       ? "destination"
-      : line.clauseKind === "capture"
-        ? "capture"
-        : "matcher";
+      : line.clauseKind === "action"
+        ? "action"
+        : line.clauseKind === "capture"
+          ? "capture"
+          : "matcher";
   tokens.push(token(nameKind, line.nameSpan.start.offset, line.nameSpan.end.offset));
   if (line.cst.flagsSeparator) {
     tokens.push(
@@ -251,9 +255,11 @@ const addRoutingClauseTokens = (
   const valueKind =
     line.clauseKind === "destination" || line.clauseKind === "fetch"
       ? "destination-value"
-      : line.clauseKind === "capture"
-        ? "capture-value"
-        : "regex";
+      : line.clauseKind === "action"
+        ? "action-value"
+        : line.clauseKind === "capture"
+          ? "capture-value"
+          : "regex";
   tokens.push(token(valueKind, line.valueSpan.start.offset, line.valueSpan.end.offset));
   if (line.clauseKind === "destination" || line.clauseKind === "fetch") {
     addVariableTokens(source, line.valueSpan.start.offset, line.valueSpan.end.offset, tokens);

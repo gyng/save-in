@@ -1,6 +1,7 @@
 import {
   addRoutingClause,
   addAutomaticRoutingRule,
+  addExclusionRoutingRule,
   addRoutingRule,
   deleteRoutingClause,
   deleteRoutingRule,
@@ -9,6 +10,7 @@ import {
   parseVisualRoutingRules,
   setRoutingRuleEnabled,
   setRoutingRuleName,
+  setRoutingRuleTabAction,
   updateRoutingClause,
 } from "../../../src/options/rule-editor/rule-visual-editor-model.ts";
 
@@ -190,6 +192,21 @@ describe("routing visual editor model", () => {
     ).toBe("filename: jpg\nrename: cat -> dog\ninto: images");
   });
 
+  test("adds and removes the close-tab action before the destination", () => {
+    const withAction = setRoutingRuleTabAction("filename: jpg\ninto: images", 0, true);
+    expect(withAction).toBe("filename: jpg\ntab: close\ninto: images");
+    expect(setRoutingRuleTabAction(withAction, 0, false)).toBe("filename: jpg\ninto: images");
+  });
+
+  test("inserts a new exclusion matcher before the terminal action", () => {
+    expect(
+      addRoutingClause("filename: jpg\nexclude: true", 0, {
+        name: "pageurl",
+        value: "example\\.com",
+      }),
+    ).toBe("filename: jpg\npageurl: example\\.com\nexclude: true");
+  });
+
   test("deletes one clause line without disturbing comments or other rules", () => {
     expect(deleteRoutingClause(source, 1, 1)).toBe(source.replace("capturegroups: fileext\n", ""));
   });
@@ -221,6 +238,12 @@ describe("routing visual editor model", () => {
       ].join("\n"),
     );
     expect(source).not.toContain("disabled: true");
+  });
+
+  test("adds a canonical terminal exclusion rule", () => {
+    expect(addExclusionRoutingRule("filename: jpg\ninto: images/:filename:\n")).toBe(
+      "filename: jpg\ninto: images/:filename:\n\nfilename: .*\nexclude: true\n",
+    );
   });
 
   test.each([

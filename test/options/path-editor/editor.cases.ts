@@ -860,6 +860,9 @@ describe("insert menu targets its editor via data-insert-target", () => {
     ).toEqual([
       "into:",
       "fetch:",
+      "rename:",
+      "exclude:",
+      "tab:",
       "capture:",
       "capturegroups:",
       "context:",

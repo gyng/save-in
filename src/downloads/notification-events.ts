@@ -571,13 +571,18 @@ const notifyDownloadFailure = async (
   notify: NotifySettings,
 ): Promise<void> => {
   if (notify.onFailure && record.sourceSidecar !== true) {
+    const privateContext = isPrivateDownloadRecord(record);
     createNotification(
       String(downloadDelta.id),
       {
         type: "basic",
-        title: getMessage("notificationFailureTitle", [filename]),
+        title: privateContext
+          ? getMessage("notificationPrivateFailureTitle")
+          : getMessage("notificationFailureTitle", [filename]),
         iconUrl: ERROR_ICON_URL,
-        message: downloadFailureReason(failed) || getMessage("genericUnknownError"),
+        message: privateContext
+          ? getMessage("notificationPrivateDetailsHidden")
+          : downloadFailureReason(failed) || getMessage("genericUnknownError"),
       },
       notify.duration,
     );
@@ -683,13 +688,16 @@ const notifyDownloadSuccess = async (
   const completedItem = res[0];
   const mime = completedItem?.mime;
   const successfulLabel = getMessage("notificationSuccessTitle");
-  const title = buildSuccessNotificationTitle(successfulLabel, completedItem?.fileSize, mime);
+  const privateContext = isPrivateDownloadRecord(record);
+  const title = privateContext
+    ? successfulLabel
+    : buildSuccessNotificationTitle(successfulLabel, completedItem?.fileSize, mime);
 
   const successDetails: SaveInNotificationOptions = {
     type: "basic",
     title,
     iconUrl: SUCCESS_ICON_URL,
-    message: filename,
+    message: privateContext ? getMessage("notificationPrivateDetailsHidden") : filename,
   };
   // Undo needs a History row to mark. Isolated private saves have no row;
   // opted-in private saves carry one and can use the normal Chrome action.

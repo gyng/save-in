@@ -78,6 +78,8 @@ export type DeferredRouteRecovery = {
   pathTemplateRaw?: string | undefined;
   routeTemplateRaw?: string | undefined;
   renameTemplate?: RenameTransform | undefined;
+  routeTabAction?: "close" | undefined;
+  routeTabActionSuppressed?: boolean | undefined;
   mimeExtension?: string | undefined;
   historyEntryId?: string | undefined;
 };
@@ -104,6 +106,8 @@ const normalizeDeferredRoute = (value: unknown): DeferredRouteRecovery | null =>
     ...(isRenameTransform(candidate.renameTemplate)
       ? { renameTemplate: candidate.renameTemplate }
       : {}),
+    ...(candidate.routeTabAction === "close" ? { routeTabAction: "close" as const } : {}),
+    ...(candidate.routeTabActionSuppressed === true ? { routeTabActionSuppressed: true } : {}),
     ...(typeof candidate.mimeExtension === "string"
       ? { mimeExtension: candidate.mimeExtension }
       : {}),
@@ -138,6 +142,8 @@ export const createDeferredRouteRecovery = (
   ...(state.scratch.pathTemplateRaw ? { pathTemplateRaw: state.scratch.pathTemplateRaw } : {}),
   ...(state.scratch.routeTemplateRaw ? { routeTemplateRaw: state.scratch.routeTemplateRaw } : {}),
   ...(state.scratch.renameTemplate ? { renameTemplate: state.scratch.renameTemplate } : {}),
+  ...(state.scratch.routeTabAction ? { routeTabAction: state.scratch.routeTabAction } : {}),
+  ...(state.scratch.routeTabActionSuppressed ? { routeTabActionSuppressed: true } : {}),
   ...(state.scratch.mimeExtension ? { mimeExtension: state.scratch.mimeExtension } : {}),
   ...(state.scratch.historyEntryId ? { historyEntryId: state.scratch.historyEntryId } : {}),
 });
@@ -176,6 +182,8 @@ const restoreDeferredRoute = (recovery: DeferredRouteRecovery): DownloadPipeline
       pathTemplateRaw,
       ...(recovery.routeTemplateRaw ? { routeTemplateRaw: recovery.routeTemplateRaw } : {}),
       ...(recovery.renameTemplate ? { renameTemplate: recovery.renameTemplate } : {}),
+      ...(recovery.routeTabAction ? { routeTabAction: recovery.routeTabAction } : {}),
+      ...(recovery.routeTabActionSuppressed ? { routeTabActionSuppressed: true } : {}),
       ...(recovery.mimeExtension ? { mimeExtension: recovery.mimeExtension } : {}),
       ...(recovery.historyEntryId ? { historyEntryId: recovery.historyEntryId } : {}),
     },
@@ -331,20 +339,72 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
       return false;
     }
 
+    const addStateLog = (state: DownloadPipelineState, message: string, data: unknown): unknown =>
+      state.info.currentTab?.incognito === true
+        ? logPort.add(message, data, { privateContext: true })
+        : logPort.add(message, data);
+
+    const applyDeferredRouteTabAction = async (state: DownloadPipelineState): Promise<void> => {
+      const tabId = state.info.currentTab?.id;
+      if (
+        state.scratch.routeTabAction !== "close" ||
+        state.scratch.routeTabActionHandled ||
+        state.scratch.routeTabActionSuppressed ||
+        tabId == null
+      ) {
+        return;
+      }
+      // Claim the one-shot action before yielding: downloads.download may
+      // resolve while this listener is removing the tab, and its caller reads
+      // the same state object before deciding whether it must act too.
+      state.scratch.routeTabActionHandled = true;
+      try {
+        await webExtensionApi.tabs.remove(tabId);
+      } catch (error) {
+        addStateLog(state, "deferred post-save tab action failed", String(error));
+      }
+    };
+
     const rejectDeferredRoute = async (state: DownloadPipelineState): Promise<void> => {
+      const excluded = state.scratch.routeOutcome === "exclude";
       suggest();
       if (typeof downloadItem.id === "number") {
         await webExtensionApi.downloads.cancel(downloadItem.id).catch(() => {});
         await historyPort
-          .setStatus(state.scratch?.historyEntryId, "RULE_NO_MATCH", downloadItem.id)
-          .catch((error) => logPort.add("route-miss history update failed", String(error)));
+          .setStatus(
+            state.scratch?.historyEntryId,
+            excluded ? "RULE_EXCLUDED" : "RULE_NO_MATCH",
+            downloadItem.id,
+          )
+          .catch((error) =>
+            addStateLog(
+              state,
+              excluded
+                ? "route-exclusion history update failed"
+                : "route-miss history update failed",
+              String(error),
+            ),
+          );
       }
-      if (options.notifyOnFailure) {
+      if (excluded && options.notifyOnRuleMatch) {
+        createExtensionNotification(
+          getMessage("notificationRuleExcludedTitle"),
+          state.info.currentTab?.incognito === true
+            ? getMessage("notificationRuleExcludedPrivateMessage")
+            : getMessage("notificationRuleExcludedMessage", [
+                historyDisplayUrl(state.info.url) ?? "",
+              ]),
+          false,
+          EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+        );
+      } else if (!excluded && options.notifyOnFailure) {
         createExtensionNotification(
           getMessage("notificationRuleMatchFailedExclusiveTitle"),
-          getMessage("notificationRuleMatchFailedExclusiveMessage", [
-            historyDisplayUrl(state.info.url) ?? "",
-          ]),
+          state.info.currentTab?.incognito === true
+            ? getMessage("notificationPrivateDetailsHidden")
+            : getMessage("notificationRuleMatchFailedExclusiveMessage", [
+                historyDisplayUrl(state.info.url) ?? "",
+              ]),
           true,
           EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
         );
@@ -413,9 +473,11 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
             recoveredState.scratch.deferredRouteRequirement = false;
             const filename = Download.finalizeFullPath(recoveredState);
             rememberResolvedFilename(recoveredState, filename);
+            const tabAction = applyDeferredRouteTabAction(recoveredState);
             suggest({ filename, conflictAction: options.conflictAction });
+            await tabAction;
           } catch (error) {
-            logPort.add("deferred route recovery failed", String(error));
+            addStateLog(recoveredState, "deferred route recovery failed", String(error));
             await rejectDeferredRoute(recoveredState);
           } finally {
             await Promise.all([
@@ -435,7 +497,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
                 (stored) => removeDeferredRoute(stored, deferredUrl, recovery.id),
               ),
             ]).catch((error) =>
-              logPort.add("deferred route recovery cleanup failed", String(error)),
+              addStateLog(recoveredState, "deferred route recovery cleanup failed", String(error)),
             );
           }
           return;
@@ -484,7 +546,11 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         );
         suggest({ filename: recovered, conflictAction: options.conflictAction });
       })().catch((error) => {
-        logPort.add("filename recovery failed", String(error));
+        if (downloadItem.incognito) {
+          logPort.add("filename recovery failed", String(error), { privateContext: true });
+        } else {
+          logPort.add("filename recovery failed", String(error));
+        }
         suggest();
       });
       return true;
@@ -537,9 +603,11 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         pendingState.scratch.deferredRouteRequirement = false;
         const filename = Download.finalizeFullPath(pendingState);
         rememberResolvedFilename(pendingState, filename);
+        const tabAction = applyDeferredRouteTabAction(pendingState);
         suggest({ filename, conflictAction: options.conflictAction });
+        await tabAction;
       })().catch((error) => {
-        logPort.add("filename resolution failed", String(error));
+        addStateLog(pendingState, "filename resolution failed", String(error));
         if (pendingState.scratch?.deferredRouteRequirement) void rejectDeferredRoute(pendingState);
         else suggest();
       });

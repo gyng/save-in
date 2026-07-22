@@ -206,6 +206,7 @@ export const statusLabel = (
     DOWNLOAD_STATE_LOST: ["historyStatusStateLost", "Download state lost"],
     FIREFOX_REROUTE_FAILED: ["historyStatusRoutingFailed", "Routing failed"],
     RULE_NO_MATCH: ["historyStatusNoRuleMatch", "No matching rule"],
+    RULE_EXCLUDED: ["routeDebuggerSelectedExcluded", "Excluded"],
   };
   const known = knownStatuses[status];
   if (known) return getMessage(known[0]) || known[1];
@@ -221,8 +222,8 @@ export const statusClass = (status: string): string => {
     return "status-pending";
   }
   // Deliberate user actions, not errors: distinct from the failure styling
-  if (status === "undone" || status === "moved") {
-    return status === "undone" ? "status-undone" : "status-moved";
+  if (status === "undone" || status === "moved" || status === "RULE_EXCLUDED") {
+    return status === "moved" ? "status-moved" : "status-undone";
   }
   return "status-fail";
 };

@@ -546,6 +546,12 @@
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Download konnte nicht weitergeleitet oder umbenannt werden"
   },
+  "notificationPrivateDetailsHidden": {
+    "message": "Details zum privaten Speichervorgang sind ausgeblendet"
+  },
+  "notificationPrivateFailureTitle": {
+    "message": "Save In: Privater Speichervorgang fehlgeschlagen"
+  },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "Keine passende Regel für $URL$ gefunden",
     "placeholders": {
@@ -556,7 +562,7 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "Fügen Sie vor into: mindestens eine Abgleichsbedingung hinzu"
+    "message": "Fügen Sie der Regel mindestens eine Abgleichsbedingung hinzu"
   },
   "ruleCaptureMissingMatcher": {
     "message": "Das Ziel von capture: entspricht keiner Bedingung dieser Regel"
@@ -1369,7 +1375,7 @@
     "message": "Jeder Matcher einer Regel muss zutreffen."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Jede Regel muss mit einem"
+    "message": "Jede Regel, die speichert, muss mit einem"
   },
   "html_filterClauses": {
     "message": "Filterklauseln"
@@ -4438,5 +4444,29 @@
     "message": "Entspricht dem vom Link vorgeschlagenen Downloadnamen."
   },
   "routeDebuggerLinkTitle": { "message": "Linktitel" },
-  "routeDebuggerLinkDownload": { "message": "Link-Downloadname" }
+  "routeDebuggerLinkDownload": { "message": "Link-Downloadname" },
+  "notificationRuleExcludedTitle": { "message": "Save In: Speichern ausgeschlossen" },
+  "notificationRuleExcludedPrivateMessage": {
+    "message": "Eine Routing-Regel hat diesen privaten Speichervorgang ausgeschlossen"
+  },
+  "notificationRuleExcludedMessage": {
+    "message": "Eine Routing-Regel hat $URL$ ausgeschlossen",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "o_lRoutingExcluded": { "message": "durch Routing-Regel ausgeschlossen" },
+  "routeDebuggerExcluded": {
+    "message": "Eine Regel stimmte überein. Dieser Speichervorgang ist ausgeschlossen, daher werden spätere Regeln nicht ausgewertet."
+  },
+  "routeDebuggerRuleExcluded": { "message": "Speichert übereinstimmende Elemente nicht" },
+  "routeDebuggerSelectedExcluded": { "message": "Ausgeschlossen" },
+  "routeVisualAddExclusionRule": { "message": "Ausschlussregel hinzufügen" },
+  "routeVisualAfterSaveLabel": { "message": "Nach dem Speichern" },
+  "routeVisualCloseSourceTab": { "message": "Quelltab nach dem Speichern schließen" },
+  "routeVisualCloseTabValue": { "message": "Quelltab schließen" },
+  "routeVisualExcludeLabel": { "message": "Übereinstimmende Elemente" },
+  "routeVisualExcludeValue": { "message": "Nicht speichern" },
+  "routeVisualKeepSourceTab": { "message": "Quelltab nach dem Speichern geöffnet lassen" },
+  "html_routingActionClauses": {
+    "message": "Verwenden Sie exclude: true anstelle von into:, um übereinstimmende Speichervorgänge zu stoppen. Fügen Sie einer Speicherregel tab: close hinzu, um den Quelltab nach Beginn des Speicherns zu schließen; automatische Regeln können keine Tabs schließen."
+  }
 }

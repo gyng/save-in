@@ -29,6 +29,7 @@ export type RouteDebuggerRule = {
   name?: string | undefined;
   sourceIndex?: number | undefined;
   matched: boolean;
+  outcome?: "route" | "exclude" | null | undefined;
   destination: string;
   source?: { start: number; end: number; line: number } | undefined;
   clauses: RouteDebuggerClause[];
@@ -36,6 +37,8 @@ export type RouteDebuggerRule = {
 
 export type RouteDebuggerTrace = {
   selectedRule: number | null;
+  selectedOutcome?: "route" | "exclude" | null | undefined;
+  selectedTabAction?: "close" | null | undefined;
   // Optional so a trace from an older background that predates fetch: routing
   // still validates; absent means the winning rule did not rewrite the URL.
   selectedFetchTemplate?: string | null | undefined;
@@ -90,6 +93,9 @@ const isPositiveSafeInteger = (value: unknown): value is number =>
 const isAttemptStatus = (value: unknown): value is RouteDebuggerAttempt["status"] =>
   value === "matched" || value === "not-matched" || value === "missing" || value === "invalid";
 
+const isRoutingOutcome = (value: unknown): value is "route" | "exclude" | null =>
+  value === "route" || value === "exclude" || value === null;
+
 const isNullableStringArray = (value: unknown): value is Array<string | null> =>
   Array.isArray(value) && value.every(nullableString);
 
@@ -122,6 +128,12 @@ export const parseRouteDebuggerTrace = (value: unknown): RouteDebuggerTrace | nu
   if (
     !isStringKeyedRecord(value) ||
     !(value.selectedRule === null || isPositiveSafeInteger(value.selectedRule)) ||
+    !(value.selectedOutcome === undefined || isRoutingOutcome(value.selectedOutcome)) ||
+    !(
+      value.selectedTabAction === undefined ||
+      value.selectedTabAction === null ||
+      value.selectedTabAction === "close"
+    ) ||
     !nullableString(value.destination) ||
     !nullableString(value.expandedDestination) ||
     !nullableString(value.sanitizedDestination) ||
@@ -147,6 +159,7 @@ export const parseRouteDebuggerTrace = (value: unknown): RouteDebuggerTrace | nu
       !isPositiveSafeInteger(candidate.index) ||
       !(typeof candidate.name === "undefined" || typeof candidate.name === "string") ||
       typeof candidate.matched !== "boolean" ||
+      !(candidate.outcome === undefined || isRoutingOutcome(candidate.outcome)) ||
       typeof candidate.destination !== "string" ||
       !Array.isArray(candidate.clauses)
     ) {
@@ -176,6 +189,7 @@ export const parseRouteDebuggerTrace = (value: unknown): RouteDebuggerTrace | nu
       index: candidate.index,
       ...(typeof candidate.name === "string" ? { name: candidate.name } : {}),
       matched: candidate.matched,
+      ...(candidate.outcome === undefined ? {} : { outcome: candidate.outcome }),
       destination: candidate.destination,
       clauses,
     });
@@ -183,6 +197,10 @@ export const parseRouteDebuggerTrace = (value: unknown): RouteDebuggerTrace | nu
 
   return {
     selectedRule: value.selectedRule,
+    ...(value.selectedOutcome === undefined ? {} : { selectedOutcome: value.selectedOutcome }),
+    ...(value.selectedTabAction === undefined
+      ? {}
+      : { selectedTabAction: value.selectedTabAction }),
     ...(value.selectedFetchTemplate === undefined
       ? {}
       : { selectedFetchTemplate: value.selectedFetchTemplate }),

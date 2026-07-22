@@ -1449,6 +1449,7 @@ describe("onMessage", () => {
       body: {
         matchers: [...Object.keys(router.matcherFunctions), "css"],
         variables: [":date:", ":year:"],
+        routingActions: ["exclude: true", "tab: close"],
         automaticMatchers: [
           "pageurl",
           "pagedomain",

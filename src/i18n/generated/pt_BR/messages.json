@@ -546,6 +546,10 @@
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Falha ao rotear ou renomear download"
   },
+  "notificationPrivateDetailsHidden": {
+    "message": "Os detalhes do salvamento privado estão ocultos"
+  },
+  "notificationPrivateFailureTitle": { "message": "Save In: falha no salvamento privado" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "Nenhuma regra correspondente encontrada para $URL$",
     "placeholders": {
@@ -556,7 +560,7 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "Adicione pelo menos uma condição de correspondência antes de into:"
+    "message": "Adicione pelo menos uma condição de correspondência à regra"
   },
   "ruleCaptureMissingMatcher": {
     "message": "O destino de captura não corresponde a nenhuma condição desta regra"
@@ -1369,7 +1373,7 @@
     "message": "Todos os comparadores de uma regra devem corresponder."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Toda regra deve terminar com um"
+    "message": "Toda regra que salva deve terminar com um"
   },
   "html_filterClauses": {
     "message": "Cláusulas de filtro"
@@ -4438,5 +4442,29 @@
     "message": "Corresponde ao nome de download sugerido pelo link."
   },
   "routeDebuggerLinkTitle": { "message": "Título do link" },
-  "routeDebuggerLinkDownload": { "message": "Nome de download do link" }
+  "routeDebuggerLinkDownload": { "message": "Nome de download do link" },
+  "notificationRuleExcludedTitle": { "message": "Save In: salvamento excluído" },
+  "notificationRuleExcludedPrivateMessage": {
+    "message": "Uma regra de roteamento excluiu este salvamento privado"
+  },
+  "notificationRuleExcludedMessage": {
+    "message": "Uma regra de roteamento excluiu $URL$",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "o_lRoutingExcluded": { "message": "excluído por uma regra de roteamento" },
+  "routeDebuggerExcluded": {
+    "message": "Uma regra correspondeu. Este salvamento foi excluído, portanto as regras posteriores não são avaliadas."
+  },
+  "routeDebuggerRuleExcluded": { "message": "Não salva os itens correspondentes" },
+  "routeDebuggerSelectedExcluded": { "message": "Excluído" },
+  "routeVisualAddExclusionRule": { "message": "Adicionar regra de exclusão" },
+  "routeVisualAfterSaveLabel": { "message": "Após salvar" },
+  "routeVisualCloseSourceTab": { "message": "Fechar a guia de origem após salvar" },
+  "routeVisualCloseTabValue": { "message": "Fechar a guia de origem" },
+  "routeVisualExcludeLabel": { "message": "Itens correspondentes" },
+  "routeVisualExcludeValue": { "message": "Não salvar" },
+  "routeVisualKeepSourceTab": { "message": "Manter a guia de origem aberta após salvar" },
+  "html_routingActionClauses": {
+    "message": "Use exclude: true em vez de into: para interromper salvamentos correspondentes. Adicione tab: close a uma regra de salvamento para fechar a guia de origem após o início do salvamento; regras automáticas não podem fechar guias."
+  }
 }

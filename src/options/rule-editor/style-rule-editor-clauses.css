@@ -39,6 +39,23 @@
   font-size: var(--text-base);
 }
 
+.rule-clause-action .rule-clause-marker {
+  color: var(--syntax-variable);
+  background: color-mix(in srgb, var(--syntax-variable) 10%, transparent);
+  font-size: var(--text-base);
+}
+
+.rule-clause-action-value {
+  grid-column: 3 / 5;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.rule-clause-action:has(.rule-clause-fixed-name + .rule-clause-action-value:last-child)
+  .rule-clause-action-value {
+  grid-column-end: -1;
+}
+
 .visual-editor-row.has-validation-error {
   border-inline-start: 3px solid var(--color-validation);
   background-color: var(--error-bg);

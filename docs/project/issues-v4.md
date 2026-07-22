@@ -785,12 +785,14 @@ Wombat2018's follow-up asked for two more things and gyng accepted both —
   image/link save would be a surprise"*). It also closes only once the save
   starts, resolving a v3 TODO that closed on a timer regardless of outcome.
   Credited in the changelog as of this pass.
-- *"define at which **pages** the tab should be closed"* — **not built.**
-  `tabAction` lives on menu items only; it is not a routing clause.
+- *"define at which **pages** the tab should be closed"* — **implemented after
+  this audit.** A routing rule can add `tab: close`; page matchers scope the
+  action, and Save In closes the source tab only after the browser accepts the
+  download. Automatic rules reject the action because one unattended page scan
+  can start many saves.
 
-So: close drook's original, and either split Wombat2018's page-scoped half into
-the issue that was promised or answer it as a non-goal. Closing #68 outright
-drops an ask the maintainer said he would track.
+So: both the original and Wombat2018's page-scoped follow-up are implemented;
+the reply should show both the menu annotation and routing-clause forms.
 
 **#47** — self-authored by the maintainer, zero comments, so nobody is waiting.
 The intent shipped: automatic saves of everything matching a rule, as

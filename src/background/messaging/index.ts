@@ -448,7 +448,7 @@ const externalHandlers = {
         });
       })();
     }
-    return handleDownloadMessage(request, sender, sendResponse);
+    return handleDownloadMessage(request, sender, sendResponse, false, true);
   },
 } satisfies HandlerTable<ExternalMessage>;
 

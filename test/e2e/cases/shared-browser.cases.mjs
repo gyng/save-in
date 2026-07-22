@@ -14,6 +14,7 @@ import {
   runLegacyProfileRoutingScenario,
   runRenameRoutingScenario,
   runRoutingScenario,
+  runRoutingTabActionScenario,
   runShortcutScenario,
   runSymlinkDestinationScenario,
   runTabStripScenario,
@@ -99,6 +100,10 @@ export const registerSharedBrowserCases = (adapters) => {
 
   test("production context-menu handler completes a selection save", async () => {
     await runContextMenuScenario({ control, waitForDownloads });
+  });
+
+  test("a matched routing action closes its source tab after saving", async () => {
+    await runRoutingTabActionScenario({ control, waitForDownloads });
   });
 
   test("interactive link attributes route through the exact content frame", async () => {

@@ -401,7 +401,10 @@ export const createRoutingPreviewPanel = (manualEditorState: ManualEditorStateLi
 
         // Routing result
         if (lastDlMatch) {
-          lastDlMatch.textContent = getMessage("o_lRoutingNoMatches") || "No matches";
+          lastDlMatch.textContent =
+            body.routeInfo.outcome === "exclude"
+              ? getMessage("o_lRoutingExcluded") || "Excluded by routing rule"
+              : getMessage("o_lRoutingNoMatches") || "No matches";
         }
         if (lastDlMatch && body.routeInfo.path) {
           lastDlMatch.textContent = body.routeInfo.path;

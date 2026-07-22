@@ -131,6 +131,7 @@ export const RULE_TYPES = {
   DESTINATION: "DESTINATION",
   FETCH: "FETCH",
   RENAME: "RENAME",
+  ACTION: "ACTION",
 } as const;
 export type RuleType = (typeof RULE_TYPES)[keyof typeof RULE_TYPES];
 

@@ -101,6 +101,10 @@ export const handleAutoDownloadSource = async (
     skip();
     return;
   }
+  if (match.outcome === "exclude") {
+    skip();
+    return;
+  }
 
   const result = await launchDownload({
     path: new Path("."),

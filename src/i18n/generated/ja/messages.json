@@ -124,6 +124,10 @@
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: ダウンロードのルーティングまたは名前変更に失敗しました"
   },
+  "notificationPrivateDetailsHidden": {
+    "message": "プライベート保存の詳細は非表示です"
+  },
+  "notificationPrivateFailureTitle": { "message": "Save In: プライベート保存に失敗しました" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "$URL$ に一致するルールが見つかりませんでした",
     "placeholders": {
@@ -134,7 +138,7 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "into: の前に一致条件を 1 つ以上追加してください"
+    "message": "ルールに一致条件を 1 つ以上追加してください"
   },
   "ruleCaptureMissingMatcher": {
     "message": "キャプチャ対象に一致する条件がこのルール内にありません"
@@ -947,7 +951,7 @@
     "message": "ルール内のすべてのマッチャーが一致する必要があります。"
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "すべてのルールは次の文字で終わる必要があります"
+    "message": "保存を行うルールは次の句で終える必要があります"
   },
   "html_filterClauses": {
     "message": "フィルタ句"
@@ -4438,5 +4442,29 @@
     "message": "リンクに指定されたダウンロード名に一致します。"
   },
   "routeDebuggerLinkTitle": { "message": "リンクのタイトル" },
-  "routeDebuggerLinkDownload": { "message": "リンクのダウンロード名" }
+  "routeDebuggerLinkDownload": { "message": "リンクのダウンロード名" },
+  "notificationRuleExcludedTitle": { "message": "Save In: 保存対象外" },
+  "notificationRuleExcludedPrivateMessage": {
+    "message": "ルーティングルールにより、このプライベート保存は除外されました"
+  },
+  "notificationRuleExcludedMessage": {
+    "message": "ルーティングルールにより $URL$ は保存対象外になりました",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "o_lRoutingExcluded": { "message": "ルーティングルールにより保存対象外" },
+  "routeDebuggerExcluded": {
+    "message": "ルールが一致しました。この保存は対象外のため、後続のルールは評価されません。"
+  },
+  "routeDebuggerRuleExcluded": { "message": "一致する項目を保存しません" },
+  "routeDebuggerSelectedExcluded": { "message": "対象外" },
+  "routeVisualAddExclusionRule": { "message": "除外ルールを追加" },
+  "routeVisualAfterSaveLabel": { "message": "保存後" },
+  "routeVisualCloseSourceTab": { "message": "保存後に元のタブを閉じる" },
+  "routeVisualCloseTabValue": { "message": "元のタブを閉じる" },
+  "routeVisualExcludeLabel": { "message": "一致する項目" },
+  "routeVisualExcludeValue": { "message": "保存しない" },
+  "routeVisualKeepSourceTab": { "message": "保存後も元のタブを開いたままにする" },
+  "html_routingActionClauses": {
+    "message": "一致する保存を停止するには、into: の代わりに exclude: true を使用します。保存の開始後に元のタブを閉じるには、保存ルールに tab: close を追加します。自動ルールではタブを閉じられません。"
+  }
 }

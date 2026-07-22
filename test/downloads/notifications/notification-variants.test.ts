@@ -222,6 +222,44 @@ describe("notification variants", () => {
     );
   });
 
+  test("hides private filenames in terminal notifications", async () => {
+    await install({ notifyOnSuccess: true, notifyOnFailure: true, notifyDuration: 1000 }, () => [
+      { id: 8, fileSize: 42, mime: "image/png" },
+    ]);
+    Notifier.expectDownload("https://private.example/secret.png", { privateContext: true });
+    await onCreated({
+      id: 8,
+      incognito: true,
+      filename: "/dl/secret.png",
+      url: "https://private.example/secret.png",
+    });
+
+    await onChanged({ id: 8, error: { current: "NETWORK_FAILED" } });
+    expect(global.browser.notifications.create).toHaveBeenLastCalledWith(
+      "8",
+      expect.objectContaining({
+        title: "Translated<notificationPrivateFailureTitle>",
+        message: "Translated<notificationPrivateDetailsHidden>",
+      }),
+    );
+
+    Notifier.expectDownload("https://private.example/other.png", { privateContext: true });
+    await onCreated({
+      id: 9,
+      incognito: true,
+      filename: "/dl/other-secret.png",
+      url: "https://private.example/other.png",
+    });
+    await onChanged({ id: 9, state: { current: "complete", previous: "in_progress" } });
+    expect(global.browser.notifications.create).toHaveBeenLastCalledWith(
+      "9",
+      expect.objectContaining({
+        title: "Translated<notificationSuccessTitle>",
+        message: "Translated<notificationPrivateDetailsHidden>",
+      }),
+    );
+  });
+
   test("notifyOnSuccess false suppresses the success notification", async () => {
     await install({ notifyOnSuccess: false, notifyOnFailure: true, notifyDuration: 1000 });
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });

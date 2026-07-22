@@ -14,6 +14,7 @@ the default download location.
 
 - Save into dynamically named directories.
 - Rename and route downloads with flexible routing rules.
+- Exclude matching saves or close their source tab after a routed save starts.
 - Create shortcut files as Windows internet shortcuts (`.url`), macOS internet
   locations (`.webloc`), Linux desktop shortcuts (`.desktop`), or HTML
   redirects (`.html`).

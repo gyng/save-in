@@ -17,7 +17,7 @@ export const ROUTING_RULE_GRAMMAR = String.raw`
 routing-document = { blank-line | comment-line | rule } ;
 rule             = clause-line, { comment-line | clause-line } ;
 clause-line      = matcher-clause | css-clause | capture-clause | into-clause
-                 | fetch-clause | rename-clause | disabled-clause ;
+                 | fetch-clause | rename-clause | action-clause | disabled-clause ;
 matcher-clause   = matcher-name, [ "/", regex-flags ], ":", [ " " ], regex ;
 css-clause       = "css:", [ " " ], selector ;
 capture-clause   = ( "capture:" | "capturegroups:" ), [ " " ], matcher-list ;
@@ -25,6 +25,8 @@ into-clause      = "into:", [ " " ], relative-template ;
 fetch-clause     = "fetch:", [ " " ], http-template ;
 rename-clause    = "rename", [ "/", regex-flags ], ":", [ " " ], regex,
                    " -> ", template ;
+action-clause    = "exclude:", [ " " ], "true"
+                 | "tab:", [ " " ], "close" ;
 disabled-clause  = "disabled:", [ " " ], ( "true" | "false" ) ;
 regex-flags      = non-whitespace, { non-whitespace } ;
 comment-line     = optional-whitespace, "//", { character } ;
@@ -70,7 +72,7 @@ export type RoutingInvalidCst = RoutingLineEnvelopeCst & {
 
 export type RoutingClauseNode = {
   kind: "clause";
-  clauseKind: "matcher" | "capture" | "destination" | "fetch" | "rename";
+  clauseKind: "matcher" | "capture" | "destination" | "fetch" | "rename" | "action";
   raw: string;
   rawName: string;
   name: string;
@@ -191,9 +193,11 @@ const clauseKind = (name: string): RoutingClauseNode["clauseKind"] =>
       ? "fetch"
       : name === "rename"
         ? "rename"
-        : name === "capture" || name === "capturegroups"
-          ? "capture"
-          : "matcher";
+        : name === "exclude" || name === "tab"
+          ? "action"
+          : name === "capture" || name === "capturegroups"
+            ? "capture"
+            : "matcher";
 
 const lineEnvelope = (source: string, line: SourceLine): RoutingLineEnvelopeCst => ({
   line: sourceFragment(source, "routing-line", line.start, line.end),

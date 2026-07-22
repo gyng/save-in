@@ -991,6 +991,71 @@ export const runContextMenuScenario = async ({ control, waitForDownloads }) => {
 };
 
 /**
+ * Verifies that a page-scoped routing action reaches the real tabs API only
+ * after the corresponding context-menu save is accepted.
+ *
+ * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
+ * }} adapters
+ */
+export const runRoutingTabActionScenario = async ({ control, waitForDownloads }) => {
+  const filename = "route-tab-action.txt";
+  const server = http.createServer((req, res) => {
+    res.writeHead(200, {
+      "Content-Type": req.url === `/${filename}` ? "text/plain" : "text/html",
+    });
+    res.end(
+      req.url === `/${filename}` ? "routing tab action" : "<!doctype html><title>Source</title>",
+    );
+  });
+  const port = await listenLocal(server);
+  const pageUrl = `http://127.0.0.1:${port}/source`;
+  const fileUrl = `http://127.0.0.1:${port}/${filename}`;
+  const optionKeys = ["paths", "filenamePatterns"];
+  const previous = await control.storage.local.get(optionKeys);
+  const missing = optionKeys.filter((key) => !Object.hasOwn(previous, key));
+  let tabId;
+
+  try {
+    await control.options.set({
+      paths: "e2e/route-tab-action",
+      filenamePatterns: `pageurl: ^${pageUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$
+tab: close
+into: routed/`,
+    });
+    const created = await control.tabs.create({ url: pageUrl, active: true });
+    if (created.id === undefined) throw new Error("Routing-action fixture tab has no ID");
+    const tab = await control.tabs.wait({ id: created.id });
+    if (tab.id === undefined) throw new Error("Routing-action fixture tab is incomplete");
+    tabId = tab.id;
+
+    await control.background.clickContextMenu({
+      info: { menuItemId: "save-in-0", linkUrl: fileUrl, pageUrl },
+      tab: { id: tab.id, title: "Source", url: pageUrl },
+    });
+
+    const downloads = await waitForDownloads(filename);
+    const complete = requireValue(
+      downloads.find((row) => row.state === "complete"),
+      "Routing-action download did not complete",
+    );
+    expect(fs.readFileSync(complete.filename, "utf8")).toBe("routing tab action");
+    expect((await control.tabs.query()).some((candidate) => candidate.id === tab.id)).toBe(false);
+    tabId = undefined;
+  } finally {
+    try {
+      await control.storage.local.set(previous);
+      if (missing.length) await control.storage.local.remove(missing);
+      if (tabId !== undefined) await control.tabs.remove(tabId).catch(() => {});
+      await control.runtime.reset();
+    } finally {
+      await closeLocal(server);
+    }
+  }
+};
+
+/**
  * Verifies the content-to-background bridge for page-owned link attributes.
  * The contextmenu event captures one exact anchor in the page; the subsequent
  * production menu command requests that frame's bounded metadata and routes on

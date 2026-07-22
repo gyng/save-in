@@ -124,6 +124,10 @@
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: 다운로드 경로를 지정하거나 이름을 바꾸지 못했습니다."
   },
+  "notificationPrivateDetailsHidden": {
+    "message": "비공개 저장 세부 정보가 숨겨졌습니다"
+  },
+  "notificationPrivateFailureTitle": { "message": "Save In: 비공개 저장 실패" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "$URL$에 대해 일치하는 규칙을 찾을 수 없습니다.",
     "placeholders": {
@@ -134,7 +138,7 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "into: 앞에 일치 조건을 하나 이상 추가하세요"
+    "message": "규칙에 일치 조건을 하나 이상 추가하세요"
   },
   "ruleCaptureMissingMatcher": {
     "message": "캡처 대상이 이 규칙의 어떤 조건과도 일치하지 않습니다"
@@ -947,7 +951,7 @@
     "message": "규칙의 모든 매처가 일치해야 합니다."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "모든 규칙은 다음으로 끝나야 합니다."
+    "message": "저장하는 모든 규칙은 다음으로 끝나야 합니다."
   },
   "html_filterClauses": {
     "message": "필터 절"
@@ -4434,5 +4438,29 @@
   "html_linkTitleMatcherDescription": { "message": "클릭한 링크의 title 속성과 일치합니다." },
   "html_linkDownloadMatcherDescription": { "message": "링크가 제안한 다운로드 이름과 일치합니다." },
   "routeDebuggerLinkTitle": { "message": "링크 제목" },
-  "routeDebuggerLinkDownload": { "message": "링크 다운로드 이름" }
+  "routeDebuggerLinkDownload": { "message": "링크 다운로드 이름" },
+  "notificationRuleExcludedTitle": { "message": "Save In: 저장 제외됨" },
+  "notificationRuleExcludedPrivateMessage": {
+    "message": "라우팅 규칙에서 이 비공개 저장을 제외했습니다"
+  },
+  "notificationRuleExcludedMessage": {
+    "message": "라우팅 규칙에서 $URL$을(를) 제외했습니다.",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "o_lRoutingExcluded": { "message": "라우팅 규칙에 의해 제외됨" },
+  "routeDebuggerExcluded": {
+    "message": "규칙이 일치했습니다. 이 저장은 제외되므로 이후 규칙은 평가하지 않습니다."
+  },
+  "routeDebuggerRuleExcluded": { "message": "일치하는 항목을 저장하지 않음" },
+  "routeDebuggerSelectedExcluded": { "message": "제외됨" },
+  "routeVisualAddExclusionRule": { "message": "제외 규칙 추가" },
+  "routeVisualAfterSaveLabel": { "message": "저장 후" },
+  "routeVisualCloseSourceTab": { "message": "저장 후 원본 탭 닫기" },
+  "routeVisualCloseTabValue": { "message": "원본 탭 닫기" },
+  "routeVisualExcludeLabel": { "message": "일치하는 항목" },
+  "routeVisualExcludeValue": { "message": "저장하지 않음" },
+  "routeVisualKeepSourceTab": { "message": "저장 후에도 원본 탭 열어 두기" },
+  "html_routingActionClauses": {
+    "message": "일치하는 저장을 중지하려면 into: 대신 exclude: true를 사용하세요. 저장이 시작된 후 원본 탭을 닫으려면 저장 규칙에 tab: close를 추가하세요. 자동 규칙은 탭을 닫을 수 없습니다."
+  }
 }

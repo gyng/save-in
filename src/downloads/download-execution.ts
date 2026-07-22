@@ -417,10 +417,9 @@ export const executeBrowserDownload = async (
       downloadRuntime.forgetPendingState(state);
       await historyPort.setStatus(historyEntryId, "DOWNLOAD_API_FAILED");
       if (!isSourceSidecar(state)) {
-        reportDownloadFailure(
-          finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(state)),
-          String(e),
-        );
+        const failureName = finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(state));
+        if (privateContext) reportDownloadFailure(failureName, String(e), true);
+        else reportDownloadFailure(failureName, String(e));
       }
       return { status: "failed" };
     }
@@ -467,10 +466,10 @@ export const executeBrowserDownload = async (
 // and its own failure is reported separately.
 const reportPreparationFailure = (plan: DownloadPlan, error: unknown): void => {
   if (isSourceSidecar(plan.state)) return;
-  reportDownloadFailure(
-    plan.finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(plan.state)),
-    String(error),
-  );
+  const failureName =
+    plan.finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(plan.state));
+  if (isPrivateDownloadState(plan.state)) reportDownloadFailure(failureName, String(error), true);
+  else reportDownloadFailure(failureName, String(error));
 };
 
 // async because applyVariables may await a
@@ -541,14 +540,33 @@ export const renameAndDownload = async (
     await releaseUnusedContent(state);
     const url = state.info.url;
     if (url && downloadRuntime.generatedObjectUrls.delete(url)) URL.revokeObjectURL(url);
-    await historyPort.setStatus(state.scratch.historyEntryId, "RULE_NO_MATCH");
+    const excluded = state.scratch.routeOutcome === "exclude";
+    if (!excluded) await historyPort.setStatus(state.scratch.historyEntryId, "RULE_NO_MATCH");
     finishPreparation();
-    if ((state.needRouteMatch || options.routeSkipUnmatched) && options.notifyOnFailure) {
+    if (
+      excluded &&
+      options.notifyOnRuleMatch &&
+      state.info.context !== DOWNLOAD_TYPES.AUTO &&
+      !isSourceSidecar(state)
+    ) {
+      createExtensionNotification(
+        getMessage("notificationRuleExcludedTitle"),
+        isPrivateDownloadState(state)
+          ? getMessage("notificationRuleExcludedPrivateMessage")
+          : getMessage("notificationRuleExcludedMessage", [
+              truncateDataUrlForDisplay(requireDownloadUrl(state)),
+            ]),
+        false,
+        EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+      );
+    } else if ((state.needRouteMatch || options.routeSkipUnmatched) && options.notifyOnFailure) {
       createExtensionNotification(
         getMessage("notificationRuleMatchFailedExclusiveTitle"),
-        getMessage("notificationRuleMatchFailedExclusiveMessage", [
-          truncateDataUrlForDisplay(requireDownloadUrl(state)),
-        ]),
+        isPrivateDownloadState(state)
+          ? getMessage("notificationPrivateDetailsHidden")
+          : getMessage("notificationRuleMatchFailedExclusiveMessage", [
+              truncateDataUrlForDisplay(requireDownloadUrl(state)),
+            ]),
         true,
         EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
       );
@@ -614,7 +632,9 @@ export const renameAndDownload = async (
     if (options.notifyOnRuleMatch && state.info.context !== DOWNLOAD_TYPES.AUTO) {
       createExtensionNotification(
         getMessage("notificationRuleMatchedTitle"),
-        `${state.info.initialFilename}\n⬇\n${state.route}`,
+        isPrivateDownloadState(state)
+          ? getMessage("notificationPrivateDetailsHidden")
+          : `${state.info.initialFilename}\n⬇\n${state.route}`,
         false,
         EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
       );

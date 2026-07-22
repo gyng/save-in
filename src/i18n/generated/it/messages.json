@@ -114,6 +114,10 @@
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: impossibile instradare o rinominare il download"
   },
+  "notificationPrivateDetailsHidden": {
+    "message": "I dettagli del salvataggio privato sono nascosti"
+  },
+  "notificationPrivateFailureTitle": { "message": "Save In: salvataggio privato non riuscito" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "Nessuna regola corrispondente trovata per $URL$",
     "placeholders": {
@@ -124,7 +128,7 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "Aggiungi almeno una condizione di corrispondenza prima di into:"
+    "message": "Aggiungi almeno una condizione di corrispondenza alla regola"
   },
   "ruleCaptureMissingMatcher": {
     "message": "La clausola capture: non fa riferimento a un criterio di corrispondenza"
@@ -1330,7 +1334,7 @@
     "message": "Tutti i criteri di una regola devono corrispondere."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Ogni regola deve terminare con un"
+    "message": "Ogni regola che salva deve terminare con un"
   },
   "html_filterClauses": {
     "message": "Clausole di filtro"
@@ -4440,5 +4444,31 @@
     "message": "Corrisponde al nome di download suggerito dal collegamento."
   },
   "routeDebuggerLinkTitle": { "message": "Titolo del collegamento" },
-  "routeDebuggerLinkDownload": { "message": "Nome di download del collegamento" }
+  "routeDebuggerLinkDownload": { "message": "Nome di download del collegamento" },
+  "notificationRuleExcludedTitle": { "message": "Save In: salvataggio escluso" },
+  "notificationRuleExcludedPrivateMessage": {
+    "message": "Una regola di instradamento ha escluso questo salvataggio privato"
+  },
+  "notificationRuleExcludedMessage": {
+    "message": "Una regola di instradamento ha escluso $URL$",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "o_lRoutingExcluded": { "message": "escluso da una regola di instradamento" },
+  "routeDebuggerExcluded": {
+    "message": "Una regola corrisponde. Questo salvataggio è escluso, quindi le regole successive non vengono valutate."
+  },
+  "routeDebuggerRuleExcluded": { "message": "Non salva gli elementi corrispondenti" },
+  "routeDebuggerSelectedExcluded": { "message": "Escluso" },
+  "routeVisualAddExclusionRule": { "message": "Aggiungi regola di esclusione" },
+  "routeVisualAfterSaveLabel": { "message": "Dopo il salvataggio" },
+  "routeVisualCloseSourceTab": { "message": "Chiudi la scheda di origine dopo il salvataggio" },
+  "routeVisualCloseTabValue": { "message": "Chiudi la scheda di origine" },
+  "routeVisualExcludeLabel": { "message": "Elementi corrispondenti" },
+  "routeVisualExcludeValue": { "message": "Non salvare" },
+  "routeVisualKeepSourceTab": {
+    "message": "Mantieni aperta la scheda di origine dopo il salvataggio"
+  },
+  "html_routingActionClauses": {
+    "message": "Usa exclude: true invece di into: per interrompere i salvataggi corrispondenti. Aggiungi tab: close a una regola di salvataggio per chiudere la scheda di origine dopo l’avvio del salvataggio; le regole automatiche non possono chiudere le schede."
+  }
 }

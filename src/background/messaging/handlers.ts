@@ -15,6 +15,7 @@ import { createSourceSidecarRequest } from "../../downloads/source-sidecar.ts";
 import { currentTab, type CurrentTab } from "../../platform/current-tab.ts";
 import type { DownloadInfo, DownloadPipelineState } from "../../downloads/download-types.ts";
 import { backgroundRuntime } from "../runtime.ts";
+import { addLogEntry } from "../log.ts";
 import { fromWireDownloadState, toWireDownloadState } from "../../downloads/wire-state.ts";
 import type { InternalEvent, MessageOf, ResponseFor } from "../../shared/message-protocol.ts";
 import { applyConfigSerialized } from "../config-apply.ts";
@@ -197,6 +198,7 @@ export const handleGetKeywords = (
     body: {
       matchers: [...Object.keys(matcherFunctions), "css"],
       variables: Object.keys(transformers),
+      routingActions: ["exclude: true", "tab: close"],
       automaticMatchers: [...AUTOMATIC_PAGE_MATCHERS, ...AUTOMATIC_SOURCE_MATCHERS],
       // Context matchers normalize their input before testing. Expose the
       // value an integration should place in its case-sensitive pattern,
@@ -424,6 +426,7 @@ export const handleDownloadMessage = (
   sender: MessageSender,
   sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.DOWNLOAD>>,
   internal = false,
+  external = false,
 ): Promise<void> | void => {
   const requestBody = request.body || {};
   const { url: requestedUrl, target, comment } = requestBody;
@@ -493,11 +496,12 @@ export const handleDownloadMessage = (
     // opts out, take the same destination Quick save resolves, so the two
     // one-click saves cannot disagree about where "default" is. A matched
     // `into:` route still overrides this — download-plan re-roots CLICK saves.
+    const mayRunTabAction = !external && sender.id === webExtensionApi.runtime.id;
     const clickState: DownloadPipelineState = {
       path: options.contentClickToSaveUseDefault
         ? new Path(resolveDefaultDestination(options))
         : last?.path || new Path("."),
-      scratch: {},
+      scratch: external ? { routeTabActionSuppressed: true } : {},
       info: {
         ...opts,
         menuIndex: opts.menuIndex ?? last?.info.menuIndex,
@@ -522,7 +526,7 @@ export const handleDownloadMessage = (
     // Keep the MV3 message event alive through routing, lazy variables and the
     // downloads API call. The response still acknowledges browser acceptance,
     // not eventual download completion.
-    return launchDownload(clickState).then(() => {
+    return launchDownload(clickState).then(async (result) => {
       // Acknowledge the accepted primary save before doing optional child
       // work. Content-script batches must not wait for a second download,
       // and a sidecar failure must never turn the primary save into a retry.
@@ -530,6 +534,22 @@ export const handleDownloadMessage = (
         type: MESSAGE_TYPES.DOWNLOAD,
         body: { status: MESSAGE_TYPES.OK, version, url },
       });
+      if (
+        result.status === "started" &&
+        mayRunTabAction &&
+        clickState.scratch.routeTabAction === "close" &&
+        !clickState.scratch.routeTabActionHandled &&
+        resolvedTab?.id != null
+      ) {
+        clickState.scratch.routeTabActionHandled = true;
+        try {
+          await webExtensionApi.tabs.remove(resolvedTab.id);
+        } catch (error) {
+          await addLogEntry("post-save tab action failed", String(error), {
+            privateContext: resolvedTab.incognito === true,
+          });
+        }
+      }
     });
   };
 

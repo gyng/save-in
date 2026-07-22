@@ -187,8 +187,18 @@ textarea.syntax-editor-input::placeholder {
   font-weight: 600;
 }
 
+.syntax-token-action {
+  color: var(--syntax-destination);
+  font-weight: 600;
+}
+
 .syntax-token-destination-value {
   color: var(--syntax-value);
+}
+
+.syntax-token-action-value {
+  color: var(--syntax-value);
+  font-weight: 600;
 }
 
 .syntax-token-comment,

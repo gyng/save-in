@@ -27,6 +27,7 @@ describe("routing visual editor", () => {
         <details class="rule-add-menu">
           <summary>More</summary>
           <button type="button" id="rule-editor-add-auto">Add automatic source rule</button>
+          <button type="button" id="rule-editor-add-exclusion">Add exclusion rule</button>
           <button type="button" id="rule-editor-browse-templates">Browse templates</button>
         </details>
       </div>
@@ -512,6 +513,48 @@ describe("routing visual editor", () => {
     expect(element<HTMLInputElement>(".rule-editor-enabled").checked).toBe(true);
     expect(document.querySelectorAll(".rule-editor-auto-badge")).toHaveLength(1);
     expect(menu.open).toBe(false);
+  });
+
+  test("adds a visible terminal exclusion rule", () => {
+    setupRuleVisualEditor({ matchers: ["filename"] });
+    const menu = element<HTMLDetailsElement>(".rule-add-menu");
+    menu.open = true;
+
+    element<HTMLButtonElement>("#rule-editor-add-exclusion").click();
+
+    const source = element<HTMLTextAreaElement>("#filenamePatterns").value;
+    expect(source).toContain("filename: .*\nexclude: true");
+    expect(document.querySelectorAll(".rule-clause-action")).toHaveLength(1);
+    expect(element<HTMLElement>(".rule-clause-action-value").textContent).toBe("Do not save");
+    expect(menu.open).toBe(false);
+  });
+
+  test("shows an invalid action value instead of presenting it as enabled", () => {
+    element<HTMLTextAreaElement>("#filenamePatterns").value =
+      "filename: tracker\\.gif$\nexclude: false";
+
+    setupRuleVisualEditor({ matchers: ["filename"] });
+
+    expect(document.querySelector(".rule-clause-action-value")).toBeNull();
+    const value = element<HTMLInputElement>(".rule-clause-action .rule-clause-value");
+    expect(value.value).toBe("false");
+    value.value = "true";
+    value.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(element<HTMLTextAreaElement>("#filenamePatterns").value).toContain("exclude: true");
+  });
+
+  test("toggles the close-source-tab action from the rule menu", () => {
+    setupRuleVisualEditor({ matchers: ["filename"] });
+
+    element<HTMLButtonElement>('[data-rule-action="toggle-close-tab"]').click();
+
+    const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
+    expect(textarea.value).toBe("filename/i: \\.jpg$\ntab: close\ninto: images/:filename:");
+    expect(element<HTMLElement>(".rule-clause-action-value").textContent).toBe("Close source tab");
+
+    element<HTMLButtonElement>('[data-rule-action="toggle-close-tab"]').click();
+    expect(textarea.value).toBe("filename/i: \\.jpg$\ninto: images/:filename:");
+    expect(document.querySelector(".rule-clause-action")).toBeNull();
   });
 
   test("closes add and rule menus when clicking outside or pressing Escape", () => {

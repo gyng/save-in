@@ -41,6 +41,23 @@ describe("reportFailure", () => {
     );
   });
 
+  test("hides private failure details from the OS notification", async () => {
+    vi.useFakeTimers();
+    await loadNotification();
+    Object.assign(options, { notifyOnFailure: true, notifyDuration: 0 });
+
+    Notifier.reportDownloadFailure("secret.png", "https://private.example/secret.png", true);
+    vi.advanceTimersByTime(250);
+
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      "save-in-not-download-failure",
+      expect.objectContaining({
+        title: "Translated<notificationPrivateFailureTitle>",
+        message: "Translated<notificationPrivateDetailsHidden>",
+      }),
+    );
+  });
+
   test("stays silent when notifyOnFailure is off", async () => {
     await loadNotification();
     Object.assign(options, { notifyOnFailure: false });

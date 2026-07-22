@@ -197,7 +197,7 @@ export const buildTools = (send: WebMcpSend): WebMcpTool[] => {
     {
       name: "save_in_list_vocabulary",
       description:
-        "List path variables, routing matchers, automatic-source matchers, and source kinds. Use this to translate a request into supported config vocabulary.",
+        "List path variables, routing matchers and actions, automatic-source matchers, and source kinds. Use this to translate a request into supported config vocabulary.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
       annotations: { readOnlyHint: true, untrustedContentHint: false },
       execute: (input) => {

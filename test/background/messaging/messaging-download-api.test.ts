@@ -104,6 +104,37 @@ describe("handleDownloadMessage", () => {
     });
   });
 
+  test("closes the source tab after a matched route action starts", async () => {
+    vi.mocked(global.browser.tabs.remove).mockClear();
+    vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
+      state.scratch.routeTabAction = "close";
+      return { status: "started", downloadId: 7 };
+    });
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessage(request(), { id: global.browser.runtime.id, tab: { id: 9 } }, sendResponse),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+    await vi.waitFor(() => expect(global.browser.tabs.remove).toHaveBeenCalledWith(9));
+  });
+
+  test("keeps the source tab when an action-bearing save does not start", async () => {
+    vi.mocked(global.browser.tabs.remove).mockClear();
+    vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
+      state.scratch.routeTabAction = "close";
+      return { status: "skipped" };
+    });
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessage(request(), { id: global.browser.runtime.id, tab: { id: 9 } }, sendResponse),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+  });
+
   test("acknowledges the primary media save without waiting for its deferred sidecar", async () => {
     options.saveSourceSidecar = true;
     const sendResponse = vi.fn();
@@ -459,6 +490,25 @@ describe("handleDownloadMessage", () => {
       type: MESSAGE_TYPES.DOWNLOAD,
       body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
     });
+  });
+
+  test("does not let an external download execute a source-tab action", async () => {
+    vi.mocked(global.browser.tabs.remove).mockClear();
+    vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
+      state.scratch.routeTabAction = "close";
+      return { status: "started", downloadId: 7 };
+    });
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessageExternal(request(), { id: "trusted-extension", tab: { id: 9 } }, sendResponse),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+
+    expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.scratch).toMatchObject({
+      routeTabActionSuppressed: true,
+    });
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
   });
 
   test("external downloads wait for cold-start initialization", async () => {

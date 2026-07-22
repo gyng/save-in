@@ -546,6 +546,10 @@
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Det gick inte att dirigera eller byta namn på nedladdningen"
   },
+  "notificationPrivateDetailsHidden": {
+    "message": "Detaljer om privat sparning är dolda"
+  },
+  "notificationPrivateFailureTitle": { "message": "Save In: privat sparning misslyckades" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "Ingen matchande regel hittades för $URL$",
     "placeholders": {
@@ -556,7 +560,7 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "Lägg till minst ett matchningsvillkor före into:"
+    "message": "Lägg till minst ett matchningsvillkor i regeln"
   },
   "ruleCaptureMissingMatcher": {
     "message": "Capture-satsen riktar sig inte mot en matchare"
@@ -1369,7 +1373,7 @@
     "message": "Varje matchare i en regel måste matcha."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Varje regel måste sluta med en"
+    "message": "Varje regel som sparar måste sluta med en"
   },
   "html_filterClauses": {
     "message": "Filterklausuler"
@@ -4438,5 +4442,29 @@
     "message": "Matchar nedladdningsnamnet som länken föreslår."
   },
   "routeDebuggerLinkTitle": { "message": "Länktitel" },
-  "routeDebuggerLinkDownload": { "message": "Länkens nedladdningsnamn" }
+  "routeDebuggerLinkDownload": { "message": "Länkens nedladdningsnamn" },
+  "notificationRuleExcludedTitle": { "message": "Save In: sparande undantaget" },
+  "notificationRuleExcludedPrivateMessage": {
+    "message": "En dirigeringsregel undantog denna privata sparning"
+  },
+  "notificationRuleExcludedMessage": {
+    "message": "En dirigeringsregel undantog $URL$",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "o_lRoutingExcluded": { "message": "undantaget av dirigeringsregel" },
+  "routeDebuggerExcluded": {
+    "message": "En regel matchade. Det här sparandet är undantaget, så senare regler utvärderas inte."
+  },
+  "routeDebuggerRuleExcluded": { "message": "Sparar inte matchande objekt" },
+  "routeDebuggerSelectedExcluded": { "message": "Undantaget" },
+  "routeVisualAddExclusionRule": { "message": "Lägg till undantagsregel" },
+  "routeVisualAfterSaveLabel": { "message": "Efter sparandet" },
+  "routeVisualCloseSourceTab": { "message": "Stäng källfliken efter sparandet" },
+  "routeVisualCloseTabValue": { "message": "Stäng källfliken" },
+  "routeVisualExcludeLabel": { "message": "Matchande objekt" },
+  "routeVisualExcludeValue": { "message": "Spara inte" },
+  "routeVisualKeepSourceTab": { "message": "Håll källfliken öppen efter sparandet" },
+  "html_routingActionClauses": {
+    "message": "Använd exclude: true i stället för into: för att stoppa matchande sparanden. Lägg till tab: close i en sparregel för att stänga källfliken efter att sparandet har startat; automatiska regler kan inte stänga flikar."
+  }
 }

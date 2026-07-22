@@ -67,6 +67,8 @@ export type RuleTrace = {
   initialFilename?: string | undefined;
   actualFilename?: string | undefined;
   selectedRule: number | null;
+  selectedOutcome: "route" | "exclude" | null;
+  selectedTabAction: "close" | null;
   // Capture-substituted fetch template of the winning rule, then the fully
   // expanded URL it rewrites the download to. Destination expansion below
   // runs against the rewritten URL so the preview matches the pipeline.
@@ -86,6 +88,7 @@ export type RuleTrace = {
   rules: Array<{
     index: number;
     matched: boolean;
+    outcome: "route" | "exclude" | null;
     destination: string;
     fetch: string;
     rename: string;
@@ -116,9 +119,16 @@ export const traceRules = async (
   const evaluations = rules.map((rule, index) =>
     eligibility[index]
       ? evaluateRule(rule, info)
-      : { destination: false as const, fetch: false as const, rename: false as const, clauses: [] },
+      : {
+          outcome: null,
+          destination: false as const,
+          fetch: false as const,
+          rename: false as const,
+          tabAction: false as const,
+          clauses: [],
+        },
   );
-  const matchedDestinations = evaluations.map(({ destination }) => destination);
+  const matchedOutcomes = evaluations.map(({ outcome }) => outcome);
   const traced = rules.map((rule, index) => {
     const evaluation = evaluations[index] as (typeof evaluations)[number];
     const clauses = rule
@@ -137,18 +147,20 @@ export const traceRules = async (
     const rename = rule.find((clause) => clause.type === RULE_TYPES.RENAME)?.value ?? "";
     return {
       index: index + 1,
-      matched: Boolean(matchedDestinations[index]),
+      matched: matchedOutcomes[index] !== null,
+      outcome: evaluation.outcome,
       destination,
       fetch,
       rename,
       clauses,
     };
   });
-  const selectedIndex = matchedDestinations.findIndex((destination) => Boolean(destination));
+  const selectedIndex = matchedOutcomes.findIndex((outcome) => outcome !== null);
   const selectedRule = selectedIndex >= 0 ? selectedIndex + 1 : null;
-  const matchedDestination = selectedIndex >= 0 ? matchedDestinations[selectedIndex] : false;
-  const destination = matchedDestination || null;
   const selectedEvaluation = selectedIndex >= 0 ? evaluations[selectedIndex] : undefined;
+  const selectedOutcome = selectedEvaluation?.outcome ?? null;
+  const selectedTabAction = selectedEvaluation?.tabAction || null;
+  const destination = selectedEvaluation?.destination || null;
   const selectedFetchTemplate = selectedEvaluation ? selectedEvaluation.fetch || null : null;
   const actualFilename = info.filename || "";
   const sourceUrl = info.sourceUrl || info.srcUrl;
@@ -220,6 +232,8 @@ export const traceRules = async (
     initialFilename: info.initialFilename,
     actualFilename: info.filename,
     selectedRule,
+    selectedOutcome,
+    selectedTabAction,
     selectedFetchTemplate,
     rewrittenUrl,
     selectedRename,

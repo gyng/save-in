@@ -30,6 +30,9 @@ export const previewRoutes = async (state?: RoutePreviewState | null): Promise<R
   // eligible, including fetch rules — and take the path and the captures from
   // the SAME winning rule, or the pane contradicts the download it explains.
   const match = getRoutingMatch(previewState);
+  if (match?.outcome === "exclude") {
+    return { path: null, captures: null, outcome: "exclude" };
+  }
   const matchedRoute = match?.destination ?? null;
   const path = await applyVariables(new Path(matchedRoute), info);
   const captures = match ? getCaptureMatches(match.rule, info) : null;
@@ -48,5 +51,6 @@ export const previewRoutes = async (state?: RoutePreviewState | null): Promise<R
         : {}),
     }),
     captures,
+    ...(match?.tabAction ? { tabAction: match.tabAction } : {}),
   };
 };

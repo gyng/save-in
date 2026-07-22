@@ -65,6 +65,7 @@ describe("config API", () => {
     expect(vocabularyResponse.mock.calls[0]![0]!.body).toMatchObject({
       matchers: expect.any(Array),
       variables: [":date:", ":year:"],
+      routingActions: ["exclude: true", "tab: close"],
       automaticMatchers: expect.arrayContaining(["pagedomain", "sourcekind", "mediatype"]),
       automaticContext: "auto",
       sourceKinds: expect.arrayContaining(["image", "document", "link"]),
@@ -82,6 +83,10 @@ describe("config API", () => {
     expect(response.body.grammars[1]).toMatchObject({
       option: "filenamePatterns",
       ebnf: expect.stringContaining("routing-document"),
+      semantics: expect.arrayContaining([
+        expect.stringContaining("exclude: true"),
+        expect.stringContaining("tab: close"),
+      ]),
       examples: expect.arrayContaining([expect.stringContaining("context: ^auto$")]),
     });
   });

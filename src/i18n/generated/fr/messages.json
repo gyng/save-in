@@ -558,6 +558,10 @@
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In : échec de l’acheminement ou du renommage du téléchargement"
   },
+  "notificationPrivateDetailsHidden": {
+    "message": "Les détails de l’enregistrement privé sont masqués"
+  },
+  "notificationPrivateFailureTitle": { "message": "Save In : échec de l’enregistrement privé" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "Aucune règle correspondante pour $URL$",
     "placeholders": {
@@ -568,7 +572,7 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "Ajoutez au moins une condition de correspondance avant into:"
+    "message": "Ajoutez au moins une condition de correspondance à la règle"
   },
   "ruleCaptureMissingMatcher": {
     "message": "La cible de capture ne correspond à aucune condition de cette règle"
@@ -1381,7 +1385,7 @@
     "message": "Toutes les conditions d’une règle doivent correspondre."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Chaque règle doit se terminer par un"
+    "message": "Toute règle qui enregistre doit se terminer par un"
   },
   "html_filterClauses": {
     "message": "Clauses de filtrage"
@@ -4438,5 +4442,31 @@
     "message": "Correspond au nom de téléchargement suggéré par le lien."
   },
   "routeDebuggerLinkTitle": { "message": "Titre du lien" },
-  "routeDebuggerLinkDownload": { "message": "Nom de téléchargement du lien" }
+  "routeDebuggerLinkDownload": { "message": "Nom de téléchargement du lien" },
+  "notificationRuleExcludedTitle": { "message": "Save In : enregistrement exclu" },
+  "notificationRuleExcludedPrivateMessage": {
+    "message": "Une règle de routage a exclu cet enregistrement privé"
+  },
+  "notificationRuleExcludedMessage": {
+    "message": "Une règle de routage a exclu $URL$",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "o_lRoutingExcluded": { "message": "exclu par une règle de routage" },
+  "routeDebuggerExcluded": {
+    "message": "Une règle correspond. Cet enregistrement est exclu, les règles suivantes ne sont donc pas évaluées."
+  },
+  "routeDebuggerRuleExcluded": { "message": "N’enregistre pas les éléments correspondants" },
+  "routeDebuggerSelectedExcluded": { "message": "Exclu" },
+  "routeVisualAddExclusionRule": { "message": "Ajouter une règle d’exclusion" },
+  "routeVisualAfterSaveLabel": { "message": "Après l’enregistrement" },
+  "routeVisualCloseSourceTab": { "message": "Fermer l’onglet source après l’enregistrement" },
+  "routeVisualCloseTabValue": { "message": "Fermer l’onglet source" },
+  "routeVisualExcludeLabel": { "message": "Éléments correspondants" },
+  "routeVisualExcludeValue": { "message": "Ne pas enregistrer" },
+  "routeVisualKeepSourceTab": {
+    "message": "Laisser l’onglet source ouvert après l’enregistrement"
+  },
+  "html_routingActionClauses": {
+    "message": "Utilisez exclude: true au lieu de into: pour arrêter les enregistrements correspondants. Ajoutez tab: close à une règle d’enregistrement pour fermer son onglet source après le début de l’enregistrement ; les règles automatiques ne peuvent pas fermer les onglets."
+  }
 }

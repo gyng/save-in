@@ -546,6 +546,10 @@
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Kan de download niet routeren of hernoemen"
   },
+  "notificationPrivateDetailsHidden": {
+    "message": "Details van privéopslag zijn verborgen"
+  },
+  "notificationPrivateFailureTitle": { "message": "Save In: privéopslag mislukt" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "Geen overeenkomende regel gevonden voor $URL$",
     "placeholders": {
@@ -556,7 +560,7 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "Voeg vóór into: minstens één matchvoorwaarde toe"
+    "message": "Voeg minstens één matchvoorwaarde aan de regel toe"
   },
   "ruleCaptureMissingMatcher": {
     "message": "Het capture-doel komt met geen enkele voorwaarde in deze regel overeen"
@@ -1369,7 +1373,7 @@
     "message": "Elke matcher in een regel moet overeenkomen."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Elke regel moet eindigen met een"
+    "message": "Elke regel die opslaat, moet eindigen met een"
   },
   "html_filterClauses": {
     "message": "Filterclausules"
@@ -4438,5 +4442,29 @@
     "message": "Komt overeen met de downloadnaam die de link voorstelt."
   },
   "routeDebuggerLinkTitle": { "message": "Linktitel" },
-  "routeDebuggerLinkDownload": { "message": "Downloadnaam van de link" }
+  "routeDebuggerLinkDownload": { "message": "Downloadnaam van de link" },
+  "notificationRuleExcludedTitle": { "message": "Save In: opslaan uitgesloten" },
+  "notificationRuleExcludedPrivateMessage": {
+    "message": "Een routeringsregel heeft deze privéopslag uitgesloten"
+  },
+  "notificationRuleExcludedMessage": {
+    "message": "Een routeringsregel heeft $URL$ uitgesloten",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "o_lRoutingExcluded": { "message": "uitgesloten door routeringsregel" },
+  "routeDebuggerExcluded": {
+    "message": "Een regel kwam overeen. Deze opslag is uitgesloten, dus latere regels worden niet geëvalueerd."
+  },
+  "routeDebuggerRuleExcluded": { "message": "Slaat overeenkomende items niet op" },
+  "routeDebuggerSelectedExcluded": { "message": "Uitgesloten" },
+  "routeVisualAddExclusionRule": { "message": "Uitsluitingsregel toevoegen" },
+  "routeVisualAfterSaveLabel": { "message": "Na het opslaan" },
+  "routeVisualCloseSourceTab": { "message": "Brontabblad sluiten na het opslaan" },
+  "routeVisualCloseTabValue": { "message": "Brontabblad sluiten" },
+  "routeVisualExcludeLabel": { "message": "Overeenkomende items" },
+  "routeVisualExcludeValue": { "message": "Niet opslaan" },
+  "routeVisualKeepSourceTab": { "message": "Brontabblad openhouden na het opslaan" },
+  "html_routingActionClauses": {
+    "message": "Gebruik exclude: true in plaats van into: om overeenkomende opslagacties te stoppen. Voeg tab: close toe aan een opslagregel om het brontabblad te sluiten nadat het opslaan is gestart; automatische regels kunnen geen tabbladen sluiten."
+  }
 }

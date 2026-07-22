@@ -35,6 +35,32 @@ into: automatic/:pagedomain:/
     );
   });
 
+  test("a guarded exclusion stops a later broad automatic route", () => {
+    const parsed = parseRulesCollecting(`
+context: ^auto$
+pageurl: gallery\\.example\\.test
+sourceurl: /thumbnail/
+exclude: true
+
+context: ^auto$
+pageurl: gallery\\.example\\.test
+sourcekind: image
+into: automatic/:filename:
+`);
+
+    expect(parsed.errors.filter((error) => !error.warning)).toEqual([]);
+    expect(
+      matchAutomaticRoutingRule(parsed.rules, {
+        ...candidate,
+        sourceUrl: "https://cdn.example.test/thumbnail/cat.jpg",
+      }),
+    ).toMatchObject({ outcome: "exclude", destination: null });
+    expect(matchAutomaticRoutingRule(parsed.rules, candidate)).toMatchObject({
+      outcome: "route",
+      destination: "automatic/:filename:",
+    });
+  });
+
   test("carries the matched rule's capture-substituted fetch template", () => {
     const parsed = parseRulesCollecting(`
 context: ^auto$
