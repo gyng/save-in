@@ -1,5 +1,6 @@
 // Cases imported by panel.test.ts to share one jsdom environment.
 import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
+import { stopHistoryProgress } from "../../../src/options/history/history-progress.ts";
 
 const historyRuntime = vi.hoisted(() => ({
   entries: [] as Array<Record<string, unknown>>,
@@ -1175,6 +1176,114 @@ describe("history filter controls", () => {
 
     await vi.advanceTimersByTimeAsync(1);
     expect(historyRuntime.search).toHaveBeenCalledTimes(2);
+  });
+
+  test("keeps polling immediately when a stuck entry shares the visible set with a new active one", async () => {
+    // Regression for the allKnownStuck check requiring EVERY visible id to
+    // already be known-stuck, not just some: a mixed set must not inherit the
+    // 1s delay a lone stuck id would get on its own.
+    vi.useFakeTimers();
+    historyRuntime.entries = [
+      { id: "h-stuck", status: "pending", downloadId: 7, finalFullPath: "stuck.iso" },
+    ];
+    let resolveFirstSearch: (items: Array<Record<string, unknown>>) => void = () => {};
+    historyRuntime.search.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveFirstSearch = resolve;
+        }),
+    );
+    const { renderHistory } = historyPanel;
+    await renderHistory();
+
+    // A second, genuinely active download becomes visible in the very render
+    // id 7's stuck poll triggers, before id 7 alone ever settles onto its own
+    // 1s delay: both ids are visible together for the first time here, with
+    // only 7 tracked as already-stuck. Report both in_progress this round
+    // (rather than repeating id 7 as "complete") so the cascade settles in
+    // one pass instead of recursing through the always-wins anyFinished
+    // branch again — the decision under test is made by startHistoryProgress
+    // before this poll's results even matter.
+    historyRuntime.entries = [
+      { id: "h-stuck", status: "pending", downloadId: 7, finalFullPath: "stuck.iso" },
+      { id: "h-active", status: "pending", downloadId: 8, finalFullPath: "active.iso" },
+    ];
+    historyRuntime.search.mockImplementation(async (query: { id: number }) => [
+      { id: query.id, state: "in_progress", bytesReceived: 20, totalBytes: 100 },
+    ]);
+    resolveFirstSearch([{ id: 7, state: "complete", bytesReceived: 100, totalBytes: 100 }]);
+    await vi.advanceTimersByTimeAsync(0);
+
+    // A change of `every` to `some` in startHistoryProgress's allKnownStuck
+    // check would treat this mixed set as fully stuck (7 alone already
+    // satisfies "some") and wrongly delay id 8's very first poll by 1s
+    // instead of polling both ids immediately.
+    expect(historyRuntime.search).toHaveBeenCalledTimes(3);
+    const polledIds = historyRuntime.search.mock.calls
+      .slice(1)
+      .map(([query]) => (query as { id: number }).id)
+      .sort();
+    expect(polledIds).toEqual([7, 8]);
+    expect(vi.getTimerCount()).toBe(1);
+  });
+
+  test("clears stuck tracking on stop so a later genuine transition polls immediately", async () => {
+    // Regression for stopHistoryProgress dropping its stuckFinishedIds.clear():
+    // without it, an id once reported terminal would stay "known stuck"
+    // across an unrelated later session and wrongly delay that session's
+    // very first, genuinely in-progress poll.
+    vi.useFakeTimers();
+    historyRuntime.entries = [
+      { id: "h-stuck", status: "pending", downloadId: 7, finalFullPath: "stuck.iso" },
+    ];
+    let resolveFirstSearch: (items: Array<Record<string, unknown>>) => void = () => {};
+    historyRuntime.search.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveFirstSearch = resolve;
+        }),
+    );
+    const { renderHistory } = historyPanel;
+    await renderHistory();
+
+    // Defer the re-render this poll triggers so the test can interrupt right
+    // after id 7 is marked stuck, before startHistoryProgress ever consumes
+    // (and clears) that bookkeeping itself.
+    let resolveRerenderGet: ((response: unknown) => void) | undefined;
+    historyRuntime.sendMessage.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveRerenderGet = resolve;
+        }),
+    );
+    resolveFirstSearch([{ id: 7, state: "complete", bytesReceived: 100, totalBytes: 100 }]);
+    await vi.advanceTimersByTimeAsync(0);
+    // The re-render that would normally consume/clear the stuck bookkeeping
+    // hasn't resolved yet, so nothing has been scheduled either.
+    expect(vi.getTimerCount()).toBe(0);
+
+    // The panel is closed (e.g. navigating away) while id 7 is still tracked
+    // as stuck and the interrupted re-render is in flight.
+    stopHistoryProgress();
+
+    // It reopens later for a genuinely new, actively-downloading entry that
+    // happens to reuse the same tracked id. Resolving the deferred re-render
+    // now completes the interrupted cascade with this fresh data.
+    historyRuntime.search.mockImplementation(async (query: { id: number }) => [
+      { id: query.id, state: "in_progress", bytesReceived: 10, totalBytes: 100 },
+    ]);
+    historyRuntime.entries = [
+      { id: "h-fresh", status: "pending", downloadId: 7, finalFullPath: "fresh.iso" },
+    ];
+    resolveRerenderGet?.({ type: "HISTORY_GET", body: { entries: historyRuntime.entries } });
+    await vi.advanceTimersByTimeAsync(0);
+
+    // Leftover "stuck" bookkeeping surviving the stop would make this fresh,
+    // genuinely in-progress poll wait out a stale 1s delay instead of running
+    // immediately alongside the render that revealed it.
+    expect(historyRuntime.search).toHaveBeenCalledTimes(2);
+    expect(historyRuntime.search).toHaveBeenLastCalledWith({ id: 7 });
+    expect(vi.getTimerCount()).toBe(1);
   });
 
   test("refreshes pending history before a native download id is available", async () => {
