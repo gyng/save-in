@@ -33,8 +33,10 @@ describe("download ports", () => {
     const history = {
       add: vi.fn(() => "history-id"),
       patch: vi.fn(() => Promise.resolve()),
+      patchStrict: vi.fn(() => Promise.resolve()),
       setDownloadId: vi.fn(() => Promise.resolve()),
       setStatus: vi.fn(() => Promise.resolve()),
+      setStatusStrict: vi.fn(() => Promise.resolve()),
       entries: vi.fn(() => Promise.resolve([])),
       anchorStartTime: vi.fn(() => Promise.resolve()),
     };
@@ -56,6 +58,8 @@ describe("download ports", () => {
     expect(capturedRuntime.debug).toBe(true);
     expect(capturedRuntime.lastDownloadState).toBe(lastDownloadState);
     expect(capturedHistory.add({})).toBe("history-id");
+    await expect(capturedHistory.patchStrict("history-id", {})).resolves.toBeUndefined();
+    expect(history.patchStrict).toHaveBeenCalledWith("history-id", {});
     capturedLog.add("configured");
     expect(log.add).toHaveBeenCalledWith("configured");
     await expect(downloadPorts.retry(7)).resolves.toBe(true);

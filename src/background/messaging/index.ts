@@ -356,7 +356,27 @@ const internalHandlers = {
       // unavailable; retaining the original is always the safe fallback.
     }
     if (replacementState === "complete") {
-      const completedMove = await completePendingHistoryMove(replacement.downloadId);
+      let completedMove;
+      try {
+        completedMove = await completePendingHistoryMove(replacement.downloadId);
+      } catch (error) {
+        // The replacement is already accepted and the pending intent is
+        // durable. Reporting failure would invite a second click and another
+        // replacement; recovery can safely finish the same move later.
+        await addLogEntry("history move completion deferred", String(error), {
+          privateContext: entry.private === true,
+        });
+        sendResponse({
+          type: MESSAGE_TYPES.HISTORY_REROUTE,
+          body: {
+            rerouted: true,
+            oldRemoved: false,
+            pending: true,
+            ...(newHistoryId ? { newHistoryId } : {}),
+          },
+        });
+        return;
+      }
       sendResponse({
         type: MESSAGE_TYPES.HISTORY_REROUTE,
         body: {

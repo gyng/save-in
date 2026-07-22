@@ -1020,6 +1020,28 @@ describe("SaveHistory", () => {
     expect(JSON.stringify(payload).length).toBeLessThan(2_000);
   });
 
+  test("strict patches surface their failure without poisoning later History writes", async () => {
+    const id = SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    await flushWrites();
+    global.browser.storage.local.set = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("storage unavailable"))
+      .mockImplementation((obj: Record<string, unknown>) => {
+        Object.assign(store, obj);
+        return Promise.resolve();
+      });
+
+    await expect(
+      SaveHistory.patchHistoryEntryStrict(id, { rerouteTo: "replacement" }),
+    ).rejects.toThrow("storage unavailable");
+    await expect(SaveHistory.setHistoryStatusStrict(id, "moved", 7)).resolves.toBeUndefined();
+
+    expect((await storedHistory())[0]).toMatchObject({ status: "moved", downloadId: 7 });
+    expect(getPersistenceDiagnostics()).toEqual([
+      expect.objectContaining({ area: "local", operation: "write" }),
+    ]);
+  });
+
   test("reloads a patch target omitted from the index snapshot", async () => {
     const id = SaveHistory.addHistoryEntry({ url: "https://a/1" });
     await flushWrites();

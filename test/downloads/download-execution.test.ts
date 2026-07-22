@@ -2134,10 +2134,14 @@ describe("concurrent downloads (pendingStates)", () => {
           freshHistory.addHistoryEntry(...a),
         patch: (...a: Parameters<typeof freshHistory.patchHistoryEntry>) =>
           freshHistory.patchHistoryEntry(...a),
+        patchStrict: (...a: Parameters<typeof freshHistory.patchHistoryEntryStrict>) =>
+          freshHistory.patchHistoryEntryStrict(...a),
         setDownloadId: (...a: Parameters<typeof freshHistory.setHistoryDownloadId>) =>
           freshHistory.setHistoryDownloadId(...a),
         setStatus: (...a: Parameters<typeof freshHistory.setHistoryStatus>) =>
           freshHistory.setHistoryStatus(...a),
+        setStatusStrict: (...a: Parameters<typeof freshHistory.setHistoryStatusStrict>) =>
+          freshHistory.setHistoryStatusStrict(...a),
         entries: () => freshHistory.getHistoryEntries(),
         anchorStartTime: (...a: Parameters<typeof freshHistory.anchorHistoryDownloadStartTime>) =>
           freshHistory.anchorHistoryDownloadStartTime(...a),

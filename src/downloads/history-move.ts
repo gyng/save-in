@@ -2,6 +2,7 @@
 // owner. Its intent lives in the persisted per-download record so an MV3
 // restart cannot turn an accepted replacement into premature data loss.
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
 import {
   getDownload,
@@ -10,7 +11,7 @@ import {
   type PendingHistoryMove,
 } from "./download-state.ts";
 import { downloadPorts } from "./ports.ts";
-import { undoBrowserDownload } from "./undo-download.ts";
+import { removeVerifiedDownloadFile } from "./undo-download.ts";
 
 export type CompletedHistoryMove = {
   handled: boolean;
@@ -44,24 +45,34 @@ const runPendingHistoryMove = async (
   const pending = record?.pendingHistoryMove;
   if (!pending) return { handled: false, oldRemoved: false };
 
-  const removal = await undoBrowserDownload(pending.downloadId, {
+  const newHistoryId = record.historyEntryId;
+  if (newHistoryId) {
+    // Establish the auditable relationship before touching the old file. A
+    // storage failure leaves both copies intact and the durable intent retries.
+    await downloadPorts.history.patchStrict(newHistoryId, { rerouteOf: pending.historyId });
+    await downloadPorts.history.patchStrict(pending.historyId, { rerouteTo: newHistoryId });
+  }
+  const oldRemoved = await removeVerifiedDownloadFile(pending.downloadId, {
     startTime: pending.startTime,
     filename: pending.filename,
   });
-  const newHistoryId = record.historyEntryId;
-  if (newHistoryId) {
-    await downloadPorts.history.patch(newHistoryId, { rerouteOf: pending.historyId });
-    await downloadPorts.history.patch(pending.historyId, { rerouteTo: newHistoryId });
-  }
-  // Publish the terminal moved status only after the relationship is durable;
-  // History observers can then treat that status as the completed transaction.
-  if (removal.undone) {
-    await downloadPorts.history.setStatus(pending.historyId, "moved", pending.downloadId);
+  if (oldRemoved) {
+    // Keep the browser record until this strict write succeeds. Its `exists:
+    // false` state is the recovery evidence if the worker or storage fails
+    // after removeFile() has already changed the filesystem.
+    await downloadPorts.history.setStatusStrict(pending.historyId, "moved", pending.downloadId);
+    try {
+      await webExtensionApi.downloads.erase({ id: pending.downloadId });
+    } catch (error) {
+      downloadPorts.log.add("history move shelf cleanup failed", String(error), {
+        privateContext: record.privateContext === true,
+      });
+    }
   }
   await abandonPendingHistoryMove(replacementDownloadId);
   return {
     handled: true,
-    oldRemoved: removal.undone,
+    oldRemoved,
     ...(newHistoryId ? { newHistoryId } : {}),
   };
 };

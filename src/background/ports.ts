@@ -14,8 +14,10 @@ import {
   anchorHistoryDownloadStartTime,
   getHistoryEntries,
   patchHistoryEntry,
+  patchHistoryEntryStrict,
   setHistoryDownloadId,
   setHistoryStatus,
+  setHistoryStatusStrict,
 } from "./history.ts";
 import { addLogEntry } from "./log.ts";
 import { backgroundRuntime } from "./runtime.ts";
@@ -29,8 +31,10 @@ export const configureBackgroundPorts = () => {
     history: {
       add: addHistoryEntry,
       patch: patchHistoryEntry,
+      patchStrict: patchHistoryEntryStrict,
       setDownloadId: setHistoryDownloadId,
       setStatus: setHistoryStatus,
+      setStatusStrict: setHistoryStatusStrict,
       entries: getHistoryEntries,
       anchorStartTime: anchorHistoryDownloadStartTime,
     },

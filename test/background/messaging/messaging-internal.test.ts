@@ -529,6 +529,58 @@ describe("onMessage", () => {
     });
   });
 
+  test.each([undefined, "history-new"])(
+    "HISTORY_REROUTE reports a durable fast completion as pending when finalization fails (%s)",
+    async (newHistoryId) => {
+      vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+        {
+          id: "history-deferred-completion",
+          url: "https://x.test/private.png",
+          finalFullPath: "from/private.png",
+          downloadId: 68,
+          status: "complete",
+          private: true,
+        },
+      ]);
+      vi.mocked(global.browser.downloads.search).mockResolvedValue([
+        { id: 68, url: "https://x.test/private.png", state: "complete" } as never,
+      ]);
+      vi.mocked(Download.launchDownload).mockImplementation(async (state) => {
+        if (newHistoryId) state.scratch.historyEntryId = newHistoryId;
+        return { status: "started", downloadId: 69 };
+      });
+      vi.mocked(HistoryMove.completePendingHistoryMove).mockRejectedValue(
+        new Error("history unavailable"),
+      );
+      const sendResponse = vi.fn();
+
+      onMessage(
+        {
+          type: MESSAGE_TYPES.HISTORY_REROUTE,
+          body: { historyId: "history-deferred-completion", destination: "moved/here" },
+        },
+        {},
+        sendResponse,
+      );
+      await waitForCall(sendResponse);
+
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "history move completion deferred",
+        "Error: history unavailable",
+        { privateContext: true },
+      );
+      expect(sendResponse).toHaveBeenCalledWith({
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: {
+          rerouted: true,
+          oldRemoved: false,
+          pending: true,
+          ...(newHistoryId ? { newHistoryId } : {}),
+        },
+      });
+    },
+  );
+
   test("HISTORY_REROUTE restores recorded private routing context and menu variables", async () => {
     vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
       {

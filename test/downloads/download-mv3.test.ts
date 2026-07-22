@@ -624,8 +624,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       history: {
         add: () => "history-id",
         patch: () => Promise.resolve(),
+        patchStrict: () => Promise.resolve(),
         setDownloadId: () => Promise.resolve(),
         setStatus: () => Promise.resolve(),
+        setStatusStrict: () => Promise.resolve(),
         entries: () => Promise.resolve([]),
         anchorStartTime: () => Promise.resolve(),
       },
@@ -785,8 +787,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       history: {
         add: () => "history-id",
         patch: () => Promise.resolve(),
+        patchStrict: () => Promise.resolve(),
         setDownloadId: () => Promise.resolve(),
         setStatus: () => Promise.resolve(),
+        setStatusStrict: () => Promise.resolve(),
         entries: () => Promise.resolve([]),
         anchorStartTime: () => Promise.resolve(),
       },
@@ -808,8 +812,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       history: {
         add: () => "history-id",
         patch: () => Promise.resolve(),
+        patchStrict: () => Promise.resolve(),
         setDownloadId: () => Promise.resolve(),
         setStatus: () => Promise.resolve(),
+        setStatusStrict: () => Promise.resolve(),
         entries: () => Promise.resolve([]),
         anchorStartTime: () => Promise.resolve(),
       },
@@ -1200,8 +1206,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       history: {
         add: () => "history-id",
         patch: () => Promise.resolve(),
+        patchStrict: () => Promise.resolve(),
         setDownloadId: () => Promise.resolve(),
         setStatus: () => Promise.resolve(),
+        setStatusStrict: () => Promise.resolve(),
         entries: () => Promise.resolve([]),
         anchorStartTime: () => Promise.resolve(),
       },

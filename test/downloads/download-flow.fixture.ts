@@ -150,10 +150,14 @@ beforeEach(() => {
         SaveHistory.addHistoryEntry(...a),
       patch: (...a: Parameters<typeof SaveHistory.patchHistoryEntry>) =>
         SaveHistory.patchHistoryEntry(...a),
+      patchStrict: (...a: Parameters<typeof SaveHistory.patchHistoryEntryStrict>) =>
+        SaveHistory.patchHistoryEntryStrict(...a),
       setDownloadId: (...a: Parameters<typeof SaveHistory.setHistoryDownloadId>) =>
         SaveHistory.setHistoryDownloadId(...a),
       setStatus: (...a: Parameters<typeof SaveHistory.setHistoryStatus>) =>
         SaveHistory.setHistoryStatus(...a),
+      setStatusStrict: (...a: Parameters<typeof SaveHistory.setHistoryStatusStrict>) =>
+        SaveHistory.setHistoryStatusStrict(...a),
       entries: () => SaveHistory.getHistoryEntries(),
       anchorStartTime: (...a: Parameters<typeof SaveHistory.anchorHistoryDownloadStartTime>) =>
         SaveHistory.anchorHistoryDownloadStartTime(...a),
