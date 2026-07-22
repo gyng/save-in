@@ -400,6 +400,12 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       clause.kind === "matcher"
         ? rule.clauses.slice(0, clause.index + 1).filter((item) => item.kind === "matcher").length
         : undefined;
+    const actionLabel =
+      clause.kind === "action"
+        ? clause.name === "exclude"
+          ? localize("routeVisualExcludeLabel", "Matching items")
+          : localize("routeVisualAfterSaveLabel", "After saving")
+        : undefined;
 
     if (clause.kind === "matcher" && conditionNumber !== undefined && clause.name !== "css") {
       row.append(createMatcherInput(rule, clause, conditionNumber));
@@ -411,11 +417,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           ? localize("routeVisualFetchLabel", "Rewrite download URL")
           : clause.kind === "rename"
             ? localize("routeVisualRenameLabel", "Rename the file")
-            : clause.kind === "action"
-              ? clause.name === "exclude"
-                ? localize("routeVisualExcludeLabel", "Matching items")
-                : localize("routeVisualAfterSaveLabel", "After saving")
-              : clause.name;
+            : (actionLabel ?? clause.name);
       row.append(name);
     }
 
@@ -453,15 +455,17 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     value.value = clause.value;
     value.spellcheck = false;
     value.placeholder =
-      clause.kind === "destination"
-        ? "folder/:filename:"
-        : clause.kind === "fetch"
-          ? "https://example.com/:$1:"
-          : clause.kind === "rename"
-            ? "find -> replacement"
-            : clause.name === "css"
-              ? "article img, .gallery video"
-              : ".*";
+      expectedActionValue !== undefined
+        ? expectedActionValue
+        : clause.kind === "destination"
+          ? "folder/:filename:"
+          : clause.kind === "fetch"
+            ? "https://example.com/:$1:"
+            : clause.kind === "rename"
+              ? "find -> replacement"
+              : clause.name === "css"
+                ? "article img, .gallery video"
+                : ".*";
     value.setAttribute(
       "aria-label",
       clause.kind === "destination"
@@ -497,7 +501,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
                   ),
                   rule.index + 1,
                 )
-              : clause.name,
+              : (actionLabel ?? clause.name),
     );
     value.addEventListener("input", () => {
       commit(

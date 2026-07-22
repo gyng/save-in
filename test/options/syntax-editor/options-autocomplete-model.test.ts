@@ -82,6 +82,18 @@ describe("applySuggestion", () => {
     expect(applied.caret).toBe(9);
   });
 
+  test.each([
+    ["excl", "exclude", "exclude: true"],
+    ["tab", "tab", "tab: close"],
+  ])("completes the fixed %s action value", (typed, chosen, expected) => {
+    const result = suggestFor(typed, [matcherStrategy(["exclude", "tab"])]);
+
+    expect(applySuggestion(typed, typed.length, result!, chosen)).toEqual({
+      value: expected,
+      caret: expected.length,
+    });
+  });
+
   test("applies a router variable and a strategy without a prefix capture", () => {
     const routerValue = "filename: x\ninto: :d";
     const routerResult = suggestFor(routerValue, [routerVariableStrategy(VARIABLES)])!;

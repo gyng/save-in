@@ -87,7 +87,10 @@ export const matcherStrategy = (matcherList: string[]): AutocompleteStrategy => 
   // A lowercase word at the start of a line: a routing matcher name
   match: /(^|\n)([a-z]+)$/,
   suggest: (term) => matcherList.filter((name) => name.startsWith(term)),
-  insert: (prefix, name) => `${prefix}${name}: `,
+  insert: (prefix, name) => {
+    const actionValue = routingActionValue(name);
+    return `${prefix}${name}: ${actionValue ?? ""}`;
+  },
 });
 
 export const routerVariableStrategy = (variableList: string[]): AutocompleteStrategy => ({

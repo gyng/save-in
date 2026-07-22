@@ -529,7 +529,7 @@ describe("routing visual editor", () => {
     expect(menu.open).toBe(false);
   });
 
-  test("shows an invalid action value instead of presenting it as enabled", () => {
+  test("shows an invalid action value instead of presenting it as enabled", async () => {
     element<HTMLTextAreaElement>("#filenamePatterns").value =
       "filename: tracker\\.gif$\nexclude: false";
 
@@ -538,9 +538,22 @@ describe("routing visual editor", () => {
     expect(document.querySelector(".rule-clause-action-value")).toBeNull();
     const value = element<HTMLInputElement>(".rule-clause-action .rule-clause-value");
     expect(value.value).toBe("false");
+    expect(value.placeholder).toBe("true");
+    expect(value.getAttribute("aria-label")).toBe("Matching items");
     value.value = "true";
     value.dispatchEvent(new InputEvent("input", { bubbles: true }));
     expect(element<HTMLTextAreaElement>("#filenamePatterns").value).toContain("exclude: true");
+
+    element<HTMLTextAreaElement>("#filenamePatterns").value =
+      "filename: document\\.pdf$\ntab: later\ninto: documents/";
+    element<HTMLTextAreaElement>("#filenamePatterns").dispatchEvent(
+      new InputEvent("input", { bubbles: true }),
+    );
+    await vi.waitFor(() => {
+      const action = element<HTMLInputElement>(".rule-clause-action .rule-clause-value");
+      expect(action.placeholder).toBe("close");
+      expect(action.getAttribute("aria-label")).toBe("After saving");
+    });
   });
 
   test("toggles the close-source-tab action from the rule menu", () => {
