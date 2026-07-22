@@ -76,14 +76,17 @@ export const isAdmittedAutomaticSource = (
   channel: PageSourceChannel | undefined,
   gates: AutomaticScanGates,
 ): boolean => {
+  // Absence is the only always-admitted shape: a channel value this build does
+  // not recognize (a newer content script, a tampered message) must not ride
+  // the embedded-media branch, because no gate the user controls covers it.
+  if (channel === undefined) return kind === "image" || kind === "video" || kind === "audio";
   if (channel === "background") return gates.includeBackgrounds && kind === "image";
   if (channel === "resource-hint") return gates.resourceHints && kind === "stream";
   if (channel === "anchor") {
     if (kind === "image" || kind === "video" || kind === "audio") return gates.includeLinks;
     if (kind === "stream" || kind === "document") return gates.includeDocuments;
-    return false;
   }
-  return kind === "image" || kind === "video" || kind === "audio";
+  return false;
 };
 
 export type AutomaticRoutingMatch = RuleMatch;
