@@ -448,10 +448,10 @@ export const executeBrowserDownload = async (
       downloadRuntime.forgetPendingState(state);
       await historyPort.setStatus(historyEntryId, "DOWNLOAD_API_FAILED");
       if (!isSourceSidecar(state)) {
-        reportDownloadFailure(
-          finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(state)),
-          String(e),
-        );
+        const failureName = finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(state));
+        if (privateContext) {
+          reportDownloadFailure(failureName, String(e), { privateContext: true });
+        } else reportDownloadFailure(failureName, String(e));
       }
       return { status: "failed" };
     }
@@ -505,10 +505,11 @@ export const executeBrowserDownload = async (
 // and its own failure is reported separately.
 const reportPreparationFailure = (plan: DownloadPlan, error: unknown): void => {
   if (isSourceSidecar(plan.state)) return;
-  reportDownloadFailure(
-    plan.finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(plan.state)),
-    String(error),
-  );
+  const failureName =
+    plan.finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(plan.state));
+  if (isPrivateDownloadState(plan.state)) {
+    reportDownloadFailure(failureName, String(error), { privateContext: true });
+  } else reportDownloadFailure(failureName, String(error));
 };
 
 // async because applyVariables may await a
@@ -587,9 +588,11 @@ export const renameAndDownload = async (
     } else if ((state.needRouteMatch || options.routeSkipUnmatched) && options.notifyOnFailure) {
       createExtensionNotification(
         getMessage("notificationRuleMatchFailedExclusiveTitle"),
-        getMessage("notificationRuleMatchFailedExclusiveMessage", [
-          truncateDataUrlForDisplay(requireDownloadUrl(state)),
-        ]),
+        isPrivateDownloadState(state)
+          ? getMessage("notificationPrivateRuleMatchFailedMessage")
+          : getMessage("notificationRuleMatchFailedExclusiveMessage", [
+              truncateDataUrlForDisplay(requireDownloadUrl(state)),
+            ]),
         true,
         EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
       );
@@ -673,7 +676,9 @@ export const renameAndDownload = async (
     if (options.notifyOnRuleMatch && state.info.context !== DOWNLOAD_TYPES.AUTO) {
       createExtensionNotification(
         getMessage("notificationRuleMatchedTitle"),
-        `${state.info.initialFilename}\n⬇\n${state.route}`,
+        isPrivateDownloadState(state)
+          ? getMessage("notificationPrivateRuleMatchedMessage")
+          : `${state.info.initialFilename}\n⬇\n${state.route}`,
         false,
         EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
       );

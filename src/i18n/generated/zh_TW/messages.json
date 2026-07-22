@@ -125,6 +125,9 @@
   "notificationRuleMatchedTitle": {
     "message": "Save In：規則相符"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "一個隱私瀏覽項目符合路由規則。"
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In：無法路由或重新命名下載"
   },
@@ -136,6 +139,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "沒有路由規則符合該隱私瀏覽項目。"
   },
   "ruleMissingMatcher": {
     "message": "請在 into: 前新增至少一個比對條件"
@@ -724,6 +730,9 @@
   },
   "notificationLinkPreferred": {
     "message": "下載了連結目標"
+  },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "已選取隱私瀏覽連結的目標。"
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "僅在符合的頁面上"

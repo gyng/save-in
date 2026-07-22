@@ -90,13 +90,22 @@ export const reportExternalDownloadRejection = (senderId: string): Promise<void>
 // rejecting after the fetch fallback is exhausted) — cases onDownloadChanged
 // never sees. Gated on notifyOnFailure so it stays consistent with the
 // post-creation failure notification.
-export const reportDownloadFailure = (name: string, message?: string) => {
+export const reportDownloadFailure = (
+  name: string,
+  message?: string,
+  context: { privateContext?: boolean } = {},
+) => {
   if (!(options && options.notifyOnFailure)) {
     return;
   }
+  const privateContext = context.privateContext === true;
   createExtensionNotification(
-    getMessage("notificationFailureTitle", [name || ""]),
-    message || getMessage("genericUnknownError"),
+    privateContext
+      ? getMessage("notificationPrivateFailureTitle")
+      : getMessage("notificationFailureTitle", [name || ""]),
+    privateContext
+      ? getMessage("genericUnknownError")
+      : message || getMessage("genericUnknownError"),
     true,
     EXTENSION_NOTIFICATION_STREAMS.DOWNLOAD_FAILURE,
   );

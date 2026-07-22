@@ -31,7 +31,7 @@ import { truncateDataUrlForDisplay } from "../shared/data-url.ts";
 import { notifyRouteExclusion } from "./route-exclusion-notification.ts";
 import { getTrackedDownload } from "./expected-downloads.ts";
 import { releaseTerminalDownload, runLateRouteCancellation } from "./terminal-download.ts";
-import { requireDownloadUrl } from "./download-pipeline-state.ts";
+import { isPrivateDownloadState, requireDownloadUrl } from "./download-pipeline-state.ts";
 import { settleRoutingResolution } from "./routing-resolution.ts";
 import { historyRoutingPatch } from "./history-entry.ts";
 
@@ -420,9 +420,11 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
       if (options.notifyOnFailure) {
         createExtensionNotification(
           getMessage("notificationRuleMatchFailedExclusiveTitle"),
-          getMessage("notificationRuleMatchFailedExclusiveMessage", [
-            truncateDataUrlForDisplay(requireDownloadUrl(state)),
-          ]),
+          isPrivateDownloadState(state)
+            ? getMessage("notificationPrivateRuleMatchFailedMessage")
+            : getMessage("notificationRuleMatchFailedExclusiveMessage", [
+                truncateDataUrlForDisplay(requireDownloadUrl(state)),
+              ]),
           true,
           EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
         );

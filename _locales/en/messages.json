@@ -115,6 +115,10 @@
     "message": "Save In: Rule matched",
     "description": "Notification title for a rule match. Used in src/downloads/download.ts."
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "A private browsing item matched a routing rule.",
+    "description": "Non-identifying notification body after an interactive private save matches a routing rule. It must not include the filename, destination, path, or URL. Used in src/downloads/download-execution.ts."
+  },
   "notificationRuleExcludedMessage": {
     "message": "$URL$ was not saved because a routing rule excluded it.",
     "description": "Notification body after an interactive save matches a terminal exclude: true routing rule, including a Chrome final-filename match. Used in src/downloads/route-exclusion-notification.ts.",
@@ -174,6 +178,10 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "No routing rule matched the private browsing item.",
+    "description": "Non-identifying notification body when an interactive private save requires a routing rule but none matches. It must not include the filename, path, or URL. Used in src/downloads/download-execution.ts and src/downloads/filename-listener.ts."
   },
   "ruleMissingMatcher": {
     "message": "Add at least one match condition before into:",
@@ -1720,6 +1728,10 @@
   "notificationLinkPreferred": {
     "message": "Downloaded the link target instead",
     "description": "Notification title when link was downloaded over a source. Used in src/background/menu-click.ts."
+  },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "The private browsing link target was selected.",
+    "description": "Non-identifying notification body when Save In chooses a private page's link target instead of its media source. It must not include the link URL. Used in src/background/menu-click.ts."
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "Only on matching pages",

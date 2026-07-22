@@ -123,6 +123,9 @@
   "notificationRuleMatchedTitle": {
     "message": "Save In：规则匹配"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "一个隐私浏览项目匹配了路由规则。"
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In：无法路由或重命名下载"
   },
@@ -134,6 +137,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "没有路由规则匹配该隐私浏览项目。"
   },
   "ruleMissingMatcher": {
     "message": "在 into: 之前添加至少一个匹配条件"
@@ -722,6 +728,9 @@
   },
   "notificationLinkPreferred": {
     "message": "下载了链接目标"
+  },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "已选择隐私浏览链接的目标。"
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "仅在匹配的页面上"

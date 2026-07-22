@@ -127,6 +127,9 @@
   "notificationRuleMatchedTitle": {
     "message": "Save In: ルールが一致しました"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "プライベートブラウジングの項目がルーティングルールに一致しました。"
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: ダウンロードのルーティングまたは名前変更に失敗しました"
   },
@@ -138,6 +141,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "プライベートブラウジングの項目に一致するルーティングルールはありませんでした。"
   },
   "ruleMissingMatcher": {
     "message": "into: の前に一致条件を 1 つ以上追加してください"
@@ -726,6 +732,9 @@
   },
   "notificationLinkPreferred": {
     "message": "代わりにリンクターゲットをダウンロードしました"
+  },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "プライベートブラウジングのリンク先が選択されました。"
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "一致するページのみ"

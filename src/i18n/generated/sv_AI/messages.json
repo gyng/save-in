@@ -549,6 +549,9 @@
   "notificationRuleMatchedTitle": {
     "message": "Save In: Regel matchad"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "Ett objekt från privat surfning matchade en dirigeringsregel."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Det gick inte att dirigera eller byta namn på nedladdningen"
   },
@@ -560,6 +563,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "Ingen dirigeringsregel matchade objektet från privat surfning."
   },
   "ruleMissingMatcher": {
     "message": "Lägg till minst ett matchningsvillkor före into:"
@@ -1148,6 +1154,9 @@
   },
   "notificationLinkPreferred": {
     "message": "Länkmålet laddades ner i stället"
+  },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "Länkmålet från privat surfning valdes."
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "Endast på matchande sidor"

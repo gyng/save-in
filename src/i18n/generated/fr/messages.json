@@ -561,6 +561,9 @@
   "notificationRuleMatchedTitle": {
     "message": "Save In : règle correspondante trouvée"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "Un élément de navigation privée correspondait à une règle de routage."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In : échec de l’acheminement ou du renommage du téléchargement"
   },
@@ -572,6 +575,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "Aucune règle de routage ne correspondait à l’élément de navigation privée."
   },
   "ruleMissingMatcher": {
     "message": "Ajoutez au moins une condition de correspondance avant into:"
@@ -1160,6 +1166,9 @@
   },
   "notificationLinkPreferred": {
     "message": "Cible du lien téléchargée à la place"
+  },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "La cible du lien de navigation privée a été sélectionnée."
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "Uniquement sur les pages correspondantes"

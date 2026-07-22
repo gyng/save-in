@@ -11,7 +11,11 @@ import { BrowserDownloadRouting, routeBrowserDownload } from "./browser-download
 import { getRoutingMatches, resolveRenameTransform } from "./download-plan.ts";
 import { finalizeFullPath } from "./download-disposition.ts";
 import { renameAndDownload } from "./download-execution.ts";
-import { addDownloadLog, isSourceSidecar } from "./download-pipeline-state.ts";
+import {
+  addDownloadLog,
+  isPrivateDownloadState,
+  isSourceSidecar,
+} from "./download-pipeline-state.ts";
 import { historyDisplayUrl } from "../shared/data-url.ts";
 import type { DownloadPipelineState, DownloadLaunchResult } from "./download-types.ts";
 
@@ -62,7 +66,11 @@ export const launchDownload = (state: DownloadPipelineState): Promise<DownloadLa
     // notification title; historyDisplayUrl truncates data: URLs (http(s) stay
     // whole).
     const name = state.info.suggestedFilename || historyDisplayUrl(state.info.url) || "";
-    if (!isSourceSidecar(state)) reportDownloadFailure(name, String(e));
+    if (!isSourceSidecar(state)) {
+      if (isPrivateDownloadState(state)) {
+        reportDownloadFailure(name, String(e), { privateContext: true });
+      } else reportDownloadFailure(name, String(e));
+    }
     return { status: "failed" as const };
   });
 

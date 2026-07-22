@@ -725,6 +725,21 @@ describe("addDownloadListener", () => {
     });
   });
 
+  test("does not put a private preferred-link URL in the notification", async () => {
+    options.preferLinks = true;
+    options.notifyOnLinkPreferred = true;
+    Menus.addPaths(["dir1"], ["image"]);
+
+    await listener(mediaClick, { id: 7, incognito: true });
+
+    expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
+      "Translated<notificationLinkPreferred>",
+      "Translated<notificationPrivateLinkPreferredMessage>",
+      undefined,
+      "link-preferred",
+    );
+  });
+
   test("reads exact-frame link attributes only when a link save is chosen", async () => {
     options.filenamePatterns = [[{ name: "linktitle", value: /full/ }]];
     global.browser.tabs.sendMessage = vi.fn(() =>

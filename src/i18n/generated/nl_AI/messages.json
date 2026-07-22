@@ -549,6 +549,9 @@
   "notificationRuleMatchedTitle": {
     "message": "Save In: regel toegepast"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "Een item uit privénavigatie kwam overeen met een routeringsregel."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Kan de download niet routeren of hernoemen"
   },
@@ -560,6 +563,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "Geen routeringsregel kwam overeen met het item uit privénavigatie."
   },
   "ruleMissingMatcher": {
     "message": "Voeg vóór into: minstens één matchvoorwaarde toe"
@@ -1148,6 +1154,9 @@
   },
   "notificationLinkPreferred": {
     "message": "In plaats daarvan het linkdoel gedownload"
+  },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "Het linkdoel uit privénavigatie is geselecteerd."
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "Alleen op overeenkomende pagina's"

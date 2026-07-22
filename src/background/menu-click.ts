@@ -325,7 +325,7 @@ const handleContextMenuClickInternal = async (
     if (target.notifyLinkPreferred && options.notifyOnLinkPreferred) {
       createExtensionNotification(
         getMessage("notificationLinkPreferred"),
-        url,
+        privateContext ? getMessage("notificationPrivateLinkPreferredMessage") : url,
         undefined,
         EXTENSION_NOTIFICATION_STREAMS.LINK_PREFERRED,
       );

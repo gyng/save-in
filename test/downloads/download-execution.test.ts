@@ -470,6 +470,27 @@ describe("renameAndDownload: browserDownload", () => {
     expect(ActiveTransfers.cancelActiveTransfer("h-test")).toBe(false);
   });
 
+  test("marks a private pre-browser session failure for generic notification copy", async () => {
+    setCurrentBrowser("CHROME");
+    options.persistPrivateActivity = true;
+    const update = vi.mocked(SessionState.updateSession);
+    const realUpdate = update.getMockImplementation()!;
+    update.mockImplementation((...args) =>
+      args[2] === "siPendingDownloads"
+        ? Promise.reject(new Error("private URL leaked here"))
+        : realUpdate(...args),
+    );
+    const state = makeState({ info: { currentTab: { incognito: true } } });
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "failed" });
+
+    expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.stringContaining("private URL leaked here"),
+      { privateContext: true },
+    );
+  });
+
   test("treats an invalid acquired URL as ineligible for HTTP fallback", async () => {
     setCurrentBrowser("CHROME");
     const state = makeState({ info: { url: "not a URL" } });
@@ -715,6 +736,31 @@ describe("renameAndDownload: notification triggers", () => {
     );
   });
 
+  test("does not identify a private item in a rule-match notification", async () => {
+    setCurrentBrowser("CHROME");
+    options.persistPrivateActivity = true;
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRules).mockReturnValue("private/secret-route.txt");
+    options.notifyOnRuleMatch = true;
+
+    await Download.renameAndDownload(
+      makeState({
+        info: {
+          currentTab: { incognito: true },
+          url: "https://private.example/secret.png",
+          suggestedFilename: "secret.png",
+        },
+      }),
+    );
+
+    expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
+      "notificationRuleMatchedTitle",
+      "notificationPrivateRuleMatchedMessage",
+      false,
+      "route-match",
+    );
+  });
+
   test("does not notify on rule match when notifyOnRuleMatch is disabled", async () => {
     setCurrentBrowser("CHROME");
     options.filenamePatterns = [routingRule()];
@@ -754,6 +800,28 @@ describe("renameAndDownload: notification triggers", () => {
       "route-miss",
     );
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
+  });
+
+  test("does not identify a private item in an unmatched-route notification", async () => {
+    setCurrentBrowser("CHROME");
+    options.routeSkipUnmatched = true;
+    options.notifyOnFailure = true;
+
+    const state = makeState({
+      info: {
+        currentTab: { incognito: true },
+        url: "https://private.example/secret.png",
+        suggestedFilename: "secret.png",
+      },
+    });
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
+
+    expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
+      "notificationRuleMatchFailedExclusiveTitle",
+      "notificationPrivateRuleMatchFailedMessage",
+      true,
+      "route-miss",
+    );
   });
 
   test("truncates a data URL in the unmatched-route notification", async () => {
@@ -2031,6 +2099,50 @@ describe("onDeterminingFilename listener: sync path", () => {
     expect(getMessage.mock.calls.flatMap((call) => call.slice(1)).join(" ")).not.toContain(url);
   });
 
+  test("does not identify a private item in a deferred route-miss notification", async () => {
+    setCurrentBrowser("CHROME");
+    options.persistPrivateActivity = true;
+    options.routeSkipUnmatched = true;
+    options.notifyOnFailure = true;
+    options.filenamePatterns = [routingRule("actualfileext")];
+    vi.mocked(router.matchRules).mockReturnValue(null);
+    const url = "https://private.example/secret.png";
+    const state = makeState({
+      path: new Path.Path("downloads"),
+      info: { currentTab: { incognito: true }, url },
+    });
+    let resolveDownload!: (downloadId: number) => void;
+    global.browser.downloads.download = vi.fn(
+      () =>
+        new Promise<number>((resolve) => {
+          resolveDownload = resolve;
+        }),
+    );
+
+    const launch = Download.renameAndDownload(state);
+    await vi.waitFor(() => expect(global.browser.downloads.download).toHaveBeenCalled());
+    capturedListener(
+      {
+        id: 102,
+        byExtensionId: global.browser.runtime.id,
+        url,
+        filename: "server-name.exe",
+      },
+      vi.fn(),
+    );
+
+    await vi.waitFor(() =>
+      expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
+        "notificationRuleMatchFailedExclusiveTitle",
+        "notificationPrivateRuleMatchFailedMessage",
+        true,
+        "route-miss",
+      ),
+    );
+    resolveDownload(102);
+    await launch;
+  });
+
   test("keeps the state's filename when the download item has none", async () => {
     setCurrentBrowser("CHROME");
     const state = makeState();
@@ -2279,6 +2391,7 @@ describe("launchDownload (fire-and-forget with a user-facing failure)", () => {
     expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
       "",
       expect.stringContaining("Download URL is required"),
+      { privateContext: true },
     );
   });
 });
@@ -2311,6 +2424,21 @@ describe("terminal browserDownload failure surfaces to the user", () => {
     await Download.renameAndDownload(makeState());
 
     expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
+  });
+
+  test("marks a private browser rejection for generic notification copy", async () => {
+    setCurrentBrowser("CHROME");
+    options.fallbackFetch = false;
+    vi.mocked(global.browser.downloads.download).mockRejectedValue(new Error("private disk path"));
+    const state = makeState({ info: { currentTab: { incognito: true } } });
+
+    await Download.renameAndDownload(state);
+
+    expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.stringContaining("private disk path"),
+      { privateContext: true },
+    );
   });
 });
 

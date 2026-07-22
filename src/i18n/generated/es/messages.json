@@ -549,6 +549,9 @@
   "notificationRuleMatchedTitle": {
     "message": "Save In: regla aplicada"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "Un elemento de navegación privada coincidió con una regla de enrutamiento."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: No se pudo enrutar o cambiar el nombre de la descarga"
   },
@@ -560,6 +563,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "Ninguna regla de enrutamiento coincidió con el elemento de navegación privada."
   },
   "ruleMissingMatcher": {
     "message": "Añada al menos una condición de coincidencia antes de into:"
@@ -1148,6 +1154,9 @@
   },
   "notificationLinkPreferred": {
     "message": "Se descargó el destino del enlace"
+  },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "Se seleccionó el destino del enlace de navegación privada."
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "Solo en páginas coincidentes"

@@ -549,6 +549,9 @@
   "notificationRuleMatchedTitle": {
     "message": "Save In: regra aplicada"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "Um item da navegação privativa correspondeu a uma regra de roteamento."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Falha ao rotear ou renomear download"
   },
@@ -560,6 +563,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "Nenhuma regra de roteamento correspondeu ao item da navegação privativa."
   },
   "ruleMissingMatcher": {
     "message": "Adicione pelo menos uma condição de correspondência antes de into:"
@@ -1148,6 +1154,9 @@
   },
   "notificationLinkPreferred": {
     "message": "Destino do link baixado no lugar da mídia"
+  },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "O destino do link da navegação privativa foi selecionado."
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "Somente nas páginas correspondentes"

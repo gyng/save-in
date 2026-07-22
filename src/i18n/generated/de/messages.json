@@ -549,6 +549,9 @@
   "notificationRuleMatchedTitle": {
     "message": "Save In: Passende Regel gefunden"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "Ein Element aus einem privaten Fenster entsprach einer Routing-Regel."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Download konnte nicht weitergeleitet oder umbenannt werden"
   },
@@ -560,6 +563,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "Für das Element aus einem privaten Fenster wurde keine passende Routing-Regel gefunden."
   },
   "ruleMissingMatcher": {
     "message": "Fügen Sie vor into: mindestens eine Abgleichsbedingung hinzu"
@@ -1148,6 +1154,9 @@
   },
   "notificationLinkPreferred": {
     "message": "Stattdessen wurde das Linkziel heruntergeladen"
+  },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "Das Linkziel aus dem privaten Fenster wurde ausgewählt."
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "Nur auf passenden Seiten"

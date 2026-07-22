@@ -117,6 +117,9 @@
   "notificationRuleMatchedTitle": {
     "message": "Save In: regola corrispondente"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "Un elemento di navigazione privata corrispondeva a una regola di instradamento."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: impossibile instradare o rinominare il download"
   },
@@ -128,6 +131,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "Nessuna regola di instradamento corrispondeva all’elemento di navigazione privata."
   },
   "ruleMissingMatcher": {
     "message": "Aggiungi almeno una condizione di corrispondenza prima di into:"
@@ -1040,6 +1046,9 @@
   },
   "notificationLinkPreferred": {
     "message": "È stata scaricata invece la destinazione del collegamento"
+  },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "È stata selezionata la destinazione del collegamento di navigazione privata."
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "Solo sulle pagine corrispondenti"

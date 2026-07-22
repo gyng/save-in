@@ -41,6 +41,30 @@ describe("reportFailure", () => {
     );
   });
 
+  test("omits private names and exception details before a download is created", async () => {
+    vi.useFakeTimers();
+    await loadNotification();
+    Object.assign(options, { notifyOnFailure: true, notifyDuration: 0 });
+
+    Notifier.reportDownloadFailure(
+      "private/secret.png",
+      "fetch failed for https://private.example/secret.png",
+      { privateContext: true },
+    );
+    vi.advanceTimersByTime(250);
+
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      "save-in-not-download-failure",
+      expect.objectContaining({
+        title: "Translated<notificationPrivateFailureTitle>",
+        message: "Translated<genericUnknownError>",
+      }),
+    );
+    expect(JSON.stringify(vi.mocked(global.browser.notifications.create).mock.calls)).not.toMatch(
+      /secret\.png|private\.example/,
+    );
+  });
+
   test("stays silent when notifyOnFailure is off", async () => {
     await loadNotification();
     Object.assign(options, { notifyOnFailure: false });

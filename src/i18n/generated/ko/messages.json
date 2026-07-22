@@ -127,6 +127,9 @@
   "notificationRuleMatchedTitle": {
     "message": "Save In: 규칙이 일치함"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "비공개 브라우징 항목이 라우팅 규칙과 일치했습니다."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: 다운로드 경로를 지정하거나 이름을 바꾸지 못했습니다."
   },
@@ -138,6 +141,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "비공개 브라우징 항목과 일치하는 라우팅 규칙이 없습니다."
   },
   "ruleMissingMatcher": {
     "message": "into: 앞에 일치 조건을 하나 이상 추가하세요"
@@ -726,6 +732,9 @@
   },
   "notificationLinkPreferred": {
     "message": "대신 링크 대상을 다운로드했습니다."
+  },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "비공개 브라우징 링크 대상이 선택되었습니다."
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "일치하는 페이지에서만"
