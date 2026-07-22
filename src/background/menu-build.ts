@@ -21,6 +21,7 @@ import type { MenuTree, TabAction } from "../menus/menu-tree.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
 import { resolveMenuAccessKey } from "../menus/access-key.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
+import { broadcastContentOptions } from "./content-options.ts";
 
 export { MENU_IDS } from "../menus/menu-ids.ts";
 
@@ -128,10 +129,17 @@ export const enablePrivateLastUsedMenu = (): Promise<void> => {
 
 // The dynamic-default menu checkbox flips the effective Quick save destination
 // at runtime. Mirroring it to storage.local (the same area options load from)
-// is what lets the choice survive an MV3 service-worker restart.
+// is what lets the choice survive an MV3 service-worker restart. Since 4.0.1
+// removed the content script's storage.onChanged listener, live tabs learn of
+// a content-option change ONLY through broadcastContentOptions (see
+// content-options.ts and CONTENT_OPTION_KEYS) — every writer of a
+// content-option key must broadcast its change, not just persist it.
 export const setQuickSaveUseDirectory = (active: boolean): Promise<void> => {
   options.quickSaveUseDirectory = active;
-  return webExtensionApi.storage.local.set({ quickSaveUseDirectory: active }).catch(() => {});
+  return webExtensionApi.storage.local
+    .set({ quickSaveUseDirectory: active })
+    .catch(() => {})
+    .then(() => broadcastContentOptions({ quickSaveUseDirectory: active }));
 };
 
 const normalizeLastUsedMeta = (value: unknown): LastUsedMeta | null => {

@@ -374,6 +374,33 @@ describe("menu creation", () => {
       expect(options.quickSaveUseDirectory).toBe(false);
     });
 
+    test("setQuickSaveUseDirectory broadcasts the new value to live tabs", async () => {
+      // Since 4.0.1 removed the content script's storage.onChanged listener,
+      // this is the only way an open tab learns of the change.
+      vi.mocked(global.browser.tabs.query).mockResolvedValueOnce([{ id: 7 } as never]);
+
+      await menu.setQuickSaveUseDirectory(true);
+
+      expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(7, {
+        type: "CONTENT_OPTIONS_CHANGED",
+        body: { options: { quickSaveUseDirectory: true } },
+      });
+    });
+
+    test("setQuickSaveUseDirectory still broadcasts after a storage rejection", async () => {
+      vi.mocked(global.browser.storage.local.set).mockRejectedValueOnce(new Error("quota"));
+      vi.mocked(global.browser.tabs.query).mockResolvedValueOnce([{ id: 9 } as never]);
+
+      await menu.setQuickSaveUseDirectory(false);
+
+      // The in-memory option already flipped either way; a live tab must not
+      // keep a stale value merely because persistence failed.
+      expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(9, {
+        type: "CONTENT_OPTIONS_CHANGED",
+        body: { options: { quickSaveUseDirectory: false } },
+      });
+    });
+
     test("addSelectionType describes media+link, selection and page contexts", () => {
       menu.addSelectionType(["link", "selection", "page"]);
 
