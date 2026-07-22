@@ -945,7 +945,7 @@
     "message": "規則中的每個比對器都必須相符。"
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "每條規則都必須以"
+    "message": "儲存規則須以"
   },
   "html_filterClauses": {
     "message": "篩選子句"
@@ -4413,5 +4413,19 @@
   "html_linkTitleMatcherDescription": { "message": "比對所點選連結的 title 屬性。" },
   "html_linkDownloadMatcherDescription": { "message": "比對連結建議的下載名稱。" },
   "routeDebuggerLinkTitle": { "message": "連結標題" },
-  "routeDebuggerLinkDownload": { "message": "連結下載名稱" }
+  "routeDebuggerLinkDownload": { "message": "連結下載名稱" },
+  "notificationRuleExcludedMessage": {
+    "message": "由於路由規則將其排除，因此未儲存 $URL$。",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "routeActionExclude": { "message": "不儲存相符項目" },
+  "routeActionCloseTab": { "message": "儲存後關閉來源分頁" },
+  "routeActionKeepTab": { "message": "儲存後保留來源分頁" },
+  "routeActionAfterSave": { "message": "儲存後" },
+  "routeActionOutcome": { "message": "規則結果" },
+  "routeActionExcluded": { "message": "已由路由規則排除" },
+  "routeActionExcludedSummary": {
+    "message": "有一條規則相符。此儲存操作已排除，因此不會執行後續規則。"
+  },
+  "routeActionRuleEnding": { "message": "排除規則須以 exclude: true 結尾。" }
 }

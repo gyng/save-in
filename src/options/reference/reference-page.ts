@@ -33,6 +33,8 @@ export const syncReferenceVocabulary = (
   if (kind === "variables") required.add(":$1:");
   else {
     required.add("into:");
+    required.add("exclude:");
+    required.add("tab:");
     required.add("capture:");
     required.add("fetch:");
     required.add("rename:");

@@ -129,12 +129,24 @@ export type RenameClause = {
   replacement: string;
   type: typeof RULE_TYPES.RENAME;
 };
+export type ExcludeClause = {
+  name: "exclude";
+  value: "true";
+  type: typeof RULE_TYPES.ACTION;
+};
+export type TabActionClause = {
+  name: "tab";
+  value: "close";
+  type: typeof RULE_TYPES.ACTION;
+};
+export type RoutingActionClause = ExcludeClause | TabActionClause;
 export type RuleClause =
   | MatcherClause
   | CaptureClause
   | DestinationClause
   | FetchClause
-  | RenameClause;
+  | RenameClause
+  | RoutingActionClause;
 
 declare const parsedRoutingRule: unique symbol;
 export type RoutingRule = RuleClause[] & { readonly [parsedRoutingRule]: true };

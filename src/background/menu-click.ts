@@ -493,33 +493,20 @@ const handleContextMenuClickInternal = async (
       }
     }
 
-    // Close the tab a "save page" came from, mirroring the tab-strip
-    // behavior (#115). Deliberately page-context only: closing the tab
-    // under an image/link save would be a surprise.
+    // The most specific action wins: a menu item's own action, then the matched
+    // routing rule, then the page-only global default. Resolve once so two
+    // independently enabled settings cannot race two tab API calls.
+    const tabAction =
+      menuInfo?.tabAction ??
+      state.scratch.routeTabAction ??
+      (options.closeTabOnSave && downloadType === DOWNLOAD_TYPES.PAGE ? "close" : undefined);
     if (
-      options.closeTabOnSave &&
-      downloadType === DOWNLOAD_TYPES.PAGE &&
+      state.scratch.routeOutcome !== "exclude" &&
+      tabAction &&
+      result.status === "started" &&
       clickTab &&
       clickTab.id != null
     ) {
-      const tabId = clickTab.id;
-      if (result.status === "started") {
-        try {
-          await webExtensionApi.tabs.remove(tabId);
-        } catch (error) {
-          void addLogEntry("saved page tab close failed", String(error), { privateContext });
-        }
-      }
-    }
-
-    // Per-menu-item post-save tab action (#115): only the clicked folder's own
-    // opt-in acts, only after the browser accepted the save. tabs.remove and
-    // tabs.update need no "tabs" permission (it gates url/title metadata, not
-    // these operations), so both browsers behave identically. The source tab id
-    // is already known from the click, so acting on it leaks nothing new about a
-    // private context.
-    const tabAction = menuInfo?.tabAction;
-    if (tabAction && result.status === "started" && clickTab && clickTab.id != null) {
       const tabId = clickTab.id;
       try {
         if (tabAction === "close") {

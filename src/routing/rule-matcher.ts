@@ -21,21 +21,34 @@ export type EvaluatedMatcherClause = {
 };
 
 export type RuleEvaluation = {
+  outcome: "route" | "exclude" | null;
   destination: string | false;
   // Capture-substituted fetch template and rename replacement; routing
   // variables stay unexpanded because their resolution is async and happens
   // in the download pipeline.
   fetch: string | false;
   rename: RenameTransform | false;
+  tabAction: "close" | false;
   clauses: EvaluatedMatcherClause[];
 };
 
-export type RuleMatch = {
-  rule: RoutingRule;
-  destination: string;
-  fetch: string | null;
-  rename: RenameTransform | null;
-};
+export type RuleMatch =
+  | {
+      outcome: "route";
+      rule: RoutingRule;
+      destination: string;
+      fetch: string | null;
+      rename: RenameTransform | null;
+      tabAction: "close" | null;
+    }
+  | {
+      outcome: "exclude";
+      rule: RoutingRule;
+      destination: null;
+      fetch: null;
+      rename: null;
+      tabAction: null;
+    };
 
 export const findFetchClause = (rule: RoutingRule): FetchClause | undefined =>
   rule.find((clause): clause is FetchClause => clause.type === RULE_TYPES.FETCH);
@@ -53,8 +66,9 @@ const needsContentHash = (rule: RoutingRule): boolean =>
   );
 
 export const isRenameOnlyEligibleMatch = (match: RuleMatch): boolean =>
-  !CONTENT_HASH_VARIABLE.test(match.destination) &&
-  !(match.rename && CONTENT_HASH_VARIABLE.test(match.rename.replacement));
+  match.outcome === "exclude" ||
+  (!CONTENT_HASH_VARIABLE.test(match.destination) &&
+    !(match.rename && CONTENT_HASH_VARIABLE.test(match.rename.replacement)));
 
 // Ordinary browser downloads can only be renamed, never re-requested. A
 // content hash would re-fetch and buffer the browser-owned download merely to
@@ -166,11 +180,35 @@ const substituteCaptures = (template: string, captured: (string | undefined)[] |
 export const evaluateRule = (rule: RoutingRule, info: RoutingInfo): RuleEvaluation => {
   const clauses = evaluateMatcherClauses(rule, info);
   if (clauses.some(({ result }) => !result)) {
-    return { destination: false, fetch: false, rename: false, clauses };
+    return {
+      outcome: null,
+      destination: false,
+      fetch: false,
+      rename: false,
+      tabAction: false,
+      clauses,
+    };
+  }
+  if (rule.some((clause) => clause.type === RULE_TYPES.ACTION && clause.name === "exclude")) {
+    return {
+      outcome: "exclude",
+      destination: false,
+      fetch: false,
+      rename: false,
+      tabAction: false,
+      clauses,
+    };
   }
   const destinationClause = rule.find((clause) => clause.type === RULE_TYPES.DESTINATION);
   if (!destinationClause || typeof destinationClause.value !== "string") {
-    return { destination: false, fetch: false, rename: false, clauses };
+    return {
+      outcome: null,
+      destination: false,
+      fetch: false,
+      rename: false,
+      tabAction: false,
+      clauses,
+    };
   }
   const capture = getCaptureMatcherResults(rule, clauses);
   const captured = capture ? captureValues(capture) : null;
@@ -178,9 +216,17 @@ export const evaluateRule = (rule: RoutingRule, info: RoutingInfo): RuleEvaluati
   const renameClause = findRenameClause(rule);
   const destination = substituteCaptures(destinationClause.value, captured);
   if (!destination || !isSafeRelativeDestination(destination)) {
-    return { destination: false, fetch: false, rename: false, clauses };
+    return {
+      outcome: null,
+      destination: false,
+      fetch: false,
+      rename: false,
+      tabAction: false,
+      clauses,
+    };
   }
   return {
+    outcome: "route",
     destination,
     fetch: fetchClause ? substituteCaptures(fetchClause.value, captured) : false,
     rename: renameClause
@@ -189,6 +235,12 @@ export const evaluateRule = (rule: RoutingRule, info: RoutingInfo): RuleEvaluati
           flags: renameClause.find.flags,
           replacement: substituteCaptures(renameClause.replacement, captured),
         }
+      : false,
+    tabAction: rule.some(
+      (clause) =>
+        clause.type === RULE_TYPES.ACTION && clause.name === "tab" && clause.value === "close",
+    )
+      ? "close"
       : false,
     clauses,
   };
@@ -210,12 +262,24 @@ export const matchRulesDetailed = (
   for (const rule of rules) {
     if (!isEligible(rule)) continue;
     const evaluation = evaluateRule(rule, info);
-    if (evaluation.destination) {
+    if (evaluation.outcome === "exclude") {
+      return {
+        outcome: "exclude",
+        rule,
+        destination: null,
+        fetch: null,
+        rename: null,
+        tabAction: null,
+      };
+    }
+    if (evaluation.outcome === "route" && evaluation.destination) {
       const match = {
+        outcome: "route" as const,
         rule,
         destination: evaluation.destination,
         fetch: evaluation.fetch || null,
         rename: evaluation.rename || null,
+        tabAction: evaluation.tabAction || null,
       };
       if (isMatchEligible(match)) return match;
     }

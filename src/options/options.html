@@ -788,6 +788,8 @@ Briefly explain the structure, check that every line follows this syntax, then p
               <li>
                 __MSG_html_everyRuleMustEndWithAn__ <code>into:</code> __MSG_html_destination__
               </li>
+              <li>__MSG_routeActionRuleEnding__</li>
+              <li><code>tab: close</code> — __MSG_routeActionCloseTab__.</li>
               <li><code>disabled: true</code> __MSG_html_keepsARuleWithoutRunningIt__</li>
             </ul>
             <div class="guide-steps guide-steps-routing">
@@ -883,7 +885,9 @@ Save In syntax:
 - Every matcher in one rule must match. Matcher values are JavaScript regular expressions except css:, which takes a CSS selector and no flags. Do not leave a regex matcher empty; write .* explicitly for a match-all condition. Use at most 64 css: matchers in one rule and 256 across the configuration.
 - Common matchers include filename:, finalfilename:, actualfileext:, mime:, sourceurl:, sourcedomain:, sourcerootdomain:, sourcekind:, gesture:, css:, pageurl:, pagedomain:, pagerootdomain:, referrerurl:, referrerdomain:, pagetitle:, context:, and mediatype:.
 - Add /i to a matcher name for case-insensitive matching, for example filename/i: \.pdf$. Regex flags are allowed only on matcher names and rename:.
-- Every rule must contain exactly one into: clause. Its value is a relative destination or filename template and cannot contain .. path components.
+- Every saving rule must contain exactly one into: clause. Its value is a relative destination or filename template and cannot contain .. path components.
+- To stop processing without saving, replace into: with exclude: true. An exclusion must contain at least one matcher and cannot contain capture:, fetch:, rename:, or tab:.
+- Add tab: close to a destination rule to close the source tab only after the browser accepts a user-initiated save. Automatic Page Sources rules cannot close tabs.
 - End into: with / to move the file while preserving its resolved filename.
 - Otherwise include :filename: unless the goal explicitly requests renaming.
 - Variables use :name: syntax. Useful choices include :filename:, :fileext:, :sourcedomain:, :year:, :month:, :day:, :counter:, and :uuid:.
@@ -1005,6 +1009,9 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                           class="rule-editor-add-auto"
                         >
                           __MSG_autoDownloadAddRule__
+                        </button>
+                        <button type="button" id="rule-editor-add-exclusion">
+                          __MSG_routeActionExclude__
                         </button>
                         <button
                           type="button"
@@ -3704,6 +3711,16 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   >__MSG_html_splitMultipleCaptureTargetsWithA__ <code>,</code>.
                   <div class="caption">__MSG_html_captureClauseCompatibility__</div>
                 </td>
+              </tr>
+              <tr>
+                <td><code class="click-to-copy">exclude:</code></td>
+                <td><code>true</code></td>
+                <td>__MSG_routeActionExclude__. __MSG_routeActionRuleEnding__</td>
+              </tr>
+              <tr>
+                <td><code class="click-to-copy">tab:</code></td>
+                <td><code>close</code></td>
+                <td>__MSG_routeActionCloseTab__.</td>
               </tr>
               <tr>
                 <td>

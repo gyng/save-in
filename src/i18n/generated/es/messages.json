@@ -1369,7 +1369,7 @@
     "message": "Todos los comparadores de una regla deben coincidir."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Toda regla debe terminar con una"
+    "message": "Una regla de guardado termina con un"
   },
   "html_filterClauses": {
     "message": "Cláusulas de filtro"
@@ -4423,5 +4423,19 @@
     "message": "Coincide con el nombre de descarga sugerido por el enlace."
   },
   "routeDebuggerLinkTitle": { "message": "Título del enlace" },
-  "routeDebuggerLinkDownload": { "message": "Nombre de descarga del enlace" }
+  "routeDebuggerLinkDownload": { "message": "Nombre de descarga del enlace" },
+  "notificationRuleExcludedMessage": {
+    "message": "$URL$ no se guardó porque una regla de enrutamiento lo excluyó.",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "routeActionExclude": { "message": "No guardar los elementos coincidentes" },
+  "routeActionCloseTab": { "message": "Cerrar la pestaña de origen después de guardar" },
+  "routeActionKeepTab": { "message": "Mantener la pestaña de origen después de guardar" },
+  "routeActionAfterSave": { "message": "Después de guardar" },
+  "routeActionOutcome": { "message": "Resultado de la regla" },
+  "routeActionExcluded": { "message": "Excluido por una regla de enrutamiento" },
+  "routeActionExcludedSummary": {
+    "message": "Una regla coincidió. Este guardado está excluido, por lo que las reglas posteriores no se ejecutan."
+  },
+  "routeActionRuleEnding": { "message": "Una regla de exclusión termina con exclude: true." }
 }

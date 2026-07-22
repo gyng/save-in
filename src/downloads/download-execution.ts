@@ -541,9 +541,24 @@ export const renameAndDownload = async (
     await releaseUnusedContent(state);
     const url = state.info.url;
     if (url && downloadRuntime.generatedObjectUrls.delete(url)) URL.revokeObjectURL(url);
-    await historyPort.setStatus(state.scratch.historyEntryId, "RULE_NO_MATCH");
+    const excluded = state.scratch.routeOutcome === "exclude";
+    if (!excluded) await historyPort.setStatus(state.scratch.historyEntryId, "RULE_NO_MATCH");
     finishPreparation();
-    if ((state.needRouteMatch || options.routeSkipUnmatched) && options.notifyOnFailure) {
+    if (
+      excluded &&
+      options.notifyOnRuleMatch &&
+      state.info.context !== DOWNLOAD_TYPES.AUTO &&
+      !isSourceSidecar(state)
+    ) {
+      createExtensionNotification(
+        getMessage("routeActionExcluded"),
+        getMessage("notificationRuleExcludedMessage", [
+          truncateDataUrlForDisplay(requireDownloadUrl(state)),
+        ]),
+        false,
+        EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+      );
+    } else if ((state.needRouteMatch || options.routeSkipUnmatched) && options.notifyOnFailure) {
       createExtensionNotification(
         getMessage("notificationRuleMatchFailedExclusiveTitle"),
         getMessage("notificationRuleMatchFailedExclusiveMessage", [

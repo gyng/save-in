@@ -1369,7 +1369,7 @@
     "message": "Todos os comparadores de uma regra devem corresponder."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Toda regra deve terminar com um"
+    "message": "Uma regra de salvamento termina com um"
   },
   "html_filterClauses": {
     "message": "Cláusulas de filtro"
@@ -4423,5 +4423,19 @@
     "message": "Corresponde ao nome de download sugerido pelo link."
   },
   "routeDebuggerLinkTitle": { "message": "Título do link" },
-  "routeDebuggerLinkDownload": { "message": "Nome de download do link" }
+  "routeDebuggerLinkDownload": { "message": "Nome de download do link" },
+  "notificationRuleExcludedMessage": {
+    "message": "$URL$ não foi salvo porque uma regra de roteamento o excluiu.",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "routeActionExclude": { "message": "Não salvar itens correspondentes" },
+  "routeActionCloseTab": { "message": "Fechar a aba de origem após salvar" },
+  "routeActionKeepTab": { "message": "Manter a aba de origem após salvar" },
+  "routeActionAfterSave": { "message": "Depois de salvar" },
+  "routeActionOutcome": { "message": "Resultado da regra" },
+  "routeActionExcluded": { "message": "Excluído por regra de roteamento" },
+  "routeActionExcludedSummary": {
+    "message": "Uma regra correspondeu. Este salvamento foi excluído, portanto as regras posteriores não são executadas."
+  },
+  "routeActionRuleEnding": { "message": "Uma regra de exclusão termina com exclude: true." }
 }

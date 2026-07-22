@@ -947,7 +947,7 @@
     "message": "규칙의 모든 매처가 일치해야 합니다."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "모든 규칙은 다음으로 끝나야 합니다."
+    "message": "저장 규칙은 다음으로 끝납니다."
   },
   "html_filterClauses": {
     "message": "필터 절"
@@ -4419,5 +4419,19 @@
   "html_linkTitleMatcherDescription": { "message": "클릭한 링크의 title 속성과 일치합니다." },
   "html_linkDownloadMatcherDescription": { "message": "링크가 제안한 다운로드 이름과 일치합니다." },
   "routeDebuggerLinkTitle": { "message": "링크 제목" },
-  "routeDebuggerLinkDownload": { "message": "링크 다운로드 이름" }
+  "routeDebuggerLinkDownload": { "message": "링크 다운로드 이름" },
+  "notificationRuleExcludedMessage": {
+    "message": "라우팅 규칙에서 제외되어 $URL$을(를) 저장하지 않았습니다.",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "routeActionExclude": { "message": "일치하는 항목 저장 안 함" },
+  "routeActionCloseTab": { "message": "저장 후 원본 탭 닫기" },
+  "routeActionKeepTab": { "message": "저장 후 원본 탭 유지" },
+  "routeActionAfterSave": { "message": "저장 후" },
+  "routeActionOutcome": { "message": "규칙 결과" },
+  "routeActionExcluded": { "message": "라우팅 규칙에 의해 제외됨" },
+  "routeActionExcludedSummary": {
+    "message": "규칙이 일치했습니다. 이 저장은 제외되므로 이후 규칙은 실행되지 않습니다."
+  },
+  "routeActionRuleEnding": { "message": "제외 규칙은 exclude: true로 끝납니다." }
 }

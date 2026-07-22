@@ -13,6 +13,8 @@ these documents assume.
 - [Automatic source saves](using/AUTOMATIC-SOURCE-SAVES.md) — setting up and bounding
   unattended saving of discovered page sources. Off by default, and narrower
   than ordinary routing on purpose.
+- [Routing actions](using/ROUTING-ACTIONS.md) — terminal exclusions and the
+  opt-in close-source-tab action, including ordering and automatic-save limits.
 
 ## Integrating with Save In — [`integrating/`](integrating/)
 

@@ -15,6 +15,7 @@ import { createSourceSidecarRequest } from "../../downloads/source-sidecar.ts";
 import { currentTab, type CurrentTab } from "../../platform/current-tab.ts";
 import type { DownloadInfo, DownloadPipelineState } from "../../downloads/download-types.ts";
 import { backgroundRuntime } from "../runtime.ts";
+import { addLogEntry } from "../log.ts";
 import { fromWireDownloadState, toWireDownloadState } from "../../downloads/wire-state.ts";
 import type { InternalEvent, MessageOf, ResponseFor } from "../../shared/message-protocol.ts";
 import { applyConfigSerialized } from "../config-apply.ts";
@@ -522,7 +523,7 @@ export const handleDownloadMessage = (
     // Keep the MV3 message event alive through routing, lazy variables and the
     // downloads API call. The response still acknowledges browser acceptance,
     // not eventual download completion.
-    return launchDownload(clickState).then(() => {
+    return launchDownload(clickState).then(async (result) => {
       // Acknowledge the accepted primary save before doing optional child
       // work. Content-script batches must not wait for a second download,
       // and a sidecar failure must never turn the primary save into a retry.
@@ -530,6 +531,19 @@ export const handleDownloadMessage = (
         type: MESSAGE_TYPES.DOWNLOAD,
         body: { status: MESSAGE_TYPES.OK, version, url },
       });
+      if (
+        result.status === "started" &&
+        clickState.scratch.routeTabAction === "close" &&
+        resolvedTab?.id != null
+      ) {
+        try {
+          await webExtensionApi.tabs.remove(resolvedTab.id);
+        } catch (error) {
+          await addLogEntry("post-save tab action failed", String(error), {
+            privateContext: resolvedTab.incognito === true,
+          });
+        }
+      }
     });
   };
 

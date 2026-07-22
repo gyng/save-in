@@ -943,7 +943,7 @@
     "message": "规则中的每个匹配器都必须匹配。"
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "每条规则都必须以"
+    "message": "保存规则须以"
   },
   "html_filterClauses": {
     "message": "筛选子句"
@@ -4411,5 +4411,19 @@
   "html_linkTitleMatcherDescription": { "message": "匹配所点击链接的 title 属性。" },
   "html_linkDownloadMatcherDescription": { "message": "匹配链接建议的下载名称。" },
   "routeDebuggerLinkTitle": { "message": "链接标题" },
-  "routeDebuggerLinkDownload": { "message": "链接下载名称" }
+  "routeDebuggerLinkDownload": { "message": "链接下载名称" },
+  "notificationRuleExcludedMessage": {
+    "message": "由于路由规则将其排除，未保存 $URL$。",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "routeActionExclude": { "message": "不保存匹配项" },
+  "routeActionCloseTab": { "message": "保存后关闭来源标签页" },
+  "routeActionKeepTab": { "message": "保存后保留来源标签页" },
+  "routeActionAfterSave": { "message": "保存后" },
+  "routeActionOutcome": { "message": "规则结果" },
+  "routeActionExcluded": { "message": "已被路由规则排除" },
+  "routeActionExcludedSummary": {
+    "message": "有一条规则匹配。此保存操作已被排除，因此不会运行后续规则。"
+  },
+  "routeActionRuleEnding": { "message": "排除规则须以 exclude: true 结尾。" }
 }

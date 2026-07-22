@@ -25,6 +25,37 @@ import {
   Variable,
 } from "./download-flow.fixture.ts";
 
+describe("renameAndDownload: terminal exclusion", () => {
+  test("skips normally and reports the configured rule outcome", async () => {
+    options.filenamePatterns = [routingRule()];
+    options.notifyOnRuleMatch = true;
+    vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      outcome: "exclude",
+      rule: options.filenamePatterns[0]!,
+      destination: null,
+      fetch: null,
+      rename: null,
+      tabAction: null,
+    });
+    const state = makeState({ info: { url: "https://cdn.example/tracker.gif" } });
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
+
+    expect(global.browser.downloads.download).not.toHaveBeenCalled();
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith(
+      expect.anything(),
+      "RULE_NO_MATCH",
+      expect.anything(),
+    );
+    expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
+      "routeActionExcluded",
+      "notificationRuleExcludedMessage",
+      false,
+      Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+    );
+  });
+});
+
 describe("renameAndDownload: browserDownload", () => {
   test("passes Firefox private context without a conflicting cookie store", async () => {
     setCurrentBrowser("FIREFOX");

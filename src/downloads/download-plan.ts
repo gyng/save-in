@@ -49,6 +49,8 @@ export const getRoutingMatches = (
 ): string | null => {
   delete state.scratch.renameTemplate;
   delete state.scratch.renameResolved;
+  delete state.scratch.routeOutcome;
+  delete state.scratch.routeTabAction;
   if (state.info.routingDisabled) return null;
   const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
   if (filenamePatterns.length === 0) {
@@ -61,6 +63,11 @@ export const getRoutingMatches = (
     isRenameOnlyEligibleRule,
     isRenameOnlyEligibleMatch,
   );
+  if (match?.outcome === "exclude") {
+    state.scratch.routeOutcome = "exclude";
+    return null;
+  }
+  if (match?.tabAction) state.scratch.routeTabAction = match.tabAction;
   if (match?.rename) state.scratch.renameTemplate = match.rename;
   return match?.destination ?? null;
 };
@@ -177,10 +184,20 @@ export const resolveDownloadPlan = async (
   let lateReMatchLosesRule = false;
   if (routeMatches === null) {
     const match = getRoutingMatch(state);
+    if (match?.outcome === "exclude") {
+      state.scratch.routeOutcome = "exclude";
+      delete state.scratch.routeTabAction;
+      delete state.scratch.renameTemplate;
+      downloadRuntime.forgetPendingState(state);
+      return null;
+    }
+    delete state.scratch.routeOutcome;
     routeMatches = match?.destination ?? null;
     fetchTemplate = match?.fetch ?? null;
     lateReMatchLosesRule =
       match !== null && (match.fetch !== null || !isRenameOnlyEligibleMatch(match));
+    if (match?.tabAction) state.scratch.routeTabAction = match.tabAction;
+    else delete state.scratch.routeTabAction;
     if (match?.rename) state.scratch.renameTemplate = match.rename;
     else delete state.scratch.renameTemplate;
   }

@@ -776,6 +776,81 @@ export const runRoutingScenario = async ({ control, waitForDownloads, content })
 };
 
 /**
+ * Proves both routing actions against real browser ownership: a terminal
+ * exclusion starts no download, and tab: close waits until a tab-strip save is
+ * accepted before closing its source tab.
+ *
+ * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
+ *   filename: string,
+ * }} adapters
+ */
+export const runRoutingActionsScenario = async ({ control, waitForDownloads, filename }) => {
+  const previousRules = await control.storage.local.get("filenamePatterns");
+  const previous = {
+    shortcutTab: await control.options.get("shortcutTab"),
+    shortcutType: await control.options.get("shortcutType"),
+    closeTabOnSave: await control.options.get("closeTabOnSave"),
+  };
+  const excludedName = `excluded-${filename}.txt`;
+  let server;
+  let tabId;
+  try {
+    await control.options.set({
+      filenamePatterns: `filename: ^${excludedName}$\nexclude: true\n\nfilename: .*\ninto: e2e/fallback/:filename:`,
+    });
+    const excluded = await control.background.startDownload({
+      content: "must not download",
+      suggestedFilename: excludedName,
+      pageUrl: "https://example.com/",
+    });
+    expect(excluded).toEqual({ status: "skipped" });
+    expect(
+      (await control.downloads.search({})).some((row) => row.filename.includes(excludedName)),
+    ).toBe(false);
+
+    server = http.createServer((_req, res) => {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(`<!doctype html><title>${filename}</title>`);
+    });
+    const port = await listenLocal(server);
+    const url = `http://127.0.0.1:${port}/routing-actions/${filename}`;
+    const created = await control.tabs.create({ url });
+    if (created.id === undefined) throw new Error("Routing-action fixture tab has no ID");
+    const tab = await control.tabs.wait({ id: created.id });
+    tabId = tab.id;
+    if (tab.id === undefined || tab.index === undefined || tab.windowId === undefined) {
+      throw new Error("Routing-action fixture tab is incomplete");
+    }
+    await control.options.set({
+      shortcutTab: true,
+      shortcutType: "HTML_REDIRECT",
+      closeTabOnSave: false,
+      filenamePatterns: `pageurl: /routing-actions/\ntab: close\ninto: e2e/routing-actions/:filename:`,
+    });
+    await control.background.clickTabMenu({
+      info: { menuItemId: "save-in-SI-selected-tab" },
+      tab: { ...tab, id: tab.id, index: tab.index, windowId: tab.windowId },
+    });
+    const downloads = await waitForDownloads(filename);
+    expect(downloads.some((row) => row.state === "complete")).toBe(true);
+    expect((await control.tabs.query({})).some((candidate) => candidate.id === tab.id)).toBe(false);
+    tabId = undefined;
+  } finally {
+    await control.options.set(previous);
+    if (Object.hasOwn(previousRules, "filenamePatterns")) {
+      await control.storage.local.set(previousRules);
+    } else {
+      await control.storage.local.remove("filenamePatterns");
+    }
+    await control.runtime.reset();
+    if (tabId !== undefined) await control.tabs.remove(tabId).catch(() => {});
+    if (server) await closeLocal(server);
+  }
+};
+
+/**
  * Proves a rename: clause edits the final filename component of a real save:
  * the into: template expands first, then the transform rewrites the matched
  * text before the browser download starts.

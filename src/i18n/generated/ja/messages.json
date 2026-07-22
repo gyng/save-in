@@ -947,7 +947,7 @@
     "message": "ルール内のすべてのマッチャーが一致する必要があります。"
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "すべてのルールは次の文字で終わる必要があります"
+    "message": "保存ルールの末尾には次を指定します"
   },
   "html_filterClauses": {
     "message": "フィルタ句"
@@ -4423,5 +4423,19 @@
     "message": "リンクに指定されたダウンロード名に一致します。"
   },
   "routeDebuggerLinkTitle": { "message": "リンクのタイトル" },
-  "routeDebuggerLinkDownload": { "message": "リンクのダウンロード名" }
+  "routeDebuggerLinkDownload": { "message": "リンクのダウンロード名" },
+  "notificationRuleExcludedMessage": {
+    "message": "ルーティングルールで除外されたため、$URL$ は保存されませんでした。",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "routeActionExclude": { "message": "一致する項目を保存しない" },
+  "routeActionCloseTab": { "message": "保存後に元のタブを閉じる" },
+  "routeActionKeepTab": { "message": "保存後も元のタブを開いておく" },
+  "routeActionAfterSave": { "message": "保存後" },
+  "routeActionOutcome": { "message": "ルールの結果" },
+  "routeActionExcluded": { "message": "ルーティングルールにより除外" },
+  "routeActionExcludedSummary": {
+    "message": "ルールが一致しました。この保存は除外されるため、後続のルールは実行されません。"
+  },
+  "routeActionRuleEnding": { "message": "除外ルールの末尾には exclude: true を指定します。" }
 }

@@ -1330,7 +1330,7 @@
     "message": "Tutti i criteri di una regola devono corrispondere."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Ogni regola deve terminare con un"
+    "message": "Una regola di salvataggio termina con una"
   },
   "html_filterClauses": {
     "message": "Clausole di filtro"
@@ -4425,5 +4425,19 @@
     "message": "Corrisponde al nome di download suggerito dal collegamento."
   },
   "routeDebuggerLinkTitle": { "message": "Titolo del collegamento" },
-  "routeDebuggerLinkDownload": { "message": "Nome di download del collegamento" }
+  "routeDebuggerLinkDownload": { "message": "Nome di download del collegamento" },
+  "notificationRuleExcludedMessage": {
+    "message": "$URL$ non è stato salvato perché una regola di instradamento lo ha escluso.",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "routeActionExclude": { "message": "Non salvare gli elementi corrispondenti" },
+  "routeActionCloseTab": { "message": "Chiudi la scheda di origine dopo il salvataggio" },
+  "routeActionKeepTab": { "message": "Mantieni la scheda di origine dopo il salvataggio" },
+  "routeActionAfterSave": { "message": "Dopo il salvataggio" },
+  "routeActionOutcome": { "message": "Risultato della regola" },
+  "routeActionExcluded": { "message": "Escluso da una regola di instradamento" },
+  "routeActionExcludedSummary": {
+    "message": "Una regola corrisponde. Questo salvataggio è escluso, quindi le regole successive non vengono eseguite."
+  },
+  "routeActionRuleEnding": { "message": "Una regola di esclusione termina con exclude: true." }
 }

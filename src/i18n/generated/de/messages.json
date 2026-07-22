@@ -1369,7 +1369,7 @@
     "message": "Jeder Matcher einer Regel muss zutreffen."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Jede Regel muss mit einem"
+    "message": "Eine Speicherregel endet mit einem"
   },
   "html_filterClauses": {
     "message": "Filterklauseln"
@@ -4423,5 +4423,19 @@
     "message": "Entspricht dem vom Link vorgeschlagenen Downloadnamen."
   },
   "routeDebuggerLinkTitle": { "message": "Linktitel" },
-  "routeDebuggerLinkDownload": { "message": "Link-Downloadname" }
+  "routeDebuggerLinkDownload": { "message": "Link-Downloadname" },
+  "notificationRuleExcludedMessage": {
+    "message": "$URL$ wurde nicht gespeichert, weil eine Routingregel es ausgeschlossen hat.",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "routeActionExclude": { "message": "Übereinstimmende Elemente nicht speichern" },
+  "routeActionCloseTab": { "message": "Quelltab nach dem Speichern schließen" },
+  "routeActionKeepTab": { "message": "Quelltab nach dem Speichern geöffnet lassen" },
+  "routeActionAfterSave": { "message": "Nach dem Speichern" },
+  "routeActionOutcome": { "message": "Regelergebnis" },
+  "routeActionExcluded": { "message": "Durch Routingregel ausgeschlossen" },
+  "routeActionExcludedSummary": {
+    "message": "Eine Regel stimmt überein. Dieser Speichervorgang ist ausgeschlossen, daher werden spätere Regeln nicht ausgeführt."
+  },
+  "routeActionRuleEnding": { "message": "Eine Ausschlussregel endet mit exclude: true." }
 }

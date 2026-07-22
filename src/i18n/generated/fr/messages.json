@@ -1381,7 +1381,7 @@
     "message": "Toutes les conditions d’une règle doivent correspondre."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Chaque règle doit se terminer par un"
+    "message": "Une règle d’enregistrement se termine par une"
   },
   "html_filterClauses": {
     "message": "Clauses de filtrage"
@@ -4423,5 +4423,19 @@
     "message": "Correspond au nom de téléchargement suggéré par le lien."
   },
   "routeDebuggerLinkTitle": { "message": "Titre du lien" },
-  "routeDebuggerLinkDownload": { "message": "Nom de téléchargement du lien" }
+  "routeDebuggerLinkDownload": { "message": "Nom de téléchargement du lien" },
+  "notificationRuleExcludedMessage": {
+    "message": "$URL$ n’a pas été enregistré, car une règle de routage l’a exclu.",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "routeActionExclude": { "message": "Ne pas enregistrer les éléments correspondants" },
+  "routeActionCloseTab": { "message": "Fermer l’onglet source après l’enregistrement" },
+  "routeActionKeepTab": { "message": "Garder l’onglet source après l’enregistrement" },
+  "routeActionAfterSave": { "message": "Après l’enregistrement" },
+  "routeActionOutcome": { "message": "Résultat de la règle" },
+  "routeActionExcluded": { "message": "Exclu par une règle de routage" },
+  "routeActionExcludedSummary": {
+    "message": "Une règle correspond. Cet enregistrement est exclu, les règles suivantes ne sont donc pas exécutées."
+  },
+  "routeActionRuleEnding": { "message": "Une règle d’exclusion se termine par exclude: true." }
 }

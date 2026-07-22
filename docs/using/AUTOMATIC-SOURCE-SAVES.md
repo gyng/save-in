@@ -61,7 +61,10 @@ context: ^auto$
 ```
 
 Use `context: auto` with page and source conditions to match automatic
-downloads. The first matching rule sets the save location.
+downloads. The first matching rule either sets the save location or, when it
+ends with `exclude: true`, stops processing without saving. Excluded candidates
+do not consume the per-page limit. Automatic rules cannot use `tab: close`.
+See [Routing actions](ROUTING-ACTIONS.md) for the ordering and action contracts.
 
 Save In deliberately ignores ordinary routing rules during automatic discovery,
 including broad rules such as `context: .*`. An automatic rule must explicitly

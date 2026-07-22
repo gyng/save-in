@@ -839,6 +839,73 @@ describe("filename rewrite and routing", () => {
       expect(diagnostics.filenamePatterns).toEqual([]);
     });
 
+    test("a matching exclusion consumes routing before later destination rules", () => {
+      const rules = router.parseRules(
+        "filename: ^thumb-\nexclude: true\n\nfilename: \\.jpg$\ninto: images/:filename:",
+      );
+
+      expect(rules).toHaveLength(2);
+      expect(router.matchRulesDetailed(rules, { filename: "thumb-cat.jpg" })).toMatchObject({
+        outcome: "exclude",
+        destination: null,
+      });
+      expect(router.matchRulesDetailed(rules, { filename: "cat.jpg" })).toMatchObject({
+        outcome: "route",
+        destination: "images/:filename:",
+      });
+      expect(diagnostics.filenamePatterns).toEqual([]);
+    });
+
+    test("traces terminal and post-save actions as first-class outcomes", async () => {
+      const excluded = router.parseRules(
+        "filename: ^thumb-\nexclude: true\n\nfilename: \\.jpg$\ninto: images/:filename:",
+      );
+      await expect(
+        router.traceRules(excluded, { filename: "thumb-cat.jpg" }),
+      ).resolves.toMatchObject({
+        selectedRule: 1,
+        selectedOutcome: "exclude",
+        selectedTabAction: null,
+        destination: null,
+        rules: [
+          { matched: true, outcome: "exclude", destination: "" },
+          { matched: true, outcome: "route", destination: "images/:filename:" },
+        ],
+      });
+
+      const close = router.parseRules("filename: \\.jpg$\ntab: close\ninto: images/:filename:");
+      await expect(router.traceRules(close, { filename: "cat.jpg" })).resolves.toMatchObject({
+        selectedOutcome: "route",
+        selectedTabAction: "close",
+      });
+    });
+
+    test("validates exclusion and tab-action cardinality and combinations", () => {
+      expect(router.parseRules("filename: ^thumb-\nexclude: true")).toHaveLength(1);
+      expect(
+        router.parseRules("pageurl: example\ntab: close\ninto: pages/:filename:"),
+      ).toHaveLength(1);
+
+      for (const source of [
+        "filename: x\nexclude: false",
+        "filename: x\nexclude: true\nexclude: true",
+        "filename: x\nexclude: true\ninto: x",
+        "filename: x\nexclude: true\ntab: close",
+        "exclude: true",
+        "filename: x\ntab: later\ninto: x",
+        "filename: x\ntab: close\ntab: close\ninto: x",
+        "context: ^auto$\npageurl: example\nsourcekind: image\ntab: close\ninto: x",
+      ]) {
+        diagnostics = { filenamePatterns: [], paths: [] };
+        expect(router.parseRules(source)).toEqual([]);
+        expect(diagnostics.filenamePatterns.some((entry) => !entry.warning)).toBe(true);
+      }
+
+      diagnostics = { filenamePatterns: [], paths: [] };
+      expect(router.parseRules("disabled: true\nfilename: x\nexclude: true")).toEqual([]);
+      expect(diagnostics.filenamePatterns).toEqual([]);
+    });
+
     test("accepts disabled false and rejects other control values", () => {
       expect(router.parseRules("filename: \\.pdf$\ninto: documents\ndisabled: false")).toHaveLength(
         1,

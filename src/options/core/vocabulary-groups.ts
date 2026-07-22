@@ -94,6 +94,8 @@ export type ClauseGroup = (typeof CLAUSE_GROUPS)[number];
 
 const CLAUSE_ORDER = [
   "into",
+  "exclude",
+  "tab",
   "fetch",
   "rename",
   "capture",
@@ -137,7 +139,7 @@ export const clauseGroup = (clause: string): ClauseGroup => {
   // fetch: chooses what gets downloaded and rename: edits the final name,
   // same as into: chooses where — group them together so the reference table
   // doesn't split one output decision across several headings.
-  if (name === "into" || name === "fetch" || name === "rename") return "Output";
+  if (["into", "exclude", "tab", "fetch", "rename"].includes(name)) return "Output";
   if (name === "capture" || name === "capturegroups") return "Capture setup";
   if (
     /^(context|gesture|menuindex|comment|directory|linktext|linktitle|linkdownload|selectiontext|css)$/.test(

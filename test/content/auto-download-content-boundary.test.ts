@@ -85,6 +85,109 @@ test("filters non-previewable and malformed collector results at the discovery b
   controller.stop();
 });
 
+test("resolves exclusions locally without consuming a save slot or background message", async () => {
+  fixture.candidates = [
+    { url: "https://cdn.test/tracker.gif", kind: "image", previewable: true },
+    { url: "https://cdn.test/photo.jpg", kind: "image", previewable: true },
+  ];
+  const exclusionRules = String.raw`
+context: ^auto$
+pageurl: ^http://localhost/
+sourceurl: tracker\.gif$
+exclude: true
+
+context: ^auto$
+pageurl: ^http://localhost/
+sourceurl: cdn\.test
+into: automatic/
+`;
+  const dedup = createAutoDownloadDedup();
+  const onLimitReached = vi.fn();
+  const send = vi.fn(async () => "started" as const);
+  const controller = setupAutoDownloadDiscovery({
+    rules: exclusionRules,
+    live: false,
+    maxPerPage: 1,
+    send,
+    dedup,
+    onLimitReached,
+  });
+  await controller.idle();
+
+  expect(send).toHaveBeenCalledOnce();
+  expect(send).toHaveBeenCalledWith(
+    expect.objectContaining({ sourceUrl: "https://cdn.test/photo.jpg" }),
+  );
+  expect(dedup.seen.size).toBe(1);
+  expect(dedup.excluded?.size).toBe(1);
+  expect(onLimitReached).not.toHaveBeenCalled();
+
+  controller.scan();
+  await controller.idle();
+  expect(send).toHaveBeenCalledOnce();
+  controller.stop();
+});
+
+test("re-evaluates page-scoped exclusions after same-document navigation", async () => {
+  fixture.candidates = [{ url: "https://cdn.test/photo.jpg", kind: "image", previewable: true }];
+  const pageRules = String.raw`
+context: ^auto$
+pageurl: ^http://localhost/$
+sourceurl: photo\.jpg$
+exclude: true
+
+context: ^auto$
+pageurl: ^http://localhost/other$
+sourceurl: photo\.jpg$
+into: automatic/
+`;
+  const dedup = createAutoDownloadDedup();
+  const send = vi.fn(async () => "started" as const);
+  const controller = setupAutoDownloadDiscovery({
+    rules: pageRules,
+    live: false,
+    maxPerPage: 10,
+    send,
+    dedup,
+  });
+  await controller.idle();
+  expect(send).not.toHaveBeenCalled();
+
+  history.pushState({}, "", "/other");
+  controller.scan();
+  await controller.idle();
+
+  expect(send).toHaveBeenCalledOnce();
+  controller.stop();
+  history.replaceState({}, "", "/");
+});
+
+test("bounds the page-local exclusion cache", async () => {
+  fixture.candidates = Array.from({ length: 1025 }, (_value, index) => ({
+    url: `https://cdn.test/excluded-${index}.jpg`,
+    kind: "image",
+    previewable: true,
+  }));
+  const dedup = createAutoDownloadDedup();
+  const controller = setupAutoDownloadDiscovery({
+    rules: String.raw`
+context: ^auto$
+pageurl: ^http://localhost/
+sourceurl: excluded-
+exclude: true
+`,
+    live: false,
+    maxPerPage: 10,
+    send: vi.fn(async () => "started" as const),
+    dedup,
+  });
+  await controller.idle();
+
+  expect(dedup.excluded?.size).toBe(1024);
+  expect(dedup.excluded?.has("https://cdn.test/excluded-0.jpg")).toBe(false);
+  controller.stop();
+});
+
 test("attests selectors per origin and only queues a complete same-element CSS match", async () => {
   const article = document.createElement("article");
   const hero = document.createElement("img");
@@ -140,7 +243,7 @@ css: article img
 into: second/
 `;
   const parsed = parseRulesCollecting(orderedRules);
-  const destinations: Array<string | undefined> = [];
+  const destinations: Array<string | null | undefined> = [];
   const send = vi.fn(async (candidate: AutomaticRoutingCandidate) => {
     destinations.push(matchAutomaticRoutingRule(parsed.rules, candidate)?.destination);
     return "started" as const;
@@ -214,7 +317,7 @@ css: .image-origin
 into: second-image/
 `;
   const parsed = parseRulesCollecting(variantRules);
-  const destinations: Array<string | undefined> = [];
+  const destinations: Array<string | null | undefined> = [];
   const send = vi.fn(async (candidate: AutomaticRoutingCandidate) => {
     destinations.push(matchAutomaticRoutingRule(parsed.rules, candidate)?.destination);
     return "started" as const;

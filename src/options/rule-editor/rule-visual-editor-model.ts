@@ -293,7 +293,7 @@ export const addRoutingClause = (
   // into:, so they anchor to the destination clause; other clauses precede
   // capture too.
   const name = clause.name.trim().toLowerCase();
-  const anchorsToDestination = name === "fetch" || name === "rename";
+  const anchorsToDestination = name === "fetch" || name === "rename" || name === "tab";
   const before = unit.rule.clauses.find((candidate) =>
     anchorsToDestination
       ? candidate.clauseKind === "destination"
@@ -357,6 +357,38 @@ export const addAutomaticRoutingRule = (source: string): string => {
     "sourcekind: ^image$",
     "into: automatic/:pagedomain:/",
   ].join(newline)}${newline}`;
+};
+
+export const addExclusionRoutingRule = (source: string): string => {
+  const newline = newlineFor(source);
+  const separator =
+    source.length === 0
+      ? ""
+      : source.endsWith(`${newline}${newline}`)
+        ? ""
+        : source.endsWith(newline)
+          ? newline
+          : `${newline}${newline}`;
+  return `${source}${separator}filename: .*${newline}exclude: true${newline}`;
+};
+
+export const setRoutingRuleTabAction = (
+  source: string,
+  ruleIndex: number,
+  enabled: boolean,
+): string => {
+  const { unit } = editableRule(source, ruleIndex);
+  const action = unit.rule.clauses.find((clause) => clause.name === "tab");
+  if (enabled) {
+    return action
+      ? updateRoutingClause(source, ruleIndex, unit.rule.clauses.indexOf(action), {
+          value: "close",
+        })
+      : addRoutingClause(source, ruleIndex, { name: "tab", value: "close" });
+  }
+  return action
+    ? deleteRoutingClause(source, ruleIndex, unit.rule.clauses.indexOf(action))
+    : source;
 };
 
 export const duplicateRoutingRule = (source: string, ruleIndex: number): string => {

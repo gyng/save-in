@@ -30,6 +30,8 @@ export type DownloadScratch = {
   pathTemplateRaw?: string | undefined;
   routeTemplateRaw?: string | undefined;
   fetchTemplateRaw?: string | undefined;
+  routeOutcome?: "exclude" | undefined;
+  routeTabAction?: "close" | undefined;
   // Capture-substituted rename transform of the matched rule (variables still
   // unexpanded), and the same transform with its replacement expanded against
   // this download — the value finalizeFullPath applies synchronously.

@@ -1,6 +1,7 @@
 // Focused plan coverage extracted from the pipeline suite.
 import type { SaveInOptions } from "../../src/config/option-schema.ts";
 import { OPTION_DEFAULTS } from "../../src/config/option-defaults.ts";
+import type { DownloadPipelineState } from "../../src/downloads/download-types.ts";
 import type { RuleMatch } from "../../src/routing/router.ts";
 import { DOWNLOAD_TYPES } from "../../src/shared/constants.ts";
 import {
@@ -74,19 +75,54 @@ describe("getRoutingMatches", () => {
     expect(router.matchRules).not.toHaveBeenCalled();
   });
 
-  test("delegates to matchRules with the rename-only predicate", () => {
+  test("delegates to detailed matching with the rename-only predicates", () => {
     options.filenamePatterns = [routingRule()];
-    vi.mocked(router.matchRules).mockReturnValue("the/route");
-    const state = { info: { url: "x" }, scratch: {} };
+    vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      outcome: "route",
+      rule: options.filenamePatterns[0]!,
+      destination: "the/route",
+      fetch: null,
+      rename: null,
+      tabAction: "close",
+    });
+    const state: Pick<DownloadPipelineState, "info" | "scratch"> = {
+      info: { url: "x" },
+      scratch: {},
+    };
 
     expect(Download.getRoutingMatches(state)).toBe("the/route");
     // Callers of this seam rename downloads that already started, so rules
     // that rewrite the URL must be skipped rather than match-consuming.
-    expect(router.matchRules).toHaveBeenCalledWith(
+    expect(router.matchRulesDetailed).toHaveBeenCalledWith(
       options.filenamePatterns,
       state.info,
       router.isRenameOnlyEligibleRule,
+      router.isRenameOnlyEligibleMatch,
     );
+    expect(state.scratch.routeTabAction).toBe("close");
+  });
+
+  test("returns no rename for a terminal exclusion of an in-flight browser download", () => {
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      outcome: "exclude",
+      rule: options.filenamePatterns[0]!,
+      destination: null,
+      fetch: null,
+      rename: null,
+      tabAction: null,
+    });
+    const state: Pick<DownloadPipelineState, "info" | "scratch"> = {
+      info: { url: "https://cdn.example/tracker.gif" },
+      scratch: {
+        renameTemplate: { find: "old", flags: "", replacement: "stale" },
+      },
+    };
+
+    expect(Download.getRoutingMatches(state)).toBeNull();
+    expect(state.scratch.renameTemplate).toBeUndefined();
+    expect(state.scratch.routeOutcome).toBe("exclude");
+    expect(state.scratch.routeTabAction).toBeUndefined();
   });
 });
 
@@ -103,10 +139,12 @@ describe("getRoutingMatch", () => {
   test("delegates to matchRulesDetailed with every rule eligible", () => {
     options.filenamePatterns = [routingRule()];
     const match = {
+      outcome: "route" as const,
       rule: options.filenamePatterns[0]!,
       destination: "the/route",
       fetch: "https://mirror.example/orig.png",
       rename: null,
+      tabAction: null,
     };
     vi.mocked(router.matchRulesDetailed).mockReturnValue(match);
     const state = { info: { url: "x" } };
@@ -120,9 +158,11 @@ describe("templates the late filename pass cannot re-derive", () => {
   const planMatch = (match: Partial<RuleMatch> & { destination: string }) => {
     options.filenamePatterns = [routingRule()];
     vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      outcome: "route",
       rule: options.filenamePatterns[0]!,
       fetch: null,
       rename: null,
+      tabAction: null,
       ...match,
     });
   };
@@ -163,14 +203,53 @@ describe("templates the late filename pass cannot re-derive", () => {
   });
 });
 
+describe("routing actions in the plan", () => {
+  test("stops an excluded save without treating a later rule as its destination", async () => {
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      outcome: "exclude",
+      rule: options.filenamePatterns[0]!,
+      destination: null,
+      fetch: null,
+      rename: null,
+      tabAction: null,
+    });
+    const state = makeState({ info: { url: "https://cdn.example/tracker.gif" } });
+
+    await expect(Download.resolveDownloadPlan(state)).resolves.toBeNull();
+
+    expect(state.scratch.routeOutcome).toBe("exclude");
+    expect(state.route).toBeUndefined();
+    expect(Download.downloadRuntime.pendingStates.get(state.info.url) || []).not.toContain(state);
+  });
+
+  test("carries a matched close-tab action to the post-save caller", async () => {
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      outcome: "route",
+      rule: options.filenamePatterns[0]!,
+      destination: "images/:filename:",
+      fetch: null,
+      rename: null,
+      tabAction: "close",
+    });
+    const state = makeState({ info: { url: "https://cdn.example/photo.jpg" } });
+
+    await expect(Download.resolveDownloadPlan(state)).resolves.not.toBeNull();
+    expect(state.scratch.routeTabAction).toBe("close");
+  });
+});
+
 describe("fetch rewrite", () => {
   const fetchMatch = (destination: string, fetch: string) => {
     options.filenamePatterns = [routingRule()];
     vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      outcome: "route",
       rule: options.filenamePatterns[0]!,
       destination,
       fetch,
       rename: null,
+      tabAction: null,
     });
   };
 
@@ -371,10 +450,12 @@ describe("rename transform in the plan", () => {
   ) => {
     options.filenamePatterns = [routingRule()];
     vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      outcome: "route",
       rule: options.filenamePatterns[0]!,
       destination,
       fetch,
       rename,
+      tabAction: null,
     });
   };
 

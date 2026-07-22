@@ -32,10 +32,16 @@ export type AutoDownloadSendResult = "started" | "skipped" | "failed";
 // there would re-download everything already saved on every open matching
 // tab. Rule, limit, and toggle edits reset it (the 4.0 contract: edited rules
 // apply to media already on the page).
-export type AutoDownloadDedup = { seen: Set<string>; limitNotified: boolean };
+export type AutoDownloadDedup = {
+  seen: Set<string>;
+  limitNotified: boolean;
+  excluded?: Set<string> | undefined;
+  excludedPageUrl?: string | undefined;
+};
 export const createAutoDownloadDedup = (): AutoDownloadDedup => ({
   seen: new Set<string>(),
   limitNotified: false,
+  excluded: new Set<string>(),
 });
 
 export type AutoDownloadDiscoveryOptions = {
@@ -76,6 +82,7 @@ export type AutoDownloadDiscovery = {
 const LIVE_SCAN_DEBOUNCE_MS = 200;
 const LIVE_SCAN_MAX_WAIT_MS = 1000;
 const LIVE_SCAN_ROOT_LIMIT = 64;
+const AUTO_EXCLUSION_CACHE_LIMIT = 1024;
 
 export const setupAutoDownloadDiscovery = (
   options: AutoDownloadDiscoveryOptions,
@@ -85,6 +92,8 @@ export const setupAutoDownloadDiscovery = (
   const cssSelectors = cssSelectorsForRules(automaticRules);
   const dedup = options.dedup ?? createAutoDownloadDedup();
   const seen = dedup.seen;
+  const excluded = dedup.excluded ?? new Set<string>();
+  dedup.excluded = excluded;
   const queue: AutomaticRoutingCandidate[] = [];
   const noResourceTimings: ResourceTimingByUrl = new Map();
 
@@ -190,6 +199,10 @@ export const setupAutoDownloadDiscovery = (
     // scripts get no navigation event for pushState).
     if (options.isPageDisabled()) return;
     const pageUrl = `${window.location}`;
+    if (dedup.excludedPageUrl !== pageUrl) {
+      excluded.clear();
+      dedup.excludedPageUrl = pageUrl;
+    }
     lastScannedPageUrl = pageUrl;
     const timingByUrl =
       suppliedTimingByUrl || (includeResourceHints ? resourceTimingByUrl() : noResourceTimings);
@@ -241,7 +254,7 @@ export const setupAutoDownloadDiscovery = (
       // A long data: URL keys the dedup set on its hash so the set never holds a
       // megabyte string; http(s) and short data: URLs key on the string itself.
       const seenKey = seenKeyFor(sourceUrl);
-      if (seen.has(seenKey)) continue;
+      if (seen.has(seenKey) || excluded.has(seenKey)) continue;
       const firstSource = sources[0];
       const cssAttestation =
         cssSelectors.length > 0
@@ -262,11 +275,26 @@ export const setupAutoDownloadDiscovery = (
         }),
       );
       let selected: AutomaticRoutingCandidate | undefined;
+      let excludedByRule = false;
       for (const rule of automaticRules) {
-        selected = candidatesForUrl.find((candidate) =>
-          Boolean(matchAutomaticRoutingRule([rule], candidate)),
-        );
-        if (selected) break;
+        for (const candidate of candidatesForUrl) {
+          const match = matchAutomaticRoutingRule([rule], candidate);
+          if (!match) continue;
+          if (match.outcome === "exclude") excludedByRule = true;
+          else selected = candidate;
+          break;
+        }
+        if (selected || excludedByRule) break;
+      }
+      if (excludedByRule) {
+        if (excluded.size >= AUTO_EXCLUSION_CACHE_LIMIT) {
+          // The size check proves next() yields a string; TypeScript does not
+          // correlate Set.size with the iterator result.
+          const oldest = excluded.values().next() as IteratorYieldResult<string>;
+          excluded.delete(oldest.value);
+        }
+        excluded.add(seenKey);
+        continue;
       }
       if (!selected) continue;
       if (

@@ -524,9 +524,12 @@ describe("OptionsManagement", () => {
       // The preview mirrors the pipeline's own unfiltered match: path and
       // captures both come from the single winning rule (fetch rules incl.).
       mocks.Download.getRoutingMatch.mockReturnValue({
+        outcome: "route",
         rule: ruleB,
         destination: "routed/dir",
         fetch: null,
+        rename: null,
+        tabAction: "close",
       });
       mocks.Path.mockImplementation(function fakePath(
         this: { routingMatches: unknown },
@@ -564,7 +567,30 @@ describe("OptionsManagement", () => {
         expect.objectContaining({ filename: "photo.png" }),
       );
 
-      expect(result).toEqual({ path: "finalized:routed/dir", captures: ["cap1"] });
+      expect(result).toEqual({
+        path: "finalized:routed/dir",
+        captures: ["cap1"],
+        tabAction: "close",
+      });
+    });
+
+    test("returns a terminal exclusion without interpolating a path", async () => {
+      const rule = routingRule("excluded");
+      OptionsManagement.setOption("filenamePatterns", [rule]);
+      mocks.Download.getRoutingMatch.mockReturnValue({
+        outcome: "exclude",
+        rule,
+        destination: null,
+        fetch: null,
+        rename: null,
+        tabAction: null,
+      });
+
+      await expect(
+        previewRoutes({ info: { filename: "tracker.gif", url: "https://x/tracker.gif" } }),
+      ).resolves.toEqual({ path: null, captures: null, outcome: "exclude" });
+      expect(mocks.applyVariables).not.toHaveBeenCalled();
+      expect(mocks.router.getCaptureMatches).not.toHaveBeenCalled();
     });
 
     test("applies the winning rule's rename to the previewed final component", async () => {

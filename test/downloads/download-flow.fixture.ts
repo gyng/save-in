@@ -199,7 +199,16 @@ beforeEach(() => {
       isEligible === undefined
         ? router.matchRules(rules, info)
         : router.matchRules(rules, info, isEligible);
-    return destination == null ? null : { rule: rules[0]!, destination, fetch: null, rename: null };
+    return destination == null
+      ? null
+      : {
+          outcome: "route",
+          rule: rules[0]!,
+          destination,
+          fetch: null,
+          rename: null,
+          tabAction: null,
+        };
   });
   // applyVariables stays real (a never-asserted passthrough that leaves
   // a bufless path unchanged); resolveMime/mimeToExtension are spied per MIME test.

@@ -107,6 +107,48 @@
     "message": "Save In: Rule matched",
     "description": "Notification title for a rule match. Used in src/downloads/download.ts."
   },
+  "notificationRuleExcludedMessage": {
+    "message": "$URL$ was not saved because a routing rule excluded it.",
+    "description": "Notification body after an interactive save matches a terminal exclude: true routing rule. Used in src/downloads/download-execution.ts.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/tracker.gif"
+      }
+    }
+  },
+  "routeActionExclude": {
+    "message": "Do not save matching items",
+    "description": "Action label for adding or displaying an exclude: true routing rule. Used in src/options/options.html, src/options/rule-editor/rule-visual-editor.ts, and src/options/route-debugger/route-debugger.ts."
+  },
+  "routeActionCloseTab": {
+    "message": "Close source tab after saving",
+    "description": "Action label for adding or displaying tab: close on a routing rule. The close happens only after the browser accepts the save. Used in src/options/options.html, src/options/rule-editor/rule-visual-editor.ts, and src/options/route-debugger/route-debugger.ts."
+  },
+  "routeActionKeepTab": {
+    "message": "Keep source tab after saving",
+    "description": "Action that removes tab: close from a routing rule. Used in src/options/rule-editor/rule-visual-editor.ts."
+  },
+  "routeActionAfterSave": {
+    "message": "After saving",
+    "description": "Label beside the post-save action in the routing visual editor and route debugger. Used in src/options/rule-editor/rule-visual-editor.ts and src/options/route-debugger/route-debugger.ts."
+  },
+  "routeActionOutcome": {
+    "message": "Rule outcome",
+    "description": "Label beside a terminal exclusion in the routing visual editor. Used in src/options/rule-editor/rule-visual-editor.ts."
+  },
+  "routeActionExcluded": {
+    "message": "Excluded by routing rule",
+    "description": "Status for an item that matched exclude: true and was not saved. Used in notifications, the latest-route preview, and the route debugger."
+  },
+  "routeActionExcludedSummary": {
+    "message": "A rule matched. This save is excluded, so later rules do not run.",
+    "description": "Route debugger summary for a terminal exclusion. Used in src/options/route-debugger/route-debugger.ts."
+  },
+  "routeActionRuleEnding": {
+    "message": "An exclusion rule ends with exclude: true.",
+    "description": "Routing guide text explaining the two terminal rule outcomes. Keep the literal clause names. Used in src/options/options.html."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Failed to route or rename download",
     "description": "Notification title for no rule matches when in exclusive mode. Used in src/downloads/download.ts."
@@ -2078,7 +2120,7 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Every rule must end with an",
+    "message": "A saving rule ends with an",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_filterClauses": {

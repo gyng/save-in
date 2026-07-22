@@ -1369,7 +1369,7 @@
     "message": "Varje matchare i en regel måste matcha."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Varje regel måste sluta med en"
+    "message": "En sparregel slutar med ett"
   },
   "html_filterClauses": {
     "message": "Filterklausuler"
@@ -4423,5 +4423,19 @@
     "message": "Matchar nedladdningsnamnet som länken föreslår."
   },
   "routeDebuggerLinkTitle": { "message": "Länktitel" },
-  "routeDebuggerLinkDownload": { "message": "Länkens nedladdningsnamn" }
+  "routeDebuggerLinkDownload": { "message": "Länkens nedladdningsnamn" },
+  "notificationRuleExcludedMessage": {
+    "message": "$URL$ sparades inte eftersom en routningsregel uteslöt den.",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "routeActionExclude": { "message": "Spara inte matchande objekt" },
+  "routeActionCloseTab": { "message": "Stäng källfliken efter att objektet sparats" },
+  "routeActionKeepTab": { "message": "Behåll källfliken efter att objektet sparats" },
+  "routeActionAfterSave": { "message": "Efter att objektet sparats" },
+  "routeActionOutcome": { "message": "Regelresultat" },
+  "routeActionExcluded": { "message": "Utesluten av routningsregel" },
+  "routeActionExcludedSummary": {
+    "message": "En regel matchade. Den här sparningen är utesluten, så senare regler körs inte."
+  },
+  "routeActionRuleEnding": { "message": "En uteslutningsregel slutar med exclude: true." }
 }

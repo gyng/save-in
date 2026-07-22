@@ -145,7 +145,9 @@ const isPlainMatchAll = (regex: RegExp): boolean =>
 
 const clauseAcceptsRegexFlags = (line: RoutingRuleNode["clauses"][number]): boolean =>
   line.name === "rename" ||
-  !["capture", "capturegroups", "css", "disabled", "fetch", "into"].includes(line.name);
+  !["capture", "capturegroups", "css", "disabled", "exclude", "fetch", "into", "tab"].includes(
+    line.name,
+  );
 
 const hasDynamicOutputCapture = (rule: readonly RuleClause[]): boolean =>
   rule.some(
@@ -265,6 +267,30 @@ const parseSemanticRule = (
       // template is accidental and would corrupt the request line.
       return { name, value: rawValue.trim(), type: RULE_TYPES.FETCH };
     }
+    if (name === "exclude") {
+      if (rawValue.trim().toLowerCase() !== "true") {
+        appendError(
+          errors,
+          routingPorts.getMessage("ruleBadClause"),
+          "exclude must be true",
+          line.valueSpan,
+        );
+        return false;
+      }
+      return { name, value: "true", type: RULE_TYPES.ACTION };
+    }
+    if (name === "tab") {
+      if (rawValue.trim().toLowerCase() !== "close") {
+        appendError(
+          errors,
+          routingPorts.getMessage("ruleBadClause"),
+          "tab must be close",
+          line.valueSpan,
+        );
+        return false;
+      }
+      return { name, value: "close", type: RULE_TYPES.ACTION };
+    }
     if (name === "rename") {
       const parts = splitRenameValue(rawValue);
       if (!parts) {
@@ -375,6 +401,59 @@ const parseSemanticRule = (
   });
   const valid = clauses.filter((clause): clause is RuleClause => clause !== false);
   if (valid.length !== clauses.length || automaticIssues.length > 0) return false;
+  const exclusionNodes = lines.filter((line) => line.name === "exclude");
+  const tabActionNodes = lines.filter((line) => line.name === "tab");
+  if (exclusionNodes.length > 1) {
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleBadClause"),
+      "exclude may appear only once",
+      (exclusionNodes[1] as (typeof exclusionNodes)[number]).span,
+    );
+    return false;
+  }
+  if (tabActionNodes.length > 1) {
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleBadClause"),
+      "tab may appear only once",
+      (tabActionNodes[1] as (typeof tabActionNodes)[number]).span,
+    );
+    return false;
+  }
+  if (exclusionNodes.length === 1) {
+    const incompatible = lines.find((line) =>
+      ["capture", "capturegroups", "fetch", "into", "rename", "tab"].includes(line.name),
+    );
+    if (incompatible) {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleBadClause"),
+        `exclude cannot be combined with ${incompatible.name}`,
+        incompatible.span,
+      );
+      return false;
+    }
+    if (!valid.some((clause) => clause.type === RULE_TYPES.MATCHER)) {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleMissingMatcher"),
+        JSON.stringify(lines.map((line) => line.raw)),
+        rule.span,
+      );
+      return false;
+    }
+    return disabled ? false : (valid as RoutingRule);
+  }
+  if (tabActionNodes.length === 1 && isAutomaticRuleClauses(valid)) {
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleBadClause"),
+      "automatic rules cannot close tabs",
+      (tabActionNodes[0] as (typeof tabActionNodes)[number]).span,
+    );
+    return false;
+  }
   const destinations = valid.filter((clause) => clause.type === RULE_TYPES.DESTINATION);
   const destinationNodes = lines.filter((line) => line.name === "into");
   const destination = destinations[0];

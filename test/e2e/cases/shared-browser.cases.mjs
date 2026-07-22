@@ -13,6 +13,7 @@ import {
   runLegacyProfileRoutingScenario,
   runRenameRoutingScenario,
   runRoutingScenario,
+  runRoutingActionsScenario,
   runShortcutScenario,
   runSymlinkDestinationScenario,
   runTabStripScenario,
@@ -124,6 +125,14 @@ export const registerSharedBrowserCases = (adapters) => {
     });
     const completed = requireValue(downloads[0], "Routed download was not captured");
     expect(fs.readFileSync(completed.filename, "utf8")).toBe(routingContent);
+  });
+
+  test("routing exclusions and post-save tab actions respect browser lifecycle", async () => {
+    await runRoutingActionsScenario({
+      control,
+      waitForDownloads,
+      filename: `routing-actions-${browserLabel}`,
+    });
   });
 
   test("CSS routes automatic and manual Page Sources by their originating element", async () => {

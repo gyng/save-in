@@ -6,4 +6,6 @@
 export type RoutePreview = {
   path: string | null;
   captures: (string | undefined)[] | null;
+  outcome?: "route" | "exclude" | null | undefined;
+  tabAction?: "close" | null | undefined;
 };

@@ -13,6 +13,7 @@ import {
   type MenusFixture,
   type TestMenuListener,
 } from "./listeners.fixture.ts";
+import type { DownloadPipelineState } from "../../../src/downloads/download-types.ts";
 
 describe("addDownloadListener", () => {
   let Menus: MenusFixture;
@@ -1500,6 +1501,53 @@ describe("addDownloadListener", () => {
 
       expect(global.browser.tabs.remove).not.toHaveBeenCalled();
       expect(global.browser.tabs.update).not.toHaveBeenCalled();
+    });
+
+    test("honors a matched rule action for a non-page save", async () => {
+      vi.mocked(Download.launchDownload).mockImplementationOnce(
+        async (state: DownloadPipelineState) => {
+          state.scratch.routeTabAction = "close";
+          return { status: "started", downloadId: 1 };
+        },
+      );
+      Menus.addPaths(["dir1"], ["link"]);
+      await listener(
+        {
+          menuItemId: "save-in-0",
+          linkUrl: "https://example.com/file.png",
+          pageUrl: "https://example.com/",
+        },
+        { id: 42, title: "Title" },
+      );
+      expect(global.browser.tabs.remove).toHaveBeenCalledOnce();
+      expect(global.browser.tabs.remove).toHaveBeenCalledWith(42);
+    });
+
+    test("lets the menu item's return action override rule and global close actions", async () => {
+      options.closeTabOnSave = true;
+      vi.mocked(Download.launchDownload).mockImplementationOnce(
+        async (state: DownloadPipelineState) => {
+          state.scratch.routeTabAction = "close";
+          return { status: "started", downloadId: 1 };
+        },
+      );
+      Menus.addPaths(["dir1 // (tab: return)"], ["page"]);
+      await pageClick({ id: 42, title: "Title" });
+      expect(global.browser.tabs.update).toHaveBeenCalledOnce();
+      expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+    });
+
+    test("coalesces matching rule and global close actions into one tab operation", async () => {
+      options.closeTabOnSave = true;
+      vi.mocked(Download.launchDownload).mockImplementationOnce(
+        async (state: DownloadPipelineState) => {
+          state.scratch.routeTabAction = "close";
+          return { status: "started", downloadId: 1 };
+        },
+      );
+      Menus.addPaths(["dir1"], ["page"]);
+      await pageClick({ id: 42, title: "Title" });
+      expect(global.browser.tabs.remove).toHaveBeenCalledOnce();
     });
 
     test("does not act when the save did not start", async () => {

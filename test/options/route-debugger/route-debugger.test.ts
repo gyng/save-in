@@ -117,6 +117,8 @@ test("shows production rule and clause decisions and jumps back to their source"
             ruleErrors: [],
             ruleTrace: {
               selectedRule: 2,
+              selectedOutcome: "route",
+              selectedTabAction: "close",
               destination: "pdf/:filename:",
               expandedDestination: "pdf/report.pdf",
               sanitizedDestination: "pdf/report.pdf",
@@ -139,6 +141,7 @@ test("shows production rule and clause decisions and jumps back to their source"
                   index: 2,
                   name: "Work PDFs",
                   matched: true,
+                  outcome: "route",
                   destination: "pdf/:filename:",
                   clauses: [
                     {
@@ -197,6 +200,9 @@ test("shows production rule and clause decisions and jumps back to their source"
   );
   expect(ruleCards[1]?.querySelector(".route-debugger-pipeline")?.textContent).toContain(
     "Final pathpdf/report.pdf",
+  );
+  expect(ruleCards[1]?.querySelector(".route-debugger-pipeline")?.textContent).toContain(
+    "After savingClose source tab after saving",
   );
   expect(result.textContent).toContain("Tested “pdf” from Source URL — matched.");
   expect(result.textContent).toContain("Tested “pdf” from Source URL — did not match.");
@@ -260,6 +266,57 @@ test("shows production rule and clause decisions and jumps back to their source"
       }),
     }),
   );
+});
+
+test("shows a terminal exclusion as the selected outcome without a path pipeline", async () => {
+  renderWorkbench();
+  document.querySelector<HTMLTextAreaElement>("#filenamePatterns")!.value =
+    "sourceurl: tracker\\.gif$\nexclude: true";
+  vi.mocked(browser.i18n.getMessage).mockReturnValue("");
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) => {
+    if (message.type === MESSAGE_TYPES.CHECK_ROUTES) return checkResponse();
+    return {
+      type: MESSAGE_TYPES.VALIDATE_RESULT,
+      body: {
+        version: 1,
+        ruleErrors: [],
+        ruleTrace: {
+          selectedRule: 1,
+          selectedOutcome: "exclude",
+          selectedTabAction: null,
+          destination: null,
+          expandedDestination: null,
+          sanitizedDestination: null,
+          finalPath: null,
+          rules: [
+            {
+              index: 1,
+              matched: true,
+              outcome: "exclude",
+              destination: "",
+              clauses: [{ name: "sourceurl", pattern: "tracker\\.gif$", matched: true }],
+            },
+          ],
+        },
+      },
+    };
+  });
+
+  setupRouteDebugger();
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")!.click();
+
+  const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
+  await vi.waitFor(() => expect(result.dataset.state).toBe("matched"));
+  expect(result.querySelector(".route-debugger-match-summary")?.textContent).toBe(
+    "A rule matched. This save is excluded, so later rules do not run.",
+  );
+  expect(result.querySelector(".route-debugger-rule-destination")?.textContent).toBe(
+    "Do not save matching items",
+  );
+  expect(result.querySelector(".route-debugger-rule-badge")?.textContent).toBe(
+    "Excluded by routing rule",
+  );
+  expect(result.querySelector(".route-debugger-pipeline")).toBeNull();
 });
 
 test("replays a validated History snapshot against current rules and navigates to the result", async () => {

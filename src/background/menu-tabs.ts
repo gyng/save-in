@@ -10,7 +10,7 @@ import { makeShortcut, suggestShortcutFilename } from "../downloads/shortcut.ts"
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
 import { launchDownload } from "../downloads/download.ts";
-import type { DownloadInfo } from "../downloads/download-types.ts";
+import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-types.ts";
 import { addLogEntry } from "./log.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { runBackgroundTask } from "./background-event-task.ts";
@@ -150,7 +150,7 @@ export const handleTabMenuClick = async (
       };
 
       // keeps track of state of the final path
-      const state = {
+      const state: DownloadPipelineState = {
         path: new Path("."),
         scratch: {},
         info: opts,
@@ -162,7 +162,11 @@ export const handleTabMenuClick = async (
       // launchDownload reports whether the browser accepted the save.
       const result = await launchDownload(state);
 
-      if (options.closeTabOnSave && result.status === "started") {
+      if (
+        state.scratch.routeOutcome !== "exclude" &&
+        (state.scratch.routeTabAction === "close" || options.closeTabOnSave) &&
+        result.status === "started"
+      ) {
         const tabId = t.id;
         if (tabId == null) continue;
         try {

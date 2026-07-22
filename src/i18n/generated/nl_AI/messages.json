@@ -1369,7 +1369,7 @@
     "message": "Elke matcher in een regel moet overeenkomen."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Elke regel moet eindigen met een"
+    "message": "Een opslagregel eindigt met een"
   },
   "html_filterClauses": {
     "message": "Filterclausules"
@@ -4423,5 +4423,19 @@
     "message": "Komt overeen met de downloadnaam die de link voorstelt."
   },
   "routeDebuggerLinkTitle": { "message": "Linktitel" },
-  "routeDebuggerLinkDownload": { "message": "Downloadnaam van de link" }
+  "routeDebuggerLinkDownload": { "message": "Downloadnaam van de link" },
+  "notificationRuleExcludedMessage": {
+    "message": "$URL$ is niet opgeslagen omdat een routeringsregel het heeft uitgesloten.",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+  },
+  "routeActionExclude": { "message": "Overeenkomende items niet opslaan" },
+  "routeActionCloseTab": { "message": "Brontabblad sluiten na opslaan" },
+  "routeActionKeepTab": { "message": "Brontabblad openhouden na opslaan" },
+  "routeActionAfterSave": { "message": "Na het opslaan" },
+  "routeActionOutcome": { "message": "Regeluitkomst" },
+  "routeActionExcluded": { "message": "Uitgesloten door routeringsregel" },
+  "routeActionExcludedSummary": {
+    "message": "Een regel kwam overeen. Deze opslag is uitgesloten, dus latere regels worden niet uitgevoerd."
+  },
+  "routeActionRuleEnding": { "message": "Een uitsluitingsregel eindigt met exclude: true." }
 }

@@ -7,6 +7,7 @@ import { attachAutocomplete } from "../syntax-editor/autocomplete.ts";
 import {
   addRoutingClause,
   addAutomaticRoutingRule,
+  addExclusionRoutingRule,
   addRoutingRule,
   deleteRoutingClause,
   deleteRoutingRule,
@@ -15,6 +16,7 @@ import {
   parseVisualRoutingRules,
   setRoutingRuleEnabled,
   setRoutingRuleName,
+  setRoutingRuleTabAction,
   updateRoutingClause,
   type VisualRoutingRule,
 } from "./rule-visual-editor-model.ts";
@@ -104,6 +106,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   const cards = document.querySelector<HTMLElement>("#rule-editor-cards");
   const addRule = document.querySelector<HTMLButtonElement>("#rule-editor-add");
   const addAutomaticRule = document.querySelector<HTMLButtonElement>("#rule-editor-add-auto");
+  const addExclusionRule = document.querySelector<HTMLButtonElement>("#rule-editor-add-exclusion");
   const browseTemplates = document.querySelector<HTMLButtonElement>(
     "#rule-editor-browse-templates",
   );
@@ -384,7 +387,11 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
             ? "⇄"
             : clause.kind === "rename"
               ? "✎"
-              : "if";
+              : clause.kind === "action"
+                ? clause.name === "exclude"
+                  ? "⊘"
+                  : "✓"
+                : "if";
     marker.setAttribute("aria-hidden", "true");
     row.append(marker);
 
@@ -403,8 +410,34 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           ? localize("routeVisualFetchLabel", "Rewrite download URL")
           : clause.kind === "rename"
             ? localize("routeVisualRenameLabel", "Rename the file")
-            : clause.name;
+            : clause.kind === "action"
+              ? clause.name === "exclude"
+                ? localize("routeActionOutcome", "Rule outcome")
+                : localize("routeActionAfterSave", "After saving")
+              : clause.name;
       row.append(name);
+    }
+
+    if (clause.kind === "action") {
+      const actionValue = document.createElement("span");
+      actionValue.className = "rule-clause-value rule-clause-action-value";
+      actionValue.textContent =
+        clause.name === "exclude"
+          ? localize("routeActionExclude", "Do not save matching items")
+          : localize("routeActionCloseTab", "Close source tab after saving");
+      row.append(actionValue);
+      if (clause.name === "tab") {
+        const remove = button(
+          "×",
+          "delete-clause",
+          localize("routeActionKeepTab", "Keep source tab after saving"),
+        );
+        remove.addEventListener("click", () =>
+          commit(setRoutingRuleTabAction(textarea.value, rule.index, false)),
+        );
+        row.append(remove);
+      }
+      return row;
     }
 
     const value = document.createElement("input");
@@ -708,7 +741,28 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       commit(deleteRoutingRule(textarea.value, rule.index));
       closeActions();
     });
-    actionsMenu.append(up, down, duplicate, remove);
+    const automatic = isAutomaticRuleClauses(rule.clauses);
+    const exclusion = rule.clauses.some(
+      (clause) => clause.kind === "action" && clause.name === "exclude",
+    );
+    const closeTab = rule.clauses.some(
+      (clause) => clause.kind === "action" && clause.name === "tab",
+    );
+    actionsMenu.append(up, down, duplicate);
+    if (!automatic && !exclusion) {
+      const postSaveAction = button(
+        closeTab
+          ? localize("routeActionKeepTab", "Keep source tab after saving")
+          : localize("routeActionCloseTab", "Close source tab after saving"),
+        "toggle-close-tab",
+      );
+      postSaveAction.addEventListener("click", () => {
+        commit(setRoutingRuleTabAction(textarea.value, rule.index, !closeTab));
+        closeActions();
+      });
+      actionsMenu.append(postSaveAction);
+    }
+    actionsMenu.append(remove);
     actions.append(actionsTrigger, actionsMenu);
     header.append(dragHandle, enabledLabel, identity, actions);
     card.append(header);
@@ -825,6 +879,12 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   addAutomaticRule?.addEventListener("click", () => {
     const nextIndex = parseVisualRoutingRules(textarea.value).rules.length;
     commit(addAutomaticRoutingRule(textarea.value));
+    if (addRuleMenu) addRuleMenu.open = false;
+    cards.querySelector<HTMLElement>(`[data-rule-index="${nextIndex}"] .rule-clause-name`)?.focus();
+  });
+  addExclusionRule?.addEventListener("click", () => {
+    const nextIndex = parseVisualRoutingRules(textarea.value).rules.length;
+    commit(addExclusionRoutingRule(textarea.value));
     if (addRuleMenu) addRuleMenu.open = false;
     cards.querySelector<HTMLElement>(`[data-rule-index="${nextIndex}"] .rule-clause-name`)?.focus();
   });
