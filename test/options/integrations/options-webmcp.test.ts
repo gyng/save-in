@@ -245,6 +245,111 @@ describe("buildTools", () => {
     });
   });
 
+  // Lowering historyRetentionLimit permanently deletes older completed
+  // History entries as soon as it applies — an agent must not be able to
+  // prune on the strength of a single unconfirmed call.
+  test("refuses an unacknowledged historyRetentionLimit lowering without applying it", async () => {
+    const send = vi.fn((message: { type: string }) =>
+      message.type === "GET_CONFIG"
+        ? Promise.resolve({ version: 1, config: { historyRetentionLimit: 500 } })
+        : Promise.resolve({ version: 1, applied: {}, rejected: [] }),
+    );
+    const byName = Object.fromEntries(buildTools(send).map((tool) => [tool.name, tool])) as Record<
+      SaveInToolName,
+      SaveInTool
+    >;
+
+    await expect(
+      byName.save_in_apply_config.execute({ config: { historyRetentionLimit: 10 } }),
+    ).resolves.toMatchObject({
+      status: "ERROR",
+      errors: [{ field: "config.historyRetentionLimit" }],
+    });
+    expect(send).toHaveBeenCalledWith({ type: "GET_CONFIG" });
+    expect(send).not.toHaveBeenCalledWith(expect.objectContaining({ type: "APPLY_CONFIG" }));
+  });
+
+  test("applies an acknowledged historyRetentionLimit lowering without re-checking the current value", async () => {
+    const send = vi.fn(() =>
+      Promise.resolve({ version: 1, applied: { historyRetentionLimit: 10 }, rejected: [] }),
+    );
+    const byName = Object.fromEntries(buildTools(send).map((tool) => [tool.name, tool])) as Record<
+      SaveInToolName,
+      SaveInTool
+    >;
+
+    const result = await byName.save_in_apply_config.execute({
+      config: { historyRetentionLimit: 10 },
+      acknowledgeHistoryPruning: true,
+    });
+
+    expect(send).toHaveBeenCalledOnce();
+    expect(send).toHaveBeenCalledWith({
+      type: "APPLY_CONFIG",
+      body: { config: { historyRetentionLimit: 10 } },
+    });
+    expect(result).toMatchObject({ applied: { historyRetentionLimit: 10 } });
+  });
+
+  test("does not gate a historyRetentionLimit raise behind acknowledgement", async () => {
+    const send = vi.fn((message: { type: string }) =>
+      message.type === "GET_CONFIG"
+        ? Promise.resolve({ version: 1, config: { historyRetentionLimit: 500 } })
+        : Promise.resolve({ version: 1, applied: { historyRetentionLimit: 5000 }, rejected: [] }),
+    );
+    const byName = Object.fromEntries(buildTools(send).map((tool) => [tool.name, tool])) as Record<
+      SaveInToolName,
+      SaveInTool
+    >;
+
+    const result = await byName.save_in_apply_config.execute({
+      config: { historyRetentionLimit: 5000 },
+    });
+
+    expect(send).toHaveBeenCalledWith({ type: "GET_CONFIG" });
+    expect(send).toHaveBeenCalledWith({
+      type: "APPLY_CONFIG",
+      body: { config: { historyRetentionLimit: 5000 } },
+    });
+    expect(result).toMatchObject({ applied: { historyRetentionLimit: 5000 } });
+  });
+
+  test("proceeds when the current historyRetentionLimit cannot be determined", async () => {
+    const send = vi.fn((message: { type: string }) =>
+      message.type === "GET_CONFIG"
+        ? Promise.resolve({ version: 1 })
+        : Promise.resolve({ version: 1, applied: { historyRetentionLimit: 10 }, rejected: [] }),
+    );
+    const byName = Object.fromEntries(buildTools(send).map((tool) => [tool.name, tool])) as Record<
+      SaveInToolName,
+      SaveInTool
+    >;
+
+    const result = await byName.save_in_apply_config.execute({
+      config: { historyRetentionLimit: 10 },
+    });
+
+    expect(send).toHaveBeenCalledWith({
+      type: "APPLY_CONFIG",
+      body: { config: { historyRetentionLimit: 10 } },
+    });
+    expect(result).toMatchObject({ applied: { historyRetentionLimit: 10 } });
+  });
+
+  test("rejects a non-boolean acknowledgeHistoryPruning", async () => {
+    const { send, byName } = toolsByName();
+    await expect(
+      byName.save_in_apply_config.execute({
+        config: { paths: "x" },
+        acknowledgeHistoryPruning: "yes",
+      }),
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "acknowledgeHistoryPruning", message: "Expected a boolean" }],
+    });
+    expect(send).not.toHaveBeenCalled();
+  });
+
   test("validates and forwards automatic-source rules with a sample candidate", async () => {
     const { send, byName } = toolsByName();
     const automaticCandidate = {

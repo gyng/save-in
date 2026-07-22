@@ -93,7 +93,8 @@ const WEBMCP_ENABLED_REFUSAL = "Only the user can turn agent access on or off.";
 
 const NO_PROPERTIES = new Set<string>();
 const VALIDATE_PROPERTIES = new Set(["paths", "filenamePatterns", "info", "automaticCandidate"]);
-const APPLY_PROPERTIES = new Set(["config"]);
+const ACKNOWLEDGE_HISTORY_PRUNING_PROPERTY = "acknowledgeHistoryPruning";
+const APPLY_PROPERTIES = new Set(["config", ACKNOWLEDGE_HISTORY_PRUNING_PROPERTY]);
 const DOWNLOAD_PROPERTIES = new Set([
   "url",
   "pageUrl",
@@ -413,12 +414,17 @@ export const buildTools = (send: WebMcpSend): WebMcpTool[] => {
             type: "object",
             description: "Partial { optionName: value } map (see save_in_get_schema)",
           },
+          acknowledgeHistoryPruning: {
+            type: "boolean",
+            description:
+              "Set true to confirm lowering historyRetentionLimit will permanently delete older completed History entries now.",
+          },
         },
         additionalProperties: false,
         required: ["config"],
       },
       annotations: { readOnlyHint: false, untrustedContentHint: true },
-      execute: (input) => {
+      execute: async (input) => {
         const unknown = firstUnknownProperty(input, APPLY_PROPERTIES);
         if (unknown) return inputError(unknown.field, unknown.message);
         if (!isStringKeyedRecord(input.config)) {
@@ -426,6 +432,37 @@ export const buildTools = (send: WebMcpSend): WebMcpTool[] => {
         }
         if (Object.keys(input.config).length === 0) {
           return inputError("config", "Provide at least one setting");
+        }
+        if (
+          typeof input.acknowledgeHistoryPruning !== "undefined" &&
+          typeof input.acknowledgeHistoryPruning !== "boolean"
+        ) {
+          return inputError(ACKNOWLEDGE_HISTORY_PRUNING_PROPERTY, "Expected a boolean");
+        }
+        // A retention lowering permanently deletes older completed History
+        // entries as soon as it applies. Never prune on the strength of one
+        // unconfirmed call: fail closed and require the caller to re-invoke
+        // with explicit acknowledgement once it has seen the current value.
+        const requestedRetentionLimit = input.config.historyRetentionLimit;
+        if (
+          typeof requestedRetentionLimit !== "undefined" &&
+          input.acknowledgeHistoryPruning !== true
+        ) {
+          const current = await Promise.resolve(send({ type: "GET_CONFIG" }));
+          const currentRetentionLimit =
+            isStringKeyedRecord(current) && isStringKeyedRecord(current.config)
+              ? current.config.historyRetentionLimit
+              : undefined;
+          if (
+            Number.isFinite(Number(currentRetentionLimit)) &&
+            Number.isFinite(Number(requestedRetentionLimit)) &&
+            Number(requestedRetentionLimit) < Number(currentRetentionLimit)
+          ) {
+            return inputError(
+              "config.historyRetentionLimit",
+              "Lowering the History retention limit permanently deletes older completed entries. Re-invoke with acknowledgeHistoryPruning: true to proceed.",
+            );
+          }
         }
         // Two keys this layer refuses, for reasons the background cannot have:
         // a css: selector is only checkable where there is a DOM, and the
