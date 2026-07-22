@@ -63,7 +63,7 @@ const restoreOptionsHandler = (result: JsonRecord, schema: OptionSchema) => {
 
 // The single confirm gate for a History retention lowering: the autosave
 // boundary, the saved-indicator undo (options-persistence.ts, on the
-// reversed change set), and settings import (settings-transfer.ts) all reuse
+// reversed change set), and the settings-transfer.ts import path all reuse
 // this so declining a prune stays consistent everywhere it can happen.
 const confirmHistoryRetentionChanges = async (changes: SavedChange[]): Promise<boolean> =>
   !lowersHistoryRetention(changes) || showHistoryRetentionDialog();
