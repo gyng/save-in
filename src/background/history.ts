@@ -363,12 +363,34 @@ export const addHistoryEntry = (
       let length = index.length + 1;
       let terminalCount = index.terminalCount;
       if (length > HISTORY_LIMIT) {
-        const firstChunkKey = historyIndexChunkStorageKey(firstChunk);
-        const firstSnapshot = await storageSnapshot([firstChunkKey]);
-        const storedFirstChunk = firstSnapshot[firstChunkKey];
-        const trimmedFirstChunk = Array.isArray(storedFirstChunk)
+        // Non-compact pruning legitimately leaves empty (deleted) chunks
+        // between firstChunk and nextChunk. Skip past any such holes so the
+        // cap eviction always removes a real locator/shard instead of
+        // silently doing nothing while length is clamped below regardless —
+        // otherwise the locator count drifts above index.length forever, and
+        // the next forced compact would drop a locator without ever deleting
+        // its entry shard (a permanent orphan until Clear history).
+        let firstChunkKey = historyIndexChunkStorageKey(firstChunk);
+        let firstSnapshot = await storageSnapshot([firstChunkKey]);
+        let storedFirstChunk = firstSnapshot[firstChunkKey];
+        let trimmedFirstChunk = Array.isArray(storedFirstChunk)
           ? storedFirstChunk.filter((key): key is string => typeof key === "string")
           : [];
+        // Never walk into targetChunk: its storage read above happened before
+        // this append was written, so re-reading it here would see a stale
+        // (pre-append) snapshot, and the eviction below could then queue that
+        // same chunk key for removal — clobbering the entry this very call
+        // just added once the write/remove pair applies.
+        while (trimmedFirstChunk.length === 0 && firstChunk + 1 < targetChunk) {
+          removeKeys.push(firstChunkKey);
+          firstChunk += 1;
+          firstChunkKey = historyIndexChunkStorageKey(firstChunk);
+          firstSnapshot = await storageSnapshot([firstChunkKey]);
+          storedFirstChunk = firstSnapshot[firstChunkKey];
+          trimmedFirstChunk = Array.isArray(storedFirstChunk)
+            ? storedFirstChunk.filter((key): key is string => typeof key === "string")
+            : [];
+        }
         const removed = trimmedFirstChunk.shift();
         if (removed) {
           const removedEntryKey = historyEntryStorageKey(removed);

@@ -767,6 +767,39 @@ describe("SaveHistory", () => {
     expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({ firstChunk: 1 });
   });
 
+  test("evicts past a leading pruning hole instead of leaving the cap stuck", async () => {
+    // A non-compact prune left chunk 0 empty (a hole) between firstChunk and
+    // the chunk that still holds the real oldest entry.
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 3,
+      length: HISTORY_LIMIT,
+    };
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`] = [];
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}1`] = ["oldest"];
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}2`] = [];
+    store[`${HISTORY_ENTRY_STORAGE_PREFIX}oldest`] = { id: "oldest", url: "https://a/old" };
+
+    SaveHistory.addHistoryEntry({ url: "https://a/new" });
+    await flushWrites();
+
+    // The hole and the now-drained chunk are both gone; eviction reached the
+    // real oldest entry instead of silently doing nothing while length stays
+    // clamped at the cap.
+    expect(store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`]).toBeUndefined();
+    expect(store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}1`]).toBeUndefined();
+    expect(store[`${HISTORY_ENTRY_STORAGE_PREFIX}oldest`]).toBeUndefined();
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({
+      firstChunk: 2,
+      nextChunk: 3,
+      length: HISTORY_LIMIT,
+    });
+    await expect(storedHistory()).resolves.toEqual([
+      expect.objectContaining({ url: "https://a/new" }),
+    ]);
+  });
+
   test("contains a capped append when the first chunk is malformed", async () => {
     store[HISTORY_INDEX_STORAGE_KEY] = {
       version: 1,
