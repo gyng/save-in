@@ -30,6 +30,34 @@ const nextMemoryArtifact = (artifactDirectory, browserLabel, suiteAttempt) => {
 // telemetry. For repeated writes, measure the final retained rise from the
 // sampled trough so an elevated post-startup baseline cannot hide warmed
 // growth and a released browser-process reservation cannot impersonate a leak.
+//
+// Evidence behind the numbers below (repo policy: raising a baseline needs
+// before/after measurement, not qualitative reasoning alone):
+// - Prior whole-process metric (git history, commit e9a5a396, since
+//   superseded): repeated fixed-path legacy-key runs measured 337-505 MiB
+//   retained growth in Firefox 152 and 56-77 MiB in Chrome 150 as a positive
+//   control; the sharded production path measured 24-55 MiB in Firefox and
+//   1-6 MiB in Chrome under that same whole-process-tree metric.
+// - The metric has since changed twice and is no longer the whole-process
+//   figure quoted above: it moved to a cold-start-vs-steady-state peak split
+//   (commit a002a765), then to the current cold-start-retained-growth vs.
+//   baseline-cohort retained-draw-up split (commit 09f43a3d; see "Browser RSS
+//   measurement" in docs/contributing/E2E.md). The cohort figure excludes
+//   late renderer/utility/GPU processes as valid lifecycle churn, which the
+//   old whole-process figures above did not exclude, so the two are not
+//   directly comparable and the prior range is prior-metric context only, not
+//   evidence for the ceilings below.
+// - MAX_PRODUCTION_COLD_START_RETAINED_RSS_GROWTH_KB (128/384) and
+//   MAX_PRODUCTION_RETAINED_DRAWUP_RSS_GROWTH_KB (64/128) carry forward the
+//   values set when the cold-start/steady split was introduced (commit
+//   a002a765), sized as headroom over the whole-process measurements
+//   available at that time; they have not been re-measured against the
+//   current cohort-retained-draw-up metric.
+// TODO: the next local full e2e run (`npm run e2e`; artifacts land under
+// dist/e2e-artifacts/run-*/memory-history-*.json) should record its observed
+// coldStart.retainedGrowthKb and production.cohort.retainedDrawupKb beside
+// these ceilings so this comment cites current-metric evidence instead of
+// only the superseded whole-process ranges above.
 const MAX_PRODUCTION_COLD_START_RETAINED_RSS_GROWTH_KB = {
   chrome: 128 * 1024,
   firefox: 384 * 1024,
