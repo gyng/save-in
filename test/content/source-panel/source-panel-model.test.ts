@@ -125,22 +125,47 @@ test("grows past the timing cap instead of evicting when every entry is pinned",
   expect(timing.has("https://cdn.test/extra.m3u8")).toBe(true);
 });
 
-test("skips an obsolete timing prefix once the newest unique set is full", () => {
+test("drops the oldest unpinned entry once the newest unique set is full", () => {
   const entries = Array.from(
     { length: SOURCE_PANEL_RESOURCE_TIMING_LIMIT + 1 },
     (_, index) => ({ name: `https://cdn.test/recent-${index}.js` }) as PerformanceResourceTiming,
   );
-  Object.defineProperty(entries, 0, {
-    get: () => {
-      throw new Error("obsolete timing entry was inspected");
-    },
-  });
 
   const timing = resourceTimingByUrl(entries);
 
   expect(timing.size).toBe(SOURCE_PANEL_RESOURCE_TIMING_LIMIT);
   expect(timing.has("https://cdn.test/recent-0.js")).toBe(false);
   expect(timing.has(`https://cdn.test/recent-${SOURCE_PANEL_RESOURCE_TIMING_LIMIT}.js`)).toBe(true);
+});
+
+test("pins a manifest-shaped URL in the initial snapshot even among the oldest entries", () => {
+  const manifest = "https://cdn.test/master.m3u8";
+  const entries: PerformanceResourceTiming[] = [
+    { name: manifest, encodedBodySize: 128, transferSize: 128 } as PerformanceResourceTiming,
+    ...Array.from(
+      { length: SOURCE_PANEL_RESOURCE_TIMING_LIMIT },
+      (_, index) =>
+        ({
+          name: `https://cdn.test/segment-${index}.ts`,
+          encodedBodySize: 1,
+        }) as PerformanceResourceTiming,
+    ),
+  ];
+
+  // The manifest is the very oldest entry, older than 512 later, unrelated
+  // segment fetches. Without a pin predicate on the initial snapshot, a
+  // fixed-size newest-N window would fill entirely on segments and never
+  // retain the manifest that opening the panel needs to discover the
+  // stream row. resourceTimingByUrl's default pin predicate (no explicit
+  // isPinned argument) must find it by URL shape alone.
+  const timing = resourceTimingByUrl(entries);
+
+  expect(timing.has(manifest)).toBe(true);
+  expect(timing.has("https://cdn.test/segment-0.ts")).toBe(false);
+  expect(timing.has(`https://cdn.test/segment-${SOURCE_PANEL_RESOURCE_TIMING_LIMIT - 1}.ts`)).toBe(
+    true,
+  );
+  expect(timing.size).toBe(SOURCE_PANEL_RESOURCE_TIMING_LIMIT);
 });
 
 test("merges responsive metadata into an earlier plain source", () => {

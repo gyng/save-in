@@ -619,34 +619,40 @@ export const positionSourceTooltip = (
   };
 };
 
+// Identifies a stream manifest by URL shape alone, before any PageSource has
+// been discovered from it. collectResourceHintSources uses it to find
+// manifest rows in an already-merged timing map; resourceTimingByUrl reuses
+// it as the initial snapshot's pin predicate, since at open time no
+// resourceHintSources/selections exist yet to pin by.
+export const isResourceHintManifestUrl = (url: string): boolean =>
+  /\.(?:m3u8|mpd)(?:$|[?#])/i.test(url);
+
 export const resourceTimingByUrl = (
   entries: PerformanceEntry[] = performance.getEntriesByType("resource"),
-): Map<string, SourcePanelResourceTiming> => {
-  // A page can enlarge the browser's resource timing buffer. Walk backward
-  // only until the retained set is full, so an initial panel scan neither
-  // copies nor processes an arbitrarily large prefix of obsolete entries.
-  const newest: PerformanceResourceTiming[] = [];
-  const names = new Set<string>();
-  for (
-    let index = entries.length - 1;
-    index >= 0 && names.size < SOURCE_PANEL_RESOURCE_TIMING_LIMIT;
-    index -= 1
-  ) {
-    const entry = entries[index];
-    if (!entry || !isPerformanceResourceTiming(entry) || names.has(entry.name)) continue;
-    names.add(entry.name);
-    newest.push(entry);
-  }
-  newest.reverse();
-  return mergeResourceTimings(new Map(), newest);
-};
+  isPinned: (url: string) => boolean = isResourceHintManifestUrl,
+): Map<string, SourcePanelResourceTiming> =>
+  // Delegate straight to mergeResourceTimings' own cap+pin eviction instead
+  // of pre-selecting a bounded newest-N window here: a stream manifest can
+  // be the very first resource a long-lived page fetched, arbitrarily older
+  // than 512 later, unrelated requests, so no fixed-size backward walk can
+  // guarantee finding it. mergeResourceTimings already retains the most
+  // recent unpinned entries up to the cap while keeping every pinned
+  // (manifest-shaped) one regardless of age, growing past the cap only for
+  // those — the same guarantee the live-merge path relies on.
+  mergeResourceTimings(
+    new Map(),
+    entries.filter(
+      (entry): entry is PerformanceResourceTiming => !!entry && isPerformanceResourceTiming(entry),
+    ),
+    isPinned,
+  );
 
 export const collectResourceHintSources = (
   timingByUrl: ResourceTimingByUrl,
   element: Element = document.body,
 ): PageSourceCandidate[] =>
   [...timingByUrl.values()]
-    .filter(({ name }) => /\.(?:m3u8|mpd)(?:$|[?#])/i.test(name))
+    .filter(({ name }) => isResourceHintManifestUrl(name))
     .flatMap((entry) => {
       const url = absoluteUrl(entry.name);
       return url
