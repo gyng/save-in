@@ -241,6 +241,10 @@ class FirefoxBidi {
    */
   waitForContextCreated(urlSubstr, timeoutMs, initialError) {
     return new Promise((resolve, reject) => {
+      // Guards resolve/reject against firing twice: the timer, a matching
+      // event, and the client closing out from under this wait are three
+      // independent triggers racing the same settlement.
+      let settled = false;
       const cleanup = () => {
         clearTimeout(timer);
         this.realms.delete(watcher);
@@ -248,16 +252,28 @@ class FirefoxBidi {
       const watcher = {
         /** @param {string} method @param {unknown} params */
         handleEvent: (method, params) => {
-          if (method !== "browsingContext.contextCreated") return;
+          if (settled || method !== "browsingContext.contextCreated") return;
           const info = contextEventInfo(params);
           if (info?.context && info.url?.includes(urlSubstr)) {
+            settled = true;
             cleanup();
             resolve(info.context);
           }
         },
-        close: cleanup,
+        // Invoked by FirefoxBidi#close() when the client closes while this
+        // wait is still pending. Without an explicit rejection here the
+        // caller would hang until an outer test timeout instead of seeing a
+        // bounded, labeled error.
+        close: () => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          reject(new Error("BiDi client closed while waiting for context"));
+        },
       };
       const timer = setTimeout(() => {
+        if (settled) return;
+        settled = true;
         cleanup();
         reject(
           new Error(`Firefox did not expose a BiDi context matching "${urlSubstr}"`, {

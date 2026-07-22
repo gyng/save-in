@@ -208,6 +208,33 @@ test("waits for Firefox to publish a newly created browsing context", async () =
   client.close();
 });
 
+test("rejects a pending context wait when the client closes", async () => {
+  const socket = new FakeSocket();
+  let treeReads = 0;
+  socket.send.mockImplementation((serialized) => {
+    const packet = JSON.parse(String(serialized)) as { id: number; method: string };
+    if (packet.method === "browsingContext.getTree") treeReads += 1;
+    const result = packet.method === "browsingContext.getTree" ? { contexts: [] } : {};
+    socket.dispatchEvent(
+      new MessageEvent("message", {
+        data: JSON.stringify({ id: packet.id, type: "success", result }),
+      }),
+    );
+  });
+  const client = new FirefoxBidi(socket as unknown as WebSocket);
+
+  const evaluated = client.evaluate("example.test/missing", "document.readyState", 5000);
+  await vi.waitFor(() => expect(treeReads).toBe(1));
+
+  // The client closes (e.g. the browser process exits) while the wait for a
+  // matching browsingContext.contextCreated event is still pending. Without
+  // an explicit rejection here this would hang until an outer test/harness
+  // timeout instead of failing with a bounded, labeled error.
+  client.close();
+
+  await expect(evaluated).rejects.toThrow("BiDi client closed while waiting for context");
+});
+
 test("times out waiting for a browsing context that never appears", async () => {
   vi.useFakeTimers();
   const socket = new FakeSocket();
