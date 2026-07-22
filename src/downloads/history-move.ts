@@ -27,6 +27,10 @@ export const registerPendingHistoryMove = (
 ): Promise<boolean> =>
   getDownload(downloadsState, extensionSessionStorage, replacementDownloadId).then(
     async (record) => {
+      // A private replacement without a History row is deliberately excluded
+      // from storage.session when private persistence is off. Do not promise a
+      // restart-safe destructive follow-up that the privacy boundary will drop.
+      if (record?.privateContext === true && !record.historyEntryId) return false;
       if (
         record?.historyEntryId &&
         (await downloadPorts.history.patchStrict(record.historyEntryId, {})) === false

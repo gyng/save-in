@@ -55,6 +55,14 @@ export type DownloadRecord = {
 type PersistedDownloadRecord = DownloadRecord;
 export type DownloadRecordUpdate = Partial<DownloadRecord>;
 
+// A pending History Move still owns a future destructive action even when its
+// replacement's terminal event already cleared adoption. Treat that intent as
+// active until completion or abandonment so neither cap can erase recovery.
+const requiresDownloadRecordRetention = (record: DownloadRecord): boolean =>
+  record.adopted === true ||
+  record.observedBrowserDownload === true ||
+  Boolean(record.pendingHistoryMove);
+
 export const isPrivateDownloadRecord = (record: Partial<DownloadRecord>): boolean =>
   record.privateContext === true;
 
@@ -179,10 +187,8 @@ const storedDownloadEntries = (value: unknown): Array<[number, PersistedDownload
       return record ? [[Number(id), record]] : [];
     },
   );
-  const active = entries.filter(([, record]) => record.adopted || record.observedBrowserDownload);
-  const inactive = entries.filter(
-    ([, record]) => !record.adopted && !record.observedBrowserDownload,
-  );
+  const active = entries.filter(([, record]) => requiresDownloadRecordRetention(record));
+  const inactive = entries.filter(([, record]) => !requiresDownloadRecordRetention(record));
   // Partitioning decides what survives, sorting decides what "oldest" means.
   // The memory cap reads Map insertion order and the stored cap reads object
   // keys, which the engine always gives back in numeric order for these ids —
@@ -205,7 +211,7 @@ export const hydrateDownloads = (state: DownloadsState, storage: StorageReader |
 
 const capDownloads = (records: Record<string, PersistedDownloadRecord>) => {
   const inactiveKeys = Object.keys(records).filter(
-    (key) => !records[key]?.adopted && !records[key]?.observedBrowserDownload,
+    (key) => !requiresDownloadRecordRetention(records[key] ?? {}),
   );
   inactiveKeys
     .slice(0, Math.max(0, inactiveKeys.length - MAX_INACTIVE_RECORDS))
@@ -243,7 +249,7 @@ const mergeDownloadUsing = (
     shouldPersistActivity(true) ||
     typeof merged.historyEntryId === "string";
   const inactiveIds = [...state.records]
-    .filter(([, record]) => !record.adopted && !record.observedBrowserDownload)
+    .filter(([, record]) => !requiresDownloadRecordRetention(record))
     .map(([id]) => id);
   inactiveIds
     .slice(0, Math.max(0, inactiveIds.length - MAX_INACTIVE_RECORDS))

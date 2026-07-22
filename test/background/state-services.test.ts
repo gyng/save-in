@@ -434,6 +434,35 @@ describe("state service instances", () => {
     expect(persisted[61]).toEqual({ adopted: true });
   });
 
+  test("pending History Move intent is never evicted as inactive state", async () => {
+    const pendingHistoryMove = { historyId: "old-history", downloadId: 900 };
+    const oversized: Record<string, any> = Object.fromEntries(
+      Array.from({ length: 60 }, (_, index) => [index + 1, { filename: `${index}.txt` }]),
+    );
+    oversized[1] = { pendingHistoryMove };
+    const state = { records: new Map<number, any>(), hydration: null };
+    const writes = { queues: new Map<string, Promise<unknown>>() };
+    let persisted = oversized;
+    const storage = {
+      get: vi.fn(() => Promise.resolve({ siDownloads: persisted })),
+      set: vi.fn((value: Record<string, any>) => {
+        persisted = value.siDownloads;
+        return Promise.resolve();
+      }),
+    };
+
+    await hydrateDownloads(state, storage);
+    expect(state.records.get(1)).toEqual({ pendingHistoryMove });
+    expect(state.records).toHaveLength(51);
+
+    await mergeDownload(state, writes, storage, 61, { filename: "new.txt" });
+
+    expect(state.records.get(1)).toEqual({ pendingHistoryMove });
+    expect(persisted[1]).toEqual({ pendingHistoryMove });
+    expect(state.records).toHaveLength(51);
+    expect(Object.keys(persisted)).toHaveLength(51);
+  });
+
   test("omits a data URL from both active memory and session storage", async () => {
     const state = { records: new Map(), hydration: null };
     const writes = { queues: new Map<string, Promise<unknown>>() };

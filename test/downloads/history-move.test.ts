@@ -117,6 +117,25 @@ test("refuses to register a move for an allocated but missing replacement row", 
   expect(global.browser.storage.session.set).toHaveBeenCalledTimes(1);
 });
 
+test("refuses private no-row intent that session privacy would not persist", async () => {
+  await mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, 28, {
+    adopted: true,
+    privateContext: true,
+  });
+  vi.mocked(global.browser.storage.session.set).mockClear();
+
+  await expect(
+    registerPendingHistoryMove(28, {
+      historyId: "old-private-history",
+      downloadId: 27,
+      filename: "old/private.png",
+    }),
+  ).resolves.toBe(false);
+
+  expect(downloadsState.records.get(28)?.pendingHistoryMove).toBeUndefined();
+  expect(global.browser.storage.session.set).not.toHaveBeenCalled();
+});
+
 test("keeps the original when its persisted identity no longer matches", async () => {
   await registerPendingHistoryMove(12, {
     historyId: "old-history",
