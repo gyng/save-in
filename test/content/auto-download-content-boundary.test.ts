@@ -162,6 +162,122 @@ into: automatic/
   history.replaceState({}, "", "/");
 });
 
+test("re-evaluates a CSS exclusion after its DOM evidence changes", async () => {
+  const image = document.createElement("img");
+  image.className = "tracker";
+  document.body.append(image);
+  fixture.candidates = [
+    {
+      url: "https://cdn.test/photo.jpg",
+      kind: "image",
+      previewable: true,
+      element: image,
+    },
+  ];
+  const send = vi.fn(async () => "started" as const);
+  const controller = setupAutoDownloadDiscovery({
+    rules: String.raw`
+context: ^auto$
+pageurl: ^http://localhost/
+css: img.tracker
+exclude: true
+
+context: ^auto$
+pageurl: ^http://localhost/
+sourceurl: photo\.jpg$
+into: automatic/
+`,
+    live: false,
+    maxPerPage: 10,
+    send,
+  });
+  await controller.idle();
+  expect(send).not.toHaveBeenCalled();
+
+  image.classList.remove("tracker");
+  controller.scan();
+  await controller.idle();
+
+  expect(send).toHaveBeenCalledOnce();
+  controller.stop();
+  image.remove();
+});
+
+test("does not let a stable exclusion hide an earlier mutable destination", async () => {
+  const image = document.createElement("img");
+  document.body.append(image);
+  fixture.candidates = [
+    {
+      url: "https://cdn.test/photo.jpg",
+      kind: "image",
+      previewable: true,
+      element: image,
+    },
+  ];
+  const send = vi.fn(async () => "started" as const);
+  const controller = setupAutoDownloadDiscovery({
+    rules: String.raw`
+context: ^auto$
+pageurl: ^http://localhost/
+css: img.ready
+into: automatic/
+
+context: ^auto$
+pageurl: ^http://localhost/
+sourceurl: photo\.jpg$
+exclude: true
+`,
+    live: false,
+    maxPerPage: 10,
+    send,
+  });
+  await controller.idle();
+  expect(send).not.toHaveBeenCalled();
+
+  image.classList.add("ready");
+  controller.scan();
+  await controller.idle();
+
+  expect(send).toHaveBeenCalledOnce();
+  controller.stop();
+  image.remove();
+});
+
+test("re-evaluates an exclusion when the same URL changes source kind", async () => {
+  const candidate = {
+    url: "https://cdn.test/media.bin",
+    kind: "image",
+    previewable: true,
+  };
+  fixture.candidates = [candidate];
+  const send = vi.fn(async () => "started" as const);
+  const controller = setupAutoDownloadDiscovery({
+    rules: String.raw`
+context: ^auto$
+pageurl: ^http://localhost/
+sourcekind: ^video$
+into: automatic/
+
+context: ^auto$
+pageurl: ^http://localhost/
+sourceurl: media\.bin$
+exclude: true
+`,
+    live: false,
+    maxPerPage: 10,
+    send,
+  });
+  await controller.idle();
+  expect(send).not.toHaveBeenCalled();
+
+  candidate.kind = "video";
+  controller.scan();
+  await controller.idle();
+
+  expect(send).toHaveBeenCalledOnce();
+  controller.stop();
+});
+
 test("bounds the page-local exclusion cache without churning stable entries", async () => {
   fixture.candidates = Array.from({ length: 1025 }, (_value, index) => ({
     url: `https://cdn.test/excluded-${index}.jpg`,
