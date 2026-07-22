@@ -2203,6 +2203,88 @@ describe("setupClickToSave", () => {
     remove();
   });
 
+  test("a per-site disable after a completed double still releases the click suppression", () => {
+    let disabled = false;
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Ctrl" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+      () => disabled,
+    );
+    const img = document.getElementById("i");
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(img, 1, 1);
+    mousedown(img, 1, 2);
+    expect(downloadsSent()).toHaveLength(1);
+
+    // The completed double's click/dblclick never arrive -- drag released
+    // off-window -- so the marker survives. An SPA navigation then disables
+    // the feature on this page without a remount. The next mousedown must
+    // still clear the marker despite the isDisabled() short-circuit, so its
+    // own click is not eaten by the stale completed-double suppression.
+    disabled = true;
+    mousedown(img, 1, 1);
+    const click = followUp("click", 0, img);
+    expect(click.preventDefault).not.toHaveBeenCalled();
+    remove();
+  });
+
+  test("page-synthesized clicks neither receive nor clear the completed-double suppression", () => {
+    const acceptMarked = (event: KeyboardEvent | MouseEvent) =>
+      (event as unknown as { realInput?: boolean }).realInput === true;
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptMarked,
+    );
+    const img = document.getElementById("i");
+    const press = (detail: number) => {
+      const e = new MouseEvent("mousedown", {
+        button: 0,
+        buttons: 1,
+        detail,
+        bubbles: true,
+        cancelable: true,
+      });
+      (e as unknown as { realInput?: boolean }).realInput = true;
+      img?.dispatchEvent(e);
+    };
+    press(1);
+    press(2);
+    expect(downloadsSent()).toHaveLength(1);
+
+    // A page-generated click must not be canceled, and a page-generated
+    // dblclick must not clear the marker before the browser's own trusted
+    // follow-ups for the completed double arrive.
+    const syntheticClick = followUp("click", 0, img);
+    expect(syntheticClick.preventDefault).not.toHaveBeenCalled();
+    const syntheticDouble = followUp("dblclick", 0, img);
+    expect(syntheticDouble.preventDefault).not.toHaveBeenCalled();
+
+    const trusted = (type: string) => {
+      const e = new MouseEvent(type, { button: 0, bubbles: true, cancelable: true });
+      (e as unknown as { realInput?: boolean }).realInput = true;
+      vi.spyOn(e, "preventDefault");
+      img?.dispatchEvent(e);
+      return e;
+    };
+    expect(trusted("click").preventDefault).toHaveBeenCalled();
+    expect(trusted("dblclick").preventDefault).toHaveBeenCalled();
+    remove();
+  });
+
   test("double-left does not combine presses from different sources", () => {
     const remove = ClickToSave.setupClickToSave(
       {

@@ -323,16 +323,16 @@ const setupClickToSave = (
     (e) => {
       if (!acceptInput(e)) return;
       // Every new press clears any follow-up suppression a previous matched
-      // gesture armed; only the arm below, on a fresh match, re-creates it.
-      // This must run before the isDisabled() check below: a matched press
-      // whose follow-up never arrives (drag released off-window) or an SPA
-      // navigation onto a per-site-disabled URL must not leave the
-      // suppressor armed to eat the next same-button click on this page.
+      // gesture armed and any completed-double click marker; only a fresh
+      // match below re-creates them. Both must run before the isDisabled()
+      // check: a matched press whose follow-ups never arrive (drag released
+      // off-window) followed by an SPA navigation onto a per-site-disabled
+      // URL must not leave stale state to eat later clicks on this page.
       followUps.disarm();
+      suppressDoubleClickOn = null;
       // Enforced at click time against the live URL so a single-page-app
       // navigation onto or off the disable list takes effect immediately.
       if (isDisabled()) return;
-      suppressDoubleClickOn = null;
       const binding = shortcutOptions.find(
         ({ keyCodes, gesture }) =>
           ClickToSave.isKeyboardComboActive(keyCodes, active) &&
@@ -418,7 +418,11 @@ const setupClickToSave = (
   window.addEventListener("click", suppressFollowUp, listenerOptions);
 
   const suppressCompletedDoubleClick = (e: MouseEvent) => {
+    // Same trust rule as suppressFollowUp: a page-synthesized click must
+    // neither be canceled nor clear the marker before the browser's own
+    // click/dblclick for the completed double arrive.
     if (
+      !acceptInput(e) ||
       !suppressDoubleClickOn ||
       e.button !== 0 ||
       !e.composedPath().includes(suppressDoubleClickOn)
