@@ -256,6 +256,22 @@ const rememberFilename = (downloadId: number, filename: string, privateContext: 
     privateContext,
   });
 
+const rememberFilenameSafely = (
+  downloadId: number,
+  filename: string,
+  privateContext: boolean,
+): void => {
+  const report = (error: unknown): unknown =>
+    privateContext
+      ? logPort.add("final filename record failed", String(error), { privateContext: true })
+      : logPort.add("final filename record failed", String(error));
+  try {
+    void rememberFilename(downloadId, filename, privateContext).catch(report);
+  } catch (error) {
+    report(error);
+  }
+};
+
 export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload): void => {
   webExtensionApi.downloads?.onChanged?.addListener((delta) => {
     if (delta.state?.current !== "complete" && !delta.error) return;
@@ -430,7 +446,11 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
     ): Promise<void> => {
       if (typeof downloadItem.id === "number") {
         Download.finalFilenamesByDownloadId.set(downloadItem.id, filename);
-        void rememberFilename(downloadItem.id, filename, state.info.currentTab?.incognito === true);
+        rememberFilenameSafely(
+          downloadItem.id,
+          filename,
+          state.info.currentTab?.incognito === true,
+        );
       }
       await patchResolvedHistory(state, filename);
     };
@@ -557,7 +577,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           // downloadItem.incognito is then the only evidence that a new record
           // is private, so it — not a public default — decides whether that
           // record is admitted to storage.session.
-          void rememberFilename(downloadItem.id, recovered, downloadItem.incognito === true);
+          rememberFilenameSafely(downloadItem.id, recovered, downloadItem.incognito === true);
         }
         await updateSession<FinalFilenameMap>(
           sessionWriteState,
@@ -642,7 +662,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
     const filename = Download.finalizeFullPath(pendingState);
     if (typeof downloadItem.id === "number") {
       Download.finalFilenamesByDownloadId.set(downloadItem.id, filename);
-      void rememberFilename(
+      rememberFilenameSafely(
         downloadItem.id,
         filename,
         pendingState.info.currentTab?.incognito === true,

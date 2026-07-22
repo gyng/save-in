@@ -209,6 +209,97 @@ describe("renameAndDownload: browserDownload", () => {
     expect([...Download.downloadRuntime.pendingStates.values()].flat()).not.toContain(state);
   });
 
+  test("does not replay an accepted download when History binding fails", async () => {
+    setCurrentBrowser("CHROME");
+    vi.mocked(SaveHistory.setHistoryDownloadId).mockRejectedValue(new Error("history unavailable"));
+    const state = makeState();
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({
+      status: "started",
+      downloadId: 101,
+    });
+
+    expect(global.browser.downloads.download).toHaveBeenCalledTimes(1);
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith("h-test", "DOWNLOAD_API_FAILED");
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "download history binding failed",
+      "Error: history unavailable",
+    );
+  });
+
+  test("contains an initial History patch failure without delaying the download", async () => {
+    setCurrentBrowser("CHROME");
+    vi.mocked(SaveHistory.patchHistoryEntry).mockImplementation((_id, fields) =>
+      Object.hasOwn(fields, "mechanism")
+        ? Promise.reject(new Error("history unavailable"))
+        : Promise.resolve(),
+    );
+    const state = makeState();
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({
+      status: "started",
+      downloadId: 101,
+    });
+
+    expect(global.browser.downloads.download).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "download mechanism history update failed",
+        "Error: history unavailable",
+      ),
+    );
+  });
+
+  test("does not replay an accepted download when its recovery record fails", async () => {
+    setCurrentBrowser("CHROME");
+    const update = vi.mocked(SessionState.updateSession);
+    const realUpdate = update.getMockImplementation()!;
+    update.mockImplementation((...args) =>
+      args[2] === "siDownloads"
+        ? Promise.reject(new Error("session record unavailable"))
+        : realUpdate(...args),
+    );
+    const state = makeState();
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({
+      status: "started",
+      downloadId: 101,
+    });
+
+    expect(global.browser.downloads.download).toHaveBeenCalledTimes(1);
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "download recovery record failed",
+      "Error: session record unavailable",
+    );
+  });
+
+  test("contains session cleanup failure after the browser accepts the download", async () => {
+    setCurrentBrowser("CHROME");
+    const update = vi.mocked(SessionState.updateSession);
+    const realUpdate = update.getMockImplementation()!;
+    let pendingWrites = 0;
+    update.mockImplementation((...args) => {
+      if (args[2] === "siPendingDownloads" && ++pendingWrites === 2) {
+        return Promise.reject(new Error("cleanup unavailable"));
+      }
+      return realUpdate(...args);
+    });
+    const state = makeState();
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({
+      status: "started",
+      downloadId: 101,
+    });
+
+    expect(global.browser.downloads.download).toHaveBeenCalledTimes(1);
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "download session cleanup failed",
+      "Error: cleanup unavailable",
+    );
+  });
+
   test("releases offscreen content after a terminal browser rejection", async () => {
     setCurrentBrowser("CHROME");
     options.fallbackFetch = false;
@@ -263,6 +354,25 @@ describe("renameAndDownload: browserDownload", () => {
 
     expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101);
     expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED", 101);
+  });
+
+  test("contains a History failure after canceling an accepted download", async () => {
+    setCurrentBrowser("CHROME");
+    vi.mocked(SaveHistory.setHistoryStatus).mockRejectedValue(new Error("history unavailable"));
+    vi.mocked(global.browser.downloads.download).mockImplementation(async () => {
+      expect(ActiveTransfers.cancelActiveTransfer("h-test")).toBe(true);
+      return 101;
+    });
+    const state = makeState();
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
+
+    expect(global.browser.downloads.download).toHaveBeenCalledTimes(1);
+    expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101);
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "download cancellation history failed",
+      "Error: history unavailable",
+    );
   });
 
   test("rejects before browser setup when acquisition is already aborted", async () => {
@@ -845,6 +955,56 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
     await vi.waitFor(() =>
       expect(downloadState.records.get(101)?.filename).toBe("downloads/pdf/server-name.pdf"),
+    );
+  });
+
+  test.each([
+    { name: "public", incognito: false },
+    { name: "private", incognito: true },
+  ])("contains a $name final-filename recovery-record failure", async ({ incognito }) => {
+    setCurrentBrowser("CHROME");
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRules).mockReturnValue("pdf/:filename:");
+    const state = makeState({
+      path: new Path.Path("downloads"),
+      info: {
+        currentTab: incognito ? { incognito: true } : null,
+        url: `https://example.com/${incognito ? "private" : "public"}`,
+      },
+    });
+    const { launch } = await startFilenameResolvedLaunch(state);
+    await vi.waitFor(() => expect(downloadState.records.get(101)?.adopted).toBe(true));
+    const update = vi.mocked(SessionState.updateSession);
+    const realUpdate = update.getMockImplementation()!;
+    update.mockImplementation((...args) => {
+      if (args[2] !== "siDownloads") return realUpdate(...args);
+      if (incognito) return Promise.reject(new Error("session record unavailable"));
+      throw new Error("session record unavailable");
+    });
+
+    const suggest = vi.fn();
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "server-name.pdf",
+      },
+      suggest,
+    );
+
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
+    await vi.waitFor(() =>
+      expect(suggest).toHaveBeenCalledWith(
+        expect.objectContaining({ filename: "downloads/pdf/server-name.pdf" }),
+      ),
+    );
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "final filename record failed",
+        "Error: session record unavailable",
+        ...(incognito ? [{ privateContext: true }] : []),
+      ),
     );
   });
 

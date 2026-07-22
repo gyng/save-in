@@ -279,9 +279,13 @@ export const executeBrowserDownload = async (
   const persistActivity =
     shouldPersistActivity(privateContext) || typeof historyEntryId === "string";
   const pendingSourceSidecar = !prompt && !privateContext ? state.scratch.sourceSidecar : undefined;
-  void historyPort.patch(historyEntryId, {
-    mechanism: acquired.source === "fetched" ? "fetch-downloads-api" : "downloads-api",
-  });
+  void historyPort
+    .patch(historyEntryId, {
+      mechanism: acquired.source === "fetched" ? "fetch-downloads-api" : "downloads-api",
+    })
+    .catch((error) =>
+      addDownloadLog(state, "download mechanism history update failed", String(error)),
+    );
   const filename = finalFullPath || "_";
   const headers =
     acquired.source === "direct" || acquired.source === "fetch-fallback-direct"
@@ -373,38 +377,53 @@ export const executeBrowserDownload = async (
     }
     const browserFilename = downloadRuntime.finalFilenamesByDownloadId.get(downloadId);
     downloadRuntime.finalFilenamesByDownloadId.delete(downloadId);
-    await rememberStartedDownload(downloadId, {
-      url: state.info.url,
-      pageUrl: state.info.pageUrl,
-      filename: browserFilename || filename,
-      conflictAction: options.conflictAction,
-      viaFetch: acquired.source === "fetched",
-      retried: false,
-      allowOriginalUrlFallback,
-      saveAsPrompted: prompt,
-      ...(acquired.offscreenRequestId ? { offscreenRequestId: acquired.offscreenRequestId } : {}),
-      ...(historyEntryId ? { historyEntryId } : {}),
-      ...(isSourceSidecar(state) ? { sourceSidecar: true } : {}),
-      ...(pendingSourceSidecar ? { pendingSourceSidecar } : {}),
-      // Answered here, where the tab and the save command are still in reach.
-      // The completion path has neither, and must not have to guess.
-      webhookEligible: state.info.webhookEligible === true && privateContext !== true,
-      privateContext,
-      adopted: true,
-    });
+    try {
+      await rememberStartedDownload(downloadId, {
+        url: state.info.url,
+        pageUrl: state.info.pageUrl,
+        filename: browserFilename || filename,
+        conflictAction: options.conflictAction,
+        viaFetch: acquired.source === "fetched",
+        retried: false,
+        allowOriginalUrlFallback,
+        saveAsPrompted: prompt,
+        ...(acquired.offscreenRequestId ? { offscreenRequestId: acquired.offscreenRequestId } : {}),
+        ...(historyEntryId ? { historyEntryId } : {}),
+        ...(isSourceSidecar(state) ? { sourceSidecar: true } : {}),
+        ...(pendingSourceSidecar ? { pendingSourceSidecar } : {}),
+        // Answered here, where the tab and the save command are still in reach.
+        // The completion path has neither, and must not have to guess.
+        webhookEligible: state.info.webhookEligible === true && privateContext !== true,
+        privateContext,
+        adopted: true,
+      });
+    } catch (error) {
+      // downloads.download already returned an id. Recovery persistence is
+      // best-effort from here: replaying this one-shot handoff could save the
+      // same item twice when storage is merely unavailable.
+      addDownloadLog(state, "download recovery record failed", String(error));
+    }
     if (historyEntryId) {
-      updateActiveTransfer(historyEntryId, { downloadId });
-      // This bind only publishes the bare id early so the options page can
-      // poll progress; onDownloadCreated supplies the item's startTime from
-      // the event payload, and a same-id bind without a time never clobbers
-      // one already captured. The event path can lose its race against
-      // cancelExpectedDownload, so the anchor is backfilled off the hot path.
-      await historyPort.setDownloadId(historyEntryId, downloadId);
+      try {
+        updateActiveTransfer(historyEntryId, { downloadId });
+        // This bind only publishes the bare id early so the options page can
+        // poll progress; onDownloadCreated supplies the item's startTime from
+        // the event payload, and a same-id bind without a time never clobbers
+        // one already captured. The event path can lose its race against
+        // cancelExpectedDownload, so the anchor is backfilled off the hot path.
+        await historyPort.setDownloadId(historyEntryId, downloadId);
+      } catch (error) {
+        addDownloadLog(state, "download history binding failed", String(error));
+      }
       backfillDownloadStartTime(historyEntryId, downloadId, historyPort.anchorStartTime);
     }
     if (signal?.aborted) {
       await webExtensionApi.downloads.cancel(downloadId).catch(() => {});
-      await historyPort.setStatus(historyEntryId, "USER_CANCELED", downloadId);
+      await historyPort
+        .setStatus(historyEntryId, "USER_CANCELED", downloadId)
+        .catch((error) =>
+          addDownloadLog(state, "download cancellation history failed", String(error)),
+        );
       return { status: "skipped" };
     }
     return { status: "started", downloadId };
@@ -437,7 +456,7 @@ export const executeBrowserDownload = async (
       return { status: "failed" };
     }
   } finally {
-    await Promise.all([
+    const cleanupResults = await Promise.allSettled([
       ...(persistActivity
         ? [
             updateSession<number>(
@@ -470,6 +489,13 @@ export const executeBrowserDownload = async (
         : []),
       ...(releasePrivateDownloadGuard ? [releasePrivateDownloadGuard()] : []),
     ]);
+    for (const result of cleanupResults) {
+      if (result.status === "rejected") {
+        // Cleanup state is bounded and repaired by startup recovery. Never let
+        // its failure replace an already authoritative browser result.
+        addDownloadLog(state, "download session cleanup failed", String(result.reason));
+      }
+    }
   }
 };
 
