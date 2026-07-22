@@ -500,7 +500,13 @@ export const renameAndDownload = async (
     }
   };
   state.info.onContentFetchStart = (requestId) => {
-    ensureHistoryEntry(state, state.info.filename as string);
+    // Pipeline preparation normally resolves a filename before fetching, but
+    // the history row must still get a usable name if it did not: degrade to
+    // the suggested name, then the URL, never undefined.
+    ensureHistoryEntry(
+      state,
+      state.info.filename ?? state.info.suggestedFilename ?? state.info.url ?? "",
+    );
     registerTransfer(requestId);
     // Make an open options page render the cancellable preparation row.
     // An isolated private save has no History row, so emitting its wire state

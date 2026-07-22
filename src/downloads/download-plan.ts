@@ -140,7 +140,10 @@ export const resolveDownloadPlan = async (
   resolveRefererState(state);
 
   await resolveDispositionFilename(state);
-  const resolvedFilename = state.info.filename as string;
+  // Disposition resolution can only replace the filename assigned above, but a
+  // missing value must degrade to the URL-derived name, not flow onward as
+  // undefined into pattern matching and the final path.
+  const resolvedFilename = state.info.filename ?? initialFilename;
   state.info.filename = resolvedFilename;
 
   const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
