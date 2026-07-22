@@ -1164,4 +1164,78 @@ describe("SaveHistory", () => {
 
     expect(global.browser.storage.local.remove).not.toHaveBeenCalled();
   });
+
+  test("prune surviving a crash between remove and set self-heals on a later pass", async () => {
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 4,
+      length: 3,
+      terminalCount: 1,
+    };
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`] = ["pending-first"];
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}2`] = ["terminal-middle"];
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}3`] = ["pending-last"];
+    store[`${HISTORY_ENTRY_STORAGE_PREFIX}pending-first`] = {
+      id: "pending-first",
+      status: "pending",
+    };
+    store[`${HISTORY_ENTRY_STORAGE_PREFIX}terminal-middle`] = {
+      id: "terminal-middle",
+      status: "complete",
+    };
+    store[`${HISTORY_ENTRY_STORAGE_PREFIX}pending-last`] = {
+      id: "pending-last",
+      status: "pending",
+    };
+    options.historyRetentionLimit = 0;
+    global.browser.storage.local.set = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("crash before index write"));
+
+    await expect(SaveHistory.enforceHistoryRetention()).rejects.toThrow("crash before index write");
+
+    // The reordered remove-then-set already ran remove(): the obsolete shard
+    // and chunk are gone, but the crash left the OLD index untouched, still
+    // claiming the removed shard.
+    expect(store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}2`]).toBeUndefined();
+    expect(store[`${HISTORY_ENTRY_STORAGE_PREFIX}terminal-middle`]).toBeUndefined();
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({
+      firstChunk: 0,
+      nextChunk: 4,
+      length: 3,
+    });
+
+    // The read path tolerates the stale index's now-missing shard body:
+    // it returns only the entries that actually survived.
+    await expect(storedHistory()).resolves.toEqual([
+      expect.objectContaining({ id: "pending-first" }),
+      expect.objectContaining({ id: "pending-last" }),
+    ]);
+
+    // A later completion lands in the gap the crash left behind...
+    global.browser.storage.local.set = vi.fn((obj: Record<string, unknown>) => {
+      Object.assign(store, obj);
+      return Promise.resolve();
+    });
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}1`] = ["terminal-extra"];
+    store[`${HISTORY_ENTRY_STORAGE_PREFIX}terminal-extra`] = {
+      id: "terminal-extra",
+      status: "complete",
+    };
+
+    // ...and the next retention pass reconciles the stale bookkeeping cleanly.
+    await SaveHistory.enforceHistoryRetention();
+
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({
+      firstChunk: 0,
+      nextChunk: 4,
+      length: 2,
+      terminalCount: 0,
+    });
+    await expect(storedHistory()).resolves.toEqual([
+      expect.objectContaining({ id: "pending-first" }),
+      expect.objectContaining({ id: "pending-last" }),
+    ]);
+  });
 });

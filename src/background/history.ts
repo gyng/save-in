@@ -168,6 +168,12 @@ const loadWritableIndex = async (
   if (Array.isArray(snapshot[HISTORY_STORAGE_KEY])) {
     return { index: await migrateLegacyHistory(snapshot[HISTORY_STORAGE_KEY]), snapshot: {} };
   }
+  // Neither a valid sharded index nor a legacy array survived: there is
+  // nothing left to recover locators from, so this deliberately resets to an
+  // empty index rather than guessing. Any entry/chunk shards a prior,
+  // unrecoverable index referenced become permanent orphans — nothing scans
+  // for stray shard keys short of clearHistory()'s full-prefix sweep, which
+  // is the only garbage collector for this degradation.
   return {
     index: {
       version: HISTORY_STORE_VERSION,
@@ -310,11 +316,21 @@ const pruneTerminalHistory = async (index: HistoryIndex): Promise<HistoryIndex> 
     terminalCount: terminalCount - removeIds.size,
   };
   writes[HISTORY_INDEX_STORAGE_KEY] = nextIndex;
-  await webExtensionApi.storage.local.set(writes);
+  // storage.local has no transactions, so order these for the failure mode
+  // that self-heals: remove the now-unreferenced shards/chunks BEFORE writing
+  // the updated index. A worker death between them leaves the OLD index
+  // referencing shard keys that no longer exist; readShardedHistory already
+  // tolerates a missing shard body (normalizeHistoryEntry(undefined) is
+  // null, skipped) and a later prune reconciles the drift once it next
+  // performs a real removal. The reverse order (set then remove, as this used
+  // to be) would instead make the NEW index authoritative first, leaving the
+  // stale shards permanently orphaned if the remove never ran — a silent
+  // leak nothing ever garbage-collects short of Clear history.
   await webExtensionApi.storage.local.remove([
     ...Array.from(removeIds, historyEntryStorageKey),
     ...obsoleteChunks,
   ]);
+  await webExtensionApi.storage.local.set(writes);
   return nextIndex;
 };
 
