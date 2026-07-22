@@ -224,9 +224,11 @@ describe("undo on the success notification", () => {
     expect(global.browser.downloads.erase).not.toHaveBeenCalled();
     expect(history.setHistoryStatus).not.toHaveBeenCalled();
     expect(global.browser.notifications.clear).not.toHaveBeenCalled();
-    expect(Log.addLogEntry).toHaveBeenCalledWith("undo refused: no identity evidence", {
-      downloadId: 7,
-    });
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "undo refused: no identity evidence",
+      { downloadId: 7 },
+      { privateContext: false },
+    );
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
       "save-in-not-download-failure",
       expect.objectContaining({ message: "Translated<historyUndoFailed>" }),
@@ -242,8 +244,34 @@ describe("undo on the success notification", () => {
 
     expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(7);
     expect(history.setHistoryStatus).not.toHaveBeenCalled();
-    expect(Log.addLogEntry).toHaveBeenCalledWith("undo could not mark history", { downloadId: 7 });
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "undo could not mark history",
+      { downloadId: 7 },
+      { privateContext: false },
+    );
     expect(global.browser.notifications.clear).toHaveBeenCalledWith("7");
+  });
+
+  test("a private record's undo refusal is not logged without the retention opt-in", async () => {
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "getHistoryEntries").mockResolvedValue([]);
+    // Undo diagnostics must honor the same private-debug-log gate every other
+    // log site does (#addDownloadLog above): route the mocked log spy back to
+    // the real, gated implementation for this one assertion.
+    vi.mocked(Log.addLogEntry).mockRestore();
+    sessionStore.siDownloads = { 7: { adopted: true, privateContext: true } };
+
+    await onButtonClicked("7", 0);
+
+    // options.persistPrivateActivity stays off by default: a private record's
+    // refusal diagnostic must produce no session log entry at all.
+    await expect(Log.getLogEntries()).resolves.toEqual([]);
+    // The on-screen refusal notice is not itself privacy-gated: the user still
+    // needs to know the undo did nothing.
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      "save-in-not-download-failure",
+      expect.objectContaining({ message: "Translated<historyUndoFailed>" }),
+    );
   });
 
   test("the fallback marks the newest completed entry sharing the download id", async () => {
@@ -334,7 +362,11 @@ describe("undo on the success notification", () => {
     expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(7);
     // Record-only evidence: the foreign entry is neither consulted nor marked.
     expect(history.setHistoryStatus).not.toHaveBeenCalled();
-    expect(Log.addLogEntry).toHaveBeenCalledWith("undo could not mark history", { downloadId: 7 });
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "undo could not mark history",
+      { downloadId: 7 },
+      { privateContext: false },
+    );
   });
 
   test("evidence prefers the filename the onChanged delta updated", async () => {
@@ -406,7 +438,11 @@ describe("undo on the success notification", () => {
     expect(history.setHistoryStatus).not.toHaveBeenCalled();
     expect(global.browser.notifications.clear).not.toHaveBeenCalled();
     // A refused undo is not a silent no-op: the user hears why nothing happened.
-    expect(Log.addLogEntry).toHaveBeenCalledWith("undo refused", { downloadId: 7 });
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "undo refused",
+      { downloadId: 7 },
+      { privateContext: false },
+    );
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
       "save-in-not-download-failure",
       expect.objectContaining({ message: "Translated<historyUndoFailed>" }),

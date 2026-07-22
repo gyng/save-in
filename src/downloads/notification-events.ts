@@ -328,10 +328,23 @@ const undoFromNotification = async (notId: string, downloadId: number) => {
       },
       options && options.notifyDuration,
     );
+  // These diagnostics describe a record this handler already looked up, so
+  // they must honor its private-debug-log gate the same way addDownloadLog
+  // does above — the record (or, once it exists, the history entry it
+  // fell back to) decides whether the message is eligible to log at all.
+  // DownloadRecord and HistoryEntry spell the flag differently, so both are
+  // checked explicitly rather than merged into one shape.
+  const undoPrivateContext = () => isPrivateDownloadRecord(record || {}) || entry?.private === true;
   if (!expected.startTime && !expected.url && !expected.filename) {
     // Firefox ids are session-scoped; with no record and no entry there is
     // nothing to verify the id against, so undo must refuse outright.
-    logPort.add("undo refused: no identity evidence", { downloadId });
+    logPort.add(
+      "undo refused: no identity evidence",
+      { downloadId },
+      {
+        privateContext: undoPrivateContext(),
+      },
+    );
     await reportUndoRefused();
     return;
   }
@@ -343,13 +356,19 @@ const undoFromNotification = async (notId: string, downloadId: number) => {
     }
     // A record without a history entry (never persisted): the undo itself is
     // identity-verified, only the History mark has nothing to attach to.
-    logPort.add("undo could not mark history", { downloadId });
+    logPort.add(
+      "undo could not mark history",
+      { downloadId },
+      {
+        privateContext: undoPrivateContext(),
+      },
+    );
   });
   if (result.undone) {
     await Promise.resolve(webExtensionApi.notifications.clear(notId)).catch(() => {});
     return;
   }
-  logPort.add("undo refused", { downloadId });
+  logPort.add("undo refused", { downloadId }, { privateContext: undoPrivateContext() });
   await reportUndoRefused();
 };
 
