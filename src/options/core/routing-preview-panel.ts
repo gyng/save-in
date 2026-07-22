@@ -371,90 +371,92 @@ export const createRoutingPreviewPanel = (manualEditorState: ManualEditorStateLi
       .catch(() => {}); // background not awake yet; the next edit retries
   };
 
-  const updateErrors = (): void => {
-    const lastDlMatch = document.querySelector("#last-dl-match");
-    const lastDlCapture = document.querySelector("#last-dl-capture");
+  const previewRequests = createLatestOnly(
+    () => sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.CHECK_ROUTES }),
+    (response) => {
+      if (!("routeInfo" in response.body)) {
+        throw new Error("Invalid routing preview response");
+      }
+      const lastDlMatch = document.querySelector("#last-dl-match");
+      const lastDlCapture = document.querySelector("#last-dl-capture");
+      const { body } = response;
+      // Last download
+      const lastDownloadUrl = body.lastDownload?.info.url;
+      const hasLastDownload = typeof lastDownloadUrl === "string" && lastDownloadUrl.length > 0;
+      const lastDlUrl = document.querySelector("#last-dl-url");
+      if (lastDlUrl) {
+        if (hasLastDownload) {
+          lastDlUrl.textContent = lastDownloadUrl;
+          lastDlUrl.classList.remove("is-empty");
+        } else {
+          lastDlUrl.textContent = getMessage("o_lRoutingLastDownloadEmpty") || "none yet";
+          lastDlUrl.classList.add("is-empty");
+        }
+      }
 
+      const rulesAppliedRow = document.querySelector<HTMLElement>("#rules-applied-row");
+      if (rulesAppliedRow) rulesAppliedRow.hidden = !hasLastDownload;
+
+      // Routing result
+      if (lastDlMatch) {
+        lastDlMatch.textContent =
+          body.routeInfo.outcome === "exclude"
+            ? getMessage("o_lRoutingExcluded") || "Excluded by routing rule"
+            : getMessage("o_lRoutingNoMatches") || "No matches";
+      }
+      if (lastDlMatch && body.routeInfo.path) {
+        lastDlMatch.textContent = body.routeInfo.path;
+      }
+
+      // Variables
+      const variablesTableRow = document.querySelector<HTMLElement>("#variables-table-row");
+      if (variablesTableRow) variablesTableRow.hidden = !hasLastDownload;
+      // The #see-variables-btn click handler is bound once via
+      // setupSeeVariablesButton; updateErrors only refreshes the data it
+      // reads. Binding here would leak a listener on every autosave and
+      // make the toggle unpredictable.
+      latestInterpolatedVariables = body.interpolatedVariables;
+
+      // Capture groups
+      const captures = body.routeInfo.captures;
+      const hasCaptureMatches = Array.isArray(captures);
+
+      const captureGroupRows = document.querySelector<HTMLElement>("#capture-group-rows");
+      if (captureGroupRows) captureGroupRows.hidden = !hasCaptureMatches;
+
+      if (hasCaptureMatches && lastDlCapture) {
+        lastDlCapture.textContent = "";
+
+        // Skip first match as it's just the entire input
+        captures
+          .slice(1)
+          .map((capture, i) => {
+            const div = document.createElement("div");
+            div.className = "match-row";
+
+            const code = document.createElement("code");
+            code.innerText = `:$${i + 1}:`;
+            code.classList.add("click-to-copy");
+            addClickToCopy(code);
+            div.appendChild(code);
+
+            const value = document.createElement("div");
+            value.className = "match-row-result";
+            value.textContent = capture ?? "";
+            div.appendChild(value);
+
+            return div;
+          })
+          .forEach((rowDiv: HTMLElement) => lastDlCapture.appendChild(rowDiv));
+      }
+    },
+  );
+
+  const updateErrors = (): void => {
     // Errors are validated live (VALIDATE); CHECK_ROUTES fills the routing /
     // last-download / variables panes below.
     renderValidationErrors();
-
-    sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.CHECK_ROUTES }).then(
-      (response) => {
-        if (!("routeInfo" in response.body)) {
-          throw new Error("Invalid routing preview response");
-        }
-        const { body } = response;
-        // Last download
-        const lastDownloadUrl = body.lastDownload?.info.url;
-        const hasLastDownload = typeof lastDownloadUrl === "string" && lastDownloadUrl.length > 0;
-        if (hasLastDownload) {
-          const lastDlUrl = document.querySelector("#last-dl-url");
-          if (lastDlUrl) {
-            lastDlUrl.textContent = lastDownloadUrl;
-            lastDlUrl.classList.remove("is-empty");
-          }
-        }
-
-        const rulesAppliedRow = document.querySelector<HTMLElement>("#rules-applied-row");
-        if (rulesAppliedRow) rulesAppliedRow.hidden = !hasLastDownload;
-
-        // Routing result
-        if (lastDlMatch) {
-          lastDlMatch.textContent =
-            body.routeInfo.outcome === "exclude"
-              ? getMessage("o_lRoutingExcluded") || "Excluded by routing rule"
-              : getMessage("o_lRoutingNoMatches") || "No matches";
-        }
-        if (lastDlMatch && body.routeInfo.path) {
-          lastDlMatch.textContent = body.routeInfo.path;
-        }
-
-        // Variables
-        if (hasLastDownload) {
-          const variablesTableRow = document.querySelector<HTMLElement>("#variables-table-row");
-          if (variablesTableRow) variablesTableRow.hidden = !hasLastDownload;
-        }
-        // The #see-variables-btn click handler is bound once via
-        // setupSeeVariablesButton; updateErrors only refreshes the data it
-        // reads. Binding here would leak a listener on every autosave and
-        // make the toggle unpredictable.
-        latestInterpolatedVariables = body.interpolatedVariables;
-
-        // Capture groups
-        const captures = body.routeInfo.captures;
-        const hasCaptureMatches = Array.isArray(captures);
-
-        const captureGroupRows = document.querySelector<HTMLElement>("#capture-group-rows");
-        if (captureGroupRows) captureGroupRows.hidden = !hasCaptureMatches;
-
-        if (hasCaptureMatches && lastDlCapture) {
-          lastDlCapture.textContent = "";
-
-          // Skip first match as it's just the entire input
-          captures
-            .slice(1)
-            .map((capture, i) => {
-              const div = document.createElement("div");
-              div.className = "match-row";
-
-              const code = document.createElement("code");
-              code.innerText = `:$${i + 1}:`;
-              code.classList.add("click-to-copy");
-              addClickToCopy(code);
-              div.appendChild(code);
-
-              const value = document.createElement("div");
-              value.className = "match-row-result";
-              value.textContent = capture ?? "";
-              div.appendChild(value);
-
-              return div;
-            })
-            .forEach((rowDiv: HTMLElement) => lastDlCapture.appendChild(rowDiv));
-        }
-      },
-    );
+    void previewRequests.run();
   };
 
   // The rules editor has no menu preview, but its error panel should still
