@@ -4,9 +4,11 @@ import {
   CLICK_GESTURES,
   contentClickComboToKeyCodes,
   gestureToClickType,
+  LEGACY_CLICK_TO_SAVE_DISABLED_COMBO,
   parseClickToSaveBindings,
   resolveClickToSaveBindings,
   serializeClickToSaveBindings,
+  trySerializeClickToSaveBindings,
 } from "../../src/shared/click-gesture.ts";
 
 describe("click-to-save gesture bindings", () => {
@@ -53,6 +55,28 @@ describe("click-to-save gesture bindings", () => {
     JSON.stringify({ version: 1, bindings: [{ gesture: "left-click", combo: "bad" }] }),
   ])("rejects malformed stored bindings: %s", (value) => {
     expect(parseClickToSaveBindings(value)).toBeNull();
+  });
+
+  test("reports invalid bindings as null through the non-throwing serializer", () => {
+    expect(
+      trySerializeClickToSaveBindings([
+        { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
+        { gesture: CLICK_GESTURES.LEFT, combo: "Ctrl" },
+      ]),
+    ).toBeNull();
+    expect(
+      trySerializeClickToSaveBindings([{ gesture: CLICK_GESTURES.MIDDLE, combo: "Alt" }]),
+    ).toBe(serializeClickToSaveBindings([{ gesture: CLICK_GESTURES.MIDDLE, combo: "Alt" }]));
+  });
+
+  test("the disabled legacy mirror is valid yet inert for legacy consumers", () => {
+    // Pre-4.1 content scripts resolve the mirrored pair directly. The disabled
+    // sentinel must survive their normalizers (no fallback to Alt/left-click)
+    // while resolving to a modifier key code no keyboard event can produce.
+    expect(
+      resolveClickToSaveBindings("", LEGACY_CLICK_TO_SAVE_DISABLED_COMBO, CLICK_TYPES.LEFT_CLICK),
+    ).toEqual([{ gesture: CLICK_GESTURES.LEFT, combo: LEGACY_CLICK_TO_SAVE_DISABLED_COMBO }]);
+    expect(contentClickComboToKeyCodes(LEGACY_CLICK_TO_SAVE_DISABLED_COMBO)).toEqual([999]);
   });
 
   test("falls back to the legacy pair without rewriting arbitrary key codes", () => {

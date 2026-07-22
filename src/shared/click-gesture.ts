@@ -155,19 +155,30 @@ export const parseClickToSaveBindings = (value: unknown): ClickToSaveBindings | 
 export const isStoredClickToSaveBindings = (value: unknown): value is string =>
   value === "" || parseClickToSaveBindings(value) !== null;
 
+export const trySerializeClickToSaveBindings = (bindings: ClickToSaveBinding[]): string | null =>
+  bindings.length === 0 ||
+  bindings.length > MAX_CLICK_TO_SAVE_BINDINGS ||
+  bindings.some(({ gesture, combo }) => !isClickGesture(gesture) || !isContentClickCombo(combo)) ||
+  hasBindingConflicts(bindings)
+    ? null
+    : JSON.stringify({ version: CLICK_TO_SAVE_BINDINGS_VERSION, bindings });
+
 export const serializeClickToSaveBindings = (bindings: ClickToSaveBinding[]): string => {
-  if (
-    bindings.length === 0 ||
-    bindings.length > MAX_CLICK_TO_SAVE_BINDINGS ||
-    bindings.some(
-      ({ gesture, combo }) => !isClickGesture(gesture) || !isContentClickCombo(combo),
-    ) ||
-    hasBindingConflicts(bindings)
-  ) {
+  const serialized = trySerializeClickToSaveBindings(bindings);
+  if (serialized === null) {
     throw new Error("Invalid click-to-save bindings");
   }
-  return JSON.stringify({ version: CLICK_TO_SAVE_BINDINGS_VERSION, bindings });
+  return serialized;
 };
+
+// Pre-4.1 content scripts read only the legacy combo/button pair and have no
+// per-pair off state: an empty combo means "no modifier required", and an
+// invalid combo or button normalizes back to Alt / LEFT_CLICK. The one shape
+// an old script treats as inert is a syntactically valid modifier key code
+// that no keyboard event produces, so the options page mirrors a
+// non-legacy-representable configuration (e.g. double-left only) as this
+// unpressable combo instead of leaving the previous gesture behind.
+export const LEGACY_CLICK_TO_SAVE_DISABLED_COMBO = "999";
 
 export const resolveClickToSaveBindings = (
   serialized: unknown,

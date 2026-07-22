@@ -228,6 +228,79 @@ describe("shortcut option controller", () => {
     ).toEqual([{ gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Alt" }]);
   });
 
+  test("writes the disabled legacy mirror when no binding is legacy-representable", () => {
+    vi.mocked(browser.i18n.getMessage).mockReturnValue("");
+    document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>
+      <input id="contentClickToSaveBindings" value="">
+      <input id="contentClickToSaveCombo" value="Alt">
+      <input id="contentClickToSaveButton" value="RIGHT_CLICK">
+      <select id="clickToSaveModifier"><option></option><option value="Alt">Alt</option></select>
+      <select id="clickToSaveModifier2"><option></option></select>
+      <select id="clickToSaveButton">
+        <option value="right-click">Right</option><option value="double-left-click">Double left</option>
+      </select>
+      <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>`;
+    setupShortcutOptions();
+
+    const primary = document.querySelector<HTMLSelectElement>("#clickToSaveButton")!;
+    primary.value = "double-left-click";
+    change(primary);
+    const combo = document.querySelector<HTMLInputElement>("#contentClickToSaveCombo")!;
+    const storedButton = document.querySelector<HTMLInputElement>("#contentClickToSaveButton")!;
+    const comboSaved = vi.fn();
+    const buttonSaved = vi.fn();
+    combo.addEventListener("change", comboSaved);
+    storedButton.addEventListener("change", buttonSaved);
+    document.querySelector<HTMLButtonElement>("#clickToSaveApply")!.click();
+
+    expect(
+      parseClickToSaveBindings(
+        document.querySelector<HTMLInputElement>("#contentClickToSaveBindings")!.value,
+      ),
+    ).toEqual([{ gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Alt" }]);
+    // A pre-update content script ignores the bindings field, so leaving the
+    // stale Alt/RIGHT_CLICK mirror would keep it saving on the old gesture.
+    expect(combo.value).toBe("999");
+    expect(storedButton.value).toBe("LEFT_CLICK");
+    expect(comboSaved).toHaveBeenCalledOnce();
+    expect(buttonSaved).toHaveBeenCalledOnce();
+  });
+
+  test("surfaces a conflicting selection instead of throwing from the change handler", () => {
+    vi.mocked(browser.i18n.getMessage).mockReturnValue("");
+    document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>
+      <input id="contentClickToSaveBindings" value="">
+      <input id="contentClickToSaveCombo" value="Alt">
+      <input id="contentClickToSaveButton" value="LEFT_CLICK">
+      <select id="clickToSaveModifier"><option></option><option value="Alt">Alt</option></select>
+      <select id="clickToSaveModifier2"><option></option></select>
+      <select id="clickToSaveButton">
+        <option value="left-click">Left</option><option value="middle-click">Middle</option>
+      </select>
+      <div id="clickToSaveAdditionalBindings"></div>
+      <button id="clickToSaveAdd"></button><button id="clickToSaveApply"></button>
+      <button id="clickToSaveReset"></button><span id="clickToSaveStatus"></span>`;
+    setupShortcutOptions();
+
+    document.querySelector<HTMLButtonElement>("#clickToSaveAdd")!.click();
+    const additionalGesture = document.querySelectorAll<HTMLSelectElement>(
+      ".click-to-save-binding select",
+    )[2]!;
+    // Conflicting options are disabled in the UI, but a select's value can
+    // still be forced (e.g. by future markup gaps); the handler must survive.
+    additionalGesture.value = "left-click";
+    expect(() => change(additionalGesture)).not.toThrow();
+
+    const apply = document.querySelector<HTMLButtonElement>("#clickToSaveApply")!;
+    expect(apply.disabled).toBe(true);
+    expect(document.querySelector("#clickToSaveStatus")!.textContent).toBe(
+      "Do not repeat keys or modifiers.",
+    );
+    const bindingsField = document.querySelector<HTMLInputElement>("#contentClickToSaveBindings")!;
+    expect(() => apply.click()).not.toThrow();
+    expect(bindingsField.value).toBe("");
+  });
+
   test("contains Add when every compatible gesture is already bound", () => {
     document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>
       <input id="contentClickToSaveBindings" value='${serializeClickToSaveBindings([

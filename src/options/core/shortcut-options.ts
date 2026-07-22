@@ -3,13 +3,16 @@ import { getMessage } from "../../platform/localization.ts";
 import { isClickType } from "../../config/content-options.ts";
 import {
   CLICK_GESTURES,
+  LEGACY_CLICK_TO_SAVE_DISABLED_COMBO,
   gestureToClickType,
   isClickGesture,
   resolveClickToSaveBindings,
   serializeClickToSaveBindings,
+  trySerializeClickToSaveBindings,
   type ClickGesture,
   type ClickToSaveBinding,
 } from "../../shared/click-gesture.ts";
+import { CLICK_TYPES } from "../../shared/constants.ts";
 
 const EFFECTIVE_ACCESS_KEY = /^[a-z0-9]$/i;
 const FORMAT_GUIDANCE = {
@@ -216,13 +219,21 @@ export const setupShortcutOptions = () => {
       current.gesture.disabled = !enabled;
       if (current.remove) current.remove.disabled = !enabled;
     });
-    const serialized = serializeClickToSaveBindings(bindings);
-    const changed = serialized !== baselineSerialized;
+    // A conflicting selection is normally unreachable (conflicting options are
+    // disabled above), but this handler must never die on one: surface the
+    // conflict and keep Apply disabled instead of throwing.
+    const serialized = trySerializeClickToSaveBindings(bindings);
+    const changed = serialized !== null && serialized !== baselineSerialized;
     if (apply) apply.disabled = !enabled || !changed;
     if (reset) reset.disabled = !enabled;
     if (add) add.disabled = !enabled || unusedGestures().length === 0;
     if (status)
-      status.textContent = changed ? getMessage("o_lShortcutReady") || "Ready to apply." : "";
+      status.textContent =
+        serialized === null
+          ? getMessage("o_lShortcutNoRepeats") || "Do not repeat keys or modifiers."
+          : changed
+            ? getMessage("o_lShortcutReady") || "Ready to apply."
+            : "";
     syncGestureWarning();
   };
   const option = (value: string, labelKey: string): HTMLOptionElement => {
@@ -304,18 +315,34 @@ export const setupShortcutOptions = () => {
   const applyGesture = () => {
     if (!bindingsField || !combo || !storedButton) return;
     const bindings = selectedBindings();
-    const serialized = serializeClickToSaveBindings(bindings);
+    const serialized = trySerializeClickToSaveBindings(bindings);
+    if (serialized === null) {
+      // Unreachable through the UI (conflicting options are disabled), but a
+      // conflict must render as state, not as an uncaught handler exception.
+      syncClickControls();
+      return;
+    }
     bindingsField.value = serialized;
     bindingsField.dispatchEvent(new Event("change", { bubbles: true }));
+    let mirrored = false;
     for (const binding of bindings) {
       const legacyButton = gestureToClickType(binding.gesture);
       if (legacyButton === null) continue;
       combo.value = String(binding.combo);
       storedButton.value = legacyButton;
-      combo.dispatchEvent(new Event("change", { bubbles: true }));
-      storedButton.dispatchEvent(new Event("change", { bubbles: true }));
+      mirrored = true;
       break;
     }
+    if (!mirrored) {
+      // No selected binding is legacy-representable (e.g. double-left only).
+      // Leaving the mirror untouched would keep a pre-update content script
+      // saving on the previous gesture, so write the pair to the state a
+      // legacy consumer treats as click-to-save off.
+      combo.value = LEGACY_CLICK_TO_SAVE_DISABLED_COMBO;
+      storedButton.value = CLICK_TYPES.LEFT_CLICK;
+    }
+    combo.dispatchEvent(new Event("change", { bubbles: true }));
+    storedButton.dispatchEvent(new Event("change", { bubbles: true }));
     baselineSerialized = serialized;
     syncClickControls();
     if (status) status.textContent = getMessage("o_lShortcutUpdated") || "Shortcut updated.";
