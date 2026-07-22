@@ -1,9 +1,37 @@
 # Coverage policy
 
 The unit and integration suite enforces 100% statements, branches, functions,
-and lines across the complete `src/` tree. `scripts/check-coverage-policy.js`
-also fixes the source coverage-ignore ceiling at zero, so an ignored body
-cannot make those percentages appear complete.
+and lines across `src/`, with a small, explicit exclusion set carved out for
+code whose real contract is a browser-owned effect rather than a return value.
+`scripts/check-coverage-policy.js` also fixes the source coverage-ignore
+ceiling at zero, so an ignored body cannot make those percentages appear
+complete.
+
+The authoritative exclusion list is the `coverage.exclude` array in
+`config/vitest/base.mjs`; each entry there carries a comment explaining why it
+is delegated to e2e instead of unit coverage. As of this writing it holds nine
+files, falling into four justified classes:
+
+- Vendored code (`src/vendor/**`): not ours to cover.
+- Rolldown bundle entries (`src/entries/**`) and the Chrome offscreen-document
+  bootstrap (`src/offscreen/offscreen.ts`): thin composition/listener wiring
+  exercised through the real extension lifecycle in the browser e2e suites.
+- The test-only e2e control surface (`src/background/e2e-command.ts`):
+  imported exclusively by the e2e background entry, not shipped production
+  behavior.
+- Five options composition roots (`src/options/core/options.ts`,
+  `routing-preview-panel.ts`, `menu-preview.ts`, `manual-editor-actions.ts`,
+  `browser-capability-ui.ts`) that compose live DOM from many
+  `document.querySelector` reads and a background message round trip;
+  re-driving that page shape and message contract through unit-level DOM
+  assertions would be brittle rather than exercising real behavior, so they
+  are covered end to end by the e2e suites instead. Deterministic pieces split
+  out alongside them (e.g. `option-field-sync.ts`, `download-refresh.ts`,
+  `ui/disclosure-help.ts`) stay in unit coverage.
+
+Adding an entry to that list is a policy decision, not a convenience: it needs
+the same class of justification as the existing entries, plus the comment that
+records it.
 
 Do not add `v8 ignore` markers to production source. Exercise real error and
 fallback behavior through the cheapest durable boundary. When a branch is
