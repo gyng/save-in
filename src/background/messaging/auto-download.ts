@@ -131,3 +131,23 @@ export const handleAutoDownloadSource = async (
     body: { status: result.status },
   });
 };
+
+// Diagnostic-only: content.ts's automatic discovery hit autoDownloadMaxPerPage
+// for the current page and has stopped offering new candidates. There is no
+// dedicated notification for this (see docs pointing users at the debug log
+// instead); record it there so the pause is not silent. Private gating
+// follows the same pattern as every other content-originated log entry:
+// the sending tab's incognito flag decides privateContext, and addLogEntry
+// itself withholds the write unless persistPrivateActivity is on.
+export const handleAutoDownloadLimitReached = (
+  request: MessageOf<typeof MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED>,
+  sender: MessageSender,
+  sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED>>,
+): void => {
+  void addLogEntry(
+    "automatic Page Sources: per-page limit reached",
+    { maxPerPage: request.body.maxPerPage },
+    { privateContext: sender.tab?.incognito === true },
+  );
+  sendResponse({ type: MESSAGE_TYPES.OK });
+};

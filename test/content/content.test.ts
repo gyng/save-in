@@ -590,6 +590,67 @@ describe("content.js initialisation", () => {
     vi.doUnmock("../../src/content/auto-download.ts");
   });
 
+  test("reports the per-page limit to the background debug log", async () => {
+    vi.resetModules();
+    let discoveryOptions: { onLimitReached?: () => void } | undefined;
+    vi.doMock("../../src/content/auto-download.ts", () => ({
+      createAutoDownloadDedup: () => ({ seen: new Set<string>(), limitNotified: false }),
+      setupAutoDownloadDiscovery: vi.fn((options) => {
+        discoveryOptions = options;
+        return { stop: vi.fn() };
+      }),
+    }));
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn();
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({
+        autoDownloadEnabled: true,
+        autoDownloadLive: false,
+        autoDownloadMaxPerPage: 3,
+        filenamePatterns: "context: ^auto$\npageurl: .\nsourceurl: .\ninto: automatic/",
+      }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+    await import("../../src/content/content.ts");
+
+    discoveryOptions?.onLimitReached?.();
+
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      { type: "AUTO_DOWNLOAD_LIMIT_REACHED", body: { maxPerPage: 3 } },
+      expect.any(Function),
+    );
+    vi.doUnmock("../../src/content/auto-download.ts");
+  });
+
+  test("tolerates a dead extension context when reporting the limit", async () => {
+    vi.resetModules();
+    let discoveryOptions: { onLimitReached?: () => void } | undefined;
+    vi.doMock("../../src/content/auto-download.ts", () => ({
+      createAutoDownloadDedup: () => ({ seen: new Set<string>(), limitNotified: false }),
+      setupAutoDownloadDiscovery: vi.fn((options) => {
+        discoveryOptions = options;
+        return { stop: vi.fn() };
+      }),
+    }));
+    global.chrome.runtime.sendMessage = vi.fn(() => {
+      throw new Error("Extension context invalidated");
+    }) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn();
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({
+        autoDownloadEnabled: true,
+        autoDownloadLive: false,
+        autoDownloadMaxPerPage: 3,
+        filenamePatterns: "context: ^auto$\npageurl: .\nsourceurl: .\ninto: automatic/",
+      }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+    await import("../../src/content/content.ts");
+
+    expect(() => discoveryOptions?.onLimitReached?.()).not.toThrow();
+    vi.doUnmock("../../src/content/auto-download.ts");
+  });
+
   test("does not scan page sources when automatic saving is disabled", async () => {
     document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';
     await importContentWithOptions({

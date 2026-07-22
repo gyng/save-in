@@ -67,7 +67,7 @@ import {
   handleValidate,
   sourcePanelCopies,
 } from "./handlers.ts";
-import { handleAutoDownloadSource } from "./auto-download.ts";
+import { handleAutoDownloadLimitReached, handleAutoDownloadSource } from "./auto-download.ts";
 
 type Handler<M extends InternalMessage> = (
   request: M,
@@ -85,6 +85,7 @@ const internalHandlers = {
     sendResponse({ type: MESSAGE_TYPES.OK });
   },
   [MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE]: handleAutoDownloadSource,
+  [MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED]: handleAutoDownloadLimitReached,
   [MESSAGE_TYPES.SOURCE_PANEL_READY]: async (_request, sender, sendResponse) => {
     if (sender.tab?.id != null) await syncSourcePanelToTab(sender.tab.id);
     sendResponse({ type: MESSAGE_TYPES.OK });

@@ -474,6 +474,24 @@ const setupAutoDownload = (options: ResolvedAutoDownloadOptions, dedup: AutoDown
       }
     });
 
+  // The per-page limit is a silent stop otherwise: nothing tells the user
+  // automatic adoption paused because it hit autoDownloadMaxPerPage. Report it
+  // to the background debug log — the diagnostic surface the routing docs
+  // already point users at — instead of adding new notification UI copy.
+  const reportLimitReached = () => {
+    try {
+      chrome.runtime.sendMessage(
+        {
+          type: "AUTO_DOWNLOAD_LIMIT_REACHED",
+          body: { maxPerPage: options.autoDownloadMaxPerPage },
+        },
+        () => chrome.runtime.lastError,
+      );
+    } catch {
+      // Extension context invalidated while the page remained alive.
+    }
+  };
+
   const discovery = setupAutoDownloadDiscovery({
     rules: options.filenamePatterns,
     live: options.autoDownloadLive,
@@ -485,6 +503,7 @@ const setupAutoDownload = (options: ResolvedAutoDownloadOptions, dedup: AutoDown
     includeDataUrls: options.autoDownloadDataUrls,
     isPageDisabled: isCurrentPageDisabled,
     send,
+    onLimitReached: reportLimitReached,
     dedup,
   });
   return () => {

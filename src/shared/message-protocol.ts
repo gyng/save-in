@@ -176,6 +176,7 @@ type AutoDownloadSourceResponse = Response<
 export type InternalResponseMap = {
   [MESSAGE_TYPES.WAKE_WARM]: OkResponse;
   [MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE]: AutoDownloadSourceResponse;
+  [MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED]: OkResponse;
   [MESSAGE_TYPES.SOURCE_PANEL_READY]: OkResponse;
   [MESSAGE_TYPES.SOURCE_PANEL_STATE]: OkResponse;
   [MESSAGE_TYPES.SOURCE_PANEL_COPY]: Response<
@@ -324,6 +325,15 @@ export type AutoDownloadSourceRequestBody = {
   matchedCssSelectorsByOrigin?: CssSelectorAttestation | undefined;
 };
 
+// Diagnostic only: reports that automatic Page Sources adoption stopped
+// offering new candidates for this page because autoDownloadMaxPerPage was
+// reached. maxPerPage is what the sending content script currently has
+// resolved, so the log entry can name the limit that fired without the
+// background needing to trust anything beyond a bounded positive integer.
+export type AutoDownloadLimitReachedRequestBody = {
+  maxPerPage: number;
+};
+
 export type CreateSourceRuleRequestBody = {
   sourceUrl: string;
   sourceKind: PageSourceKind;
@@ -332,6 +342,10 @@ export type CreateSourceRuleRequestBody = {
 export type InternalMessage =
   | Message<typeof MESSAGE_TYPES.WAKE_WARM>
   | RequiredBodyMessage<typeof MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE, AutoDownloadSourceRequestBody>
+  | RequiredBodyMessage<
+      typeof MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED,
+      AutoDownloadLimitReachedRequestBody
+    >
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_READY>
   | OptionalBodyMessage<typeof MESSAGE_TYPES.SOURCE_PANEL_STATE, { open: boolean }>
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_COPY>
@@ -406,6 +420,7 @@ export type SuccessfulApplyConfigResponse = Extract<
 const INTERNAL_MESSAGE_TYPE_MAP = {
   [MESSAGE_TYPES.WAKE_WARM]: true,
   [MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE]: true,
+  [MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED]: true,
   [MESSAGE_TYPES.SOURCE_PANEL_READY]: true,
   [MESSAGE_TYPES.SOURCE_PANEL_STATE]: true,
   [MESSAGE_TYPES.SOURCE_PANEL_COPY]: true,
@@ -566,6 +581,19 @@ export const isWireDownloadState = (value: unknown): value is WireDownloadState 
 const isApiVersion = (value: unknown): value is number =>
   typeof value === "number" && Number.isSafeInteger(value) && value > 0;
 
+// Bounded the same way isAutoDownloadLimit (config/content-options.ts) bounds
+// the stored option: shared/ cannot import config/ (see AGENTS.md's directory
+// contract), so the range is restated here rather than shared, and content.ts
+// only ever sends its own already-normalized autoDownloadMaxPerPage.
+const isAutoDownloadLimitReachedBody = (
+  value: unknown,
+): value is AutoDownloadLimitReachedRequestBody =>
+  isStringKeyedRecord(value) &&
+  typeof value.maxPerPage === "number" &&
+  Number.isInteger(value.maxPerPage) &&
+  value.maxPerPage >= 1 &&
+  value.maxPerPage <= 500;
+
 const isDownloadBody = (value: unknown): value is DownloadRequestBody => {
   if (!isStringKeyedRecord(value)) {
     return false;
@@ -597,6 +625,8 @@ const isMessageBodyValid = (message: Record<string, unknown> & { type: string })
         (typeof message.body.matchedCssSelectorsByOrigin === "undefined" ||
           isCssSelectorAttestation(message.body.matchedCssSelectorsByOrigin))
       );
+    case MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED:
+      return isAutoDownloadLimitReachedBody(message.body);
     case MESSAGE_TYPES.CREATE_SOURCE_RULE:
       return (
         isStringKeyedRecord(message.body) &&

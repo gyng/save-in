@@ -41,6 +41,47 @@ describe("onMessage", () => {
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
   });
 
+  test("AUTO_DOWNLOAD_LIMIT_REACHED records a debug log entry naming the limit", () => {
+    const sendResponse = vi.fn();
+    const senderTab = { id: 3, url: "https://example.test/gallery/", incognito: false };
+    onMessage(
+      { type: MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED, body: { maxPerPage: 20 } },
+      { tab: senderTab },
+      sendResponse,
+    );
+    expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "automatic Page Sources: per-page limit reached",
+      { maxPerPage: 20 },
+      { privateContext: false },
+    );
+  });
+
+  test("AUTO_DOWNLOAD_LIMIT_REACHED marks a private sender's entry private", () => {
+    const sendResponse = vi.fn();
+    onMessage(
+      { type: MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED, body: { maxPerPage: 5 } },
+      { tab: { id: 4, incognito: true } },
+      sendResponse,
+    );
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "automatic Page Sources: per-page limit reached",
+      { maxPerPage: 5 },
+      { privateContext: true },
+    );
+  });
+
+  test("AUTO_DOWNLOAD_LIMIT_REACHED rejects a malformed payload before it reaches the handler", () => {
+    const sendResponse = vi.fn();
+    onMessage(
+      { type: MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED, body: { maxPerPage: "20" } },
+      {},
+      sendResponse,
+    );
+    expect(sendResponse).not.toHaveBeenCalled();
+    expect(Log.addLogEntry).not.toHaveBeenCalled();
+  });
+
   test.each([
     ["saved", "saved"],
     [42, 42],

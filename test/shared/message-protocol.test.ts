@@ -69,6 +69,19 @@ describe("message protocol runtime validation", () => {
         },
       }),
     ).toBe(true);
+    // Bounds match isAutoDownloadLimit (config/content-options.ts): 1..500.
+    expect(
+      isInternalMessage({
+        type: MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED,
+        body: { maxPerPage: 1 },
+      }),
+    ).toBe(true);
+    expect(
+      isInternalMessage({
+        type: MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED,
+        body: { maxPerPage: 500 },
+      }),
+    ).toBe(true);
     expect(
       isExternalMessage({
         type: MESSAGE_TYPES.VALIDATE,
@@ -235,6 +248,14 @@ describe("message protocol runtime validation", () => {
         matchedCssSelectorsByOrigin: "img",
       },
     },
+    { type: MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED, body: "not an object" },
+    { type: MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED, body: {} },
+    { type: MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED, body: { maxPerPage: "20" } },
+    { type: MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED, body: { maxPerPage: 1.5 } },
+    { type: MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED, body: { maxPerPage: 0 } },
+    { type: MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED, body: { maxPerPage: -1 } },
+    { type: MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED, body: { maxPerPage: 501 } },
+    { type: MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED, body: undefined },
   ])("rejects malformed internal message %#", (message) => {
     expect(isInternalMessage(message)).toBe(false);
   });
