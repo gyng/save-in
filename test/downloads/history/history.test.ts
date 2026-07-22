@@ -800,6 +800,28 @@ describe("SaveHistory", () => {
     ]);
   });
 
+  test("steps across a malformed pruning hole while appending at the cap", async () => {
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 3,
+      length: HISTORY_LIMIT,
+    };
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`] = [];
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}1`] = "not-an-array";
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}2`] = [];
+
+    SaveHistory.addHistoryEntry({ url: "https://a/new" });
+    await expect(flushWrites()).resolves.toBeUndefined();
+
+    expect(store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`]).toBeUndefined();
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({
+      firstChunk: 2,
+      nextChunk: 3,
+      length: HISTORY_LIMIT,
+    });
+  });
+
   test("contains a capped append when the first chunk is malformed", async () => {
     store[HISTORY_INDEX_STORAGE_KEY] = {
       version: 1,

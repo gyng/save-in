@@ -268,8 +268,7 @@ const handleContextMenuClickInternal = async (
   // click state (post-toggle) is authoritative. Await initialization first:
   // a concurrent load must not overwrite the newly persisted in-memory value.
   if (info.menuItemId === MENU_IDS.QUICK_SAVE_TO_DIRECTORY) {
-    await setQuickSaveUseDirectory(Reflect.get(info, "checked") === true);
-    return;
+    return setQuickSaveUseDirectory(Reflect.get(info, "checked") === true);
   }
 
   // Prefer the tab the click happened in: the tracked global can lag
