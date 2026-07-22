@@ -1334,7 +1334,7 @@ describe("Page Sources panel interactions", () => {
     expect(sendDownload.mock.calls[1]?.[0]?.url).toBe("http://localhost/shared.jpg");
   });
 
-  test("re-scores relevance after a visibility change while backgrounds are off", async () => {
+  test("re-scores relevance after an aria-hidden change while backgrounds are off", async () => {
     vi.useFakeTimers();
     document.body.innerHTML = `<main id="feature"><img src="feature.jpg"></main><img src="plain.jpg">`;
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
@@ -1348,6 +1348,46 @@ describe("Page Sources panel interactions", () => {
     vi.advanceTimersByTime(200);
 
     expect(urls()).toEqual(["http://localhost/plain.jpg", "http://localhost/feature.jpg"]);
+  });
+
+  // The narrow attributeFilter used while backgrounds are off must watch
+  // hidden and role too, not just aria-hidden above: each one alone feeds
+  // the relevance scorer's closest() checks, and dropping any single
+  // attribute from the filter would silently stop that attribute's changes
+  // from triggering reconciliation.
+  test("re-scores relevance after a hidden change while backgrounds are off", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<main id="feature"><img src="feature.jpg"></main><img src="plain.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const urls = () =>
+      [...shadow.querySelectorAll<HTMLAnchorElement>(".source-link")].map(({ href }) => href);
+    expect(urls()).toEqual(["http://localhost/feature.jpg", "http://localhost/plain.jpg"]);
+
+    document.querySelector("#feature")!.setAttribute("hidden", "");
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    expect(urls()).toEqual(["http://localhost/plain.jpg", "http://localhost/feature.jpg"]);
+  });
+
+  test("re-scores relevance after a role change while backgrounds are off", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<span id="feature"><img src="feature.jpg"></span><img src="plain.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const urls = () =>
+      [...shadow.querySelectorAll<HTMLAnchorElement>(".source-link")].map(({ href }) => href);
+    const before = urls();
+
+    document.querySelector("#feature")!.setAttribute("role", "main");
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    // Gaining a role="main" ancestor is worth the same relevance bonus as an
+    // actual <main>, moving feature.jpg ahead of plain.jpg.
+    expect(urls()).toEqual(["http://localhost/feature.jpg", "http://localhost/plain.jpg"]);
+    expect(urls()).not.toEqual(before);
   });
 
   test("coalesces nested, disconnected, and text-only live mutations", async () => {
