@@ -2047,7 +2047,7 @@ describe("setupClickToSave", () => {
 
   test("page-synthesized follow-ups neither consume nor receive the suppression", () => {
     const acceptMarked = (event: KeyboardEvent | MouseEvent) =>
-      (event as unknown as { __real?: boolean }).__real === true;
+      (event as unknown as { realInput?: boolean }).realInput === true;
     const remove = ClickToSave.setupClickToSave(
       {
         contentClickToSaveBindings: serializeClickToSaveBindings([
@@ -2067,7 +2067,7 @@ describe("setupClickToSave", () => {
       bubbles: true,
       cancelable: true,
     });
-    (press as unknown as { __real?: boolean }).__real = true;
+    (press as unknown as { realInput?: boolean }).realInput = true;
     img?.dispatchEvent(press);
     expect(downloadsSent()).toHaveLength(1);
 
@@ -2077,7 +2077,7 @@ describe("setupClickToSave", () => {
     expect(synthetic.preventDefault).not.toHaveBeenCalled();
 
     const trusted = new MouseEvent("auxclick", { button: 1, bubbles: true, cancelable: true });
-    (trusted as unknown as { __real?: boolean }).__real = true;
+    (trusted as unknown as { realInput?: boolean }).realInput = true;
     vi.spyOn(trusted, "preventDefault");
     img?.dispatchEvent(trusted);
     expect(trusted.preventDefault).toHaveBeenCalled();
