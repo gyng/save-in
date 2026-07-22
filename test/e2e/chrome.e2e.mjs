@@ -2059,6 +2059,11 @@ test("click-to-save rejects synthetic input and handles trusted single, double, 
 
     await cdp.dispatchInput(PORT, targetUrl, [longMouseEvent("mousePressed")]);
     const longClickDownloads = await waitForDownloads("long-click");
+    const remountedLongClick = await control.runtime.send({
+      type: "APPLY_CONFIG",
+      body: { config: { contentClickToSaveLongPressMs: 550 } },
+    });
+    expect(remountedLongClick.body.applied).toMatchObject({ contentClickToSaveLongPressMs: 550 });
     await cdp.dispatchInput(PORT, targetUrl, [longMouseEvent("mouseReleased")]);
     expect(longClickDownloads).toHaveLength(1);
     expect(longClickDownloads[0]?.state).toBe("complete");

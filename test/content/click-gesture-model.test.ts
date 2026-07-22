@@ -3,6 +3,7 @@ import { CLICK_GESTURES } from "../../src/shared/click-gesture.ts";
 import {
   createDoubleClickTracker,
   createFollowUpSuppressor,
+  createLongClickReleaseSuppressor,
   createLongPressTracker,
   isSingleGestureButton,
 } from "../../src/content/click-gesture-model.ts";
@@ -145,6 +146,68 @@ describe("click gesture model", () => {
     expect(tracker.isPending()).toBe(false);
   });
 
+  test("long-click release suppression ignores keyboard clicks and expires after release", () => {
+    const scheduled = new Map<number, () => void>();
+    let nextTimer = 0;
+    const suppressor = createLongClickReleaseSuppressor(5000, {
+      set: (callback, delay) => {
+        expect(delay).toBe(5000);
+        nextTimer += 1;
+        scheduled.set(nextTimer, callback);
+        return nextTimer;
+      },
+      clear: (timer) => scheduled.delete(timer),
+    });
+
+    suppressor.arm();
+    expect(suppressor.consume(0)).toBe(false);
+    suppressor.release();
+    expect(suppressor.consume(1)).toBe(true);
+    expect(scheduled.size).toBe(0);
+
+    suppressor.arm();
+    suppressor.release();
+    scheduled.get(2)?.();
+    expect(suppressor.consume(1)).toBe(false);
+  });
+
+  test("a stale release-expiry callback cannot clear a newer hold", () => {
+    const scheduled: Array<() => void> = [];
+    const suppressor = createLongClickReleaseSuppressor(5000, {
+      set: (callback) => {
+        scheduled.push(callback);
+        return scheduled.length;
+      },
+      // Model a callback that was already queued when cancellation raced it.
+      clear: vi.fn(),
+    });
+
+    suppressor.arm();
+    suppressor.release();
+    suppressor.arm();
+    scheduled[0]?.();
+
+    expect(suppressor.consume(1)).toBe(true);
+  });
+
+  test("a repeated release restarts the suppression grace period", () => {
+    const clear = vi.fn();
+    let nextTimer = 0;
+    const suppressor = createLongClickReleaseSuppressor(5000, {
+      set: () => {
+        nextTimer += 1;
+        return nextTimer;
+      },
+      clear,
+    });
+
+    suppressor.arm();
+    suppressor.release();
+    suppressor.release();
+
+    expect(clear).toHaveBeenCalledWith(1);
+  });
+
   test("ignores a stale scheduled callback after cancellation", () => {
     let scheduled: (() => void) | undefined;
     const complete = vi.fn();
@@ -168,6 +231,31 @@ describe("click gesture model", () => {
     scheduled?.();
 
     expect(complete).not.toHaveBeenCalled();
+  });
+
+  test("a stale replaced-press callback cannot complete the newer candidate", () => {
+    const scheduled: Array<() => void> = [];
+    const complete = vi.fn();
+    const tracker = createLongPressTracker(
+      500,
+      {
+        set: (callback) => {
+          scheduled.push(callback);
+          return scheduled.length;
+        },
+        clear: vi.fn(),
+      },
+      complete,
+    );
+
+    tracker.press("first", 0, 0);
+    tracker.press("second", 0, 0);
+    scheduled[0]?.();
+    expect(complete).not.toHaveBeenCalled();
+    expect(tracker.isPending()).toBe(true);
+
+    scheduled[1]?.();
+    expect(complete).toHaveBeenCalledWith("second");
   });
 
   test("disarm clears a pending suppression", () => {

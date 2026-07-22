@@ -79,17 +79,62 @@ export const createDoubleClickTracker = <Candidate>(
 
 const LONG_PRESS_MOVEMENT_SLOP_PX = 8;
 
-type LongPressScheduler = {
+type GestureScheduler = {
   set: (callback: () => void, delayMs: number) => number;
   clear: (timer: number) => void;
 };
 
+export const createLongClickReleaseSuppressor = (
+  releaseGraceMs: number,
+  scheduler: GestureScheduler,
+) => {
+  let armed = false;
+  let expiry: number | null = null;
+  let generation = 0;
+  const clear = (): void => {
+    generation += 1;
+    armed = false;
+    if (expiry !== null) scheduler.clear(expiry);
+    expiry = null;
+  };
+  return {
+    arm(): void {
+      clear();
+      armed = true;
+    },
+    release(): void {
+      if (!armed) return;
+      if (expiry !== null) scheduler.clear(expiry);
+      generation += 1;
+      const scheduledGeneration = generation;
+      expiry = scheduler.set(() => {
+        if (generation !== scheduledGeneration) return;
+        armed = false;
+        expiry = null;
+      }, releaseGraceMs);
+    },
+    consume(mouseClickDetail: number): boolean {
+      if (!armed || mouseClickDetail <= 0) return false;
+      clear();
+      return true;
+    },
+    clear,
+  };
+};
+
 export const createLongPressTracker = <Candidate>(
   delayMs: number,
-  scheduler: LongPressScheduler,
+  scheduler: GestureScheduler,
   complete: (candidate: Candidate) => void,
 ) => {
-  let pending: { candidate: Candidate; x: number; y: number; timer: number } | null = null;
+  let nextPressToken = 0;
+  let pending: {
+    candidate: Candidate;
+    x: number;
+    y: number;
+    timer: number;
+    token: number;
+  } | null = null;
 
   const cancel = (): void => {
     if (!pending) return;
@@ -100,12 +145,15 @@ export const createLongPressTracker = <Candidate>(
   return {
     press(candidate: Candidate, x: number, y: number): void {
       cancel();
+      nextPressToken += 1;
+      const token = nextPressToken;
       const timer = scheduler.set(() => {
         const current = pending;
+        if (!current || current.token !== token) return;
         pending = null;
-        if (current) complete(current.candidate);
+        complete(current.candidate);
       }, delayMs);
-      pending = { candidate, x, y, timer };
+      pending = { candidate, x, y, timer, token };
     },
     move(x: number, y: number): void {
       if (!pending) return;

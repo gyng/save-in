@@ -42,6 +42,7 @@ import {
 import {
   createDoubleClickTracker,
   createFollowUpSuppressor,
+  createLongClickReleaseSuppressor,
   createLongPressTracker,
   isSingleGestureButton,
 } from "./click-gesture-model.ts";
@@ -241,12 +242,15 @@ type ResolvedAutoDownloadOptions = Pick<
   | "autoDownloadMaxPerPage"
 > & { filenamePatterns: string };
 type ResolvedContentScriptOptions = ResolvedContentOptions & ResolvedAutoDownloadOptions;
+// Chrome can enqueue click after mouseup in a later task under load. Keep a
+// bounded grace period if release produces no click (for example after detach).
 const LONG_CLICK_SUPPRESSION_TTL_MS = 5000;
 
 const setupClickToSave = (
   options: ResolvedClickToSaveOptions,
   acceptInput: (event: KeyboardEvent | MouseEvent) => boolean = (event) => event.isTrusted,
   isDisabled: () => boolean = () => false,
+  sharedLongReleaseSuppression?: ReturnType<typeof createLongClickReleaseSuppressor>,
 ) => {
   const routingRules = parseRulesCollecting(options.filenamePatterns ?? "").rules;
   const cssSelectors = cssSelectorsForRules(routingRules);
@@ -274,21 +278,13 @@ const setupClickToSave = (
       first.element === second.element && first.url === second.url && first.kind === second.kind,
   );
   let suppressDoubleClickOn: Element | null = null;
-  let suppressLongClickOn: Element | null = null;
-  let longSuppressionExpiry: number | null = null;
-  const clearLongSuppression = (): void => {
-    suppressLongClickOn = null;
-    if (longSuppressionExpiry !== null) window.clearTimeout(longSuppressionExpiry);
-    longSuppressionExpiry = null;
-  };
-  const expireLongSuppressionAfterRelease = (): void => {
-    if (!suppressLongClickOn) return;
-    if (longSuppressionExpiry !== null) window.clearTimeout(longSuppressionExpiry);
-    // Chrome can enqueue click after mouseup in a later task under load. Keep a
-    // bounded grace window for that release click, then drop the DOM reference
-    // if no click follows (for example, because the element was detached).
-    longSuppressionExpiry = window.setTimeout(clearLongSuppression, LONG_CLICK_SUPPRESSION_TTL_MS);
-  };
+  const longReleaseSuppression =
+    sharedLongReleaseSuppression ??
+    createLongClickReleaseSuppressor(LONG_CLICK_SUPPRESSION_TTL_MS, {
+      set: (callback, delayMs) => window.setTimeout(callback, delayMs),
+      clear: (timer) => window.clearTimeout(timer),
+    });
+  const ownsLongReleaseSuppression = sharedLongReleaseSuppression === undefined;
   const followUps = createFollowUpSuppressor();
   type ShortcutBinding = (typeof shortcutOptions)[number];
   type LongPressCandidate = {
@@ -327,6 +323,12 @@ const setupClickToSave = (
     );
   };
 
+  let longPressInputController: AbortController | null = null;
+  const stopLongPressInputTracking = (): void => {
+    longPressInputController?.abort();
+    longPressInputController = null;
+  };
+  let startLongPressInputTracking = stopLongPressInputTracking;
   let longPressKeyCodes: readonly number[] = [];
   const longPress = shortcutOptions.some(({ gesture }) => gesture === CLICK_GESTURES.LONG_LEFT)
     ? createLongPressTracker<LongPressCandidate>(
@@ -337,11 +339,16 @@ const setupClickToSave = (
         },
         ({ binding, source, linkMetadata }) => {
           longPressKeyCodes = [];
+          // Once the hold threshold wins, this physical sequence can no longer
+          // become a later double-click, even if the live policy rejects save.
+          doubleClick.reset();
           // The URL can change while the button is held on an SPA. Apply the live
           // page policy at the privileged action boundary, not only at mousedown.
-          if (isDisabled() || !ClickToSave.isKeyboardComboActive(binding.keyCodes, active)) return;
-          clearLongSuppression();
-          suppressLongClickOn = source.element;
+          if (isDisabled() || !ClickToSave.isKeyboardComboActive(binding.keyCodes, active)) {
+            stopLongPressInputTracking();
+            return;
+          }
+          longReleaseSuppression.arm();
           sendClickDownload(binding, source, linkMetadata);
         },
       )
@@ -349,6 +356,7 @@ const setupClickToSave = (
   const cancelLongPress = (): void => {
     longPress?.cancel();
     longPressKeyCodes = [];
+    stopLongPressInputTracking();
   };
 
   const eventKeyCode = (e: KeyboardEvent) => {
@@ -417,11 +425,14 @@ const setupClickToSave = (
       // URL must not leave stale state to eat later clicks on this page.
       followUps.disarm();
       suppressDoubleClickOn = null;
-      if (e.button === 0) clearLongSuppression();
+      if (e.button === 0) longReleaseSuppression.clear();
       cancelLongPress();
       // Enforced at click time against the live URL so a single-page-app
       // navigation onto or off the disable list takes effect immediately.
-      if (isDisabled()) return;
+      if (isDisabled()) {
+        doubleClick.reset();
+        return;
+      }
       const bindings = shortcutOptions.filter(
         ({ keyCodes, gesture }) =>
           ClickToSave.isKeyboardComboActive(keyCodes, active) &&
@@ -460,6 +471,7 @@ const setupClickToSave = (
         // page click and movement can still become selection or dragging.
         warmBackground();
         longPressKeyCodes = longBinding.keyCodes;
+        startLongPressInputTracking();
         longPress?.press(
           {
             binding: longBinding,
@@ -489,18 +501,31 @@ const setupClickToSave = (
   if (longPress) {
     const updateLongPress = (e: MouseEvent): void => {
       if (!acceptInput(e)) return;
-      if (e.type === "mousemove") longPress.move(e.clientX, e.clientY);
-      else if (e.type === "mouseup" && e.button === 0) {
+      if (e.type === "mousemove") {
+        if ((e.buttons & 1) === 0) {
+          cancelLongPress();
+          return;
+        }
+        const wasPending = longPress.isPending();
+        longPress.move(e.clientX, e.clientY);
+        if (wasPending && !longPress.isPending()) cancelLongPress();
+      } else if (e.type === "mouseup" && e.button === 0) {
         cancelLongPress();
-        expireLongSuppressionAfterRelease();
+        if (ownsLongReleaseSuppression) longReleaseSuppression.release();
       } else if (e.type === "dragstart" || (e.type === "mouseout" && e.relatedTarget === null)) {
         cancelLongPress();
       }
     };
-    window.addEventListener("mousemove", updateLongPress, listenerOptions);
-    window.addEventListener("mouseup", updateLongPress, listenerOptions);
-    window.addEventListener("dragstart", updateLongPress, listenerOptions);
-    window.addEventListener("mouseout", updateLongPress, listenerOptions);
+    startLongPressInputTracking = () => {
+      stopLongPressInputTracking();
+      const inputController = new AbortController();
+      longPressInputController = inputController;
+      const inputListenerOptions = { capture: true, signal: inputController.signal };
+      window.addEventListener("mousemove", updateLongPress, inputListenerOptions);
+      window.addEventListener("mouseup", updateLongPress, inputListenerOptions);
+      window.addEventListener("dragstart", updateLongPress, inputListenerOptions);
+      window.addEventListener("mouseout", updateLongPress, inputListenerOptions);
+    };
   }
 
   // Follow-up suppression for a matched middle/right gesture. Only real input
@@ -551,23 +576,18 @@ const setupClickToSave = (
     // The initial mousedown remains page-owned. Only the trusted click that a
     // successful hold produces is canceled, which stops link navigation while
     // leaving short clicks, drags, and page-synthesized events untouched.
-    if (
-      !acceptInput(e) ||
-      !suppressLongClickOn ||
-      e.button !== 0 ||
-      !e.composedPath().includes(suppressLongClickOn)
-    )
-      return;
-    clearLongSuppression();
+    if (!acceptInput(e) || e.button !== 0 || !longReleaseSuppression.consume(e.detail)) return;
     e.preventDefault();
     e.stopImmediatePropagation();
   };
-  window.addEventListener("click", suppressCompletedLongClick, listenerOptions);
+  if (ownsLongReleaseSuppression) {
+    window.addEventListener("click", suppressCompletedLongClick, listenerOptions);
+  }
 
   return () => {
     controller.abort();
     cancelLongPress();
-    clearLongSuppression();
+    if (ownsLongReleaseSuppression) longReleaseSuppression.clear();
     retryTimers.forEach((timer) => window.clearTimeout(timer));
     retryTimers.clear();
   };
@@ -658,6 +678,48 @@ const setupAutoDownload = (options: ResolvedAutoDownloadOptions, dedup: AutoDown
 let currentOptions: ResolvedContentScriptOptions = {
   ...CONTENT_OPTION_DEFAULTS,
   filenamePatterns: "",
+};
+// A completed hold can overlap a live options update that replaces the
+// click-to-save mount. Keep only its one-bit release marker at page lifetime;
+// no source element or other page-owned object is retained across remounts.
+const pageLongReleaseSuppression = createLongClickReleaseSuppressor(LONG_CLICK_SUPPRESSION_TTL_MS, {
+  set: (callback, delayMs) => window.setTimeout(callback, delayMs),
+  clear: (timer) => window.clearTimeout(timer),
+});
+let pageLongReleaseListenersInstalled = false;
+const ensurePageLongReleaseListeners = (): void => {
+  if (pageLongReleaseListenersInstalled) return;
+  pageLongReleaseListenersInstalled = true;
+  // These low-frequency listeners own release suppression across click-to-save
+  // remounts. High-frequency movement tracking remains transient per hold.
+  window.addEventListener(
+    "mousedown",
+    (event) => {
+      if (event.isTrusted && event.button === 0) pageLongReleaseSuppression.clear();
+    },
+    { capture: true },
+  );
+  window.addEventListener(
+    "mouseup",
+    (event) => {
+      if (event.isTrusted && event.button === 0) pageLongReleaseSuppression.release();
+    },
+    { capture: true },
+  );
+  window.addEventListener(
+    "click",
+    (event) => {
+      if (
+        !event.isTrusted ||
+        event.button !== 0 ||
+        !pageLongReleaseSuppression.consume(event.detail)
+      )
+        return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    },
+    { capture: true },
+  );
 };
 let removeClickToSave: (() => void) | null = null;
 let removeAutoDownload: (() => void) | null = null;
@@ -777,9 +839,21 @@ const applyOptions = (next: ContentOptions) => {
   }
   if (clickOptionsChanged) {
     removeClickToSave?.();
-    removeClickToSave = currentOptions.contentClickToSave
-      ? setupClickToSave(currentOptions, undefined, isCurrentPageDisabled)
-      : null;
+    removeClickToSave = null;
+    if (currentOptions.contentClickToSave) {
+      const hasLongPress = resolveClickToSaveBindings(
+        currentOptions.contentClickToSaveBindings,
+        currentOptions.contentClickToSaveCombo,
+        currentOptions.contentClickToSaveButton,
+      ).some(({ gesture }) => gesture === CLICK_GESTURES.LONG_LEFT);
+      if (hasLongPress) ensurePageLongReleaseListeners();
+      removeClickToSave = setupClickToSave(
+        currentOptions,
+        undefined,
+        isCurrentPageDisabled,
+        pageLongReleaseSuppression,
+      );
+    }
   }
   announceSourcePanelReady();
 };
