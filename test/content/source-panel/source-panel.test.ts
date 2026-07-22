@@ -18,6 +18,17 @@ import { SOURCE_PANEL_RESOURCE_TIMING_LIMIT } from "../../../src/content/source-
 import { createSourcePanelCopy } from "../../../src/shared/source-panel-copy.ts";
 import { SOURCE_PANEL_LAYOUT_STORAGE_KEY } from "../../../src/shared/storage-keys.ts";
 
+const appendResourceLinks = (count: number): void => {
+  const fragment = document.createDocumentFragment();
+  for (let index = 0; index < count; index += 1) {
+    const link = document.createElement("a");
+    link.href = `https://cdn.test/resource-${index}.jpg`;
+    link.textContent = String(index);
+    fragment.append(link);
+  }
+  document.body.append(fragment);
+};
+
 describe("page source localization", () => {
   afterEach(() => document.getElementById("save-in-source-panel")?.remove());
 
@@ -909,13 +920,7 @@ describe("Page Sources panel interactions", () => {
 
   test("renders large result sets in bounded chunks as the list is scrolled", () => {
     const sourceCount = 250;
-    const fragment = document.createDocumentFragment();
-    for (let index = 0; index < sourceCount; index += 1) {
-      const link = document.createElement("a");
-      link.href = `https://cdn.test/resource-${index}.jpg`;
-      fragment.append(link);
-    }
-    document.body.append(fragment);
+    appendResourceLinks(sourceCount);
 
     toggleSourcePanel(vi.fn(), {
       includeBackgrounds: false,
@@ -953,10 +958,7 @@ describe("Page Sources panel interactions", () => {
   test("evicts detached rows after filtering a deeply-scrolled result set", () => {
     vi.useFakeTimers();
     const sourceCount = 201;
-    document.body.innerHTML = Array.from(
-      { length: sourceCount },
-      (_, index) => `<a href="https://cdn.test/resource-${index}.jpg">${index}</a>`,
-    ).join("");
+    appendResourceLinks(sourceCount);
     toggleSourcePanel(vi.fn(), {
       includeBackgrounds: false,
       live: false,
@@ -987,10 +989,7 @@ describe("Page Sources panel interactions", () => {
   });
 
   test("bounds connected rows while traversing a large result set in both directions", () => {
-    document.body.innerHTML = Array.from(
-      { length: 250 },
-      (_, index) => `<a href="https://cdn.test/resource-${index}.jpg">${index}</a>`,
-    ).join("");
+    appendResourceLinks(250);
     toggleSourcePanel(vi.fn(), {
       includeBackgrounds: false,
       live: false,

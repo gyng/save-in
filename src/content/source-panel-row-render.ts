@@ -779,11 +779,13 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
 
     // Rows are moved into place rather than re-appended, so a row that did not
     // change keeps its DOM identity (and its focus, and its playing preview).
-    let rowIndex = 0;
+    let insertionPoint = list.firstElementChild as HTMLElement | null;
     const placeRow = (row: HTMLElement) => {
-      const current = list.children[rowIndex] || null;
-      if (current !== row) list.insertBefore(row, current);
-      rowIndex += 1;
+      if (insertionPoint === row) {
+        insertionPoint = insertionPoint.nextElementSibling as HTMLElement | null;
+        return;
+      }
+      list.insertBefore(row, insertionPoint);
     };
 
     renderedSources.forEach((source, sourceIndex) => {
@@ -800,7 +802,12 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
         placeRow(cached.row);
         return;
       }
-      if (cached) deactivateAndRemove(cached);
+      if (cached) {
+        if (insertionPoint === cached.row) {
+          insertionPoint = cached.row.nextElementSibling as HTMLElement | null;
+        }
+        deactivateAndRemove(cached);
+      }
       const cachedRow = buildRow(source);
       cachedRow.row.setAttribute("aria-posinset", String(resultIndex + 1));
       cachedRow.row.setAttribute("aria-setsize", String(sources.length));
@@ -809,11 +816,12 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
       placeRow(cachedRow.row);
     });
 
-    while (list.children.length > rowIndex) {
-      const last = list.lastElementChild as HTMLElement;
-      const cached = cachedRows.get(last);
+    while (insertionPoint) {
+      const stale = insertionPoint;
+      insertionPoint = stale.nextElementSibling as HTMLElement | null;
+      const cached = cachedRows.get(stale);
       if (cached) deactivateAndRemove(cached);
-      else last.remove();
+      else stale.remove();
     }
     evictDetachedRows();
   };
