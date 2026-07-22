@@ -195,7 +195,13 @@ test("preserves backward-compatible option defaults", () => {
   expect(longPress?.value).toBe("500");
   expect(longPress?.min).toBe("250");
   expect(longPress?.max).toBe("2000");
-  expect(longPress?.step).toBe("50");
+  expect(longPress?.step).toBe("1");
+  if (longPress) {
+    longPress.value = "501";
+    expect(longPress.checkValidity()).toBe(true);
+    longPress.value = "500.5";
+    expect(longPress.validity.stepMismatch).toBe(true);
+  }
   expect(document.querySelector<HTMLInputElement>("#notifyDuration")?.type).toBe("hidden");
   expect(document.querySelector<HTMLInputElement>("#notifyDurationSeconds")?.value).toBe("");
   expect(

@@ -61,14 +61,14 @@ export const isContentLongPressDuration = (value: unknown): value is string | nu
   }
   const milliseconds = Number(value);
   return (
-    Number.isFinite(milliseconds) &&
+    Number.isSafeInteger(milliseconds) &&
     milliseconds >= CONTENT_LONG_PRESS_MIN_MS &&
     milliseconds <= CONTENT_LONG_PRESS_MAX_MS
   );
 };
 
 export const normalizeContentLongPressDuration = (value: string | number): number =>
-  isContentLongPressDuration(value) ? Math.round(Number(value)) : CONTENT_LONG_PRESS_DEFAULT_MS;
+  isContentLongPressDuration(value) ? Number(value) : CONTENT_LONG_PRESS_DEFAULT_MS;
 
 // These defaults are the single source of truth for both the background schema
 // and the lightweight direct-storage content path.

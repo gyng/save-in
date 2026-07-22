@@ -190,9 +190,10 @@ test("accepts valid gesture bindings and rejects malformed or ambiguous lists", 
 
 test("normalizes the configurable long-press duration at both boundaries", () => {
   expect(normalizeContentLongPressDuration(250)).toBe(250);
-  expect(normalizeContentLongPressDuration("500.4")).toBe(500);
+  expect(normalizeContentLongPressDuration("500")).toBe(500);
+  expect(normalizeContentLongPressDuration(501)).toBe(501);
   expect(normalizeContentLongPressDuration(2000)).toBe(2000);
-  for (const value of [249, 2001, "", "slow", Number.POSITIVE_INFINITY]) {
+  for (const value of [249, 500.4, "749.6", 2001, "", "slow", Number.POSITIVE_INFINITY]) {
     expect(
       resolveContentOptions({ contentClickToSaveLongPressMs: value }).contentClickToSaveLongPressMs,
     ).toBe(CONTENT_LONG_PRESS_DEFAULT_MS);
@@ -204,9 +205,10 @@ test("normalizes the configurable long-press duration at both boundaries", () =>
     (typeof CONTENT_FEATURE_OPTION_DEFINITIONS)[number],
     { name: "contentClickToSaveLongPressMs" }
   >;
-  expect("onLoad" in definition && definition.onLoad("749.6")).toBe(750);
+  expect("onLoad" in definition && definition.onLoad("750")).toBe(750);
   expect("onSave" in definition && definition.onSave(500)).toBe(500);
   expect("validate" in definition && definition.validate(249)).toBe(false);
+  expect("validate" in definition && definition.validate(500.4)).toBe(false);
   expect("validate" in definition && definition.validate(2000)).toBe(true);
 });
 
