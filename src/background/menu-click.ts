@@ -33,6 +33,7 @@ import { options } from "../config/options-data.ts";
 import { currentTab } from "../platform/current-tab.ts";
 import type { CurrentTab } from "../platform/current-tab.ts";
 import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-types.ts";
+import { isRoutingAccepted } from "../downloads/download-pipeline-state.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { addLogEntry } from "./log.ts";
 import { runBackgroundTask } from "./background-event-task.ts";
@@ -473,7 +474,8 @@ const handleContextMenuClickInternal = async (
     // reports a terminal failure to the user
     const result = await launchDownload(state);
 
-    if (result.status === "started" && selectedLocation) {
+    const routingAccepted = isRoutingAccepted(state);
+    if (result.status === "started" && routingAccepted && selectedLocation) {
       if (!isolatedPrivateContext) {
         await setLastUsed(selectedLocation.path, selectedLocation.meta);
         const recentDestinationsChanged = await recordRecentDestination(
@@ -502,7 +504,7 @@ const handleContextMenuClickInternal = async (
       (options.closeTabOnSave && downloadType === DOWNLOAD_TYPES.PAGE ? "close" : undefined);
     const routingTabAction = menuInfo?.tabAction == null && state.scratch.routeTabAction != null;
     if (
-      state.scratch.routeOutcome !== "exclude" &&
+      routingAccepted &&
       tabAction &&
       result.status === "started" &&
       clickTab &&

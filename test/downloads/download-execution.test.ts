@@ -24,6 +24,13 @@ import {
   setCurrentBrowser,
   Variable,
 } from "./download-flow.fixture.ts";
+import { discardRoutingResolution } from "../../src/downloads/routing-resolution.ts";
+
+const startFilenameResolvedLaunch = async (state: ReturnType<typeof makeState>) => {
+  const launch = Download.renameAndDownload(state);
+  await vi.waitFor(() => expect(global.browser.downloads.download).toHaveBeenCalled());
+  return { launch };
+};
 
 describe("renameAndDownload: terminal exclusion", () => {
   test("skips normally and reports the configured rule outcome", async () => {
@@ -847,10 +854,7 @@ describe("onDeterminingFilename listener: sync path", () => {
       info: { url: "https://example.com/download" },
     });
 
-    await expect(Download.renameAndDownload(state)).resolves.toEqual({
-      status: "started",
-      downloadId: 101,
-    });
+    const { launch } = await startFilenameResolvedLaunch(state);
     expect(state.scratch.deferredRouteRequirement).toBe(true);
 
     const suggest = vi.fn();
@@ -870,6 +874,7 @@ describe("onDeterminingFilename listener: sync path", () => {
         expect.objectContaining({ filename: "downloads/pdf/server-name.pdf" }),
       ),
     );
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
   });
 
   test("defers finalfilename and matches Chrome's browser-resolved name", async () => {
@@ -887,10 +892,7 @@ describe("onDeterminingFilename listener: sync path", () => {
       },
     });
 
-    await expect(Download.renameAndDownload(state)).resolves.toEqual({
-      status: "started",
-      downloadId: 101,
-    });
+    const { launch } = await startFilenameResolvedLaunch(state);
     expect(state.scratch.deferredRouteRequirement).toBe(true);
 
     const suggest = vi.fn();
@@ -917,6 +919,61 @@ describe("onDeterminingFilename listener: sync path", () => {
         expect.objectContaining({ filename: "downloads/pdf/server-name.pdf" }),
       ),
     );
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
+  });
+
+  test("does not report a started save before its final-filename tab action resolves", async () => {
+    setCurrentBrowser("CHROME");
+    const [rule] = router.parseRules(
+      "finalfilename: ^server-name\\.pdf$\nafter: close-tab\ninto: pdf/:filename:",
+    );
+    if (!rule) throw new Error("Expected a parsed final-filename action rule");
+    options.filenamePatterns = [rule];
+    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "server-name.pdf"
+        ? {
+            outcome: "route",
+            rule,
+            destination: "pdf/:filename:",
+            fetch: null,
+            rename: null,
+            tabAction: "close",
+          }
+        : null,
+    );
+    let resolveDownload: ((id: number) => void) | undefined;
+    vi.mocked(hostBrowser.downloads.download).mockImplementationOnce(
+      () =>
+        new Promise<number>((resolve) => {
+          resolveDownload = resolve;
+        }),
+    );
+    const state = makeState({ path: new Path.Path("downloads") });
+    let settled = false;
+    const launch = Download.renameAndDownload(state).finally(() => {
+      settled = true;
+    });
+    await vi.waitFor(() => expect(resolveDownload).toBeTypeOf("function"));
+    resolveDownload?.(101);
+    await vi.waitFor(() =>
+      expect(SaveHistory.setHistoryDownloadId).toHaveBeenCalledWith("h-test", 101),
+    );
+    await Promise.resolve();
+
+    expect(settled).toBe(false);
+
+    const suggest = vi.fn();
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "server-name.pdf",
+      },
+      suggest,
+    );
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
+    expect(state.scratch.routeTabAction).toBe("close");
   });
 
   test("rechecks finalfilename even when Chrome keeps the pre-final name", async () => {
@@ -930,7 +987,7 @@ describe("onDeterminingFilename listener: sync path", () => {
       info: { url: "https://example.com/server-name.pdf" },
     });
 
-    await Download.renameAndDownload(state);
+    const { launch } = await startFilenameResolvedLaunch(state);
     expect(state.info.filename).toBe("server-name.pdf");
 
     const suggest = vi.fn();
@@ -950,6 +1007,7 @@ describe("onDeterminingFilename listener: sync path", () => {
         expect.objectContaining({ filename: "downloads/resolved/server-name.pdf" }),
       ),
     );
+    await launch;
   });
 
   test("cancels and records an exclusion that matches Chrome's final filename", async () => {
@@ -982,10 +1040,8 @@ describe("onDeterminingFilename listener: sync path", () => {
       info: { url: "https://example.com/download" },
     });
 
-    await expect(Download.renameAndDownload(state)).resolves.toEqual({
-      status: "started",
-      downloadId: 101,
-    });
+    const { launch } = await startFilenameResolvedLaunch(state);
+    await vi.waitFor(() => expect(downloadState.records.has(101)).toBe(true));
     Object.assign(downloadState.records.get(101)!, {
       offscreenRequestId: "late-exclusion-offscreen",
       pendingHistoryMove: {
@@ -1013,6 +1069,7 @@ describe("onDeterminingFilename listener: sync path", () => {
     await vi.waitFor(() =>
       expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101),
     );
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
     await terminalEvent;
     expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith("h-test", "USER_CANCELED", 101);
     expect(suggest).toHaveBeenCalledWith();
@@ -1066,7 +1123,7 @@ describe("onDeterminingFilename listener: sync path", () => {
       },
     });
 
-    await Download.renameAndDownload(state);
+    const { launch } = await startFilenameResolvedLaunch(state);
     capturedListener(
       {
         id: 101,
@@ -1078,6 +1135,7 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
 
     await vi.waitFor(() => expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101));
+    await launch;
     await concurrentProgress;
     expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
     expect(downloadState.records.get(101)?.adopted).toBe(true);
@@ -1133,7 +1191,7 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
     const state = makeState({ info: { url: "https://example.com/download" } });
 
-    await Download.renameAndDownload(state);
+    const { launch } = await startFilenameResolvedLaunch(state);
     vi.mocked(global.browser.downloads.search).mockReset();
     if (result instanceof Error) {
       vi.mocked(global.browser.downloads.search).mockRejectedValue(result);
@@ -1154,6 +1212,7 @@ describe("onDeterminingFilename listener: sync path", () => {
     await vi.waitFor(() =>
       expect(global.browser.downloads.search).toHaveBeenCalledWith({ id: 101 }),
     );
+    await launch;
     expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
     expect(downloadState.records.get(101)?.adopted).toBe(true);
     expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
@@ -1177,7 +1236,7 @@ describe("onDeterminingFilename listener: sync path", () => {
         : null,
     );
     const state = makeState({ info: { url: "https://example.com/download" } });
-    await Download.renameAndDownload(state);
+    const { launch } = await startFilenameResolvedLaunch(state);
     vi.mocked(SessionState.updateSession).mockRejectedValueOnce(new Error("session full"));
 
     capturedListener(
@@ -1196,6 +1255,7 @@ describe("onDeterminingFilename listener: sync path", () => {
         expect.stringContaining("session full"),
       ),
     );
+    await launch;
     expect(downloadState.records.get(101)?.adopted).toBe(false);
     expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
   });
@@ -1217,7 +1277,8 @@ describe("onDeterminingFilename listener: sync path", () => {
         : null,
     );
     const state = makeState({ info: { url: "https://example.com/download" } });
-    await Download.renameAndDownload(state);
+    const { launch } = await startFilenameResolvedLaunch(state);
+    await vi.waitFor(() => expect(downloadState.records.has(101)).toBe(true));
     downloadState.records.delete(101);
     sessionStore.siDownloads = {};
 
@@ -1232,6 +1293,7 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
 
     await vi.waitFor(() => expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101));
+    await launch;
     expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
     expect(downloadState.records.has(101)).toBe(false);
   });
@@ -1253,7 +1315,8 @@ describe("onDeterminingFilename listener: sync path", () => {
         : null,
     );
     const state = makeState({ info: { url: "https://example.com/download" } });
-    await Download.renameAndDownload(state);
+    const { launch } = await startFilenameResolvedLaunch(state);
+    await vi.waitFor(() => expect(downloadState.records.has(101)).toBe(true));
     downloadState.records.delete(101);
     vi.mocked(SessionState.getSession).mockRejectedValueOnce(new Error("session unavailable"));
 
@@ -1273,6 +1336,7 @@ describe("onDeterminingFilename listener: sync path", () => {
         expect.stringContaining("session unavailable"),
       ),
     );
+    await launch;
     expect(global.browser.downloads.cancel).toHaveBeenCalledTimes(1);
     expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
   });
@@ -1292,7 +1356,7 @@ describe("onDeterminingFilename listener: sync path", () => {
       info: { url: "https://example.com/file.pdf" },
     });
 
-    await Download.renameAndDownload(state);
+    const { launch } = await startFilenameResolvedLaunch(state);
     expect(Variable.resolveMime).not.toHaveBeenCalled();
 
     const suggest = vi.fn();
@@ -1312,6 +1376,7 @@ describe("onDeterminingFilename listener: sync path", () => {
         expect.objectContaining({ filename: "downloads/pdf/server-name.pdf" }),
       ),
     );
+    await launch;
   });
 
   // The persisted state carries an optional filename, so a record written by an
@@ -1341,6 +1406,8 @@ describe("onDeterminingFilename listener: sync path", () => {
 
     const launch = Download.renameAndDownload(state);
     await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toBeDefined());
+    await vi.waitFor(() => expect(global.browser.downloads.download).toHaveBeenCalled());
+    discardRoutingResolution(state);
     // An older record simply never stored the field.
     for (const entry of Object.values<any>(sessionStore.siDeferredRoutes))
       for (const record of [entry].flat()) delete record.state.info.filename;
@@ -1416,6 +1483,8 @@ describe("onDeterminingFilename listener: sync path", () => {
 
     const launch = Download.renameAndDownload(state);
     await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toBeDefined());
+    await vi.waitFor(() => expect(global.browser.downloads.download).toHaveBeenCalled());
+    discardRoutingResolution(state);
     Download.downloadRuntime.pendingStates.clear();
 
     const suggest = vi.fn();
@@ -1467,6 +1536,8 @@ describe("onDeterminingFilename listener: sync path", () => {
 
     const launch = Download.renameAndDownload(state);
     await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toBeDefined());
+    await vi.waitFor(() => expect(global.browser.downloads.download).toHaveBeenCalled());
+    discardRoutingResolution(state);
     for (const entry of Object.values<any>(sessionStore.siDeferredRoutes)) {
       for (const record of [entry].flat()) delete record.state.info.url;
     }
@@ -1616,10 +1687,7 @@ describe("onDeterminingFilename listener: sync path", () => {
       info: { url: "https://example.com/file.pdf" },
     });
 
-    await expect(Download.renameAndDownload(state)).resolves.toEqual({
-      status: "started",
-      downloadId: 101,
-    });
+    const { launch } = await startFilenameResolvedLaunch(state);
 
     const suggest = vi.fn();
     capturedListener(
@@ -1633,6 +1701,7 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
 
     await vi.waitFor(() => expect(cancel).toHaveBeenCalledWith(101));
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
     expect(suggest).toHaveBeenCalledWith();
     expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith("h-test", "RULE_NO_MATCH", 101);
     expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
@@ -1657,7 +1726,7 @@ describe("onDeterminingFilename listener: sync path", () => {
       info: { url: "https://example.com/file.pdf" },
     });
 
-    await Download.renameAndDownload(state);
+    const { launch } = await startFilenameResolvedLaunch(state);
     capturedListener(
       {
         id: 101,
@@ -1674,6 +1743,7 @@ describe("onDeterminingFilename listener: sync path", () => {
         expect.stringContaining("history unavailable"),
       ),
     );
+    await launch;
     expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
       "notificationRuleMatchFailedExclusiveTitle",
       "notificationRuleMatchFailedExclusiveMessage",

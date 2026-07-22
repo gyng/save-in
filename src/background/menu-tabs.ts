@@ -11,6 +11,7 @@ import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
 import { launchDownload } from "../downloads/download.ts";
 import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-types.ts";
+import { isRoutingAccepted } from "../downloads/download-pipeline-state.ts";
 import { addLogEntry } from "./log.ts";
 import { closeRoutingSourceTab } from "./tab-action.ts";
 import { backgroundRuntime } from "./runtime.ts";
@@ -164,7 +165,7 @@ export const handleTabMenuClick = async (
       const result = await launchDownload(state);
 
       if (
-        state.scratch.routeOutcome !== "exclude" &&
+        isRoutingAccepted(state) &&
         (state.scratch.routeTabAction === "close" || options.closeTabOnSave) &&
         result.status === "started"
       ) {

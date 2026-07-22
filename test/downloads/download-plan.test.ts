@@ -644,10 +644,7 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
     );
 
     const state = makeState({ info: { url: "https://cdn.example.com/download/12345" } });
-    await expect(Download.renameAndDownload(state)).resolves.toEqual({
-      status: "started",
-      downloadId: 101,
-    });
+    await expect(Download.resolveDownloadPlan(state)).resolves.not.toBeNull();
 
     expect(router.matchRules).toHaveBeenCalledWith(
       options.filenamePatterns,
@@ -664,7 +661,7 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
     vi.spyOn(Variable, "mimeToExtension").mockReturnValue("pdf");
 
     const state = makeState({ info: { url: "https://cdn.example.com/file.pdf" } });
-    await Download.renameAndDownload(state);
+    await Download.resolveDownloadPlan(state);
 
     expect(Variable.resolveMime).not.toHaveBeenCalled();
     expect(state.info.mimeExtension).toBeUndefined();
@@ -691,7 +688,7 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
     vi.spyOn(Variable, "mimeToExtension").mockReturnValue("");
 
     const state = makeState({ info: { url: "https://cdn.example.com/download/12345" } });
-    await Download.renameAndDownload(state);
+    await Download.resolveDownloadPlan(state);
 
     expect(state.info.mimeExtension).toBeUndefined();
     expect(Download.finalizeFullPath(state)).toMatch(/12345$/);

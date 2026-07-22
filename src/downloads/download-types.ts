@@ -40,6 +40,7 @@ export type DownloadScratch = {
   historyEntryId?: string | null | undefined;
   browserFilenameResolution?: boolean | undefined;
   deferredRouteRequirement?: boolean | undefined;
+  deferredRoutingResolution?: true | undefined;
   sourceSidecar?: SourceSidecarRequest | undefined;
 };
 

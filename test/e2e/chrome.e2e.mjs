@@ -1075,6 +1075,69 @@ into: fallback/:filename:`,
   expect(fs.existsSync(path.join(DOWNLOADS, "e2e", "fallback", filename))).toBe(false);
 });
 
+test("a final Chrome filename resolves its tab action before the menu command returns", async () => {
+  const filename = "final-filename-action.txt";
+  const previous = await control.storage.local.get(["paths", "filenamePatterns", "closeTabOnSave"]);
+  const missing = ["paths", "filenamePatterns", "closeTabOnSave"].filter(
+    (key) => !Object.hasOwn(previous, key),
+  );
+  const server = http.createServer((req, res) => {
+    if (req.url === "/download") {
+      res.writeHead(200, {
+        "Content-Type": "text/plain",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+      });
+      res.end("final filename action");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end("<!doctype html><title>Final filename action source</title>");
+  });
+  const port = await listenLocal(server);
+  const pageUrl = `http://127.0.0.1:${port}/source`;
+  /** @type {number | undefined} */
+  let tabId;
+
+  try {
+    await control.options.set({
+      paths: "e2e/menu-fallback",
+      closeTabOnSave: false,
+      filenamePatterns: `finalfilename: ^${filename.replace(".", "\\.")}$
+after: close-tab
+into: e2e/final-action/:filename:`,
+    });
+    const created = await control.tabs.create({ url: pageUrl });
+    tabId = requireValue(created.id, "Final-filename action tab has no ID");
+    const tab = await control.tabs.wait({ id: tabId });
+
+    await control.background.clickContextMenu({
+      info: {
+        menuItemId: "save-in-0",
+        linkUrl: `http://127.0.0.1:${port}/download`,
+        pageUrl,
+      },
+      tab: {
+        id: tabId,
+        windowId: tab.windowId,
+        title: tab.title,
+        url: tab.url,
+      },
+    });
+
+    const downloads = await waitForDownloads(filename);
+    expect(downloads.some((row) => row.state === "complete")).toBe(true);
+    expect(downloads[0]?.filename).toMatch(/e2e[\\/]final-action[\\/]final-filename-action\.txt$/);
+    expect((await control.tabs.query({})).some((candidate) => candidate.id === tabId)).toBe(false);
+    tabId = undefined;
+  } finally {
+    if (tabId !== undefined) await control.tabs.remove(tabId).catch(() => {});
+    await closeLocal(server);
+    await control.storage.local.set(previous);
+    if (missing.length > 0) await control.storage.local.remove(missing);
+    await control.runtime.reset();
+  }
+});
+
 test("success notifications are created by the real download listener", async () => {
   try {
     await control.background.notificationCalls("reset");

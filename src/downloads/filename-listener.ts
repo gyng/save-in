@@ -32,6 +32,7 @@ import { notifyRouteExclusion } from "./route-exclusion-notification.ts";
 import { getTrackedDownload } from "./expected-downloads.ts";
 import { releaseTerminalDownload, runLateRouteCancellation } from "./terminal-download.ts";
 import { requireDownloadUrl } from "./download-pipeline-state.ts";
+import { settleRoutingResolution } from "./routing-resolution.ts";
 
 const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
@@ -336,6 +337,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
     }
 
     const rejectDeferredRoute = async (state: DownloadPipelineState): Promise<void> => {
+      delete state.scratch.routeTabAction;
       suggest();
       const excluded = state.scratch?.routeOutcome === "exclude";
       const addRouteLog = (message: string, data: unknown): unknown =>
@@ -611,11 +613,17 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         const filename = Download.finalizeFullPath(pendingState);
         rememberResolvedFilename(pendingState, filename);
         suggest({ filename, conflictAction: options.conflictAction });
-      })().catch((error) => {
-        logPort.add("filename resolution failed", String(error));
-        if (pendingState.scratch?.deferredRouteRequirement) void rejectDeferredRoute(pendingState);
-        else suggest();
-      });
+      })()
+        .catch(async (error) => {
+          // A failed re-evaluation cannot prove which rule won. Preserve the
+          // download fallback, but never run an ambiguously selected mutation.
+          delete pendingState.scratch.routeTabAction;
+          logPort.add("filename resolution failed", String(error));
+          if (pendingState.scratch?.deferredRouteRequirement) {
+            await rejectDeferredRoute(pendingState);
+          } else suggest();
+        })
+        .finally(() => settleRoutingResolution(pendingState));
       return true;
     }
 
@@ -633,6 +641,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
       void historyPort.patch(historyEntryId, { finalFullPath: filename });
     }
     suggest({ filename, conflictAction: options.conflictAction });
+    settleRoutingResolution(pendingState);
     return false;
   });
 };

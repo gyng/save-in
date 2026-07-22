@@ -948,6 +948,28 @@ describe("addDownloadListener", () => {
     expect(global.browser.contextMenus.update).not.toHaveBeenCalled();
   });
 
+  test("a late route rejection suppresses location history and tab actions", async () => {
+    (global.browser as any).tabs = { remove: vi.fn(), update: vi.fn() };
+    vi.mocked(Download.launchDownload).mockImplementationOnce(
+      async (state: DownloadPipelineState) => {
+        state.scratch.routeTabAction = "close";
+        state.scratch.deferredRouteRequirement = true;
+        return { status: "started", downloadId: 1 };
+      },
+    );
+    Menus.addPaths(["dir1 // (tab: return)"], ["page"]);
+
+    await listener(
+      { menuItemId: "save-in-0", pageUrl: "https://example.com/" },
+      { id: 42, title: "Title" },
+    );
+
+    expect(Menus.state.lastUsedPath).toBeNull();
+    expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+    expect(global.browser.tabs.update).not.toHaveBeenCalled();
+  });
+
   test("does not close the tab for a non-page save even with closeTabOnSave", async () => {
     vi.useFakeTimers();
     try {

@@ -296,6 +296,20 @@ describe("addTabMenuListener tabstrip downloads", () => {
     expect(global.browser.tabs.remove).not.toHaveBeenCalled();
   });
 
+  test("closeTabOnSave keeps a tab after a late required-route rejection", async () => {
+    options.closeTabOnSave = true;
+    vi.mocked(Download.launchDownload).mockImplementationOnce(
+      async (state: DownloadPipelineState) => {
+        state.scratch.deferredRouteRequirement = true;
+        return { status: "started", downloadId: 1 };
+      },
+    );
+
+    await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
+
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+  });
+
   test("closeTabOnSave skips a host tab without an id", async () => {
     options.closeTabOnSave = true;
     (global.browser.tabs as any).query = vi.fn(() =>

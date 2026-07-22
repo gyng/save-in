@@ -43,6 +43,7 @@ import {
   addDownloadLog,
   isHttpDownloadUrl,
   isPrivateDownloadState,
+  isRoutingAccepted,
   isSourceSidecar,
   releaseUnusedContent,
   requireDownloadUrl,
@@ -66,6 +67,11 @@ import {
 } from "./active-transfers.ts";
 import { deliverSaveWebhook } from "./webhook-delivery.ts";
 import { notifyRouteExclusion } from "./route-exclusion-notification.ts";
+import {
+  discardRoutingResolution,
+  prepareRoutingResolution,
+  waitForRoutingResolution,
+} from "./routing-resolution.ts";
 
 const logPort = downloadPorts.log;
 const historyPort = downloadPorts.history;
@@ -356,6 +362,7 @@ export const executeBrowserDownload = async (
     if (headers) downloadOptions.headers = headers;
     Object.assign(downloadOptions, await resolveFirefoxDownloadContext(state.info.currentTab));
     throwIfAborted(signal);
+    if (browserFilenameResolution) prepareRoutingResolution(state);
     const downloadId = await webExtensionApi.downloads.download(downloadOptions);
     cancelExpectedDownload(expected);
     if (acquired.ownedObjectUrl) {
@@ -399,6 +406,7 @@ export const executeBrowserDownload = async (
     }
     return { status: "started", downloadId };
   } catch (e) {
+    discardRoutingResolution(state);
     cancelExpectedDownload(expected);
     await releaseAcquiredDownload(acquired);
     if (signal?.aborted) {
@@ -604,8 +612,11 @@ export const renameAndDownload = async (
     finishPreparation();
     return { status: "failed" };
   }
+  if (result.status === "started") await waitForRoutingResolution(state);
+  else discardRoutingResolution(state);
   finishPreparation();
   if (result.status !== "started") return result;
+  if (!isRoutingAccepted(state)) return result;
 
   // Webhooks are an optional side effect of the user's save command. They
   // never change, delay, or retry the browser download that already started.
