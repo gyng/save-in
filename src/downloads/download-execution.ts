@@ -148,7 +148,7 @@ const releaseAcquiredDownload = async (acquired: AcquiredDownload): Promise<void
   }
 };
 
-const recordDownloadRequest = (plan: DownloadPlan): void => {
+const recordDownloadRequest = (plan: DownloadPlan): DownloadPipelineState | undefined => {
   const { state } = plan;
   const privateContext = isPrivateDownloadState(state);
   if (shouldPersistActivity(privateContext)) {
@@ -175,8 +175,11 @@ const recordDownloadRequest = (plan: DownloadPlan): void => {
 
   if (shouldPersistActivity(privateContext) && !isSourceSidecar(state)) {
     emitDownloaded(state);
-    backgroundRuntime.lastDownloadState = retainedDownloadSnapshot(state);
+    const snapshot = retainedDownloadSnapshot(state);
+    backgroundRuntime.lastDownloadState = snapshot;
+    return snapshot;
   }
+  return undefined;
 };
 
 export const acquireFetchedUrl = async (
@@ -569,7 +572,7 @@ export const renameAndDownload = async (
   }
 
   registerTransfer();
-  recordDownloadRequest(plan);
+  const recordedSnapshot = recordDownloadRequest(plan);
   let acquired: AcquiredDownload;
   try {
     acquired = await acquireDownloadUrl(plan, preparationController.signal, activeRequestId);
@@ -612,8 +615,23 @@ export const renameAndDownload = async (
     finishPreparation();
     return { status: "failed" };
   }
-  if (result.status === "started") await waitForRoutingResolution(state);
-  else discardRoutingResolution(state);
+  const routingResolutionPending = state.scratch.deferredRoutingResolution === true;
+  if (result.status === "started") {
+    await waitForRoutingResolution(state);
+    // Preserve last-command ordering: an older, slower filename event must not
+    // replace the diagnostic snapshot installed by a newer save.
+    if (
+      routingResolutionPending &&
+      recordedSnapshot &&
+      backgroundRuntime.lastDownloadState === recordedSnapshot
+    ) {
+      backgroundRuntime.lastDownloadState = retainedDownloadSnapshot(state);
+      // The initial event renders the in-flight row. A second event is the
+      // event-driven acknowledgement that filename-dependent diagnostics and
+      // History metadata now reflect Chrome's settled route.
+      emitDownloaded(state);
+    }
+  } else discardRoutingResolution(state);
   finishPreparation();
   if (result.status !== "started") return result;
   if (!isRoutingAccepted(state)) return result;

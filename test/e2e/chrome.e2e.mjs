@@ -1095,6 +1095,7 @@ test("a final Chrome filename resolves its tab action before the menu command re
   });
   const port = await listenLocal(server);
   const pageUrl = `http://127.0.0.1:${port}/source`;
+  const downloadUrl = `http://127.0.0.1:${port}/download`;
   /** @type {number | undefined} */
   let tabId;
 
@@ -1113,7 +1114,7 @@ into: e2e/final-action/:filename:`,
     await control.background.clickContextMenu({
       info: {
         menuItemId: "save-in-0",
-        linkUrl: `http://127.0.0.1:${port}/download`,
+        linkUrl: downloadUrl,
         pageUrl,
       },
       tab: {
@@ -1125,8 +1126,14 @@ into: e2e/final-action/:filename:`,
     });
 
     const downloads = await waitForDownloads(filename);
+    const history = await control.history.wait({ url: downloadUrl, status: "complete" });
     expect(downloads.some((row) => row.state === "complete")).toBe(true);
     expect(downloads[0]?.filename).toMatch(/e2e[\\/]final-action[\\/]final-filename-action\.txt$/);
+    expect(history.at(-1)).toMatchObject({
+      routed: true,
+      finalFullPath: "e2e/menu-fallback/e2e/final-action/final-filename-action.txt",
+      variables: { filename },
+    });
     expect((await control.tabs.query({})).some((candidate) => candidate.id === tabId)).toBe(false);
     tabId = undefined;
   } finally {

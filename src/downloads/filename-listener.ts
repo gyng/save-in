@@ -33,6 +33,7 @@ import { getTrackedDownload } from "./expected-downloads.ts";
 import { releaseTerminalDownload, runLateRouteCancellation } from "./terminal-download.ts";
 import { requireDownloadUrl } from "./download-pipeline-state.ts";
 import { settleRoutingResolution } from "./routing-resolution.ts";
+import { historyRoutingPatch } from "./history-entry.ts";
 
 const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
@@ -412,15 +413,26 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
       }
     };
 
-    const rememberResolvedFilename = (state: DownloadPipelineState, filename: string): void => {
+    const patchResolvedHistory = async (
+      state: DownloadPipelineState,
+      filename: string,
+    ): Promise<void> => {
+      const historyEntryId = state.scratch?.historyEntryId;
+      if (typeof historyEntryId !== "string") return;
+      await historyPort
+        .patch(historyEntryId, historyRoutingPatch(state, filename))
+        .catch((error) => logPort.add("final filename history update failed", String(error)));
+    };
+
+    const rememberResolvedFilename = async (
+      state: DownloadPipelineState,
+      filename: string,
+    ): Promise<void> => {
       if (typeof downloadItem.id === "number") {
         Download.finalFilenamesByDownloadId.set(downloadItem.id, filename);
         void rememberFilename(downloadItem.id, filename, state.info.currentTab?.incognito === true);
       }
-      const historyEntryId = state.scratch?.historyEntryId;
-      if (typeof historyEntryId === "string") {
-        void historyPort.patch(historyEntryId, { finalFullPath: filename });
-      }
+      await patchResolvedHistory(state, filename);
     };
 
     const pendingState = pendingQueue?.shift();
@@ -483,7 +495,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
             await Download.resolveRenameTransform(recoveredState);
             recoveredState.scratch.deferredRouteRequirement = false;
             const filename = Download.finalizeFullPath(recoveredState);
-            rememberResolvedFilename(recoveredState, filename);
+            await rememberResolvedFilename(recoveredState, filename);
             suggest({ filename, conflictAction: options.conflictAction });
           } catch (error) {
             logPort.add("deferred route recovery failed", String(error));
@@ -611,7 +623,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         await Download.resolveRenameTransform(pendingState);
         pendingState.scratch.deferredRouteRequirement = false;
         const filename = Download.finalizeFullPath(pendingState);
-        rememberResolvedFilename(pendingState, filename);
+        await rememberResolvedFilename(pendingState, filename);
         suggest({ filename, conflictAction: options.conflictAction });
       })()
         .catch(async (error) => {
@@ -636,10 +648,15 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         pendingState.info.currentTab?.incognito === true,
       );
     }
-    const historyEntryId = pendingState.scratch?.historyEntryId;
-    if (typeof historyEntryId === "string") {
-      void historyPort.patch(historyEntryId, { finalFullPath: filename });
+    const historyPatch = patchResolvedHistory(pendingState, filename);
+    if (pendingState.scratch.deferredRoutingResolution) {
+      void historyPatch.finally(() => {
+        suggest({ filename, conflictAction: options.conflictAction });
+        settleRoutingResolution(pendingState);
+      });
+      return true;
     }
+    void historyPatch;
     suggest({ filename, conflictAction: options.conflictAction });
     settleRoutingResolution(pendingState);
     return false;

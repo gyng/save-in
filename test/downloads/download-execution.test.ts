@@ -809,6 +809,12 @@ describe("onDeterminingFilename listener: sync path", () => {
     });
     expect(SaveHistory.patchHistoryEntry).toHaveBeenCalledWith("h-test", {
       finalFullPath: "downloads/from-download-item.bin",
+      routed: false,
+      variables: {
+        filename: "from-download-item.bin",
+        initialfilename: "suggested.txt",
+        suggestedfilename: "suggested.txt",
+      },
     });
   });
 
@@ -948,6 +954,14 @@ describe("onDeterminingFilename listener: sync path", () => {
           resolveDownload = resolve;
         }),
     );
+    let resolveHistoryPatch: (() => void) | undefined;
+    vi.mocked(SaveHistory.patchHistoryEntry).mockImplementation((_id, fields) =>
+      Object.hasOwn(fields, "finalFullPath")
+        ? new Promise<void>((resolve) => {
+            resolveHistoryPatch = resolve;
+          })
+        : Promise.resolve(),
+    );
     const state = makeState({ path: new Path.Path("downloads") });
     let settled = false;
     const launch = Download.renameAndDownload(state).finally(() => {
@@ -972,8 +986,83 @@ describe("onDeterminingFilename listener: sync path", () => {
       },
       suggest,
     );
+    await vi.waitFor(() => expect(resolveHistoryPatch).toBeTypeOf("function"));
+    await Promise.resolve();
+    expect(settled).toBe(false);
+    expect(downloaded).toHaveBeenCalledTimes(1);
+
+    resolveHistoryPatch?.();
     await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
     expect(state.scratch.routeTabAction).toBe("close");
+    expect(backgroundRuntime.lastDownloadState).toMatchObject({
+      info: { resolvedFilename: "server-name.pdf" },
+      route: expect.objectContaining({ raw: "pdf/:filename:" }),
+    });
+    expect(SaveHistory.patchHistoryEntry).toHaveBeenCalledWith("h-test", {
+      finalFullPath: "downloads/pdf/server-name.pdf",
+      routed: true,
+      variables: expect.objectContaining({ filename: "server-name.pdf" }),
+    });
+    expect(downloaded).toHaveBeenCalledTimes(2);
+  });
+
+  test("a slower final-filename result does not replace a newer diagnostic snapshot", async () => {
+    setCurrentBrowser("CHROME");
+    options.filenamePatterns = [routingRule("finalfilename")];
+    const older = makeState({ info: { url: "https://example.com/older" } });
+    const { launch: olderLaunch } = await startFilenameResolvedLaunch(older);
+
+    options.filenamePatterns = [];
+    const newer = makeState({ info: { url: "https://example.com/newer.png" } });
+    await Download.renameAndDownload(newer);
+    capturedListener(
+      {
+        id: 102,
+        byExtensionId: global.browser.runtime.id,
+        url: newer.info.url,
+        filename: "newer.png",
+      },
+      vi.fn(),
+    );
+
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: older.info.url,
+        filename: "older-final.png",
+      },
+      vi.fn(),
+    );
+    await olderLaunch;
+
+    expect(backgroundRuntime.lastDownloadState?.info.url).toBe(newer.info.url);
+  });
+
+  test("a final-filename History failure does not strand the settled route", async () => {
+    setCurrentBrowser("CHROME");
+    options.filenamePatterns = [routingRule("finalfilename")];
+    const state = makeState({ info: { url: "https://example.com/history-failure" } });
+    const { launch } = await startFilenameResolvedLaunch(state);
+    vi.mocked(SaveHistory.patchHistoryEntry).mockRejectedValueOnce(
+      new Error("history unavailable"),
+    );
+
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "settled.png",
+      },
+      vi.fn(),
+    );
+
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "final filename history update failed",
+      expect.stringContaining("history unavailable"),
+    );
   });
 
   test("rechecks finalfilename even when Chrome keeps the pre-final name", async () => {
