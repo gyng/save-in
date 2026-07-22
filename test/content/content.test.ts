@@ -2168,6 +2168,41 @@ describe("setupClickToSave", () => {
     remove();
   });
 
+  test("a per-site disable after an armed press still disarms the next mousedown", () => {
+    let disabled = false;
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.MIDDLE, combo: "Ctrl" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+      () => disabled,
+    );
+    const img = document.getElementById("i");
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(img, 4);
+    expect(downloadsSent()).toHaveLength(1);
+
+    // The matched press's follow-up (auxclick) never arrives -- e.g. the
+    // drag was released off-window -- leaving the suppressor armed. An SPA
+    // navigation then disables the feature on this page without a remount.
+    disabled = true;
+
+    // The next trusted same-button mousedown must still disarm the stale
+    // suppressor even though isDisabled() now short-circuits the rest of
+    // the handler, so the browser's own auxclick for this press is not
+    // eaten by a leftover arm from the previous, unrelated press.
+    mousedown(img, 4);
+    expect(downloadsSent()).toHaveLength(1);
+    const auxclick = followUp("auxclick", 1, img);
+    expect(auxclick.preventDefault).not.toHaveBeenCalled();
+    remove();
+  });
+
   test("double-left does not combine presses from different sources", () => {
     const remove = ClickToSave.setupClickToSave(
       {

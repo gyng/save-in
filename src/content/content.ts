@@ -322,13 +322,17 @@ const setupClickToSave = (
     "mousedown",
     (e) => {
       if (!acceptInput(e)) return;
+      // Every new press clears any follow-up suppression a previous matched
+      // gesture armed; only the arm below, on a fresh match, re-creates it.
+      // This must run before the isDisabled() check below: a matched press
+      // whose follow-up never arrives (drag released off-window) or an SPA
+      // navigation onto a per-site-disabled URL must not leave the
+      // suppressor armed to eat the next same-button click on this page.
+      followUps.disarm();
       // Enforced at click time against the live URL so a single-page-app
       // navigation onto or off the disable list takes effect immediately.
       if (isDisabled()) return;
       suppressDoubleClickOn = null;
-      // Every new press clears any follow-up suppression a previous matched
-      // gesture armed; only the arm below, on a fresh match, re-creates it.
-      followUps.disarm();
       const binding = shortcutOptions.find(
         ({ keyCodes, gesture }) =>
           ClickToSave.isKeyboardComboActive(keyCodes, active) &&
