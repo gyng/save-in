@@ -109,7 +109,7 @@
   },
   "notificationRuleExcludedMessage": {
     "message": "$URL$ was not saved because a routing rule excluded it.",
-    "description": "Notification body after an interactive save matches a terminal exclude: true routing rule. Used in src/downloads/download-execution.ts.",
+    "description": "Notification body after an interactive save matches a terminal exclude: true routing rule, including a Chrome final-filename match. Used in src/downloads/route-exclusion-notification.ts.",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -119,7 +119,7 @@
   },
   "notificationPrivateRuleExcludedMessage": {
     "message": "A private browsing item was not saved because a routing rule excluded it.",
-    "description": "Privacy-preserving notification body after an interactive private save matches a terminal exclude: true routing rule. Do not identify the item. Used in src/downloads/download-execution.ts."
+    "description": "Privacy-preserving notification body after an interactive private save matches a terminal exclude: true routing rule, including a Chrome final-filename match. Do not identify the item. Used in src/downloads/route-exclusion-notification.ts."
   },
   "routeActionExclude": {
     "message": "Do not save matching items",
@@ -143,7 +143,7 @@
   },
   "routeActionExcluded": {
     "message": "Excluded by routing rule",
-    "description": "Status for an item that matched exclude: true and was not saved. Used in notifications, the latest-route preview, and the route debugger."
+    "description": "Status for an item that matched exclude: true and was not saved. Used in notifications, History status/filter controls, the latest-route preview, and the route debugger."
   },
   "routeActionExcludedSummary": {
     "message": "A rule matched. This save is excluded, so later rules do not run.",
@@ -214,7 +214,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "The source kind conditions match none of the page source kinds, so this rule can never save.",
+    "message": "The source kind conditions match none of the page source kinds, so this rule can never apply.",
     "description": "Warning under a Visual-editor automatic rule card whose sourcekind:/mediatype: patterns match none of the six page source kinds. Used in src/options/rule-editor/rule-visual-editor.ts."
   },
   "ruleReachabilityLinkOnly": {

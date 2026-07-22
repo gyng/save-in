@@ -3184,7 +3184,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "Die Quellart-Bedingungen passen auf keine der Seitenquellen-Arten; diese Regel kann nie speichern."
+    "message": "Die Quellart-Bedingungen passen auf keine der Seitenquellen-Arten; diese Regel kann nie angewendet werden."
   },
   "ruleReachabilityLinkOnly": {
     "message": "Diese Regel passt nur auf einfache Links, die das automatische Speichern nie übernimmt."

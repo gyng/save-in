@@ -28,6 +28,9 @@ import { isWireDownloadState, type WireDownloadState } from "../shared/message-p
 import { fromWireDownloadState, toWireDownloadState } from "./wire-state.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 import { historyDisplayUrl } from "../shared/data-url.ts";
+import { notifyRouteExclusion } from "./route-exclusion-notification.ts";
+import { getTrackedDownload } from "./expected-downloads.ts";
+import { releaseTerminalDownload } from "./terminal-download.ts";
 
 const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
@@ -333,11 +336,41 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
 
     const rejectDeferredRoute = async (state: DownloadPipelineState): Promise<void> => {
       suggest();
+      const excluded = state.scratch?.routeOutcome === "exclude";
+      const addRouteLog = (message: string, data: unknown): unknown =>
+        state.info.currentTab?.incognito
+          ? logPort.add(message, data, { privateContext: true })
+          : logPort.add(message, data);
       if (typeof downloadItem.id === "number") {
-        await webExtensionApi.downloads.cancel(downloadItem.id).catch(() => {});
+        if (excluded) {
+          const canceled = await webExtensionApi.downloads
+            .cancel(downloadItem.id)
+            .then(() => true)
+            .catch((error) => {
+              addRouteLog("late routing exclusion could not cancel download", String(error));
+              return false;
+            });
+          if (!canceled) return;
+          const record = await getTrackedDownload(downloadItem.id);
+          if (record) {
+            await releaseTerminalDownload(downloadItem.id, record, addRouteLog).catch((error) =>
+              addRouteLog("late routing exclusion cleanup failed", String(error)),
+            );
+          }
+        } else {
+          await webExtensionApi.downloads.cancel(downloadItem.id).catch(() => {});
+        }
         await historyPort
-          .setStatus(state.scratch?.historyEntryId, "RULE_NO_MATCH", downloadItem.id)
-          .catch((error) => logPort.add("route-miss history update failed", String(error)));
+          .setStatus(
+            state.scratch?.historyEntryId,
+            excluded ? "RULE_EXCLUDED" : "RULE_NO_MATCH",
+            downloadItem.id,
+          )
+          .catch((error) => addRouteLog("route-miss history update failed", String(error)));
+      }
+      if (excluded) {
+        notifyRouteExclusion(state);
+        return;
       }
       if (options.notifyOnFailure) {
         createExtensionNotification(
@@ -526,6 +559,10 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         if (routeMatches) {
           pendingState.routeIsFolder = ROUTES_TO_FOLDER_REGEX.test(routeMatches);
           pendingState.route = await applyVariables(new Path(routeMatches), pendingState.info);
+        }
+        if (pendingState.scratch?.routeOutcome === "exclude") {
+          await rejectDeferredRoute(pendingState);
+          return;
         }
         if (pendingState.scratch?.deferredRouteRequirement && !routeMatches) {
           await rejectDeferredRoute(pendingState);

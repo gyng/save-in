@@ -50,13 +50,11 @@ import {
   EXTENSION_NOTIFICATION_STREAMS,
 } from "./notification-runtime.ts";
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
-import { OffscreenClient } from "../platform/offscreen-client.ts";
 import {
   searchDownloadStartTime,
   undoDownloadAndMark,
   type ExpectedDownloadIdentity,
 } from "./undo-download.ts";
-import { isDataUrl } from "../shared/data-url.ts";
 import { abandonPendingHistoryMove, completePendingHistoryMove } from "./history-move.ts";
 import {
   deriveDownloadsRoot,
@@ -64,6 +62,7 @@ import {
   relativeDirectoryWithinRoot,
   rememberDownloadsRoot,
 } from "./browser-last-used.ts";
+import { releaseTerminalDownload } from "./terminal-download.ts";
 
 type HostDownloadItem = Parameters<
   Parameters<typeof webExtensionApi.downloads.onCreated.addListener>[0]
@@ -715,25 +714,6 @@ const notifyDownloadSuccess = async (
   }
 };
 
-// The download reached a terminal state: give back anything it was holding.
-const releaseTerminalDownload = async (
-  downloadDelta: HostDownloadDelta,
-  record: DownloadRecord,
-): Promise<void> => {
-  if (record.offscreenRequestId) {
-    await OffscreenClient.release(record.offscreenRequestId).catch((error) =>
-      addDownloadLog(record, "offscreen blob release failed", String(error)),
-    );
-  }
-  // Clear adoption but keep the record: recordHistoryStatus (above) and any
-  // in-flight retry still read its historyEntryId; the cap evicts it later
-  await mergeTrackedDownload(downloadDelta.id, {
-    adopted: false,
-    pendingSourceSidecar: undefined,
-    ...(record.url && isDataUrl(record.url) ? { url: undefined } : {}),
-  });
-};
-
 export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
   if (backgroundRuntime.ready) {
     await backgroundRuntime.ready.catch(() => {});
@@ -822,6 +802,8 @@ export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
 
   const isComplete = downloadDelta.state && downloadDelta.state.current === "complete";
   if (failed || isComplete) {
-    await releaseTerminalDownload(downloadDelta, record);
+    await releaseTerminalDownload(downloadDelta.id, record, (message, data) =>
+      addDownloadLog(record, message, data),
+    );
   }
 };

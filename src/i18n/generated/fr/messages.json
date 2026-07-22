@@ -3184,7 +3184,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "Les conditions de type de source ne correspondent à aucun type de source de page ; cette règle ne pourra jamais enregistrer."
+    "message": "Les conditions de type de source ne correspondent à aucun type de source de page ; cette règle ne pourra jamais s’appliquer."
   },
   "ruleReachabilityLinkOnly": {
     "message": "Cette règle ne correspond qu’à des liens simples, que l’enregistrement automatique n’adopte jamais."

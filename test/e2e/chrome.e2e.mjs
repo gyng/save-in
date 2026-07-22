@@ -1037,6 +1037,44 @@ test("Save In filenames match live Chrome Content-Disposition behavior", async (
   });
 });
 
+test("a final Chrome filename can exclude an already-started Save In download", async () => {
+  const filename = "blocked-by-final.bin";
+  const server = http.createServer((_req, res) => {
+    res.writeHead(200, {
+      "Content-Type": "application/octet-stream",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+    });
+    res.end("must not be saved");
+  });
+  const port = await listenLocal(server);
+  const url = `http://127.0.0.1:${port}/initial-name.bin`;
+
+  await control.options.set({
+    filenamePatterns: `finalfilename: ^${filename.replace(".", "\\.")}$
+exclude: true
+
+url: .*
+into: fallback/:filename:`,
+    notifyOnRuleMatch: false,
+  });
+  const launch = await control.background.startDownload({
+    url,
+    suggestedFilename: "initial-name.bin",
+    pageUrl: "https://example.com/",
+  });
+  expect(launch.status).toBe("started");
+  if (launch.status !== "started") throw new Error("Late exclusion did not start its handoff");
+
+  const [excluded] = await Promise.all([
+    control.history.wait({ url, status: "RULE_EXCLUDED" }),
+    control.downloads.waitReleased(launch.downloadId),
+  ]);
+  const [interrupted] = await control.downloads.search({ id: launch.downloadId });
+  expect(interrupted?.state).toBe("interrupted");
+  expect(excluded.at(-1)).toMatchObject({ status: "RULE_EXCLUDED", info: { sourceUrl: url } });
+  expect(fs.existsSync(path.join(DOWNLOADS, "e2e", "fallback", filename))).toBe(false);
+});
+
 test("success notifications are created by the real download listener", async () => {
   try {
     await control.background.notificationCalls("reset");

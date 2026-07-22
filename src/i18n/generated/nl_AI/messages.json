@@ -3184,7 +3184,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "De bronsoort-voorwaarden komen met geen enkele paginabronsoort overeen; deze regel kan nooit opslaan."
+    "message": "De bronsoort-voorwaarden komen met geen enkele paginabronsoort overeen; deze regel kan nooit worden toegepast."
   },
   "ruleReachabilityLinkOnly": {
     "message": "Deze regel komt alleen overeen met gewone links, die automatisch opslaan nooit overneemt."

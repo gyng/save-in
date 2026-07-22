@@ -3184,7 +3184,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "Källtypsvillkoren matchar ingen av sidkällornas typer; regeln kan aldrig spara."
+    "message": "Källtypsvillkoren matchar ingen av sidkällornas typer; regeln kan aldrig tillämpas."
   },
   "ruleReachabilityLinkOnly": {
     "message": "Regeln matchar bara vanliga länkar, som automatisk sparning aldrig tar med."

@@ -951,6 +951,203 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
   });
 
+  test("cancels and records an exclusion that matches Chrome's final filename", async () => {
+    setCurrentBrowser("CHROME");
+    vi.spyOn(OffscreenClient, "release").mockResolvedValue(false);
+    options.notifyOnRuleMatch = true;
+    const exclusionRule = routingRule("finalfilename");
+    options.filenamePatterns = [exclusionRule];
+    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "blocked-by-final.bin"
+        ? {
+            outcome: "exclude",
+            rule: exclusionRule,
+            destination: null,
+            fetch: null,
+            rename: null,
+            tabAction: null,
+          }
+        : null,
+    );
+    const cancel = vi.fn(() => Promise.resolve());
+    global.browser.downloads.cancel = cancel;
+    const state = makeState({
+      path: new Path.Path("downloads"),
+      info: { url: "https://example.com/download" },
+    });
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({
+      status: "started",
+      downloadId: 101,
+    });
+    Object.assign(downloadState.records.get(101)!, {
+      offscreenRequestId: "late-exclusion-offscreen",
+      pendingHistoryMove: {
+        historyId: "old-history",
+        downloadId: 88,
+      },
+      pendingSourceSidecar: {
+        sourceUrl: "https://example.com/source",
+        title: "Source title",
+      },
+    });
+
+    const suggest = vi.fn();
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "blocked-by-final.bin",
+      },
+      suggest,
+    );
+
+    await vi.waitFor(() => expect(cancel).toHaveBeenCalledWith(101));
+    await vi.waitFor(() =>
+      expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101),
+    );
+    expect(suggest).toHaveBeenCalledWith();
+    expect(downloadState.records.get(101)).toEqual(
+      expect.objectContaining({
+        adopted: false,
+        offscreenRequestId: undefined,
+        pendingHistoryMove: undefined,
+        pendingSourceSidecar: undefined,
+      }),
+    );
+    expect(OffscreenClient.release).toHaveBeenCalledWith("late-exclusion-offscreen");
+    expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
+      "routeActionExcluded",
+      "notificationRuleExcludedMessage",
+      false,
+      Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+    );
+  });
+
+  test("does not claim a late exclusion when Chrome can no longer cancel it", async () => {
+    setCurrentBrowser("CHROME");
+    options.notifyOnRuleMatch = true;
+    const exclusionRule = routingRule("finalfilename");
+    options.filenamePatterns = [exclusionRule];
+    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "too-late.bin"
+        ? {
+            outcome: "exclude",
+            rule: exclusionRule,
+            destination: null,
+            fetch: null,
+            rename: null,
+            tabAction: null,
+          }
+        : null,
+    );
+    global.browser.downloads.cancel = vi.fn(() => Promise.reject(new Error("already complete")));
+    const state = makeState({
+      info: {
+        currentTab: { incognito: true },
+        url: "https://example.com/download",
+      },
+    });
+
+    await Download.renameAndDownload(state);
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "too-late.bin",
+      },
+      vi.fn(),
+    );
+
+    await vi.waitFor(() => expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101));
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
+    expect(downloadState.records.get(101)?.adopted).toBe(true);
+    expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "late routing exclusion could not cancel download",
+      expect.stringContaining("already complete"),
+      { privateContext: true },
+    );
+  });
+
+  test("contains a session cleanup failure after canceling a late exclusion", async () => {
+    setCurrentBrowser("CHROME");
+    const exclusionRule = routingRule("finalfilename");
+    options.filenamePatterns = [exclusionRule];
+    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "excluded.bin"
+        ? {
+            outcome: "exclude",
+            rule: exclusionRule,
+            destination: null,
+            fetch: null,
+            rename: null,
+            tabAction: null,
+          }
+        : null,
+    );
+    const state = makeState({ info: { url: "https://example.com/download" } });
+    await Download.renameAndDownload(state);
+    vi.mocked(SessionState.updateSession).mockRejectedValueOnce(new Error("session full"));
+
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "excluded.bin",
+      },
+      vi.fn(),
+    );
+
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "late routing exclusion cleanup failed",
+        expect.stringContaining("session full"),
+      ),
+    );
+    expect(downloadState.records.get(101)?.adopted).toBe(false);
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
+  });
+
+  test("records a late exclusion when its tracking record is already gone", async () => {
+    setCurrentBrowser("CHROME");
+    const exclusionRule = routingRule("finalfilename");
+    options.filenamePatterns = [exclusionRule];
+    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "excluded.bin"
+        ? {
+            outcome: "exclude",
+            rule: exclusionRule,
+            destination: null,
+            fetch: null,
+            rename: null,
+            tabAction: null,
+          }
+        : null,
+    );
+    const state = makeState({ info: { url: "https://example.com/download" } });
+    await Download.renameAndDownload(state);
+    downloadState.records.delete(101);
+    sessionStore.siDownloads = {};
+
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "excluded.bin",
+      },
+      vi.fn(),
+    );
+
+    await vi.waitFor(() => expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101));
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
+    expect(downloadState.records.has(101)).toBe(false);
+  });
+
   test("resolves MIME only when Chrome's final filename loses its extension", async () => {
     setCurrentBrowser("CHROME");
     options.appendMimeExtension = true;

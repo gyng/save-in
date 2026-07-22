@@ -3184,7 +3184,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "Las condiciones de tipo de fuente no coinciden con ningún tipo de fuente de página; esta regla nunca podrá guardar."
+    "message": "Las condiciones de tipo de fuente no coinciden con ningún tipo de fuente de página; esta regla nunca podrá aplicarse."
   },
   "ruleReachabilityLinkOnly": {
     "message": "Esta regla solo coincide con enlaces simples, que el guardado automático nunca adopta."

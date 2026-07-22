@@ -3184,7 +3184,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "소스 종류 조건이 어떤 페이지 소스 종류와도 일치하지 않아 이 규칙은 저장할 수 없습니다."
+    "message": "소스 종류 조건이 어떤 페이지 소스 종류와도 일치하지 않아 이 규칙은 적용될 수 없습니다."
   },
   "ruleReachabilityLinkOnly": {
     "message": "이 규칙은 일반 링크에만 일치하며, 자동 저장은 이를 채택하지 않습니다."

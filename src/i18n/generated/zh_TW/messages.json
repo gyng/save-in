@@ -3182,7 +3182,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "來源種類條件與任何頁面來源種類都不符合，此規則永遠不會儲存。"
+    "message": "來源種類條件與任何頁面來源種類都不符合，因此這項規則永遠不會生效。"
   },
   "ruleReachabilityLinkOnly": {
     "message": "此規則只符合一般連結，而自動儲存從不採用一般連結。"

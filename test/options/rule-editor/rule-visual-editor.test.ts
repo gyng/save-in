@@ -548,6 +548,9 @@ describe("routing visual editor", () => {
     expect(element<HTMLElement>(".rule-clause-action-value").textContent).toBe(
       "Close source tab after saving",
     );
+    const actionRow = element<HTMLElement>(".rule-clause-action");
+    actionRow.click();
+    expect(actionRow.classList.contains("is-active")).toBe(true);
     element<HTMLButtonElement>('.rule-clause-action [data-rule-action="delete-clause"]').click();
     expect(textarea.value).toBe("filename/i: \\.jpg$\ninto: images/:filename:");
     expect(document.querySelector(".rule-clause-action")).toBeNull();

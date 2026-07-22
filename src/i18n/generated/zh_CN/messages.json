@@ -3180,7 +3180,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "来源类型条件与任何页面来源类型都不匹配，此规则永远不会保存。"
+    "message": "来源类型条件与任何页面来源类型都不匹配，因此此规则永远不会生效。"
   },
   "ruleReachabilityLinkOnly": {
     "message": "此规则只匹配普通链接，而自动保存从不采用普通链接。"

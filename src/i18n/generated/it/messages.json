@@ -3186,7 +3186,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "Le condizioni sul tipo di fonte non corrispondono ad alcun tipo di fonte della pagina; questa regola non potrà mai salvare."
+    "message": "Le condizioni sul tipo di fonte non corrispondono ad alcun tipo di fonte della pagina; questa regola non potrà mai essere applicata."
   },
   "ruleReachabilityLinkOnly": {
     "message": "Questa regola corrisponde solo a link semplici, che il salvataggio automatico non adotta mai."

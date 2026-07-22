@@ -334,6 +334,8 @@ describe("routing visual editor model", () => {
     "into/i: images\nfilename: jpg",
     "filename/: jpg\ninto: images",
     "disabled: false\ndisabled: true\nfilename: jpg\ninto: images",
+    "filename: jpg\nexclude: false",
+    "filename: jpg\nafter: later\ninto: images",
   ])("marks unsupported visual control syntax as read-only", (unsupported) => {
     expect(parseVisualRoutingRules(unsupported).rules[0]?.editable).toBe(false);
     expect(() => setRoutingRuleEnabled(unsupported, 0, false)).toThrow(/Text mode/);

@@ -154,7 +154,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       case "no-kinds":
         return localize(
           "ruleReachabilityNoKinds",
-          "The source kind conditions match none of the page source kinds, so this rule can never save.",
+          "The source kind conditions match none of the page source kinds, so this rule can never apply.",
         );
       case "link-only":
         return localize(
@@ -375,6 +375,12 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     const row = document.createElement("div");
     row.className = `visual-editor-row rule-clause-row rule-clause-${clause.kind}`;
     row.dataset.line = String(clause.line);
+    row.addEventListener("click", () => {
+      cards
+        .querySelectorAll(".rule-clause-row.is-active")
+        .forEach((item) => item.classList.remove("is-active"));
+      row.classList.add("is-active");
+    });
 
     const marker = document.createElement("span");
     marker.className = "rule-clause-marker";
@@ -564,12 +570,6 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       );
       row.append(remove);
     }
-    row.addEventListener("click", () => {
-      cards
-        .querySelectorAll(".rule-clause-row.is-active")
-        .forEach((item) => item.classList.remove("is-active"));
-      row.classList.add("is-active");
-    });
     return row;
   };
 

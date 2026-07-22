@@ -16,8 +16,11 @@ An exclusion must have at least one matcher. It cannot contain `into:`,
 `capture:`, `capturegroups:`, `fetch:`, `rename:`, or `after:`. Put narrow
 exclusions before broader destinations. For an ordinary browser download that
 has already started, exclusion leaves the browser's download unchanged; it does
-not cancel it. A private exclusion notification reports only that an item was
-excluded; it does not identify the item or its address.
+not cancel it. Chrome learns a Save In download's `finalfilename:` only during
+the browser handoff; if that late value matches an exclusion, Save In cancels
+its own transfer and records it as excluded. A private exclusion notification
+reports only that an item was excluded; it does not identify the item or its
+address.
 
 Automatic Page Sources can use guarded exclusions. The exclusion needs the same
 explicit `context: ^auto$`, page matcher, and source matcher as an automatic
