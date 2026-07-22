@@ -609,6 +609,12 @@
   "tabstripMenuSaveChildrenTabs": {
     "message": "Guardar pestañas abiertas desde esta pestaña"
   },
+  "tabstripMenuSaveLeftTabs": {
+    "message": "Guardar esta pestaña y todas las pestañas a su izquierda"
+  },
+  "tabstripMenuSaveLeftTabsMatched": {
+    "message": "Guardar esta pestaña y todas las pestañas a su izquierda (se requiere una regla de enrutamiento)"
+  },
   "tabstripMenuSaveRightTabs": {
     "message": "Guardar esta pestaña y todas las pestañas a su derecha"
   },
@@ -919,7 +925,7 @@
     "message": "Mostrar acciones Save In en el menú de pestañas"
   },
   "o_cSaveTabstripHelp": {
-    "message": "Guarda una pestaña, un grupo de pestañas o pestañas a la derecha"
+    "message": "Guarda una pestaña, un grupo de pestañas o pestañas a la izquierda o a la derecha"
   },
   "o_cOpenDialog": {
     "message": "Preguntar siempre dónde guardar"

@@ -609,6 +609,12 @@
   "tabstripMenuSaveChildrenTabs": {
     "message": "Salvar guias abertas nesta guia"
   },
+  "tabstripMenuSaveLeftTabs": {
+    "message": "Salvar esta guia e todas as guias à sua esquerda"
+  },
+  "tabstripMenuSaveLeftTabsMatched": {
+    "message": "Salvar esta guia e todas as guias à sua esquerda (é necessária uma regra de roteamento)"
+  },
   "tabstripMenuSaveRightTabs": {
     "message": "Salvar esta guia e todas as guias à sua direita"
   },
@@ -919,7 +925,7 @@
     "message": "Mostrar ações do Save In no menu de guias"
   },
   "o_cSaveTabstripHelp": {
-    "message": "Salva uma guia, um grupo de guias ou guias à direita"
+    "message": "Salva uma guia, um grupo de guias ou guias à esquerda ou à direita"
   },
   "o_cOpenDialog": {
     "message": "Sempre perguntar onde salvar"

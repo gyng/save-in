@@ -46,6 +46,18 @@ export const addTabMenus = () => {
   });
 
   webExtensionApi.contextMenus.create({
+    id: MENU_IDS.TABSTRIP.TO_LEFT,
+    title: getMessage("tabstripMenuSaveLeftTabs"),
+    contexts: ["tab"],
+  });
+
+  webExtensionApi.contextMenus.create({
+    id: MENU_IDS.TABSTRIP.TO_LEFT_MATCH,
+    title: getMessage("tabstripMenuSaveLeftTabsMatched"),
+    contexts: ["tab"],
+  });
+
+  webExtensionApi.contextMenus.create({
     id: MENU_IDS.TABSTRIP.TO_RIGHT,
     title: getMessage("tabstripMenuSaveRightTabs"),
     contexts: ["tab"],
@@ -81,6 +93,10 @@ export const handleTabMenuClick = async (
       break;
     case MENU_IDS.TABSTRIP.SELECTED_MULTIPLE_TABS:
       query = Object.assign(query, { highlighted: true });
+      break;
+    case MENU_IDS.TABSTRIP.TO_LEFT:
+    case MENU_IDS.TABSTRIP.TO_LEFT_MATCH:
+      filter = (t) => t.index <= fromTab.index;
       break;
     case MENU_IDS.TABSTRIP.TO_RIGHT:
     case MENU_IDS.TABSTRIP.TO_RIGHT_MATCH:
@@ -138,7 +154,9 @@ export const handleTabMenuClick = async (
         path: new Path("."),
         scratch: {},
         info: opts,
-        needRouteMatch: info.menuItemId === MENU_IDS.TABSTRIP.TO_RIGHT_MATCH,
+        needRouteMatch:
+          info.menuItemId === MENU_IDS.TABSTRIP.TO_LEFT_MATCH ||
+          info.menuItemId === MENU_IDS.TABSTRIP.TO_RIGHT_MATCH,
       };
 
       // launchDownload reports whether the browser accepted the save.

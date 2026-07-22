@@ -2,6 +2,8 @@ export const MENU_IDS = {
   TABSTRIP: {
     SELECTED_TAB: "save-in-SI-selected-tab",
     SELECTED_MULTIPLE_TABS: "save-in-SI-selected-multiple-tabs",
+    TO_LEFT: "save-in-SI-to-left",
+    TO_LEFT_MATCH: "save-in-SI-to-left-match",
     TO_RIGHT: "save-in-SI-to-right",
     TO_RIGHT_MATCH: "save-in-SI-to-right-match",
     OPENED_FROM_TAB: "save-in-SI-opened-from-tab",

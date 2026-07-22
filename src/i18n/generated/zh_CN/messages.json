@@ -183,6 +183,12 @@
   "tabstripMenuSaveChildrenTabs": {
     "message": "保存从此选项卡打开的选项卡"
   },
+  "tabstripMenuSaveLeftTabs": {
+    "message": "保存此选项卡及其左侧的所有选项卡"
+  },
+  "tabstripMenuSaveLeftTabsMatched": {
+    "message": "保存此选项卡及其左侧的所有选项卡（需要路由规则）"
+  },
   "tabstripMenuSaveRightTabs": {
     "message": "保存此选项卡及其右侧的所有选项卡"
   },
@@ -493,7 +499,7 @@
     "message": "在选项卡菜单中显示 Save In 操作"
   },
   "o_cSaveTabstripHelp": {
-    "message": "保存选项卡、选项卡组或右侧的选项卡"
+    "message": "保存选项卡、选项卡组或左侧/右侧的选项卡"
   },
   "o_cOpenDialog": {
     "message": "总是询问保存在哪里"

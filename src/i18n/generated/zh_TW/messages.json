@@ -185,6 +185,12 @@
   "tabstripMenuSaveChildrenTabs": {
     "message": "儲存從此分頁開啟的分頁"
   },
+  "tabstripMenuSaveLeftTabs": {
+    "message": "儲存此分頁及其左側的所有分頁"
+  },
+  "tabstripMenuSaveLeftTabsMatched": {
+    "message": "儲存此分頁及其左側的所有分頁（需要路由規則）"
+  },
   "tabstripMenuSaveRightTabs": {
     "message": "儲存此分頁及其右側的所有分頁"
   },
@@ -495,7 +501,7 @@
     "message": "在分頁選單中顯示 Save In 動作"
   },
   "o_cSaveTabstripHelp": {
-    "message": "將選項卡、選項卡組或選項卡儲存到右側"
+    "message": "儲存分頁、分頁群組或左側/右側的分頁"
   },
   "o_cOpenDialog": {
     "message": "一律詢問儲存位置"

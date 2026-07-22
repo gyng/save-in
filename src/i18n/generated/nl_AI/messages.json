@@ -609,6 +609,12 @@
   "tabstripMenuSaveChildrenTabs": {
     "message": "Tabbladen opslaan die vanuit dit tabblad zijn geopend"
   },
+  "tabstripMenuSaveLeftTabs": {
+    "message": "Dit tabblad en alle tabbladen links opslaan"
+  },
+  "tabstripMenuSaveLeftTabsMatched": {
+    "message": "Dit tabblad en alle tabbladen links opslaan (routeringsregel vereist)"
+  },
   "tabstripMenuSaveRightTabs": {
     "message": "Dit tabblad en alle tabbladen rechts opslaan"
   },
@@ -919,7 +925,7 @@
     "message": "Save In-acties in het tabbladmenu tonen"
   },
   "o_cSaveTabstripHelp": {
-    "message": "Slaat een tabblad, tabbladgroep of tabbladen aan de rechterkant op"
+    "message": "Slaat een tabblad, tabbladgroep of tabbladen aan de linker- of rechterkant op"
   },
   "o_cOpenDialog": {
     "message": "Altijd vragen waar u wilt opslaan"

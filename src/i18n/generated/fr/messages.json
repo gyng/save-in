@@ -621,6 +621,12 @@
   "tabstripMenuSaveChildrenTabs": {
     "message": "Enregistrer les onglets ouverts à partir de cet onglet"
   },
+  "tabstripMenuSaveLeftTabs": {
+    "message": "Enregistrer cet onglet et tous les onglets à sa gauche"
+  },
+  "tabstripMenuSaveLeftTabsMatched": {
+    "message": "Enregistrer cet onglet et tous les onglets à sa gauche (règle de routage requise)"
+  },
   "tabstripMenuSaveRightTabs": {
     "message": "Enregistrer cet onglet et tous les onglets à sa droite"
   },
@@ -931,7 +937,7 @@
     "message": "Afficher les actions Save In dans le menu de l’onglet"
   },
   "o_cSaveTabstripHelp": {
-    "message": "Enregistre un onglet, un groupe d’onglets ou des onglets à droite"
+    "message": "Enregistre un onglet, un groupe d’onglets ou des onglets à gauche ou à droite"
   },
   "o_cOpenDialog": {
     "message": "Toujours demander où enregistrer"

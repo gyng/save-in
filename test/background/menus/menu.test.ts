@@ -852,6 +852,8 @@ describe("menu creation", () => {
         menu.IDS.TABSTRIP.SELECTED_TAB,
         menu.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS,
         menu.IDS.TABSTRIP.OPENED_FROM_TAB,
+        menu.IDS.TABSTRIP.TO_LEFT,
+        menu.IDS.TABSTRIP.TO_LEFT_MATCH,
         menu.IDS.TABSTRIP.TO_RIGHT,
         menu.IDS.TABSTRIP.TO_RIGHT_MATCH,
       ]);

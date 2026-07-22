@@ -609,6 +609,12 @@
   "tabstripMenuSaveChildrenTabs": {
     "message": "Über diesen Tab geöffnete Tabs speichern"
   },
+  "tabstripMenuSaveLeftTabs": {
+    "message": "Diesen Tab und alle Tabs links davon speichern"
+  },
+  "tabstripMenuSaveLeftTabsMatched": {
+    "message": "Diesen Tab und alle Tabs links davon speichern (Routing-Regel erforderlich)"
+  },
   "tabstripMenuSaveRightTabs": {
     "message": "Diesen Tab und alle Tabs rechts davon speichern"
   },
@@ -919,7 +925,7 @@
     "message": "Save In-Aktionen im Tab-Menü anzeigen"
   },
   "o_cSaveTabstripHelp": {
-    "message": "Speichert einen Tab, eine Tabgruppe oder die rechts davon liegenden Tabs"
+    "message": "Speichert einen Tab, eine Tabgruppe oder die links oder rechts davon liegenden Tabs"
   },
   "o_cOpenDialog": {
     "message": "Immer nach dem Speicherort fragen"

@@ -367,6 +367,14 @@
     "message": "Save tabs opened from this tab",
     "description": "Tabstrip context menu label for saving child tabs. Used in src/background/menu-tabs.ts."
   },
+  "tabstripMenuSaveLeftTabs": {
+    "message": "Save this tab and all tabs to its left",
+    "description": "Tabstrip context menu label for saving tabs to the left (inclusive). Used in src/background/menu-tabs.ts."
+  },
+  "tabstripMenuSaveLeftTabsMatched": {
+    "message": "Save this tab and all tabs to its left (routing rule required)",
+    "description": "Tabstrip context menu label for saving tabs to the left (inclusive) that match a route. Used in src/background/menu-tabs.ts."
+  },
   "tabstripMenuSaveRightTabs": {
     "message": "Save this tab and all tabs to its right",
     "description": "Tabstrip context menu label for saving tabs to the right (inclusive). Used in src/background/menu-tabs.ts."
@@ -1320,7 +1328,7 @@
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSaveTabstripHelp": {
-    "message": "Saves a tab, tab group, or tabs to the right",
+    "message": "Saves a tab, tab group, or tabs to the left or right",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cOpenDialog": {

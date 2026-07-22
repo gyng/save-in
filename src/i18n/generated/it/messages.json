@@ -177,6 +177,12 @@
   "tabstripMenuSaveChildrenTabs": {
     "message": "Salva le schede aperte da questa scheda"
   },
+  "tabstripMenuSaveLeftTabs": {
+    "message": "Salva questa scheda e tutte le schede alla sua sinistra"
+  },
+  "tabstripMenuSaveLeftTabsMatched": {
+    "message": "Salva questa scheda e tutte le schede alla sua sinistra (regola di routing obbligatoria)"
+  },
   "tabstripMenuSaveRightTabs": {
     "message": "Salva questa scheda e tutte le schede alla sua destra"
   },
@@ -811,7 +817,7 @@
     "message": "Mostra le azioni Save In nel menu della scheda"
   },
   "o_cSaveTabstripHelp": {
-    "message": "Salva una scheda, un gruppo di schede o le schede a destra"
+    "message": "Salva una scheda, un gruppo di schede o le schede a sinistra o a destra"
   },
   "o_cOpenDialog": {
     "message": "Chiedi sempre dove salvare"

@@ -187,6 +187,12 @@
   "tabstripMenuSaveChildrenTabs": {
     "message": "このタブから開いたタブを保存する"
   },
+  "tabstripMenuSaveLeftTabs": {
+    "message": "このタブとその左側にあるすべてのタブを保存します"
+  },
+  "tabstripMenuSaveLeftTabsMatched": {
+    "message": "このタブとその左側にあるすべてのタブを保存します（ルーティングルールが必要です）"
+  },
   "tabstripMenuSaveRightTabs": {
     "message": "このタブとその右側にあるすべてのタブを保存します"
   },
@@ -497,7 +503,7 @@
     "message": "タブメニューに Save In のアクションを表示"
   },
   "o_cSaveTabstripHelp": {
-    "message": "タブ、タブグループ、または右側のタブを保存します"
+    "message": "タブ、タブグループ、または左側か右側のタブを保存します"
   },
   "o_cOpenDialog": {
     "message": "どこに保存するかを常に尋ねる"

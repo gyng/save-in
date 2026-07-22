@@ -142,6 +142,25 @@ describe("addTabMenuListener tabstrip downloads", () => {
     expect(downloads()[0]!.needRouteMatch).toBe(false);
   });
 
+  test("TO_LEFT downloads tabs at and before the clicked index", async () => {
+    await listener({ menuItemId: Menus.IDS.TABSTRIP.TO_LEFT }, { id: 2, index: 1, windowId: 7 });
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(downloads().map((state: any) => state.info.currentTab.id)).toEqual([1, 2]);
+    expect(downloads().every((state: any) => state.needRouteMatch === false)).toBe(true);
+  });
+
+  test("TO_LEFT_MATCH additionally requires a routing match", async () => {
+    await listener(
+      { menuItemId: Menus.IDS.TABSTRIP.TO_LEFT_MATCH },
+      { id: 2, index: 1, windowId: 7 },
+    );
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(downloads().map((state: any) => state.info.currentTab.id)).toEqual([1, 2]);
+    expect(downloads().every((state: any) => state.needRouteMatch === true)).toBe(true);
+  });
+
   test("TO_RIGHT_MATCH additionally requires a routing match", async () => {
     await listener(
       { menuItemId: Menus.IDS.TABSTRIP.TO_RIGHT_MATCH },

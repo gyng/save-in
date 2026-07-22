@@ -609,6 +609,12 @@
   "tabstripMenuSaveChildrenTabs": {
     "message": "Spara flikar som öppnats från den här fliken"
   },
+  "tabstripMenuSaveLeftTabs": {
+    "message": "Spara den här fliken och alla flikar till vänster om den"
+  },
+  "tabstripMenuSaveLeftTabsMatched": {
+    "message": "Spara den här fliken och alla flikar till vänster om den (ruttregel krävs)"
+  },
   "tabstripMenuSaveRightTabs": {
     "message": "Spara den här fliken och alla flikar till höger om den"
   },
@@ -919,7 +925,7 @@
     "message": "Visa Save In-åtgärder i flikmenyn"
   },
   "o_cSaveTabstripHelp": {
-    "message": "Sparar en flik, flikgrupp eller flikar till höger"
+    "message": "Sparar en flik, flikgrupp eller flikar till vänster eller höger"
   },
   "o_cOpenDialog": {
     "message": "Fråga alltid var du ska spara"

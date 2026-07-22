@@ -187,6 +187,12 @@
   "tabstripMenuSaveChildrenTabs": {
     "message": "이 탭에서 열린 탭 저장"
   },
+  "tabstripMenuSaveLeftTabs": {
+    "message": "이 탭과 왼쪽의 모든 탭 저장"
+  },
+  "tabstripMenuSaveLeftTabsMatched": {
+    "message": "이 탭과 왼쪽의 모든 탭 저장(라우팅 규칙 필요)"
+  },
   "tabstripMenuSaveRightTabs": {
     "message": "이 탭과 오른쪽의 모든 탭 저장"
   },
@@ -497,7 +503,7 @@
     "message": "탭 메뉴에 Save In 작업 표시"
   },
   "o_cSaveTabstripHelp": {
-    "message": "탭, 탭 그룹 또는 오른쪽의 탭을 저장합니다."
+    "message": "탭, 탭 그룹 또는 왼쪽이나 오른쪽의 탭을 저장합니다."
   },
   "o_cOpenDialog": {
     "message": "어디에 저장할지 항상 물어보세요"
