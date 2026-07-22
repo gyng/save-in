@@ -88,6 +88,21 @@ const addDownloadLog = (record: DownloadRecord, message: string, data?: unknown)
     ? logPort.add(message, data, { privateContext: true })
     : logPort.add(message, data);
 
+const bindHistoryDownloadId = (
+  historyEntryId: string | null | undefined,
+  downloadId: number,
+  startTime: string | undefined,
+  privateContext: boolean,
+): void => {
+  void historyPort.setDownloadId(historyEntryId, downloadId, startTime).catch((error) =>
+    privateContext
+      ? logPort.add("download event history binding failed", String(error), {
+          privateContext: true,
+        })
+      : logPort.add("download event history binding failed", String(error)),
+  );
+};
+
 // Handlers are registered once at load, by registerNotifier in notification.ts:
 // MV3 workers must register listeners synchronously or they miss the very
 // event that woke them. Notifier options are read from the shared `options`
@@ -141,7 +156,12 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
       privateContext: item.incognito === true || isPrivateDownloadRecord(matched.record || {}),
     });
     if (matched.record?.historyEntryId) {
-      void historyPort.setDownloadId(matched.record.historyEntryId, item.id, item.startTime);
+      bindHistoryDownloadId(
+        matched.record.historyEntryId,
+        item.id,
+        item.startTime,
+        item.incognito === true || isPrivateDownloadRecord(matched.record),
+      );
     }
     return;
   }
@@ -232,10 +252,11 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
           conflictAction: options.conflictAction,
         });
         setTimeout(() => cancelExpectedDownload(expected), 10000);
-        void historyPort.setDownloadId(
+        bindHistoryDownloadId(
           historyEntryId,
           replacementId,
           await searchDownloadStartTime(replacementId),
+          false,
         );
       } catch (error) {
         cancelExpectedDownload(expected);
@@ -270,7 +291,7 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
       allowOriginalUrlFallback: false,
       privateContext: item.incognito === true,
     });
-    void historyPort.setDownloadId(historyEntryId, item.id, item.startTime);
+    bindHistoryDownloadId(historyEntryId, item.id, item.startTime, item.incognito === true);
   }
 };
 

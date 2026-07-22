@@ -203,6 +203,50 @@ describe("download lifecycle notifications", () => {
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
   });
 
+  test("contains an ordinary-download History binding failure", async () => {
+    options.trackBrowserDownloads = true;
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry").mockReturnValue("h-browser");
+    vi.spyOn(history, "setHistoryDownloadId").mockRejectedValue(new Error("history unavailable"));
+
+    await onCreated({
+      id: 45,
+      filename: "C:\\Downloads\\browser.zip",
+      url: "https://example.com/browser.zip",
+    });
+
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "download event history binding failed",
+        "Error: history unavailable",
+      ),
+    );
+  });
+
+  test("keeps a private expected-download History binding failure out of the shared log", async () => {
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "setHistoryDownloadId").mockRejectedValue(new Error("history unavailable"));
+    Notifier.expectDownload("https://private.example/bound.png", {
+      historyEntryId: "h-private",
+      privateContext: true,
+    });
+
+    await onCreated({
+      id: 46,
+      incognito: true,
+      filename: "C:\\Downloads\\bound.png",
+      url: "https://private.example/bound.png",
+    });
+
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "download event history binding failed",
+        "Error: history unavailable",
+        { privateContext: true },
+      ),
+    );
+  });
+
   test("updates Last used from a browser download without enabling History", async () => {
     options.browserDownloadsUpdateLastUsed = true;
     sessionStore.siDownloadsRoot = "C:\\Downloads\\";
@@ -864,6 +908,7 @@ describe("download lifecycle notifications", () => {
     vi.spyOn(BrowserDownloadRouting, "route").mockResolvedValue("sorted/native.bin");
     const history = await import("../../../src/background/history.ts");
     vi.spyOn(history, "addHistoryEntry").mockReturnValue("h-reroute");
+    vi.spyOn(history, "setHistoryDownloadId").mockRejectedValue(new Error("history unavailable"));
     vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
     vi.mocked(global.browser.downloads.erase).mockRejectedValueOnce(new Error("erase failed"));
     vi.mocked(global.browser.downloads.download).mockResolvedValueOnce(99);
@@ -874,6 +919,12 @@ describe("download lifecycle notifications", () => {
       url: "https://example.com/native.bin",
     });
     expect(global.browser.downloads.download).toHaveBeenCalledOnce();
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "download event history binding failed",
+        "Error: history unavailable",
+      ),
+    );
     vi.advanceTimersByTime(10000);
 
     vi.mocked(global.browser.downloads.cancel).mockRejectedValueOnce(new Error("cancel failed"));

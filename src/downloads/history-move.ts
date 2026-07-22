@@ -64,8 +64,12 @@ export const completePendingHistoryMove = (
   if (active) return active;
   const task = runPendingHistoryMove(replacementDownloadId);
   completionTasks.set(replacementDownloadId, task);
-  void task.finally(() => {
+  const retire = () => {
     completionTasks.delete(replacementDownloadId);
-  });
+  };
+  // A caller observes the task's rejection. Give both outcomes an explicit
+  // retirement handler instead of ignoring finally()'s second rejected
+  // promise, which would surface as an unhandled worker rejection.
+  void task.then(retire, retire);
   return task;
 };

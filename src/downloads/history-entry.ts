@@ -2,7 +2,11 @@ import type { HistoryEntryInput } from "../shared/history-types.ts";
 import type { DownloadPipelineState } from "./download-types.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { downloadPorts } from "./ports.ts";
-import { isPrivateDownloadState, isSourceSidecar } from "./download-pipeline-state.ts";
+import {
+  addDownloadLog,
+  isPrivateDownloadState,
+  isSourceSidecar,
+} from "./download-pipeline-state.ts";
 import { historyDisplayUrl, isDataUrl } from "../shared/data-url.ts";
 
 const historyPort = downloadPorts.history;
@@ -109,7 +113,9 @@ export const ensureHistoryEntry = (state: DownloadPipelineState, finalFullPath: 
   if (isSourceSidecar(state)) return null;
   const fields = historyEntry(state, finalFullPath);
   if (typeof state.scratch.historyEntryId !== "undefined") {
-    void historyPort.patch(state.scratch.historyEntryId, fields);
+    void historyPort
+      .patch(state.scratch.historyEntryId, fields)
+      .catch((error) => addDownloadLog(state, "history preparation update failed", String(error)));
     return state.scratch.historyEntryId;
   }
   const id = historyPort.add(fields, { privateContext: isPrivateDownloadState(state) });

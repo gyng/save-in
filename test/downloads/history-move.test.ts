@@ -116,3 +116,27 @@ test("serializes concurrent completion observers for the same move", async () =>
   ]);
   expect(global.browser.downloads.removeFile).toHaveBeenCalledTimes(1);
 });
+
+test("retires a failed completion task before the next observer retries it", async () => {
+  await mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, 16, {
+    adopted: true,
+    historyEntryId: "new-history",
+  });
+  await registerPendingHistoryMove(16, {
+    historyId: "old-history",
+    downloadId: 15,
+    filename: "old/photo.png",
+  });
+  vi.mocked(global.browser.downloads.search).mockResolvedValue([
+    { id: 15, filename: "/downloads/photo.png" } as never,
+  ]);
+  history.patch.mockRejectedValueOnce(new Error("history unavailable"));
+
+  await expect(completePendingHistoryMove(16)).rejects.toThrow("history unavailable");
+
+  await expect(completePendingHistoryMove(16)).resolves.toMatchObject({
+    handled: true,
+    oldRemoved: true,
+  });
+  expect(global.browser.downloads.removeFile).toHaveBeenCalledTimes(2);
+});
