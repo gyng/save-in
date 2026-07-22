@@ -31,7 +31,8 @@ findings below (#221, #178) were only visible because independent sources
 disagreed.
 
 Verdicts are **code-side confirmed** — the mechanism exists and matches the
-report. None have been retested in a live browser.
+report. None have been retested in a live browser, with one later exception:
+#152 gained a permanent two-browser e2e case on 2026-07-23 (see its row).
 
 ## Verdicts — the pre-drafted closes
 
@@ -342,7 +343,7 @@ facts rather than the original claim.
 
 | # | Verdict | Caveat |
 |---|---|---|
-| 106, 146, 152 | **PARTIAL** | Genuinely fixed on Chrome. #146's reporter said *"I have only used the extension with Firefox"* and #106's thread implies it — on Firefox this exists only behind the off-by-default **experimental** reroute that can lose POST bodies and expiring URLs. |
+| 106, 146, 152 | **PARTIAL** | Genuinely fixed on Chrome. #146's reporter said *"I have only used the extension with Firefox"* and #106's thread implies it — on Firefox this exists only behind the off-by-default **experimental** reroute that can lose POST bodies and expiring URLs. **#152 is now live-verified in both browsers** (2026-07-23): the shared e2e case *"an anchor's download attribute names and routes an ordinary browser download"* (`runDownloadAttributeRoutingScenario`, `test/e2e/shared-scenarios.mjs`) clicks a same-origin `<a download>` whose href basename differs from the attribute value, and a `filename:` rule keyed to that value routes it — Chrome through `onDeterminingFilename`, Firefox through the experimental replacement, whose `onCreated` item already carries the attribute-derived name, so `filename:` rules see the attribute, not the URL basename. Two limits stay in the reply: `blob:`-minted download buttons are out of scope (`isReroutableBrowserDownload` requires HTTP(S); a roadmap non-goal), and like #196 the reply must name the opt-in — `routeBrowserDownloads`, or on Firefox the experimental toggle — or the reporter bounces off the default-off feature. |
 | 184 | **PARTIAL — and that is the ceiling** | Only the *update* icon got theme detection. The **archive** icon in the reporter's screenshot is the manifest's, drawn on the top-level item, and it cannot be themed: Firefox takes a custom icon only on an item inside a submenu, so giving the root `icons` fails that create and every child keyed to its `parentId` with it — measured 2026-07-17, Firefox e2e 3/3 → 1/3 and a background that never reports ready. Chrome cannot either: `contextMenus.create` rejects `icons` by schema validation (measured on 150: "Unexpected property: 'icons'"). So the remaining half is browser-owned, not unfinished, and his userChrome.css workaround is still the only answer. Do not read "no white asset exists" as a to-do: an asset was written, and the browser refused it. |
 | 218 | **NEEDS-RETEST** | Root cause was never established by the reporter — no diagnostics, no mention of Referer. Both fixes are inert unless `setRefererHeader` is enabled (defaults false). Closing asserts a diagnosis the issue never made. |
 | 226 | FIXED / split | Original (alt-click a PDF link) fixed, `content.ts:74-146` (`findSource`), tested. A second commenter reports alt-click ignoring "prefer link over media" — that is real: `preferLinks` is not a content option, so `findSource` cannot consult it. Close on the original only. |

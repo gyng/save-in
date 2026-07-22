@@ -7,6 +7,7 @@ import {
   runContextMenuScenario,
   runLinkMetadataRoutingScenario,
   runCssRoutingScenario,
+  runDownloadAttributeRoutingScenario,
   runQuickSaveScenario,
   runFailedDownloadLogScenario,
   runHistoryCancellationScenario,
@@ -128,6 +129,15 @@ export const registerSharedBrowserCases = (adapters) => {
 
   test("CSS routes automatic and manual Page Sources by their originating element", async () => {
     await runCssRoutingScenario({ control, evaluatePage, browserLabel });
+  });
+
+  test("an anchor's download attribute names and routes an ordinary browser download", async () => {
+    await runDownloadAttributeRoutingScenario({
+      control,
+      evaluatePage,
+      waitForDownloads,
+      browserLabel,
+    });
   });
 
   test("a rename: clause edits the final filename of a routed save", async () => {

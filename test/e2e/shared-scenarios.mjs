@@ -1361,6 +1361,83 @@ into: e2e/css-manual-${browserLabel}/:filename:`,
 /**
  * @param {{
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   evaluatePage: (target: string, expression: string) => Promise<unknown>,
+ *   waitForDownloads: (filename: string, timeoutMs?: number) => Promise<DownloadSummary[]>,
+ *   browserLabel: "chrome" | "firefox",
+ * }} adapters
+ */
+export const runDownloadAttributeRoutingScenario = async ({
+  control,
+  evaluatePage,
+  waitForDownloads,
+  browserLabel,
+}) => {
+  // The href is extensionless and the response carries no Content-Disposition,
+  // so the anchor's download attribute is the only source of this filename.
+  // Routing on it proves the attribute-named download reached the ordinary
+  // browser-download rule engine (#152).
+  const attributeName = `attr-named-${browserLabel}.bin`;
+  const server = http.createServer((req, res) => {
+    if (req.url === "/attr-asset") {
+      res.writeHead(200, { "Content-Type": "application/octet-stream" });
+      res.end("download attribute payload");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(`<a id="attr" href="/attr-asset" download="${attributeName}">download</a>`);
+  });
+  const port = await listenLocal(server);
+  const target = `127.0.0.1:${port}`;
+  const pageUrl = `http://${target}/`;
+  const routeOption =
+    browserLabel === "chrome"
+      ? { routeBrowserDownloads: true }
+      : { routeBrowserDownloadsFirefox: true };
+  const routeOptionOff =
+    browserLabel === "chrome"
+      ? { routeBrowserDownloads: false }
+      : { routeBrowserDownloadsFirefox: false };
+  let tabId;
+
+  try {
+    await control.options.set({
+      trackBrowserDownloads: true,
+      ...routeOption,
+      browserDownloadFilter: "*://127.0.0.1/*",
+      filenamePatterns: `filename: ^attr-named-${browserLabel}\\.bin$\ninto: attr-routed-${browserLabel}/:filename:`,
+    });
+    const created = await control.tabs.create({ url: pageUrl, active: true });
+    tabId = created.id;
+    await control.tabs.wait(tabId === undefined ? { urlIncludes: target } : { id: tabId });
+    await evaluatePage(target, `document.querySelector("#attr").click(); true`);
+
+    // The Chrome suite waits by regex and the Firefox suite by substring, so
+    // wait on the shared folder literal and pin the attribute name separately.
+    const rows = await waitForDownloads(`attr-routed-${browserLabel}`);
+    expect(
+      rows.some((row) => row.state === "complete" && row.filename.endsWith(attributeName)),
+    ).toBe(true);
+    const observed = await control.history.wait({ context: "browser", status: "complete" });
+    expect(observed.at(-1)).toMatchObject({
+      status: "complete",
+      finalFullPath: expect.stringContaining(`attr-routed-${browserLabel}`),
+      info: { context: "browser" },
+    });
+  } finally {
+    if (tabId !== undefined) await control.tabs.remove(tabId).catch(() => {});
+    await control.options.set({
+      trackBrowserDownloads: false,
+      ...routeOptionOff,
+      browserDownloadFilter: "",
+      filenamePatterns: "",
+    });
+    await closeLocal(server);
+  }
+};
+
+/**
+ * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  * }} adapters
  */
