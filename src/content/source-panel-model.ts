@@ -624,8 +624,7 @@ export const positionSourceTooltip = (
 // manifest rows in an already-merged timing map; resourceTimingByUrl reuses
 // it as the initial snapshot's pin predicate, since at open time no
 // resourceHintSources/selections exist yet to pin by.
-export const isResourceHintManifestUrl = (url: string): boolean =>
-  /\.(?:m3u8|mpd)(?:$|[?#])/i.test(url);
+const isResourceHintManifestUrl = (url: string): boolean => /\.(?:m3u8|mpd)(?:$|[?#])/i.test(url);
 
 export const resourceTimingByUrl = (
   entries: PerformanceEntry[] = performance.getEntriesByType("resource"),
