@@ -288,10 +288,10 @@ export const setupAutoDownloadDiscovery = (
       }
       if (excludedByRule) {
         if (excluded.size >= AUTO_EXCLUSION_CACHE_LIMIT) {
-          // The size check proves next() yields a string; TypeScript does not
-          // correlate Set.size with the iterator result.
-          const oldest = excluded.values().next() as IteratorYieldResult<string>;
-          excluded.delete(oldest.value);
+          for (const oldest of excluded) {
+            excluded.delete(oldest);
+            break;
+          }
         }
         excluded.add(seenKey);
         continue;

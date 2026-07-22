@@ -457,7 +457,7 @@ export const attachAutocomplete = (
 
 export const setupRoutingAutocomplete = (keywords: RoutingKeywords) => {
   const variables = sortVariables(keywords.variables);
-  const matchers = sortClauses([...keywords.matchers, "into", "fetch"]);
+  const matchers = sortClauses([...keywords.matchers, "into", "fetch", "exclude", "tab"]);
   const options: AutocompleteOptions = keywords.variableValues
     ? { variableValues: keywords.variableValues }
     : {};
