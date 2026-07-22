@@ -72,8 +72,13 @@ const capturesLinkMetadata = (source: string): boolean =>
     .map((name) => name.trim().toLowerCase())
     .some((name) => name === "linktitle" || name === "linkdownload");
 
-const usesContextLinkMetadata = (): boolean => {
+const usesContextLinkMetadata = (storedDestinationPath?: string): boolean => {
   if (usesLinkMetadataVariable(options.paths)) return true;
+  // Last used and recent-destination clicks save into a STORED path string
+  // that can still contain :linktitle:/:linkdownload: after the user removed
+  // every use of it from options.paths — that stored copy is not options.paths
+  // and would otherwise never be scanned here.
+  if (storedDestinationPath && usesLinkMetadataVariable(storedDestinationPath)) return true;
   const rules = options.filenamePatterns;
   if (!Array.isArray(rules)) return false;
   return rules.some((rule) =>
@@ -98,9 +103,10 @@ const usesContextLinkMetadata = (): boolean => {
 const readContextLinkMetadata = async (
   info: ContextMenuClickInfo,
   tab: CurrentTab | null | undefined,
+  storedDestinationPath?: string,
 ): Promise<ContextLinkMetadata | null> => {
   if (
-    !usesContextLinkMetadata() ||
+    !usesContextLinkMetadata(storedDestinationPath) ||
     !isBrowserTabId(tab?.id) ||
     typeof info.linkUrl !== "string" ||
     info.linkUrl.length > MAX_CONTEXT_LINK_URL_LENGTH
@@ -270,7 +276,11 @@ const handleContextMenuClickInternal = async (
   // behind or belong to another window, and its title is mutated by
   // later tab updates (#172, #188)
   const clickTab = tab || currentTab;
-  const privateContext = clickTab?.incognito === true;
+  // Harden the privacy classification independently of which candidate wins
+  // above: if the browser ever delivered onClicked without a tab while
+  // currentTab pointed at a public one (or vice versa), a private candidate
+  // from EITHER source must still classify this click as private.
+  const privateContext = tab?.incognito === true || currentTab?.incognito === true;
   const isolatedPrivateContext = privateContext && !options.persistPrivateActivity;
 
   const menuInfo = menuState.pathMappings[info.menuItemId];
@@ -289,7 +299,18 @@ const handleContextMenuClickInternal = async (
     }
 
     const downloadType = target.downloadType;
-    const contextLinkMetadata = await readContextLinkMetadata(info, clickTab);
+    // The destination this click is about to resolve to: Last used and
+    // recent-destination items save into a stored path string, not
+    // options.paths, so the metadata-usage gate must see it too.
+    const storedDestinationPath =
+      info.menuItemId === MENU_IDS.LAST_USED
+        ? (getLastUsed(isolatedPrivateContext).path ?? undefined)
+        : menuInfo?.parsedDir;
+    const contextLinkMetadata = await readContextLinkMetadata(
+      info,
+      clickTab,
+      storedDestinationPath,
+    );
     // A text selection is saved as an object URL of its text (the pure
     // decision only reports the text)
     let url = target.selectionText != null ? makeObjectUrl(target.selectionText) : target.url;
