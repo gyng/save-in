@@ -3942,6 +3942,9 @@
   "savedUndoBlocked": {
     "message": "元に戻す前に、他の編集を完了または破棄してください。"
   },
+  "savedUndoDeclined": {
+    "message": "元に戻す操作をキャンセルしました"
+  },
   "externalApiUnknown": {
     "message": "不明"
   },

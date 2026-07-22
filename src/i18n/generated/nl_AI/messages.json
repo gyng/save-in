@@ -3942,6 +3942,9 @@
   "savedUndoBlocked": {
     "message": "Voltooi of verwerp uw andere bewerkingen voordat u iets ongedaan maakt."
   },
+  "savedUndoDeclined": {
+    "message": "Ongedaan maken geannuleerd"
+  },
   "externalApiUnknown": {
     "message": "Onbekend"
   },

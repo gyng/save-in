@@ -3940,6 +3940,9 @@
   "savedUndoBlocked": {
     "message": "請先完成或捨棄其他編輯，再執行復原。"
   },
+  "savedUndoDeclined": {
+    "message": "復原已取消"
+  },
   "externalApiUnknown": {
     "message": "未知"
   },

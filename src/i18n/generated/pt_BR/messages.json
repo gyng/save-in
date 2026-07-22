@@ -3942,6 +3942,9 @@
   "savedUndoBlocked": {
     "message": "Conclua ou descarte suas outras edições antes de desfazer."
   },
+  "savedUndoDeclined": {
+    "message": "Desfazer cancelado"
+  },
   "externalApiUnknown": {
     "message": "Desconhecido"
   },

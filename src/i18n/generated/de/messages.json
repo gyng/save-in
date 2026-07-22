@@ -3942,6 +3942,9 @@
   "savedUndoBlocked": {
     "message": "Beenden oder verwerfen Sie Ihre anderen Änderungen, bevor Sie etwas rückgängig machen."
   },
+  "savedUndoDeclined": {
+    "message": "Rückgängig machen abgebrochen"
+  },
   "externalApiUnknown": {
     "message": "Unbekannt"
   },

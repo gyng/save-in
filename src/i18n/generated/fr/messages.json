@@ -3942,6 +3942,9 @@
   "savedUndoBlocked": {
     "message": "Terminez ou abandonnez vos autres modifications avant d’annuler."
   },
+  "savedUndoDeclined": {
+    "message": "Annulation refusée"
+  },
   "externalApiUnknown": {
     "message": "Inconnu"
   },

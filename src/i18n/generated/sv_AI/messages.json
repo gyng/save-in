@@ -3942,6 +3942,9 @@
   "savedUndoBlocked": {
     "message": "Slutför eller kassera dina andra ändringar innan du ångrar."
   },
+  "savedUndoDeclined": {
+    "message": "Ångra avbröts"
+  },
   "externalApiUnknown": {
     "message": "Okänd"
   },

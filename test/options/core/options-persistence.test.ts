@@ -272,7 +272,7 @@ describe("options persistence", () => {
     confirmChanges.mockClear();
     confirmChanges.mockResolvedValueOnce(false);
     vi.mocked(browser.i18n.getMessage).mockReturnValueOnce("");
-    await expect(undo?.()).rejects.toThrow("Undo cancelled");
+    await expect(undo?.()).rejects.toThrow("Undo canceled");
     expect(confirmChanges).toHaveBeenCalledWith([
       { name: "historyRetentionLimit", before: 5000, after: 100 },
     ]);

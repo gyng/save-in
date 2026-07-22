@@ -103,7 +103,7 @@ export const createOptionsPersistence = (ports: OptionsPersistencePorts) => {
           after: before,
         }));
         if (!(await ports.confirmChanges(reverted))) {
-          throw new Error(getMessage("savedUndoDeclined") || "Undo cancelled");
+          throw new Error(getMessage("savedUndoDeclined") || "Undo canceled");
         }
       }
       const undoConfig = Object.fromEntries(changes.map(({ name, before }) => [name, before]));

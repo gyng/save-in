@@ -3942,6 +3942,9 @@
   "savedUndoBlocked": {
     "message": "Finaliza o descarta los demás cambios antes de deshacer."
   },
+  "savedUndoDeclined": {
+    "message": "Deshacer cancelado"
+  },
   "externalApiUnknown": {
     "message": "Desconocido"
   },

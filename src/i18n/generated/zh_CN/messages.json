@@ -3938,6 +3938,9 @@
   "savedUndoBlocked": {
     "message": "请先完成或放弃其他编辑，再执行撤销。"
   },
+  "savedUndoDeclined": {
+    "message": "撤销已取消"
+  },
   "externalApiUnknown": {
     "message": "未知"
   },
