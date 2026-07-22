@@ -504,7 +504,6 @@ const handleContextMenuClickInternal = async (
       menuInfo?.tabAction ??
       state.scratch.routeTabAction ??
       (options.closeTabOnSave && downloadType === DOWNLOAD_TYPES.PAGE ? "close" : undefined);
-    const routingTabAction = menuInfo?.tabAction == null && state.scratch.routeTabAction != null;
     if (
       routingAccepted &&
       tabAction &&
@@ -515,8 +514,7 @@ const handleContextMenuClickInternal = async (
       const tabId = clickTab.id;
       try {
         if (tabAction === "close") {
-          if (routingTabAction) await closeRoutingSourceTab(clickTab, tabId);
-          else await webExtensionApi.tabs.remove(tabId);
+          await closeRoutingSourceTab(clickTab, tabId);
         } else {
           await webExtensionApi.tabs.update(tabId, { active: true });
         }

@@ -172,11 +172,7 @@ export const handleTabMenuClick = async (
         const tabId = t.id;
         if (tabId == null) continue;
         try {
-          if (state.scratch.routeTabAction === "close") {
-            await closeRoutingSourceTab(t, tabId);
-          } else {
-            await webExtensionApi.tabs.remove(tabId);
-          }
+          await closeRoutingSourceTab(t, tabId);
         } catch (error) {
           // The tab may have been closed manually while its save was starting;
           // that must not prevent later tabs in the batch from being saved.

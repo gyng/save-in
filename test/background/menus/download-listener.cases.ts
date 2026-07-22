@@ -922,6 +922,23 @@ describe("addDownloadListener", () => {
     expect(global.browser.tabs.remove).toHaveBeenCalledWith(42);
   });
 
+  test("closeTabOnSave does not close unrelated content after source navigation", async () => {
+    options.closeTabOnSave = true;
+    (global.browser as any).tabs = {
+      get: vi.fn(() => Promise.resolve({ id: 42, url: "https://example.com/replaced" })),
+      remove: vi.fn(),
+    };
+
+    Menus.addPaths(["dir1"], ["page"]);
+    await listener(
+      { menuItemId: "save-in-0", pageUrl: "https://example.com/original" },
+      { id: 42, title: "Title", url: "https://example.com/original" },
+    );
+
+    expect(global.browser.tabs.get).toHaveBeenCalledWith(42);
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+  });
+
   test("a page-save tab-close race does not reject the menu handler", async () => {
     options.closeTabOnSave = true;
     (global.browser as any).tabs = {

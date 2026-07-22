@@ -263,14 +263,8 @@ describe("addTabMenuListener tabstrip downloads", () => {
     expect(global.browser.tabs.remove).toHaveBeenCalledWith(2);
   });
 
-  test("a matched rule keeps its navigation guard when global close is also enabled", async () => {
+  test("global close keeps its navigation guard when the saved tab is replaced", async () => {
     options.closeTabOnSave = true;
-    vi.mocked(Download.launchDownload).mockImplementationOnce(
-      async (state: DownloadPipelineState) => {
-        state.scratch.routeTabAction = "close";
-        return { status: "started", downloadId: 1 };
-      },
-    );
     vi.mocked(global.browser.tabs.get).mockResolvedValueOnce({
       id: 2,
       index: 1,
