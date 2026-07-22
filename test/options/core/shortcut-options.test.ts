@@ -296,9 +296,16 @@ describe("shortcut option controller", () => {
     expect(document.querySelector("#clickToSaveStatus")!.textContent).toBe(
       "Do not repeat keys or modifiers.",
     );
+    // A disabled button swallows click(); force it so the handler's own
+    // guard is what keeps a conflicting selection from being written.
+    apply.disabled = false;
     const bindingsField = document.querySelector<HTMLInputElement>("#contentClickToSaveBindings")!;
     expect(() => apply.click()).not.toThrow();
     expect(bindingsField.value).toBe("");
+    expect(apply.disabled).toBe(true);
+    expect(document.querySelector("#clickToSaveStatus")!.textContent).toBe(
+      "Do not repeat keys or modifiers.",
+    );
   });
 
   test("contains Add when every compatible gesture is already bound", () => {
