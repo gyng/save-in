@@ -38,7 +38,11 @@ import {
   resolveClickToSaveBindings,
   type ClickGesture,
 } from "../shared/click-gesture.ts";
-import { createDoubleClickTracker, isSingleGestureButton } from "./click-gesture-model.ts";
+import {
+  createDoubleClickTracker,
+  createFollowUpSuppressor,
+  isSingleGestureButton,
+} from "./click-gesture-model.ts";
 import { parseRegularExpressionList } from "../shared/pattern-list.ts";
 import { configureContentPorts } from "./ports.ts";
 import {
@@ -261,6 +265,7 @@ const setupClickToSave = (
       first.element === second.element && first.url === second.url && first.kind === second.kind,
   );
   let suppressDoubleClickOn: Element | null = null;
+  const followUps = createFollowUpSuppressor();
 
   const eventKeyCode = (e: KeyboardEvent) => {
     const named: Record<string, number> = { Alt: 18, Control: 17, Shift: 16, Meta: 91 };
@@ -297,6 +302,7 @@ const setupClickToSave = (
     active = {};
     doubleClick.reset();
     suppressDoubleClickOn = null;
+    followUps.disarm();
   };
   window.addEventListener("focus", resetActive, { signal: controller.signal });
   window.addEventListener("blur", resetActive, { signal: controller.signal });
@@ -320,6 +326,9 @@ const setupClickToSave = (
       // navigation onto or off the disable list takes effect immediately.
       if (isDisabled()) return;
       suppressDoubleClickOn = null;
+      // Every new press clears any follow-up suppression a previous matched
+      // gesture armed; only the arm below, on a fresh match, re-creates it.
+      followUps.disarm();
       const binding = shortcutOptions.find(
         ({ keyCodes, gesture }) =>
           ClickToSave.isKeyboardComboActive(keyCodes, active) &&
@@ -346,6 +355,10 @@ const setupClickToSave = (
 
       e.preventDefault();
       e.stopImmediatePropagation();
+      // Canceling this mousedown does not cancel what the same input sequence
+      // triggers afterwards (context menu, middle-click link navigation), so
+      // arm a one-shot suppression for the matched gesture's follow-up events.
+      followUps.arm(binding.gesture, e.button);
       const linkMetadata = contextLinkMetadataFromEvent(e);
       void sendRuntimeDownload(
         {
@@ -373,6 +386,32 @@ const setupClickToSave = (
     },
     listenerOptions,
   );
+
+  // Follow-up suppression for a matched middle/right gesture. Only real input
+  // consumes the one-shot state: a page-synthesized event must be able neither
+  // to burn the suppression before the browser's own follow-up arrives nor to
+  // have its default action canceled by us.
+  //
+  // Back/forward (buttons 3/4) intentionally have no handler here. Measured
+  // 2026-07 with Chrome 150 (CDP Input.dispatchMouseEvent, headless and
+  // headed) and Firefox 152 (BiDi input.performActions, headless): both
+  // browsers deliver cancelable pointerdown/mousedown/pointerup/mouseup for
+  // buttons 3/4 to content — so the bindings work in both — but Chrome also
+  // fires auxclick while Firefox does not, and NEITHER browser triggered
+  // history navigation from protocol-synthesized input, with or without
+  // preventDefault on any of those events. The real-hardware back/forward
+  // action is decided above the content layer, no content event was shown to
+  // gate it, and an unverifiable mouseup/pointerup handler would only cancel
+  // unrelated page defaults.
+  const suppressFollowUp = (e: MouseEvent) => {
+    if (!acceptInput(e)) return;
+    if (!followUps.suppress(e.type, e.button)) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  };
+  window.addEventListener("contextmenu", suppressFollowUp, listenerOptions);
+  window.addEventListener("auxclick", suppressFollowUp, listenerOptions);
+  window.addEventListener("click", suppressFollowUp, listenerOptions);
 
   const suppressCompletedDoubleClick = (e: MouseEvent) => {
     if (

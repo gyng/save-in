@@ -1959,6 +1959,154 @@ describe("setupClickToSave", () => {
     remove();
   });
 
+  const followUp = (type: string, button: number, target: EventTarget | null) => {
+    const e = new MouseEvent(type, { button, bubbles: true, cancelable: true });
+    vi.spyOn(e, "preventDefault");
+    vi.spyOn(e, "stopImmediatePropagation");
+    target?.dispatchEvent(e);
+    return e;
+  };
+
+  test("a matched middle gesture cancels its follow-up auxclick and click once", () => {
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.MIDDLE, combo: "Ctrl" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+    );
+    const img = document.getElementById("i");
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(img, 4);
+    expect(downloadsSent()).toHaveLength(1);
+
+    // The browser's own follow-ups for the same press are canceled...
+    const auxclick = followUp("auxclick", 1, img);
+    expect(auxclick.preventDefault).toHaveBeenCalled();
+    expect(auxclick.stopImmediatePropagation).toHaveBeenCalled();
+    const click = followUp("click", 1, img);
+    expect(click.preventDefault).toHaveBeenCalled();
+
+    // ...and only once: the arm is one-shot per matched mousedown.
+    const later = followUp("auxclick", 1, img);
+    expect(later.preventDefault).not.toHaveBeenCalled();
+    remove();
+  });
+
+  test("a matched right gesture cancels the context menu for that press only", () => {
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.RIGHT, combo: "Ctrl" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+    );
+    const img = document.getElementById("i");
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(img, 2);
+    expect(downloadsSent()).toHaveLength(1);
+    const matchedMenu = followUp("contextmenu", 2, img);
+    expect(matchedMenu.preventDefault).toHaveBeenCalled();
+
+    // An ordinary right click (combo released, no match) keeps its menu.
+    window.dispatchEvent(keyEvent("keyup", 17));
+    mousedown(img, 2);
+    expect(downloadsSent()).toHaveLength(1);
+    const ordinaryMenu = followUp("contextmenu", 2, img);
+    expect(ordinaryMenu.preventDefault).not.toHaveBeenCalled();
+    remove();
+  });
+
+  test("an unmatched press never suppresses follow-ups", () => {
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.MIDDLE, combo: "Ctrl" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+    );
+    const img = document.getElementById("i");
+    mousedown(img, 4);
+    expect(downloadsSent()).toHaveLength(0);
+    const auxclick = followUp("auxclick", 1, img);
+    expect(auxclick.preventDefault).not.toHaveBeenCalled();
+    remove();
+  });
+
+  test("page-synthesized follow-ups neither consume nor receive the suppression", () => {
+    const acceptMarked = (event: KeyboardEvent | MouseEvent) =>
+      (event as unknown as { __real?: boolean }).__real === true;
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.MIDDLE, combo: "" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptMarked,
+    );
+    const img = document.getElementById("i");
+    const press = new MouseEvent("mousedown", {
+      button: 1,
+      buttons: 4,
+      detail: 1,
+      bubbles: true,
+      cancelable: true,
+    });
+    (press as unknown as { __real?: boolean }).__real = true;
+    img?.dispatchEvent(press);
+    expect(downloadsSent()).toHaveLength(1);
+
+    // A page-generated auxclick must not be canceled and must not burn the
+    // one-shot before the browser's own (trusted) follow-up arrives.
+    const synthetic = followUp("auxclick", 1, img);
+    expect(synthetic.preventDefault).not.toHaveBeenCalled();
+
+    const trusted = new MouseEvent("auxclick", { button: 1, bubbles: true, cancelable: true });
+    (trusted as unknown as { __real?: boolean }).__real = true;
+    vi.spyOn(trusted, "preventDefault");
+    img?.dispatchEvent(trusted);
+    expect(trusted.preventDefault).toHaveBeenCalled();
+    remove();
+  });
+
+  test("focus loss clears an armed follow-up suppression", () => {
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.MIDDLE, combo: "Ctrl" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+    );
+    const img = document.getElementById("i");
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(img, 4);
+    expect(downloadsSent()).toHaveLength(1);
+
+    window.dispatchEvent(new Event("blur"));
+    const auxclick = followUp("auxclick", 1, img);
+    expect(auxclick.preventDefault).not.toHaveBeenCalled();
+    remove();
+  });
+
   test("double-left does not combine presses from different sources", () => {
     const remove = ClickToSave.setupClickToSave(
       {
