@@ -13,8 +13,17 @@ const POLL_INTERVAL_MS = 1000;
 let historyProgressTimer: ReturnType<typeof setTimeout> | null = null;
 let historyProgressGeneration = 0;
 
+// Download ids the browser has already reported terminal (complete/
+// interrupted) on some earlier poll, but whose stored history entry is still
+// "pending" (the background died at the completion instant). Cleared on
+// every stopHistoryProgress() — i.e. at the start of every startHistoryProgress()
+// decision and whenever nothing is left to track — so it never outlives the
+// render cycle that produced it.
+const stuckFinishedIds = new Set<number>();
+
 export const stopHistoryProgress = (): void => {
   historyProgressGeneration += 1;
+  stuckFinishedIds.clear();
   if (historyProgressTimer) {
     clearTimeout(historyProgressTimer);
     historyProgressTimer = null;
@@ -63,7 +72,8 @@ const pollHistoryProgress = async (generation: number): Promise<void> => {
     let anyInProgress = false;
     let anyFinished = false;
     cells.forEach((cell) => {
-      const item = byId.get(Number(cell.getAttribute("data-download-id")));
+      const id = Number(cell.getAttribute("data-download-id"));
+      const item = byId.get(id);
       if (item && item.state === "in_progress") {
         anyInProgress = true;
         const { label, title } = progressCell(item);
@@ -72,6 +82,7 @@ const pollHistoryProgress = async (generation: number): Promise<void> => {
       } else if (item) {
         // completed/interrupted -> re-render to pick up the stored status+size
         anyFinished = true;
+        stuckFinishedIds.add(id);
       } else {
         // the browser no longer knows this download: stop polling this cell
         cell.textContent = "—";
@@ -91,11 +102,26 @@ const pollHistoryProgress = async (generation: number): Promise<void> => {
 };
 
 export const startHistoryProgress = (): void => {
+  const nativeProgressCells = [
+    ...document.querySelectorAll<HTMLElement>(".history-progress[data-download-id]"),
+  ];
+  const visibleIds = nativeProgressCells.map((cell) =>
+    Number(cell.getAttribute("data-download-id")),
+  );
+  // Every currently visible progress cell already reported terminal on a
+  // previous poll, yet the row it belongs to is still "pending" after the
+  // re-render: the stored entry never advanced, so polling again immediately
+  // would just repeat the same finished-render-finished cycle with no delay.
+  const allKnownStuck = visibleIds.length > 0 && visibleIds.every((id) => stuckFinishedIds.has(id));
   stopHistoryProgress();
   const generation = historyProgressGeneration;
-  const hasNativeProgress = document.querySelector(".history-progress[data-download-id]");
-  if (hasNativeProgress || document.querySelector(".history-cancel")) {
-    if (hasNativeProgress) void pollHistoryProgress(generation);
-    else scheduleHistoryProgress(generation);
+  if (allKnownStuck) {
+    scheduleHistoryProgress(generation);
+    return;
+  }
+  if (nativeProgressCells.length > 0) {
+    void pollHistoryProgress(generation);
+  } else if (document.querySelector(".history-cancel")) {
+    scheduleHistoryProgress(generation);
   }
 };

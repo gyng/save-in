@@ -1138,6 +1138,45 @@ describe("history filter controls", () => {
     expect(document.querySelector(".history-cancel")).toBeNull();
   });
 
+  test("delays re-polling a stuck-pending entry instead of recursing immediately", async () => {
+    // The browser reports this download terminal on every poll, but the
+    // stored entry never advances past "pending" (background died at the
+    // completion instant). Without a bound, the finished -> re-render ->
+    // still-pending -> immediate-poll cycle would spin with no delay.
+    vi.useFakeTimers();
+    historyRuntime.entries = [
+      { id: "h-stuck", status: "pending", downloadId: 7, finalFullPath: "stuck.iso" },
+    ];
+    // Defer the first search result so the initial render (and its dedup
+    // bookkeeping) is fully settled before the finished-poll cascade starts;
+    // resolving it earlier races the render this resolution triggers.
+    let resolveFirstSearch: (items: Array<Record<string, unknown>>) => void = () => {};
+    historyRuntime.search.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveFirstSearch = resolve;
+        }),
+    );
+    const { renderHistory } = historyPanel;
+    await renderHistory();
+
+    historyRuntime.search.mockResolvedValue([
+      { id: 7, state: "complete", bytesReceived: 100, totalBytes: 100 },
+    ]);
+    resolveFirstSearch([{ id: 7, state: "complete", bytesReceived: 100, totalBytes: 100 }]);
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(historyRuntime.search).toHaveBeenCalledTimes(1);
+    expect(document.querySelector(".history-progress[data-download-id]")).not.toBeNull();
+    expect(vi.getTimerCount()).toBe(1);
+
+    await vi.advanceTimersByTimeAsync(999);
+    expect(historyRuntime.search).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(historyRuntime.search).toHaveBeenCalledTimes(2);
+  });
+
   test("refreshes pending history before a native download id is available", async () => {
     vi.useFakeTimers();
     historyRuntime.entries = [{ id: "h-pending", status: "pending", finalFullPath: "instant.txt" }];
