@@ -138,6 +138,20 @@ test("rejects fixed sleeps outside the two audited infrastructure backoffs", () 
   ]);
 });
 
+test("also enforces the fixed-delay ceiling for scripts/lib control-plane modules", () => {
+  const fourDelays = `setTimeout(a); setTimeout(b); setTimeout(c); setTimeout(d);`;
+  expect(fixedDelayErrors("scripts/lib/firefox-bidi.js", fourDelays)).toEqual([]);
+  expect(fixedDelayErrors("scripts/lib/firefox-bidi.js", `${fourDelays} setTimeout(e);`)).toEqual([
+    expect.stringContaining("fixed delays increased to 5"),
+  ]);
+  expect(fixedDelayErrors("scripts/lib/firefox-bidi.js", "setTimeout(a); setTimeout(b);")).toEqual([
+    expect.stringContaining("lower its recorded ceiling from 4"),
+  ]);
+  expect(fixedDelayErrors("scripts/lib/chrome.js", "setTimeout(a);")).toEqual([
+    expect.stringContaining("fixed delays increased to 1; ceiling is 0"),
+  ]);
+});
+
 test("allows only the documented raw-background evaluator adapter", () => {
   expect(
     evaluatorReferenceErrors(

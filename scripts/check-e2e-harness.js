@@ -321,6 +321,18 @@ const fixedDelayErrors = (file, source) => {
   const approved = new Map([
     ["test/e2e/helpers.mjs", 1],
     ["test/e2e/harness-session.mjs", 1],
+    // scripts/lib/*.js ceilings below are pre-existing sites the checker did
+    // not previously scan, fixed at their current count rather than 0: each
+    // is a bounded one-shot connection/command timeout guard or a
+    // pre-session reconnect backoff, not a periodic state re-poll. Migrating
+    // one lowers its ceiling here; do not raise any of them without an
+    // accompanying migration.
+    ["scripts/lib/cdp.js", 2],
+    ["scripts/lib/e2e-cleanup.js", 1],
+    ["scripts/lib/firefox-bidi.js", 4],
+    ["scripts/lib/firefox-rdp.js", 2],
+    ["scripts/lib/firefox.js", 1],
+    ["scripts/lib/process-tree.js", 1],
   ]);
   const expected = approved.get(file) ?? 0;
   const direct = callCount(
@@ -388,14 +400,15 @@ const evaluatorReferenceErrors = (file, source, evaluator) => {
 
 /**
  * @param {string} directory
+ * @param {string} [extension]
  * @returns {string[]}
  */
-const moduleFiles = (directory) =>
+const moduleFiles = (directory, extension = ".mjs") =>
   fs.readdirSync(path.join(root, directory), { withFileTypes: true }).flatMap((entry) => {
     const relative = path.join(directory, entry.name);
     return entry.isDirectory()
-      ? moduleFiles(relative)
-      : entry.isFile() && entry.name.endsWith(".mjs")
+      ? moduleFiles(relative, extension)
+      : entry.isFile() && entry.name.endsWith(extension)
         ? [relative.replaceAll(path.sep, "/")]
         : [];
   });
@@ -412,6 +425,16 @@ const main = () => {
     errors.push(...evaluationTypingErrors(file, source));
     errors.push(...runnerPollingErrors(file, source));
     errors.push(...runnerPollBudgetErrors(file, source));
+    errors.push(...fixedDelayErrors(file, source));
+  }
+
+  // scripts/lib/*.js drives both browsers' e2e control plane (WebSocket/CDP
+  // connections, protocol commands) but sits outside test/e2e; a re-poll
+  // hiding there is exactly as costly as one in a *.mjs scenario. There is no
+  // `control.*`/`poll` structured-wait vocabulary in this layer, so only the
+  // fixed-delay check applies here.
+  for (const file of moduleFiles("scripts/lib", ".js")) {
+    const source = fs.readFileSync(path.join(root, file), "utf8");
     errors.push(...fixedDelayErrors(file, source));
   }
   /** @type {Array<[string, string]>} */

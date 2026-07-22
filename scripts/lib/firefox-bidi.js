@@ -46,6 +46,32 @@
 /** @param {unknown} value @returns {value is Record<string, unknown>} */
 const isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 
+/**
+ * Extracts the context id and url from a `browsingContext.contextCreated` or
+ * `browsingContext.contextDestroyed` event payload. The WebDriver BiDi spec
+ * puts `context` and `url` directly on `params` (a `BrowsingContextInfo`);
+ * the nested `params.context.{context,url}` fallback covers a wrapped shape
+ * this module has also seen from Firefox.
+ *
+ * @param {unknown} params
+ */
+const contextEventInfo = (params) => {
+  if (!isRecord(params)) return undefined;
+  const context =
+    typeof params.context === "string"
+      ? params.context
+      : isRecord(params.context) && typeof params.context.context === "string"
+        ? params.context.context
+        : undefined;
+  const url =
+    typeof params.url === "string"
+      ? params.url
+      : isRecord(params.context) && typeof params.context.url === "string"
+        ? params.context.url
+        : undefined;
+  return { context, url };
+};
+
 /** @param {WebSocket} socket @param {number} timeoutMs */
 const waitForSocketOpen = (socket, timeoutMs) =>
   new Promise((resolve, reject) => {
@@ -189,21 +215,58 @@ class FirefoxBidi {
     });
   }
 
-  /** @param {string} urlSubstr @param {number} [timeoutMs] */
+  /**
+   * Resolves once a context matching `urlSubstr` exists, without re-polling
+   * `browsingContext.getTree`: one initial tree check covers the
+   * already-satisfied case, then a one-shot subscription to the lifecycle
+   * events `ensureLifecycleEvents` already requests resolves on the matching
+   * `browsingContext.contextCreated` event, bounded by a single failsafe
+   * timeout.
+   *
+   * @param {string} urlSubstr @param {number} [timeoutMs]
+   */
   async waitForContext(urlSubstr, timeoutMs = 5000) {
-    const deadline = Date.now() + timeoutMs;
-    let lastError;
     await this.ensureLifecycleEvents();
-    while (Date.now() < deadline) {
-      try {
-        return await this.findContext(urlSubstr);
-      } catch (error) {
-        lastError = error;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 25));
+    try {
+      return await this.findContext(urlSubstr);
+    } catch (error) {
+      return this.waitForContextCreated(urlSubstr, timeoutMs, error);
     }
-    throw new Error(`Firefox did not expose a BiDi context matching "${urlSubstr}"`, {
-      cause: lastError,
+  }
+
+  /**
+   * @param {string} urlSubstr
+   * @param {number} timeoutMs
+   * @param {unknown} [initialError]
+   */
+  waitForContextCreated(urlSubstr, timeoutMs, initialError) {
+    return new Promise((resolve, reject) => {
+      const cleanup = () => {
+        clearTimeout(timer);
+        this.realms.delete(watcher);
+      };
+      const watcher = {
+        /** @param {string} method @param {unknown} params */
+        handleEvent: (method, params) => {
+          if (method !== "browsingContext.contextCreated") return;
+          const info = contextEventInfo(params);
+          if (info?.context && info.url?.includes(urlSubstr)) {
+            cleanup();
+            resolve(info.context);
+          }
+        },
+        close: cleanup,
+      };
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(
+          new Error(`Firefox did not expose a BiDi context matching "${urlSubstr}"`, {
+            cause: initialError,
+          }),
+        );
+      }, timeoutMs);
+      timer.unref();
+      this.realms.add(watcher);
     });
   }
 
@@ -258,28 +321,19 @@ class FirefoxBidi {
       },
       /** @param {string} method @param {unknown} params */
       handleEvent: (method, params) => {
-        if (!isRecord(params)) return;
-        const eventContext =
-          typeof params.context === "string"
-            ? params.context
-            : isRecord(params.context) && typeof params.context.context === "string"
-              ? params.context.context
-              : undefined;
-        if (method === "browsingContext.contextDestroyed" && eventContext === context) {
+        const info = contextEventInfo(params);
+        if (!info) return;
+        if (method === "browsingContext.contextDestroyed" && info.context === context) {
           context = undefined;
           state = "stale";
           return;
         }
-        const eventUrl =
-          isRecord(params.context) && typeof params.context.url === "string"
-            ? params.context.url
-            : undefined;
         if (
           method === "browsingContext.contextCreated" &&
-          eventContext &&
-          eventUrl?.includes(urlSubstr)
+          info.context &&
+          info.url?.includes(urlSubstr)
         ) {
-          context = eventContext;
+          context = info.context;
           state = "ready";
         }
       },

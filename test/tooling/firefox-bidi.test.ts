@@ -177,10 +177,7 @@ test("waits for Firefox to publish a newly created browsing context", async () =
     if (packet.method === "browsingContext.getTree") treeReads += 1;
     const result =
       packet.method === "browsingContext.getTree"
-        ? {
-            contexts:
-              treeReads === 1 ? [] : [{ context: "new-page", url: "https://example.test/new" }],
-          }
+        ? { contexts: [] }
         : packet.method === "script.evaluate"
           ? { type: "success", result: { type: "string", value: "ready" } }
           : {};
@@ -192,8 +189,46 @@ test("waits for Firefox to publish a newly created browsing context", async () =
   });
   const client = new FirefoxBidi(socket as unknown as WebSocket);
 
-  await expect(client.evaluate("example.test/new", "document.readyState")).resolves.toBe("ready");
+  const evaluated = client.evaluate("example.test/new", "document.readyState", 2000);
+  await vi.waitFor(() => expect(treeReads).toBe(1));
 
-  expect(treeReads).toBe(2);
+  // Firefox publishes the context asynchronously; no second getTree poll
+  // should be required to observe it.
+  socket.dispatchEvent(
+    new MessageEvent("message", {
+      data: JSON.stringify({
+        method: "browsingContext.contextCreated",
+        params: { context: "new-page", url: "https://example.test/new" },
+      }),
+    }),
+  );
+
+  await expect(evaluated).resolves.toBe("ready");
+  expect(treeReads).toBe(1);
+  client.close();
+});
+
+test("times out waiting for a browsing context that never appears", async () => {
+  vi.useFakeTimers();
+  const socket = new FakeSocket();
+  socket.send.mockImplementation((serialized) => {
+    const packet = JSON.parse(String(serialized)) as { id: number; method: string };
+    const result = packet.method === "browsingContext.getTree" ? { contexts: [] } : {};
+    socket.dispatchEvent(
+      new MessageEvent("message", {
+        data: JSON.stringify({ id: packet.id, type: "success", result }),
+      }),
+    );
+  });
+  const client = new FirefoxBidi(socket as unknown as WebSocket);
+
+  const evaluated = client.evaluate("example.test/missing", "document.readyState", 200);
+  const assertion = expect(evaluated).rejects.toThrow(
+    'Firefox did not expose a BiDi context matching "example.test/missing"',
+  );
+
+  await vi.advanceTimersByTimeAsync(200);
+
+  await assertion;
   client.close();
 });
