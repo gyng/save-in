@@ -1222,7 +1222,7 @@ describe("history filter controls", () => {
     const polledIds = historyRuntime.search.mock.calls
       .slice(1)
       .map(([query]) => (query as { id: number }).id)
-      .sort();
+      .toSorted();
     expect(polledIds).toEqual([7, 8]);
     expect(vi.getTimerCount()).toBe(1);
   });
