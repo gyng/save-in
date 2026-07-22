@@ -74,6 +74,24 @@ test("persists a pending move and completes it after an MV3 restart", async () =
   });
 });
 
+test("rejects when a pending move cannot be made restart-safe", async () => {
+  vi.mocked(global.browser.storage.session.set).mockRejectedValueOnce(
+    new Error("session unavailable"),
+  );
+
+  await expect(
+    registerPendingHistoryMove(11, {
+      historyId: "old-history",
+      downloadId: 9,
+      filename: "old/photo.png",
+    }),
+  ).rejects.toThrow("session unavailable");
+
+  expect(downloadsState.records.get(11)?.pendingHistoryMove).toMatchObject({
+    historyId: "old-history",
+  });
+});
+
 test("keeps the original when its persisted identity no longer matches", async () => {
   await registerPendingHistoryMove(12, {
     historyId: "old-history",

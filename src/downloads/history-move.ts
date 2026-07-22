@@ -3,7 +3,12 @@
 // restart cannot turn an accepted replacement into premature data loss.
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
-import { getDownload, mergeDownload, type PendingHistoryMove } from "./download-state.ts";
+import {
+  getDownload,
+  mergeDownload,
+  mergeDownloadStrict,
+  type PendingHistoryMove,
+} from "./download-state.ts";
 import { downloadPorts } from "./ports.ts";
 import { undoBrowserDownload } from "./undo-download.ts";
 
@@ -19,9 +24,13 @@ export const registerPendingHistoryMove = (
   replacementDownloadId: number,
   pending: PendingHistoryMove,
 ): Promise<unknown> =>
-  mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, replacementDownloadId, {
-    pendingHistoryMove: pending,
-  });
+  mergeDownloadStrict(
+    downloadsState,
+    sessionWriteState,
+    extensionSessionStorage,
+    replacementDownloadId,
+    { pendingHistoryMove: pending },
+  );
 
 export const abandonPendingHistoryMove = (replacementDownloadId: number): Promise<unknown> =>
   mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, replacementDownloadId, {

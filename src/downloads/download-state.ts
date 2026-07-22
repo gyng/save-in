@@ -1,4 +1,4 @@
-import { getSession, updateSession } from "../shared/session-state.ts";
+import { getSession, updateSession, updateSessionStrict } from "../shared/session-state.ts";
 import type { SessionWriteState } from "../shared/session-state.ts";
 import type { StorageReader, StorageWriter } from "../shared/storage-types.ts";
 import { DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
@@ -213,7 +213,8 @@ const capDownloads = (records: Record<string, PersistedDownloadRecord>) => {
   return records;
 };
 
-export const mergeDownload = (
+const mergeDownloadUsing = (
+  persist: typeof updateSession,
   state: DownloadsState,
   sessionWrites: SessionWriteState,
   storage: StorageWriter | undefined,
@@ -247,7 +248,7 @@ export const mergeDownload = (
   inactiveIds
     .slice(0, Math.max(0, inactiveIds.length - MAX_INACTIVE_RECORDS))
     .forEach((id) => state.records.delete(id));
-  return updateSession<unknown>(sessionWrites, storage, DOWNLOADS_SESSION_KEY, (stored) => {
+  return persist<unknown>(sessionWrites, storage, DOWNLOADS_SESSION_KEY, (stored) => {
     const records = normalizeDownloadRecords(stored);
     const existingPrivateActivity = records[downloadId]?.privateContext === true;
     if (!admitsPrivateActivity && !existingPrivateActivity) delete records[downloadId];
@@ -262,6 +263,22 @@ export const mergeDownload = (
     return preserveDownloadStorageShape(stored, records);
   });
 };
+
+export const mergeDownload = (
+  state: DownloadsState,
+  sessionWrites: SessionWriteState,
+  storage: StorageWriter | undefined,
+  downloadId: number,
+  partial: DownloadRecordUpdate,
+) => mergeDownloadUsing(updateSession, state, sessionWrites, storage, downloadId, partial);
+
+export const mergeDownloadStrict = (
+  state: DownloadsState,
+  sessionWrites: SessionWriteState,
+  storage: StorageWriter | undefined,
+  downloadId: number,
+  partial: DownloadRecordUpdate,
+) => mergeDownloadUsing(updateSessionStrict, state, sessionWrites, storage, downloadId, partial);
 
 export const removeDownload = (
   state: DownloadsState,

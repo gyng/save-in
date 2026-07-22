@@ -327,6 +327,88 @@ describe("onMessage", () => {
     });
   });
 
+  test("HISTORY_REROUTE keeps the original when its accepted replacement is not restart-safe", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-20",
+        url: "https://x.test/moved.png",
+        finalFullPath: "from/moved.png",
+        downloadId: 41,
+        status: "complete",
+      },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 41, url: "https://x.test/moved.png", state: "complete" } as never,
+    ]);
+    vi.mocked(Download.launchDownload).mockImplementation(async (state) => {
+      state.scratch.historyEntryId = "history-new";
+      return { status: "started", downloadId: 42 };
+    });
+    vi.mocked(HistoryMove.registerPendingHistoryMove).mockRejectedValue(
+      new Error("session unavailable"),
+    );
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessage(
+        {
+          type: MESSAGE_TYPES.HISTORY_REROUTE,
+          body: { historyId: "history-20", destination: "moved/here" },
+        },
+        {},
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+
+    expect(HistoryMove.abandonPendingHistoryMove).toHaveBeenCalledWith(42);
+    expect(HistoryMove.completePendingHistoryMove).not.toHaveBeenCalled();
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "history move recovery unavailable",
+      "Error: session unavailable",
+      { privateContext: false },
+    );
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: { rerouted: true, oldRemoved: false, newHistoryId: "history-new" },
+    });
+  });
+
+  test("HISTORY_REROUTE reports an accepted untracked replacement without inventing a row id", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-20",
+        url: "https://x.test/moved.png",
+        finalFullPath: "from/moved.png",
+        downloadId: 41,
+        status: "complete",
+      },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 41, url: "https://x.test/moved.png", state: "complete" } as never,
+    ]);
+    vi.mocked(Download.launchDownload).mockResolvedValue({ status: "started", downloadId: 42 });
+    vi.mocked(HistoryMove.registerPendingHistoryMove).mockRejectedValue(
+      new Error("session unavailable"),
+    );
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { historyId: "history-20", destination: "moved/here" },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: { rerouted: true, oldRemoved: false },
+    });
+  });
+
   // A move routes a replacement and then deletes the original. Options stay at
   // their seeded defaults when init fails, so an ungated handler would drop
   // every routing rule and still destroy the only copy.
