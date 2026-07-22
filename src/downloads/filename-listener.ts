@@ -357,6 +357,23 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
               return false;
             });
           if (!accepted) return false;
+          // Chrome also resolves cancel() for already-terminal or vanished
+          // items. Only its resulting USER_CANCELED state proves routing, not
+          // an earlier completion or network failure, stopped this transfer.
+          let canceledItem: { state?: string | undefined; error?: string | undefined } | undefined;
+          try {
+            [canceledItem] = await webExtensionApi.downloads.search({ id: downloadItem.id });
+          } catch (error) {
+            addRouteLog("late routing cancellation could not be verified", String(error));
+            return false;
+          }
+          if (canceledItem?.state !== "interrupted" || canceledItem.error !== "USER_CANCELED") {
+            addRouteLog("late routing cancellation did not stop download", {
+              state: canceledItem?.state,
+              error: canceledItem?.error,
+            });
+            return false;
+          }
           const record = await getTrackedDownload(downloadItem.id).catch((error) => {
             addRouteLog("late routing cancellation lookup failed", String(error));
             return null;

@@ -71,6 +71,9 @@ Object.assign(hostBrowser, {
   i18n: { getMessage: vi.fn((key: string) => key) },
   downloads: {
     download: vi.fn(() => Promise.resolve(101)),
+    search: vi.fn(() =>
+      Promise.resolve([{ id: 101, state: "interrupted", error: "USER_CANCELED" }]),
+    ),
     onChanged: { addListener: vi.fn() },
   },
 } as any);
@@ -256,6 +259,9 @@ beforeEach(() => {
   (global.browser.i18n as any).getMessage = (key: string) => key;
   (global.browser.downloads as any).download = vi.fn(() => Promise.resolve(101));
   (global.browser.downloads as any).cancel = vi.fn(() => Promise.resolve());
+  (global.browser.downloads as any).search = vi.fn(() =>
+    Promise.resolve([{ id: 101, state: "interrupted", error: "USER_CANCELED" }]),
+  );
 
   global.fetch = vi.fn(() =>
     Promise.resolve({ headers: { has: () => false, get: () => null } }),

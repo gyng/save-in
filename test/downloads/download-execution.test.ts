@@ -1089,6 +1089,77 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
   });
 
+  test.each([
+    {
+      name: "the download already completed",
+      result: [{ id: 101, state: "complete" } as browser.downloads.DownloadItem],
+      logMessage: "late routing cancellation did not stop download",
+      logData: { state: "complete", error: undefined },
+    },
+    {
+      name: "the download already failed",
+      result: [
+        {
+          id: 101,
+          state: "interrupted",
+          error: "NETWORK_FAILED",
+        } as browser.downloads.DownloadItem,
+      ],
+      logMessage: "late routing cancellation did not stop download",
+      logData: { state: "interrupted", error: "NETWORK_FAILED" },
+    },
+    {
+      name: "the browser state cannot be read",
+      result: new Error("search unavailable"),
+      logMessage: "late routing cancellation could not be verified",
+      logData: expect.stringContaining("search unavailable"),
+    },
+  ])("does not claim a late exclusion when $name", async ({ result, logMessage, logData }) => {
+    setCurrentBrowser("CHROME");
+    options.notifyOnRuleMatch = true;
+    const exclusionRule = routingRule("finalfilename");
+    options.filenamePatterns = [exclusionRule];
+    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "too-late.bin"
+        ? {
+            outcome: "exclude",
+            rule: exclusionRule,
+            destination: null,
+            fetch: null,
+            rename: null,
+            tabAction: null,
+          }
+        : null,
+    );
+    const state = makeState({ info: { url: "https://example.com/download" } });
+
+    await Download.renameAndDownload(state);
+    vi.mocked(global.browser.downloads.search).mockReset();
+    if (result instanceof Error) {
+      vi.mocked(global.browser.downloads.search).mockRejectedValue(result);
+    } else {
+      vi.mocked(global.browser.downloads.search).mockResolvedValue(result);
+    }
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "too-late.bin",
+      },
+      vi.fn(),
+    );
+
+    await vi.waitFor(() => expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101));
+    await vi.waitFor(() =>
+      expect(global.browser.downloads.search).toHaveBeenCalledWith({ id: 101 }),
+    );
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
+    expect(downloadState.records.get(101)?.adopted).toBe(true);
+    expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
+    expect(Log.addLogEntry).toHaveBeenCalledWith(logMessage, logData);
+  });
+
   test("contains a session cleanup failure after canceling a late exclusion", async () => {
     setCurrentBrowser("CHROME");
     const exclusionRule = routingRule("finalfilename");
