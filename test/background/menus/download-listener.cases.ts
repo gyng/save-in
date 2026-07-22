@@ -695,6 +695,7 @@ describe("addDownloadListener", () => {
       expect.stringContaining("Invalid regular expression"),
       undefined,
       "prefer-links-pattern-error",
+      { privateContext: false },
     );
     expect(lastState().info).toMatchObject({
       url: "https://example.com/i.png",
@@ -718,6 +719,7 @@ describe("addDownloadListener", () => {
       "https://example.com/gallery.html",
       undefined,
       "link-preferred",
+      { privateContext: false },
     );
     expect(lastState().info).toMatchObject({
       linkText: "Gallery link",
@@ -737,6 +739,7 @@ describe("addDownloadListener", () => {
       "Translated<notificationPrivateLinkPreferredMessage>",
       undefined,
       "link-preferred",
+      { privateContext: true },
     );
   });
 

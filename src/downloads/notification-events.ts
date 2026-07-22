@@ -348,6 +348,7 @@ const undoFromNotification = async (notId: string, downloadId: number) => {
         message: getMessage("historyUndoFailed") || "Could not undo this save.",
       },
       options && options.notifyDuration,
+      { privateContext: undoPrivateContext() },
     );
   // These diagnostics describe a record this handler already looked up, so
   // they must honor its private-debug-log gate the same way addDownloadLog
@@ -528,17 +529,22 @@ const handleObservedBrowserDownload = async (
         await extensionSessionStorage.set({
           [BROWSER_LAST_USED_NOTICE_SESSION_KEY]: noticeReason,
         });
-        createNotification("save-in-not-browser-last-used", {
-          type: "basic",
-          title: getMessage("browserLastUsedNoticeTitle"),
-          iconUrl: ERROR_ICON_URL,
-          message:
-            noticeReason === "needs-save"
-              ? getMessage("browserLastUsedNeedsSave")
-              : noticeReason === "outside"
-                ? getMessage("browserLastUsedOutsideDownloads")
-                : getMessage("browserLastUsedUnsupportedPath"),
-        });
+        createNotification(
+          "save-in-not-browser-last-used",
+          {
+            type: "basic",
+            title: getMessage("browserLastUsedNoticeTitle"),
+            iconUrl: ERROR_ICON_URL,
+            message:
+              noticeReason === "needs-save"
+                ? getMessage("browserLastUsedNeedsSave")
+                : noticeReason === "outside"
+                  ? getMessage("browserLastUsedOutsideDownloads")
+                  : getMessage("browserLastUsedUnsupportedPath"),
+          },
+          undefined,
+          { privateContext: isPrivateDownloadRecord(record) },
+        );
       }
     }
   }
@@ -604,6 +610,7 @@ const notifyDownloadFailure = async (
         message: downloadFailureReason(failed) || getMessage("genericUnknownError"),
       },
       notify.duration,
+      { privateContext },
     );
   }
 
@@ -732,7 +739,9 @@ const notifyDownloadSuccess = async (
       buttons: [{ title: getMessage("notificationUndoSave") || "Undo save" }],
     });
   }
-  createNotification(String(downloadDelta.id), successDetails, notify.duration);
+  createNotification(String(downloadDelta.id), successDetails, notify.duration, {
+    privateContext,
+  });
 
   if (backgroundRuntime.debug && !isPrivateDownloadRecord(record)) {
     /* eslint-disable no-console */

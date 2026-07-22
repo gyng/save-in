@@ -247,6 +247,34 @@ describe("download lifecycle notifications", () => {
     );
   });
 
+  test("keeps a rejected private terminal event behind the private log gate", async () => {
+    Notifier.expectDownload("https://private.example/terminal.png", {
+      historyEntryId: "h-private-terminal",
+      privateContext: true,
+    });
+    await onCreated({
+      id: 47,
+      incognito: true,
+      filename: "C:\\Downloads\\terminal.png",
+      url: "https://private.example/terminal.png",
+    });
+    vi.mocked(Log.addLogEntry).mockClear();
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "setHistoryStatus").mockRejectedValue(
+      new Error("private terminal history unavailable"),
+    );
+
+    await expect(
+      onChanged({ id: 47, state: { current: "complete", previous: "in_progress" } }),
+    ).resolves.toBeUndefined();
+
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "download changed event failed",
+      expect.stringContaining("private terminal history unavailable"),
+      { privateContext: true },
+    );
+  });
+
   test("updates Last used from a browser download without enabling History", async () => {
     options.browserDownloadsUpdateLastUsed = true;
     sessionStore.siDownloadsRoot = "C:\\Downloads\\";
@@ -1046,6 +1074,8 @@ describe("download lifecycle notifications", () => {
     // handlers, and a rejecting downloads.show rejects the click handler.
     // runEventTask must contain and log all three instead of letting them escape.
     vi.mocked(global.browser.downloads.show).mockRejectedValueOnce(new Error("click failed"));
+    const { mergeTrackedDownload } = await import("../../../src/downloads/expected-downloads.ts");
+    await mergeTrackedDownload(90, { adopted: true });
     const [created] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls[0]!;
     const [changed] = vi.mocked(global.browser.downloads.onChanged.addListener).mock.calls[0]!;
     const [clicked] = vi.mocked(global.browser.notifications.onClicked.addListener).mock.calls[0]!;
@@ -1054,6 +1084,19 @@ describe("download lifecycle notifications", () => {
     changed(undefined as any);
     clicked("90");
     await vi.waitFor(() => expect(Log.addLogEntry).toHaveBeenCalledTimes(3));
+  });
+
+  test("does not log an unclassified notification after its private record is gone", async () => {
+    vi.mocked(global.browser.downloads.show).mockRejectedValueOnce(new Error("click failed"));
+    const [clicked] = vi.mocked(global.browser.notifications.onClicked.addListener).mock.calls[0]!;
+    vi.mocked(Log.addLogEntry).mockClear();
+
+    await expect(clicked("91")).resolves.toBeUndefined();
+
+    expect(Log.addLogEntry).not.toHaveBeenCalledWith(
+      "notification click event failed",
+      expect.anything(),
+    );
   });
 
   test("Firefox skips a replacement when routing returns no filename", async () => {

@@ -2,6 +2,7 @@ import {
   retryHolder,
   Notifier,
   options,
+  Log,
   loadNotification,
   adoptedIds,
   setupGlobals,
@@ -62,6 +63,34 @@ describe("reportFailure", () => {
     );
     expect(JSON.stringify(vi.mocked(global.browser.notifications.create).mock.calls)).not.toMatch(
       /secret\.png|private\.example/,
+    );
+  });
+
+  test("keeps private native-notification failures behind the private log gate", async () => {
+    vi.useFakeTimers();
+    await loadNotification();
+    Object.assign(options, { notifyOnFailure: true, notifyDuration: 1 });
+    vi.mocked(global.browser.notifications.create).mockRejectedValue(
+      new Error("native create failed"),
+    );
+    vi.mocked(global.browser.notifications.clear).mockRejectedValue(
+      new Error("native clear failed"),
+    );
+
+    Notifier.reportDownloadFailure("private/secret.png", "private failure", {
+      privateContext: true,
+    });
+    await vi.advanceTimersByTimeAsync(251);
+
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "notification create failed",
+      "Error: native create failed",
+      { privateContext: true },
+    );
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "notification clear failed",
+      "Error: native clear failed",
+      { privateContext: true },
     );
   });
 

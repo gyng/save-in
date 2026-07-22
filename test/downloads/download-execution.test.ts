@@ -59,6 +59,7 @@ describe("renameAndDownload: terminal exclusion", () => {
       "notificationRuleExcludedMessage",
       false,
       Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+      { privateContext: false },
     );
   });
 
@@ -87,6 +88,7 @@ describe("renameAndDownload: terminal exclusion", () => {
       "notificationPrivateRuleExcludedMessage",
       false,
       Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+      { privateContext: true },
     );
     expect(Notifier.createExtensionNotification).not.toHaveBeenCalledWith(
       expect.anything(),
@@ -733,6 +735,7 @@ describe("renameAndDownload: notification triggers", () => {
       "file.png\n⬇\nmatched/route.txt",
       false,
       "route-match",
+      { privateContext: false },
     );
   });
 
@@ -758,6 +761,7 @@ describe("renameAndDownload: notification triggers", () => {
       "notificationPrivateRuleMatchedMessage",
       false,
       "route-match",
+      { privateContext: true },
     );
   });
 
@@ -798,6 +802,7 @@ describe("renameAndDownload: notification triggers", () => {
       "notificationRuleMatchFailedExclusiveMessage",
       true,
       "route-miss",
+      { privateContext: false },
     );
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
   });
@@ -821,6 +826,7 @@ describe("renameAndDownload: notification triggers", () => {
       "notificationPrivateRuleMatchFailedMessage",
       true,
       "route-miss",
+      { privateContext: true },
     );
   });
 
@@ -1293,6 +1299,75 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
   });
 
+  test("keeps a late private History failure behind the current privacy gate", async () => {
+    setCurrentBrowser("CHROME");
+    options.persistPrivateActivity = true;
+    options.filenamePatterns = [routingRule("finalfilename")];
+    const state = makeState({
+      info: {
+        currentTab: { incognito: true },
+        url: "https://private.example/history-failure",
+      },
+    });
+    const { launch } = await startFilenameResolvedLaunch(state);
+    options.persistPrivateActivity = false;
+    vi.mocked(SaveHistory.patchHistoryEntry).mockRejectedValueOnce(
+      new Error("private history unavailable"),
+    );
+
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "settled.png",
+      },
+      vi.fn(),
+    );
+
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "final filename history update failed",
+      expect.stringContaining("private history unavailable"),
+      { privateContext: true },
+    );
+  });
+
+  test("keeps a private final-filename resolution failure out of the default log", async () => {
+    setCurrentBrowser("CHROME");
+    options.filenamePatterns = [routingRule("finalfilename")];
+    vi.mocked(router.matchRules).mockImplementation((_rules, info) => {
+      if (info.resolvedFilename) throw new Error("private.example resolution failed");
+      return "resolved/:filename:";
+    });
+    const state = makeState({
+      info: {
+        currentTab: { incognito: true },
+        url: "https://private.example/download",
+      },
+    });
+    const { launch } = await startFilenameResolvedLaunch(state);
+    const suggest = vi.fn();
+
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "private-final.png",
+      },
+      suggest,
+    );
+
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
+    expect(suggest).toHaveBeenCalledWith();
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "filename resolution failed",
+      expect.stringContaining("private.example"),
+      { privateContext: true },
+    );
+  });
+
   test("rechecks finalfilename even when Chrome keeps the pre-final name", async () => {
     setCurrentBrowser("CHROME");
     options.filenamePatterns = [routingRule("finalfilename"), routingRule("filename")];
@@ -1404,6 +1479,7 @@ describe("onDeterminingFilename listener: sync path", () => {
       "notificationRuleExcludedMessage",
       false,
       Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+      { privateContext: false },
     );
   });
 
@@ -1878,6 +1954,7 @@ describe("onDeterminingFilename listener: sync path", () => {
         "notificationPrivateRuleExcludedMessage",
         false,
         Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+        { privateContext: true },
       ),
     );
     expect(cancel).toHaveBeenCalledTimes(1);
@@ -2066,6 +2143,7 @@ describe("onDeterminingFilename listener: sync path", () => {
       "notificationRuleMatchFailedExclusiveMessage",
       true,
       "route-miss",
+      { privateContext: false },
     );
   });
 
@@ -2137,6 +2215,7 @@ describe("onDeterminingFilename listener: sync path", () => {
         "notificationPrivateRuleMatchFailedMessage",
         true,
         "route-miss",
+        { privateContext: true },
       ),
     );
     resolveDownload(102);

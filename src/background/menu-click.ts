@@ -328,6 +328,7 @@ const handleContextMenuClickInternal = async (
         privateContext ? getMessage("notificationPrivateLinkPreferredMessage") : url,
         undefined,
         EXTENSION_NOTIFICATION_STREAMS.LINK_PREFERRED,
+        { privateContext },
       );
     }
     if (target.badPatternError) {
@@ -336,6 +337,7 @@ const handleContextMenuClickInternal = async (
         target.badPatternError.message,
         undefined,
         EXTENSION_NOTIFICATION_STREAMS.PREFER_LINKS_PATTERN_ERROR,
+        { privateContext },
       );
     }
 

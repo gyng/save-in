@@ -29,5 +29,6 @@ export const notifyRouteExclusion = (state: DownloadPipelineState): void => {
         ]),
     false,
     EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+    { privateContext: isPrivateDownloadState(state) },
   );
 };

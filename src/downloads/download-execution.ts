@@ -595,6 +595,7 @@ export const renameAndDownload = async (
             ]),
         true,
         EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
+        { privateContext: isPrivateDownloadState(state) },
       );
     }
     return { status: "skipped" };
@@ -681,6 +682,7 @@ export const renameAndDownload = async (
           : `${state.info.initialFilename}\n⬇\n${state.route}`,
         false,
         EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+        { privateContext: isPrivateDownloadState(state) },
       );
     }
   }
