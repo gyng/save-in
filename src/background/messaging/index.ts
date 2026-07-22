@@ -41,6 +41,7 @@ import {
   isReroutableHistoryEntry,
 } from "../../shared/history-normalization.ts";
 import { createSourceRuleDraft } from "../../automation/source-rule-draft.ts";
+import { isPageSourceKind } from "../../shared/page-source.ts";
 import { SOURCE_RULE_DRAFT_SESSION_KEY } from "../../shared/storage-keys.ts";
 import { getDiagnosticSnapshot, recordDiagnosticLifecycle } from "../diagnostics.ts";
 import { clearLog } from "../log.ts";
@@ -273,6 +274,22 @@ const internalHandlers = {
           typeof recordedVariables.linkdownload === "string"
             ? recordedVariables.linkdownload
             : undefined,
+        // Restore whatever matcher evidence the entry actually recorded so a
+        // rule keyed on frameurl/referrerurl/mediatype/mime/sourcekind routes
+        // the moved copy the same way it routed the original — only recorded
+        // evidence is restored, never fabricated for a field the entry lacks.
+        frameUrl:
+          typeof recordedVariables.frameurl === "string" ? recordedVariables.frameurl : undefined,
+        referrerUrl:
+          typeof recordedVariables.referrerurl === "string"
+            ? recordedVariables.referrerurl
+            : undefined,
+        mediaType:
+          typeof recordedVariables.mediatype === "string" ? recordedVariables.mediatype : undefined,
+        sourceKind: isPageSourceKind(recordedVariables.sourcekind)
+          ? recordedVariables.sourcekind
+          : undefined,
+        mime: typeof recordedVariables.mime === "string" ? recordedVariables.mime : undefined,
         selectionText:
           typeof recordedVariables.selection === "string" ? recordedVariables.selection : undefined,
         comment:

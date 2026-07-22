@@ -431,6 +431,11 @@ describe("onMessage", () => {
           gesture: "double-left-click",
           comment: "photos",
           suggestedfilename: "photo.png",
+          frameurl: "https://page.test/frame",
+          referrerurl: "https://page.test/referrer",
+          mediatype: "image",
+          sourcekind: "video",
+          mime: "image/png",
         },
       },
     ]);
@@ -471,6 +476,13 @@ describe("onMessage", () => {
         url: "https://page.test/gallery",
         incognito: true,
       },
+      // A rule keyed on any of these matchers must route the moved copy the
+      // same way it routed the original.
+      frameUrl: "https://page.test/frame",
+      referrerUrl: "https://page.test/referrer",
+      mediaType: "image",
+      sourceKind: "video",
+      mime: "image/png",
     });
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.HISTORY_REROUTE,
@@ -516,6 +528,44 @@ describe("onMessage", () => {
     expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.currentTab).toEqual({
       incognito: true,
     });
+    // No matcher evidence was recorded, so none of it is fabricated for the
+    // reroute.
+    const rerouteInfo = vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info;
+    expect(rerouteInfo.frameUrl).toBeUndefined();
+    expect(rerouteInfo.referrerUrl).toBeUndefined();
+    expect(rerouteInfo.mediaType).toBeUndefined();
+    expect(rerouteInfo.sourceKind).toBeUndefined();
+    expect(rerouteInfo.mime).toBeUndefined();
+  });
+
+  test("HISTORY_REROUTE ignores an unrecognized recorded sourcekind instead of fabricating one", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-bad-sourcekind",
+        url: "https://cdn.test/photo.png",
+        finalFullPath: "from/photo.png",
+        downloadId: 66,
+        status: "complete",
+        variables: { sourcekind: "not-a-real-kind" },
+      },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 66, url: "https://cdn.test/photo.png" } as never,
+    ]);
+    vi.mocked(Download.launchDownload).mockResolvedValue({ status: "started", downloadId: 67 });
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { historyId: "history-bad-sourcekind", destination: "new/path" },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.sourceKind).toBeUndefined();
   });
 
   test("HISTORY_REROUTE re-downloads generated data bytes instead of their originating page", async () => {
