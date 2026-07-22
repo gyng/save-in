@@ -79,6 +79,16 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
       url: `${parsed.hostname}${path === "/" ? "" : path}`,
     };
   };
+  // Reconciliation compacts candidates into fresh records on every commit, and
+  // render repoints cached.source at the new record — but listeners created by
+  // buildRow still close over the record the row was built with, whose
+  // originElements may name detached duplicates that no longer carry live DOM
+  // evidence for css: routing. Resolve the record by URL at save time, the same
+  // live read the batch save does. If the URL left the list between render and
+  // click, the captured record is still the user's visible request: send it
+  // rather than drop the save.
+  const currentSourceRecord = (captured: PageSource): PageSource =>
+    ctx.allSources.find(({ url }) => url === captured.url) ?? captured;
   const cachedRows = new WeakMap<HTMLElement, CachedRow>();
   const deactivateAndRemove = ({ row, deactivate }: CachedRow) => {
     deactivate();
@@ -446,7 +456,7 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
     save.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") panelOptions.onSaveIntent?.();
     });
-    save.addEventListener("click", () => ctx.panelSendDownload(source));
+    save.addEventListener("click", () => ctx.panelSendDownload(currentSourceRecord(source)));
 
     actionMenu.append(locate);
     if (panelOptions.onCreateRule) {
@@ -634,7 +644,7 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
       if (!event.altKey || event.button !== 0 || onControl(event)) return;
       event.preventDefault();
       event.stopPropagation();
-      ctx.panelSendDownload(source);
+      ctx.panelSendDownload(currentSourceRecord(source));
     });
     row.addEventListener("pointerdown", (event) => {
       if (event.altKey && event.button === 0 && !onControl(event)) {

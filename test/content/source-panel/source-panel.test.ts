@@ -1277,6 +1277,62 @@ describe("Page Sources panel interactions", () => {
     expect(source?.originElements).toEqual([document.querySelector("#retained")]);
   });
 
+  test("single-row save sends the reconciled record, not the render-time one", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<article><img id="first" src="shared.jpg"></article>`;
+    const sendDownload = vi.fn();
+    toggleSourcePanel(sendDownload, { includeBackgrounds: false, live: true });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const row = shadow.querySelector<HTMLElement>(".row")!;
+
+    const second = document.createElement("img");
+    second.id = "second";
+    second.src = "shared.jpg";
+    document.body.append(second);
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+    expect(shadow.querySelector(".row")).toBe(row);
+    row.querySelector<HTMLButtonElement>(".primary-action")!.click();
+
+    const saved = sendDownload.mock.calls[0]?.[0];
+    expect(saved?.originElements).toEqual([
+      document.querySelector("#first"),
+      document.querySelector("#second"),
+    ]);
+  });
+
+  test("alt+click save uses the current record and still saves a vanished URL", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<article><img id="first" src="shared.jpg"></article>`;
+    const sendDownload = vi.fn();
+    toggleSourcePanel(sendDownload, { includeBackgrounds: false, live: true });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const row = shadow.querySelector<HTMLElement>(".row")!;
+    const save = row.querySelector<HTMLButtonElement>(".primary-action")!;
+
+    const second = document.createElement("img");
+    second.id = "second";
+    second.src = "shared.jpg";
+    document.body.append(second);
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+    row.dispatchEvent(new MouseEvent("click", { bubbles: true, altKey: true }));
+
+    expect(sendDownload.mock.calls[0]?.[0]?.originElements).toEqual([
+      document.querySelector("#first"),
+      second,
+    ]);
+
+    document.querySelector("#first")!.remove();
+    second.remove();
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+    save.click();
+
+    expect(sendDownload).toHaveBeenCalledTimes(2);
+    expect(sendDownload.mock.calls[1]?.[0]?.url).toBe("http://localhost/shared.jpg");
+  });
+
   test("coalesces nested, disconnected, and text-only live mutations", async () => {
     vi.useFakeTimers();
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
