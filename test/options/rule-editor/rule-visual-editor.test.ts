@@ -628,6 +628,9 @@ describe("routing visual editor", () => {
     element<HTMLButtonElement>("#rules-mode-visual").click();
 
     expect(element<HTMLElement>(".rule-editor-unsupported").textContent).toContain("line 2");
+    const postSaveAction = element<HTMLButtonElement>('[data-rule-action="toggle-close-tab"]');
+    expect(postSaveAction.disabled).toBe(true);
+    expect(() => postSaveAction.click()).not.toThrow();
     element<HTMLButtonElement>(".rule-editor-edit-text").click();
     expect(element<HTMLElement>("#rules-text-editor").hidden).toBe(false);
     expect(element<HTMLElement>("#rules-visual").hidden).toBe(true);

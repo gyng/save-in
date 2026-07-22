@@ -756,6 +756,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           : localize("routeActionCloseTab", "Close source tab after saving"),
         "toggle-close-tab",
       );
+      postSaveAction.disabled = !rule.editable;
       postSaveAction.addEventListener("click", () => {
         commit(setRoutingRulePostSaveAction(textarea.value, rule.index, !closeTab));
         closeActions();
