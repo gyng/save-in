@@ -873,28 +873,31 @@ describe("filename rewrite and routing", () => {
         ],
       });
 
-      const close = router.parseRules("filename: \\.jpg$\ntab: close\ninto: images/:filename:");
+      const close = router.parseRules(
+        "filename: \\.jpg$\nafter: close-tab\ninto: images/:filename:",
+      );
       await expect(router.traceRules(close, { filename: "cat.jpg" })).resolves.toMatchObject({
         selectedOutcome: "route",
         selectedTabAction: "close",
       });
     });
 
-    test("validates exclusion and tab-action cardinality and combinations", () => {
+    test("validates exclusion and post-save action cardinality and combinations", () => {
       expect(router.parseRules("filename: ^thumb-\nexclude: true")).toHaveLength(1);
       expect(
-        router.parseRules("pageurl: example\ntab: close\ninto: pages/:filename:"),
+        router.parseRules("pageurl: example\nafter: close-tab\ninto: pages/:filename:"),
       ).toHaveLength(1);
 
       for (const source of [
         "filename: x\nexclude: false",
         "filename: x\nexclude: true\nexclude: true",
         "filename: x\nexclude: true\ninto: x",
-        "filename: x\nexclude: true\ntab: close",
+        "filename: x\nexclude: true\nafter: close-tab",
         "exclude: true",
-        "filename: x\ntab: later\ninto: x",
-        "filename: x\ntab: close\ntab: close\ninto: x",
-        "context: ^auto$\npageurl: example\nsourcekind: image\ntab: close\ninto: x",
+        "filename: x\ntab: close\ninto: x",
+        "filename: x\nafter: later\ninto: x",
+        "filename: x\nafter: close-tab\nafter: close-tab\ninto: x",
+        "context: ^auto$\npageurl: example\nsourcekind: image\nafter: close-tab\ninto: x",
       ]) {
         diagnostics = { filenamePatterns: [], paths: [] };
         expect(router.parseRules(source)).toEqual([]);

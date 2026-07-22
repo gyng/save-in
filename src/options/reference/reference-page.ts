@@ -34,7 +34,7 @@ export const syncReferenceVocabulary = (
   else {
     required.add("into:");
     required.add("exclude:");
-    required.add("tab:");
+    required.add("after:");
     required.add("capture:");
     required.add("fetch:");
     required.add("rename:");

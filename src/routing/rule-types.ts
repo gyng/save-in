@@ -134,12 +134,12 @@ export type ExcludeClause = {
   value: "true";
   type: typeof RULE_TYPES.ACTION;
 };
-export type TabActionClause = {
-  name: "tab";
-  value: "close";
+export type PostSaveActionClause = {
+  name: "after";
+  value: "close-tab";
   type: typeof RULE_TYPES.ACTION;
 };
-export type RoutingActionClause = ExcludeClause | TabActionClause;
+export type RoutingActionClause = ExcludeClause | PostSaveActionClause;
 export type RuleClause =
   | MatcherClause
   | CaptureClause

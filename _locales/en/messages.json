@@ -123,11 +123,11 @@
   },
   "routeActionCloseTab": {
     "message": "Close source tab after saving",
-    "description": "Action label for adding or displaying tab: close on a routing rule. The close happens only after the browser accepts the save. Used in src/options/options.html, src/options/rule-editor/rule-visual-editor.ts, and src/options/route-debugger/route-debugger.ts."
+    "description": "Action label for adding or displaying after: close-tab on a routing rule. The close happens only after the browser accepts the save. Used in src/options/options.html, src/options/rule-editor/rule-visual-editor.ts, and src/options/route-debugger/route-debugger.ts."
   },
   "routeActionKeepTab": {
     "message": "Keep source tab after saving",
-    "description": "Action that removes tab: close from a routing rule. Used in src/options/rule-editor/rule-visual-editor.ts."
+    "description": "Action that removes after: close-tab from a routing rule. Used in src/options/rule-editor/rule-visual-editor.ts."
   },
   "routeActionAfterSave": {
     "message": "After saving",

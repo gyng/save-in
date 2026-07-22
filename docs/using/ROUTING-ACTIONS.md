@@ -28,17 +28,17 @@ Destination rules can add one post-save action:
 ```text
 pageurl: ^https://example\.com/
 fileext: pdf
-tab: close
+after: close-tab
 into: documents/:filename:
 ```
 
-`tab: close` closes the source tab only after the browser accepts the download.
+`after: close-tab` closes the source tab only after the browser accepts the download.
 It does nothing when planning, fetching, or `downloads.download()` fails. A
 folder menu item's `(tab: close)` or `(tab: return)` setting is more specific
 and wins over the routing action; the routing action in turn wins over the
 global **Close each tab after saving it** setting. Save In resolves that order
 once, so overlapping close settings never issue duplicate tab operations.
 
-Automatic rules cannot use `tab: close`: unattended source discovery must not
+Automatic rules cannot use `after: close-tab`: unattended source discovery must not
 close a page. Ordinary browser-download routing also ignores post-save tab
 actions because it has no source tab to act on.

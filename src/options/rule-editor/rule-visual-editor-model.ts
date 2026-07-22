@@ -293,7 +293,7 @@ export const addRoutingClause = (
   // into:, so they anchor to the destination clause; other clauses precede
   // capture too.
   const name = clause.name.trim().toLowerCase();
-  const anchorsToDestination = name === "fetch" || name === "rename" || name === "tab";
+  const anchorsToDestination = name === "fetch" || name === "rename" || name === "after";
   const before = unit.rule.clauses.find((candidate) =>
     anchorsToDestination
       ? candidate.clauseKind === "destination"
@@ -372,19 +372,19 @@ export const addExclusionRoutingRule = (source: string): string => {
   return `${source}${separator}filename: .*${newline}exclude: true${newline}`;
 };
 
-export const setRoutingRuleTabAction = (
+export const setRoutingRulePostSaveAction = (
   source: string,
   ruleIndex: number,
   enabled: boolean,
 ): string => {
   const { unit } = editableRule(source, ruleIndex);
-  const action = unit.rule.clauses.find((clause) => clause.name === "tab");
+  const action = unit.rule.clauses.find((clause) => clause.name === "after");
   if (enabled) {
     return action
       ? updateRoutingClause(source, ruleIndex, unit.rule.clauses.indexOf(action), {
-          value: "close",
+          value: "close-tab",
         })
-      : addRoutingClause(source, ruleIndex, { name: "tab", value: "close" });
+      : addRoutingClause(source, ruleIndex, { name: "after", value: "close-tab" });
   }
   return action
     ? deleteRoutingClause(source, ruleIndex, unit.rule.clauses.indexOf(action))

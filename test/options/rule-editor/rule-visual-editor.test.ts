@@ -544,7 +544,7 @@ describe("routing visual editor", () => {
     setupRuleVisualEditor({ matchers: ["filename"] });
     element<HTMLButtonElement>('[data-rule-action="toggle-close-tab"]').click();
     const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
-    expect(textarea.value).toBe("filename/i: \\.jpg$\ntab: close\ninto: images/:filename:");
+    expect(textarea.value).toBe("filename/i: \\.jpg$\nafter: close-tab\ninto: images/:filename:");
     expect(element<HTMLElement>(".rule-clause-action-value").textContent).toBe(
       "Close source tab after saving",
     );

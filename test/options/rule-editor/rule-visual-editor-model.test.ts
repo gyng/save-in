@@ -10,7 +10,7 @@ import {
   parseVisualRoutingRules,
   setRoutingRuleEnabled,
   setRoutingRuleName,
-  setRoutingRuleTabAction,
+  setRoutingRulePostSaveAction,
   updateRoutingClause,
 } from "../../../src/options/rule-editor/rule-visual-editor-model.ts";
 
@@ -193,11 +193,11 @@ describe("routing visual editor model", () => {
   });
 
   test("adds and removes the close-tab action before the destination", () => {
-    const withAction = setRoutingRuleTabAction("filename: jpg\ninto: images", 0, true);
-    expect(withAction).toBe("filename: jpg\ntab: close\ninto: images");
-    expect(setRoutingRuleTabAction(withAction, 0, true)).toBe(withAction);
-    expect(setRoutingRuleTabAction(withAction, 0, false)).toBe("filename: jpg\ninto: images");
-    expect(setRoutingRuleTabAction("filename: jpg\ninto: images", 0, false)).toBe(
+    const withAction = setRoutingRulePostSaveAction("filename: jpg\ninto: images", 0, true);
+    expect(withAction).toBe("filename: jpg\nafter: close-tab\ninto: images");
+    expect(setRoutingRulePostSaveAction(withAction, 0, true)).toBe(withAction);
+    expect(setRoutingRulePostSaveAction(withAction, 0, false)).toBe("filename: jpg\ninto: images");
+    expect(setRoutingRulePostSaveAction("filename: jpg\ninto: images", 0, false)).toBe(
       "filename: jpg\ninto: images",
     );
   });

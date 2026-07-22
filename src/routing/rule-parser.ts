@@ -145,7 +145,7 @@ const isPlainMatchAll = (regex: RegExp): boolean =>
 
 const clauseAcceptsRegexFlags = (line: RoutingRuleNode["clauses"][number]): boolean =>
   line.name === "rename" ||
-  !["capture", "capturegroups", "css", "disabled", "exclude", "fetch", "into", "tab"].includes(
+  !["after", "capture", "capturegroups", "css", "disabled", "exclude", "fetch", "into"].includes(
     line.name,
   );
 
@@ -279,17 +279,17 @@ const parseSemanticRule = (
       }
       return { name, value: "true", type: RULE_TYPES.ACTION };
     }
-    if (name === "tab") {
-      if (rawValue.trim().toLowerCase() !== "close") {
+    if (name === "after") {
+      if (rawValue.trim().toLowerCase() !== "close-tab") {
         appendError(
           errors,
           routingPorts.getMessage("ruleBadClause"),
-          "tab must be close",
+          "after must be close-tab",
           line.valueSpan,
         );
         return false;
       }
-      return { name, value: "close", type: RULE_TYPES.ACTION };
+      return { name, value: "close-tab", type: RULE_TYPES.ACTION };
     }
     if (name === "rename") {
       const parts = splitRenameValue(rawValue);
@@ -402,7 +402,7 @@ const parseSemanticRule = (
   const valid = clauses.filter((clause): clause is RuleClause => clause !== false);
   if (valid.length !== clauses.length || automaticIssues.length > 0) return false;
   const exclusionNodes = lines.filter((line) => line.name === "exclude");
-  const tabActionNodes = lines.filter((line) => line.name === "tab");
+  const postSaveActionNodes = lines.filter((line) => line.name === "after");
   if (exclusionNodes.length > 1) {
     appendError(
       errors,
@@ -412,18 +412,18 @@ const parseSemanticRule = (
     );
     return false;
   }
-  if (tabActionNodes.length > 1) {
+  if (postSaveActionNodes.length > 1) {
     appendError(
       errors,
       routingPorts.getMessage("ruleBadClause"),
-      "tab may appear only once",
-      (tabActionNodes[1] as (typeof tabActionNodes)[number]).span,
+      "after may appear only once",
+      (postSaveActionNodes[1] as (typeof postSaveActionNodes)[number]).span,
     );
     return false;
   }
   if (exclusionNodes.length === 1) {
     const incompatible = lines.find((line) =>
-      ["capture", "capturegroups", "fetch", "into", "rename", "tab"].includes(line.name),
+      ["after", "capture", "capturegroups", "fetch", "into", "rename"].includes(line.name),
     );
     if (incompatible) {
       appendError(
@@ -445,12 +445,12 @@ const parseSemanticRule = (
     }
     return disabled ? false : (valid as RoutingRule);
   }
-  if (tabActionNodes.length === 1 && isAutomaticRuleClauses(valid)) {
+  if (postSaveActionNodes.length === 1 && isAutomaticRuleClauses(valid)) {
     appendError(
       errors,
       routingPorts.getMessage("ruleBadClause"),
       "automatic rules cannot close tabs",
-      (tabActionNodes[0] as (typeof tabActionNodes)[number]).span,
+      (postSaveActionNodes[0] as (typeof postSaveActionNodes)[number]).span,
     );
     return false;
   }

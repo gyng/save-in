@@ -777,7 +777,7 @@ export const runRoutingScenario = async ({ control, waitForDownloads, content })
 
 /**
  * Proves both routing actions against real browser ownership: a terminal
- * exclusion starts no download, and tab: close waits until a tab-strip save is
+ * exclusion starts no download, and after: close-tab waits until a tab-strip save is
  * accepted before closing its source tab.
  *
  * @param {{
@@ -827,7 +827,7 @@ export const runRoutingActionsScenario = async ({ control, waitForDownloads, fil
       shortcutTab: true,
       shortcutType: "HTML_REDIRECT",
       closeTabOnSave: false,
-      filenamePatterns: `pageurl: /routing-actions/\ntab: close\ninto: e2e/routing-actions/:filename:`,
+      filenamePatterns: `pageurl: /routing-actions/\nafter: close-tab\ninto: e2e/routing-actions/:filename:`,
     });
     await control.background.clickTabMenu({
       info: { menuItemId: "save-in-SI-selected-tab" },

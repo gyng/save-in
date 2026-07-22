@@ -79,7 +79,8 @@ describe("syntax editor model", () => {
       ]),
     );
 
-    const routing = "// note\n//\ncapture: filename\ninto: :filename:\nexclude: true\ntab: close";
+    const routing =
+      "// note\n//\ncapture: filename\ninto: :filename:\nexclude: true\nafter: close-tab";
     const routingSnapshot = analyzeSyntax("routing", routing);
     expect(
       routingSnapshot.tokens.map(({ kind, start, end }) => [kind, tokenText(routing, start, end)]),
@@ -92,8 +93,8 @@ describe("syntax editor model", () => {
         ["destination-value", ":filename:"],
         ["action", "exclude"],
         ["action-value", "true"],
-        ["action", "tab"],
-        ["action-value", "close"],
+        ["action", "after"],
+        ["action-value", "close-tab"],
       ]),
     );
   });

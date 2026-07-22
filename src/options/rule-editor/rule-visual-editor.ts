@@ -16,7 +16,7 @@ import {
   parseVisualRoutingRules,
   setRoutingRuleEnabled,
   setRoutingRuleName,
-  setRoutingRuleTabAction,
+  setRoutingRulePostSaveAction,
   updateRoutingClause,
   type VisualRoutingRule,
 } from "./rule-visual-editor-model.ts";
@@ -426,14 +426,14 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           ? localize("routeActionExclude", "Do not save matching items")
           : localize("routeActionCloseTab", "Close source tab after saving");
       row.append(actionValue);
-      if (clause.name === "tab") {
+      if (clause.name === "after") {
         const remove = button(
           "×",
           "delete-clause",
           localize("routeActionKeepTab", "Keep source tab after saving"),
         );
         remove.addEventListener("click", () =>
-          commit(setRoutingRuleTabAction(textarea.value, rule.index, false)),
+          commit(setRoutingRulePostSaveAction(textarea.value, rule.index, false)),
         );
         row.append(remove);
       }
@@ -746,7 +746,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       (clause) => clause.kind === "action" && clause.name === "exclude",
     );
     const closeTab = rule.clauses.some(
-      (clause) => clause.kind === "action" && clause.name === "tab",
+      (clause) => clause.kind === "action" && clause.name === "after",
     );
     actionsMenu.append(up, down, duplicate);
     if (!automatic && !exclusion) {
@@ -757,7 +757,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
         "toggle-close-tab",
       );
       postSaveAction.addEventListener("click", () => {
-        commit(setRoutingRuleTabAction(textarea.value, rule.index, !closeTab));
+        commit(setRoutingRulePostSaveAction(textarea.value, rule.index, !closeTab));
         closeActions();
       });
       actionsMenu.append(postSaveAction);

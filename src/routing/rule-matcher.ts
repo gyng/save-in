@@ -238,7 +238,9 @@ export const evaluateRule = (rule: RoutingRule, info: RoutingInfo): RuleEvaluati
       : false,
     tabAction: rule.some(
       (clause) =>
-        clause.type === RULE_TYPES.ACTION && clause.name === "tab" && clause.value === "close",
+        clause.type === RULE_TYPES.ACTION &&
+        clause.name === "after" &&
+        clause.value === "close-tab",
     )
       ? "close"
       : false,

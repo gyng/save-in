@@ -26,7 +26,7 @@ fetch-clause     = "fetch:", [ " " ], http-template ;
 rename-clause    = "rename", [ "/", regex-flags ], ":", [ " " ], regex,
                    " -> ", template ;
 action-clause    = "exclude:", [ " " ], "true"
-                 | "tab:", [ " " ], "close" ;
+                 | "after:", [ " " ], "close-tab" ;
 disabled-clause  = "disabled:", [ " " ], ( "true" | "false" ) ;
 regex-flags      = non-whitespace, { non-whitespace } ;
 comment-line     = optional-whitespace, "//", { character } ;
@@ -193,7 +193,7 @@ const clauseKind = (name: string): RoutingClauseNode["clauseKind"] =>
       ? "fetch"
       : name === "rename"
         ? "rename"
-        : name === "exclude" || name === "tab"
+        : name === "exclude" || name === "after"
           ? "action"
           : name === "capture" || name === "capturegroups"
             ? "capture"

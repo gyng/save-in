@@ -110,7 +110,7 @@ rule ends with `exclude: true`, must contain a matcher, and stops processing
 without starting a Save In download. Exclusions may not carry destination,
 capture, fetch, rename, or tab-action clauses. For an ordinary browser download
 that has already started, exclusion leaves it unchanged rather than cancelling
-it. A saving rule may include `tab: close`; interactive saves close their source
+it. A saving rule may include `after: close-tab`; interactive saves close their source
 tab only after the browser accepts the download. Automatic rules reject that
 action, and ordinary browser-download routing ignores it because it has no
 source tab to act on. `VALIDATE` traces expose `selectedOutcome`,
