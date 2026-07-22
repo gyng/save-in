@@ -391,9 +391,11 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
       // Computed backgrounds can depend on any attribute selector. Keep the
       // narrow media/link filter only when background discovery is disabled;
       // the bounded reconciliation queue contains noisy pages while the panel
-      // is open.
+      // is open. hidden/aria-hidden/role stay in the narrow filter because
+      // cached relevance scores read them through closest() and are refreshed
+      // only when reconciliation replaces the source record.
       ...(ctx.panelOptions.includeBackgrounds === false
-        ? { attributeFilter: ["src", "srcset", "style", "href"] }
+        ? { attributeFilter: ["src", "srcset", "style", "href", "hidden", "aria-hidden", "role"] }
         : {}),
     });
     try {

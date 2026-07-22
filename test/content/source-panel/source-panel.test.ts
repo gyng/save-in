@@ -1334,6 +1334,22 @@ describe("Page Sources panel interactions", () => {
     expect(sendDownload.mock.calls[1]?.[0]?.url).toBe("http://localhost/shared.jpg");
   });
 
+  test("re-scores relevance after a visibility change while backgrounds are off", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<main id="feature"><img src="feature.jpg"></main><img src="plain.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const urls = () =>
+      [...shadow.querySelectorAll<HTMLAnchorElement>(".source-link")].map(({ href }) => href);
+    expect(urls()).toEqual(["http://localhost/feature.jpg", "http://localhost/plain.jpg"]);
+
+    document.querySelector("#feature")!.setAttribute("aria-hidden", "true");
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    expect(urls()).toEqual(["http://localhost/plain.jpg", "http://localhost/feature.jpg"]);
+  });
+
   test("coalesces nested, disconnected, and text-only live mutations", async () => {
     vi.useFakeTimers();
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
