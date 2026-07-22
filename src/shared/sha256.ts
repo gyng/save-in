@@ -16,8 +16,13 @@ const ROUND_CONSTANTS = new Uint32Array([
 const rotateRight = (value: number, bits: number): number =>
   (value >>> bits) | (value << (32 - bits));
 
-const uint32At = (values: Uint32Array, index: number): number => {
-  return values[index] as number;
+// Typed-array reads are `number | undefined` under noUncheckedIndexedAccess.
+// Exported so the impossible-index failure stays a checked, directly tested
+// error instead of a cast: callers use fixed-size arrays and bounded indexes.
+export const uint32At = (values: Uint32Array, index: number): number => {
+  const value = values[index];
+  if (value === undefined) throw new RangeError(`Missing 32-bit word at index ${index}`);
+  return value;
 };
 
 export class Sha256 {

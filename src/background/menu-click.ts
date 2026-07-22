@@ -347,26 +347,14 @@ const handleContextMenuClickInternal = async (
         }
       | undefined;
 
-    if (info.menuItemId === MENU_IDS.ROUTE_EXCLUSIVE) {
-      saveIntoPath = ".";
-    } else if (info.menuItemId === MENU_IDS.QUICK_SAVE) {
-      // Quick save reuses the ordinary pipeline: routing rules still run on top
-      // of the resolved default destination, only the folder tree is skipped.
-      saveIntoPath = resolveDefaultDestination(options);
-    } else if (info.menuItemId === MENU_IDS.LAST_USED) {
-      const lastUsed = getLastUsed(isolatedPrivateContext);
-      saveIntoPath = lastUsed.path;
-      if (!saveIntoPath) return;
-      lastUsedMeta = lastUsed.meta;
-      if (lastUsedMeta) {
-        // Keep routing metadata paired with the path that produced it. A
-        // later tab/external download may replace lastDownloadState, but
-        // must not change how the Last used destination routes.
-        comment = lastUsedMeta.comment;
-        menuIndex = lastUsedMeta.menuIndex;
-      }
-    } else {
-      const mappedMenu = menuInfo as NonNullable<typeof menuInfo>;
+    // The mapped case is checked first so the mapping's presence is what
+    // selects the branch: the outer guard admits an ordinary item only when
+    // its mapping exists, and testing `menuInfo` directly proves that to the
+    // type system. Mapped ids (`save-in-<n>`, `save-in-recent-<n>`) can never
+    // collide with the special ids below, so the order does not change which
+    // branch a click takes.
+    if (menuInfo) {
+      const mappedMenu = menuInfo;
       saveIntoPath = mappedMenu.parsedDir;
       const title = mappedMenu.title || saveIntoPath;
       selectedLocation = {
@@ -379,6 +367,25 @@ const handleContextMenuClickInternal = async (
         },
         title,
       };
+    } else if (info.menuItemId === MENU_IDS.ROUTE_EXCLUSIVE) {
+      saveIntoPath = ".";
+    } else if (info.menuItemId === MENU_IDS.QUICK_SAVE) {
+      // Quick save reuses the ordinary pipeline: routing rules still run on top
+      // of the resolved default destination, only the folder tree is skipped.
+      saveIntoPath = resolveDefaultDestination(options);
+    } else {
+      // Last used: the only remaining id the outer guard admits.
+      const lastUsed = getLastUsed(isolatedPrivateContext);
+      saveIntoPath = lastUsed.path;
+      if (!saveIntoPath) return;
+      lastUsedMeta = lastUsed.meta;
+      if (lastUsedMeta) {
+        // Keep routing metadata paired with the path that produced it. A
+        // later tab/external download may replace lastDownloadState, but
+        // must not change how the Last used destination routes.
+        comment = lastUsedMeta.comment;
+        menuIndex = lastUsedMeta.menuIndex;
+      }
     }
 
     const parsedPath = new Path(saveIntoPath);

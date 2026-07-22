@@ -1,4 +1,4 @@
-import { Sha256 } from "../../src/shared/sha256.ts";
+import { Sha256, uint32At } from "../../src/shared/sha256.ts";
 
 const encode = (value: string) => new TextEncoder().encode(value);
 
@@ -43,4 +43,14 @@ test("uses a second final block when padding does not fit", () => {
   hash.update(encode("a".repeat(56)));
 
   expect(hash.hex()).toBe("b35439a4ac6f0948b6d6f9e3c6af0f5f590ce20f1bde7090ef7970686ec6738a");
+});
+
+describe("uint32At", () => {
+  test("returns the word at a valid index", () => {
+    expect(uint32At(new Uint32Array([7, 11]), 1)).toBe(11);
+  });
+
+  test("rejects an out-of-range index instead of yielding undefined", () => {
+    expect(() => uint32At(new Uint32Array([7]), 2)).toThrow(RangeError);
+  });
 });

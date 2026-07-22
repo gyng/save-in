@@ -124,7 +124,14 @@ export const isSafeExternalRegex = (regex: RegExp | string): boolean => {
   if (source.length > MAX_REGEX_CHARACTERS) return false;
 
   type GroupState = { hasAlternation: boolean; hasQuantifier: boolean };
-  const groups: GroupState[] = [{ hasAlternation: false, hasQuantifier: false }];
+  // A linked stack instead of an array: the root's `parent: null` lets the
+  // type system prove a popped group and its parent exist, where array
+  // pop()/at(-1) would demand casts or unreachable guards.
+  type GroupStack = { group: GroupState; parent: GroupStack | null };
+  let stack: GroupStack = {
+    group: { hasAlternation: false, hasQuantifier: false },
+    parent: null,
+  };
   let inCharacterClass = false;
   let quantifierCount = 0;
   let repeatingQuantifierCount = 0;
@@ -153,19 +160,19 @@ export const isSafeExternalRegex = (regex: RegExp | string): boolean => {
     if (inCharacterClass) continue;
 
     if (token === "(") {
-      groups.push({ hasAlternation: false, hasQuantifier: false });
+      stack = { group: { hasAlternation: false, hasQuantifier: false }, parent: stack };
       continue;
     }
-    if (token === ")" && groups.length > 1) {
-      const group = groups.pop() as GroupState;
+    if (token === ")" && stack.parent !== null) {
+      const closed = stack.group;
       const repeated = repeatingQuantifierAt(source, index + 1);
-      if (repeated && (group.hasAlternation || group.hasQuantifier)) return false;
-      const parent = groups.at(-1) as GroupState;
-      parent.hasAlternation ||= group.hasAlternation;
-      parent.hasQuantifier ||= group.hasQuantifier || repeated;
+      if (repeated && (closed.hasAlternation || closed.hasQuantifier)) return false;
+      stack = stack.parent;
+      stack.group.hasAlternation ||= closed.hasAlternation;
+      stack.group.hasQuantifier ||= closed.hasQuantifier || repeated;
       continue;
     }
-    const current = groups.at(-1) as GroupState;
+    const current = stack.group;
     if (token === "|") current.hasAlternation = true;
     const previous = source[index - 1];
     const lazyModifier =
