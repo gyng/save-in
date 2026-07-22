@@ -43,13 +43,23 @@ the operation boundary:
 
 - **Read** operations may be repeated.
 - **Idempotent** mutations may be repeated after recreating the control page.
-- **One-shot** mutations may be repeated only when the same realm is still
-  alive and therefore still owns the request-ID deduplication record.
+- **One-shot** mutations may be repeated only when `isSameRealm` proves the
+  dispatched request's target container — CDP `targetId` (`scripts/lib/cdp.js`)
+  or BiDi browsing-context id (`scripts/lib/firefox-bidi.js`) — is still the
+  one in use.
 
-A lost one-shot reply is not permission to recreate the page and issue the
-mutation again. If the original realm disappears, fail the case; the operation
-may already have completed and the new realm has no record with which to
-deduplicate it.
+That check proves container identity, not that the container's in-memory
+request-ID dedup record survived: an in-place reload of the control page
+destroys the dedup map while leaving the container id unchanged, so an
+identity match alone would not be sufficient to safely replay in that case.
+The harness never reloads the control page mid-operation, so this gap is not
+exercised; if that ever changes, retrying past a reload needs its own guard.
+A lost one-shot reply is otherwise not permission to recreate the page and
+issue the mutation again. If the original realm disappears, fail the case;
+the operation may already have completed and the new realm has no record with
+which to deduplicate it. The rule that a second or ambiguous replay failure
+must never recreate the one-shot cache is covered directly in
+`test/tooling/e2e-control-client.test.ts:326`.
 
 Browser death, or a control plane that cannot be recreated, is terminal for
 that suite attempt. Abort the remaining cases instead of running them against
