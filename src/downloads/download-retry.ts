@@ -132,6 +132,14 @@ export const retryViaFetch = async (
       // original's startTime would refuse undo of the retried save.
       ...(record.historyEntryId ? { historyEntryId: record.historyEntryId } : {}),
       ...(record.pendingHistoryMove ? { pendingHistoryMove: record.pendingHistoryMove } : {}),
+      // Same derivation the full record below reuses from `record` (itself
+      // already gated against the original download's privateContext in
+      // download-execution.ts). Re-gate against this retry's own
+      // privateContext too: if a completion lands before rememberStartedDownload
+      // below persists the full record, the completion webhook check reads
+      // this provisional one, and a missing field there fails closed — for a
+      // retried PUBLIC save that silently drops an otherwise-eligible webhook.
+      webhookEligible: record.webhookEligible === true && privateContext !== true,
     });
     await Promise.all(
       persistActivity

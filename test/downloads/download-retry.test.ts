@@ -236,6 +236,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
       privateContext: false,
       sourceSidecar: true,
       historyEntryId: "h-test",
+      webhookEligible: false,
     });
     expect(downloadState.records.get(202)).toMatchObject({
       adopted: true,
@@ -263,6 +264,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
       privateContext: false,
       pendingSourceSidecar: { sourceUrl: "https://x/source.png" },
       historyEntryId: "h-test",
+      webhookEligible: false,
     });
   });
 
@@ -285,7 +287,61 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
       privateContext: false,
       historyEntryId: "h-test",
       pendingHistoryMove,
+      webhookEligible: false,
     });
+  });
+
+  test("carries webhookEligible to the provisional record for a public retry", async () => {
+    const state = makeState({
+      info: {
+        url: "https://example.com/dir/file.png",
+        pageUrl: "https://example.com/page",
+        webhookEligible: true,
+      },
+    });
+    await Download.renameAndDownload(state);
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    vi.mocked(global.browser.downloads.download).mockResolvedValue(202);
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    // A completion landing before rememberStartedDownload below persists the
+    // full record must still see webhookEligible on this provisional one, or
+    // an otherwise-eligible public retry's completion webhook silently drops.
+    expect(Notifier.expectDownload).toHaveBeenCalledWith(
+      expect.stringMatching(/^blob:/),
+      expect.objectContaining({ webhookEligible: true }),
+    );
+  });
+
+  test("re-gates a private retry's provisional record even if the stored record was marked eligible", async () => {
+    setCurrentBrowser("FIREFOX");
+    const state = makeState({
+      info: {
+        url: "https://example.com/private/file.png",
+        pageUrl: "https://example.com/private",
+        currentTab: { incognito: true },
+      },
+    });
+    await Download.renameAndDownload(state);
+    // Defensive: even if a stored record somehow carried webhookEligible from
+    // an inconsistent write, this retry's own privateContext must still
+    // refuse it — the private gate must never be weakened by this carry-over.
+    await Download.rememberStartedDownload(101, { webhookEligible: true });
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:private-webhook-retry");
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    (global.browser.downloads as any).download = vi.fn(() => Promise.resolve(202));
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(Notifier.expectDownload).toHaveBeenCalledWith(
+      "blob:private-webhook-retry",
+      expect.objectContaining({ webhookEligible: false }),
+    );
   });
 
   test("keeps a Firefox private retry private and clears its transient filename", async () => {
