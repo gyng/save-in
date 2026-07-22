@@ -70,6 +70,32 @@ export type ManualEditorStateLike = {
 // the once-bound #see-variables-btn handler.
 let latestInterpolatedVariables: Record<string, string> | null = null;
 
+const replaceVariablesTableRows = (
+  tableBody: HTMLElement,
+  variables: Record<string, string>,
+): void => {
+  tableBody.innerHTML = "";
+  Object.keys(variables).forEach((key) => {
+    const val = variables[key];
+
+    const variableRow = document.createElement("tr");
+
+    const nameEl = document.createElement("td");
+    nameEl.textContent = key;
+    nameEl.classList.add("click-to-copy");
+    nameEl.classList.add("code");
+    addClickToCopy(nameEl);
+
+    const interpolatedEl = document.createElement("td");
+    interpolatedEl.classList.add("last-download-value");
+    interpolatedEl.textContent = val ?? "";
+
+    variableRow.appendChild(nameEl);
+    variableRow.appendChild(interpolatedEl);
+    tableBody.appendChild(variableRow);
+  });
+};
+
 export const errorChannel = (panel: Element, name: string): Element => {
   let channel = panel.querySelector(`[data-error-channel="${name}"]`);
   if (!channel) {
@@ -226,28 +252,7 @@ const renderVariablesTable = (): void => {
     return;
   }
   tableBody.hidden = !tableBody.hidden;
-  tableBody.innerHTML = "";
-
-  const variables = latestInterpolatedVariables;
-  Object.keys(variables).forEach((key) => {
-    const val = variables[key];
-
-    const variableRow = document.createElement("tr");
-
-    const nameEl = document.createElement("td");
-    nameEl.textContent = key;
-    nameEl.classList.add("click-to-copy");
-    nameEl.classList.add("code");
-    addClickToCopy(nameEl);
-
-    const interpolatedEl = document.createElement("td");
-    interpolatedEl.classList.add("last-download-value");
-    interpolatedEl.textContent = val ?? "";
-
-    variableRow.appendChild(nameEl);
-    variableRow.appendChild(interpolatedEl);
-    tableBody.appendChild(variableRow);
-  });
+  if (!tableBody.hidden) replaceVariablesTableRows(tableBody, latestInterpolatedVariables);
 };
 
 export const setupSeeVariablesButton = (): void => {
@@ -416,6 +421,15 @@ export const createRoutingPreviewPanel = (manualEditorState: ManualEditorStateLi
       // reads. Binding here would leak a listener on every autosave and
       // make the toggle unpredictable.
       latestInterpolatedVariables = body.interpolatedVariables;
+      const variablesBody = document.querySelector<HTMLElement>("#variables-body");
+      if (variablesBody) {
+        if (!hasLastDownload || !latestInterpolatedVariables) {
+          variablesBody.hidden = true;
+          variablesBody.innerHTML = "";
+        } else if (!variablesBody.hidden) {
+          replaceVariablesTableRows(variablesBody, latestInterpolatedVariables);
+        }
+      }
 
       // Capture groups
       const captures = body.routeInfo.captures;
