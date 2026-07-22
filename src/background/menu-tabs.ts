@@ -171,7 +171,7 @@ export const handleTabMenuClick = async (
         const tabId = t.id;
         if (tabId == null) continue;
         try {
-          if (state.scratch.routeTabAction === "close" && !options.closeTabOnSave) {
+          if (state.scratch.routeTabAction === "close") {
             await closeRoutingSourceTab(t, tabId);
           } else {
             await webExtensionApi.tabs.remove(tabId);

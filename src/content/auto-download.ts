@@ -287,13 +287,11 @@ export const setupAutoDownloadDiscovery = (
         if (selected || excludedByRule) break;
       }
       if (excludedByRule) {
-        if (excluded.size >= AUTO_EXCLUSION_CACHE_LIMIT) {
-          for (const oldest of excluded) {
-            excluded.delete(oldest);
-            break;
-          }
-        }
-        excluded.add(seenKey);
+        // Keep the first bounded working set instead of replacing one entry
+        // on every overflow. FIFO eviction makes a stable page just over the
+        // limit miss every entry on every live rescan; refusing overflow keeps
+        // memory bounded and limits repeat matching to the uncached tail.
+        if (excluded.size < AUTO_EXCLUSION_CACHE_LIMIT) excluded.add(seenKey);
         continue;
       }
       if (!selected) continue;

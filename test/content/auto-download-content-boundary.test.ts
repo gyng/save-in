@@ -162,7 +162,7 @@ into: automatic/
   history.replaceState({}, "", "/");
 });
 
-test("bounds the page-local exclusion cache", async () => {
+test("bounds the page-local exclusion cache without churning stable entries", async () => {
   fixture.candidates = Array.from({ length: 1025 }, (_value, index) => ({
     url: `https://cdn.test/excluded-${index}.jpg`,
     kind: "image",
@@ -184,7 +184,15 @@ exclude: true
   await controller.idle();
 
   expect(dedup.excluded?.size).toBe(1024);
-  expect(dedup.excluded?.has("https://cdn.test/excluded-0.jpg")).toBe(false);
+  expect(dedup.excluded?.has("https://cdn.test/excluded-0.jpg")).toBe(true);
+  expect(dedup.excluded?.has("https://cdn.test/excluded-1024.jpg")).toBe(false);
+
+  controller.scan();
+  await controller.idle();
+
+  expect(dedup.excluded?.size).toBe(1024);
+  expect(dedup.excluded?.has("https://cdn.test/excluded-0.jpg")).toBe(true);
+  expect(dedup.excluded?.has("https://cdn.test/excluded-1024.jpg")).toBe(false);
   controller.stop();
 });
 
