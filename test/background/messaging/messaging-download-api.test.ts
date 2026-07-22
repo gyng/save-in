@@ -112,7 +112,15 @@ describe("handleDownloadMessage", () => {
     });
     const sendResponse = vi.fn();
     expect(
-      onMessage(request(), { id: global.browser.runtime.id, tab: { id: 9 } }, sendResponse),
+      onMessage(
+        request(),
+        {
+          id: global.browser.runtime.id,
+          url: "https://x/",
+          tab: { id: 9, url: "https://x/" },
+        },
+        sendResponse,
+      ),
     ).toBe(true);
     await waitForCall(sendResponse);
     await vi.waitFor(() => expect(global.browser.tabs.remove).toHaveBeenCalledWith(9));
@@ -132,6 +140,26 @@ describe("handleDownloadMessage", () => {
     expect(global.browser.tabs.remove).not.toHaveBeenCalled();
   });
 
+  test("does not close an ambient tab for a URL requested by an extension page", async () => {
+    vi.mocked(global.browser.tabs.remove).mockClear();
+    vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
+      state.scratch.routeTabAction = "close";
+      return { status: "started", downloadId: 7 };
+    });
+    const optionsUrl = global.browser.runtime.getURL("options.html");
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessage(
+        request(),
+        { id: global.browser.runtime.id, url: optionsUrl, tab: { id: 9, url: optionsUrl } },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+  });
+
   test("contains and logs a post-save tab close failure", async () => {
     vi.mocked(global.browser.tabs.remove).mockRejectedValueOnce(new Error("tab vanished"));
     vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
@@ -143,7 +171,11 @@ describe("handleDownloadMessage", () => {
     expect(
       onMessage(
         request(),
-        { id: global.browser.runtime.id, tab: { id: 9, incognito: true } },
+        {
+          id: global.browser.runtime.id,
+          url: "https://x/",
+          tab: { id: 9, url: "https://x/", incognito: true },
+        },
         sendResponse,
       ),
     ).toBe(true);

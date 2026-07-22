@@ -56,6 +56,52 @@ describe("external active-tab downloads", () => {
     });
   });
 
+  test("closes only the tab explicitly selected by an active-tab request", async () => {
+    const activeTab = { id: 42, title: "Active Tab", url: "https://x/active" };
+    vi.mocked(webExtensionApi.tabs.query).mockResolvedValueOnce([activeTab] as any);
+    vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
+      state.scratch.routeTabAction = "close";
+      return { status: "started", downloadId: 7 };
+    });
+    const sendResponse = vi.fn();
+
+    await Messaging.handleDownloadMessage(request({ target: "activeTab" }), {}, sendResponse);
+
+    expect(webExtensionApi.tabs.remove).toHaveBeenCalledWith(42);
+  });
+
+  test("does not close a caller tab for an explicit URL", async () => {
+    const callerTab = { id: 9, title: "Caller", url: "https://caller.example/" };
+    vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
+      state.scratch.routeTabAction = "close";
+      return { status: "started", downloadId: 7 };
+    });
+
+    await Messaging.handleDownloadMessage(
+      request({ url: "https://x/explicit" }),
+      { tab: callerTab } as any,
+      vi.fn(),
+    );
+
+    expect(webExtensionApi.tabs.remove).not.toHaveBeenCalled();
+  });
+
+  test("fails safe when a direct internal call has no authenticated source tab", async () => {
+    vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
+      state.scratch.routeTabAction = "close";
+      return { status: "started", downloadId: 7 };
+    });
+
+    await Messaging.handleDownloadMessage(
+      request({ url: "https://x/explicit" }),
+      {},
+      vi.fn(),
+      true,
+    );
+
+    expect(webExtensionApi.tabs.remove).not.toHaveBeenCalled();
+  });
+
   test("prefers the originating tab", async () => {
     const senderTab = { id: 9, title: "Origin", url: "https://x/origin" } as browser.tabs.Tab;
 

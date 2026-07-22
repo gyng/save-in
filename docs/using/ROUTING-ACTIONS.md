@@ -13,10 +13,11 @@ into: images/:filename:
 ```
 
 An exclusion must have at least one matcher. It cannot contain `into:`,
-`capture:`, `capturegroups:`, `fetch:`, `rename:`, or `tab:`. Put narrow
+`capture:`, `capturegroups:`, `fetch:`, `rename:`, or `after:`. Put narrow
 exclusions before broader destinations. For an ordinary browser download that
 has already started, exclusion leaves the browser's download unchanged; it does
-not cancel it.
+not cancel it. A private exclusion notification reports only that an item was
+excluded; it does not identify the item or its address.
 
 Automatic Page Sources can use guarded exclusions. The exclusion needs the same
 explicit `context: ^auto$`, page matcher, and source matcher as an automatic
@@ -38,6 +39,11 @@ folder menu item's `(tab: close)` or `(tab: return)` setting is more specific
 and wins over the routing action; the routing action in turn wins over the
 global **Close each tab after saving it** setting. Save In resolves that order
 once, so overlapping close settings never issue duplicate tab operations.
+
+The source must be unambiguous. A save sent by Save In's page content script
+may close that sending tab, and an integration using `target: "activeTab"` may
+close the tab it explicitly selected. An explicit-URL request from an extension
+page or external integration does not close the caller's ambient tab.
 
 Automatic rules cannot use `after: close-tab`: unattended source discovery must not
 close a page. Ordinary browser-download routing also ignores post-save tab

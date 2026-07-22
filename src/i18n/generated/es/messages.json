@@ -4428,6 +4428,9 @@
     "message": "$URL$ no se guardó porque una regla de enrutamiento lo excluyó.",
     "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
   },
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "No se guardó un elemento de navegación privada porque una regla de enrutamiento lo excluyó."
+  },
   "routeActionExclude": { "message": "No guardar los elementos coincidentes" },
   "routeActionCloseTab": { "message": "Cerrar la pestaña de origen después de guardar" },
   "routeActionKeepTab": { "message": "Mantener la pestaña de origen después de guardar" },

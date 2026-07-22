@@ -4428,6 +4428,9 @@
     "message": "$URL$ is niet opgeslagen omdat een routeringsregel het heeft uitgesloten.",
     "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
   },
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "Een item uit een privévenster is niet opgeslagen omdat een routeringsregel het heeft uitgesloten."
+  },
   "routeActionExclude": { "message": "Overeenkomende items niet opslaan" },
   "routeActionCloseTab": { "message": "Brontabblad sluiten na opslaan" },
   "routeActionKeepTab": { "message": "Brontabblad openhouden na opslaan" },

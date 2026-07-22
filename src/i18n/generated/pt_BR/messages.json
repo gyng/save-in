@@ -4428,6 +4428,9 @@
     "message": "$URL$ não foi salvo porque uma regra de roteamento o excluiu.",
     "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
   },
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "Um item da navegação privativa não foi salvo porque uma regra de roteamento o excluiu."
+  },
   "routeActionExclude": { "message": "Não salvar itens correspondentes" },
   "routeActionCloseTab": { "message": "Fechar a aba de origem após salvar" },
   "routeActionKeepTab": { "message": "Manter a aba de origem após salvar" },

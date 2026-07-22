@@ -4428,6 +4428,9 @@
     "message": "$URL$ wurde nicht gespeichert, weil eine Routingregel es ausgeschlossen hat.",
     "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
   },
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "Ein Element aus einem privaten Fenster wurde nicht gespeichert, weil eine Routingregel es ausgeschlossen hat."
+  },
   "routeActionExclude": { "message": "Übereinstimmende Elemente nicht speichern" },
   "routeActionCloseTab": { "message": "Quelltab nach dem Speichern schließen" },
   "routeActionKeepTab": { "message": "Quelltab nach dem Speichern geöffnet lassen" },

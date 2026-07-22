@@ -4428,6 +4428,9 @@
     "message": "$URL$ n’a pas été enregistré, car une règle de routage l’a exclu.",
     "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
   },
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "Un élément de navigation privée n’a pas été enregistré, car une règle de routage l’a exclu."
+  },
   "routeActionExclude": { "message": "Ne pas enregistrer les éléments correspondants" },
   "routeActionCloseTab": { "message": "Fermer l’onglet source après l’enregistrement" },
   "routeActionKeepTab": { "message": "Garder l’onglet source après l’enregistrement" },

@@ -441,6 +441,7 @@ export const handleDownloadMessage = (
   const launch = (
     url: string,
     resolvedTab: CurrentTab | null = (sender && sender.tab) || currentTab,
+    postSaveActionTab: CurrentTab | null = internal ? sender.tab || null : null,
   ): Promise<void> | void => {
     if (!isValidDownloadUrl(url)) {
       fail(API_ERRORS.INVALID_URL, "URL must be http(s), ftp, data or blob");
@@ -534,13 +535,13 @@ export const handleDownloadMessage = (
       if (
         result.status === "started" &&
         clickState.scratch.routeTabAction === "close" &&
-        resolvedTab?.id != null
+        postSaveActionTab?.id != null
       ) {
         try {
-          await webExtensionApi.tabs.remove(resolvedTab.id);
+          await webExtensionApi.tabs.remove(postSaveActionTab.id);
         } catch (error) {
           await addLogEntry("post-save tab action failed", String(error), {
-            privateContext: resolvedTab.incognito === true,
+            privateContext: postSaveActionTab.incognito === true,
           });
         }
       }
@@ -562,7 +563,7 @@ export const handleDownloadMessage = (
   // last-focused window instead of relying on Save In's lifecycle-bound tab
   // mirror; prefer sender.tab when the caller did originate in a tab.
   if (sender && sender.tab && sender.tab.url) {
-    return launch(sender.tab.url, sender.tab);
+    return launch(sender.tab.url, sender.tab, sender.tab);
   }
   return webExtensionApi.tabs
     .query({ active: true, lastFocusedWindow: true })
@@ -572,7 +573,7 @@ export const handleDownloadMessage = (
         fail(API_ERRORS.BAD_REQUEST, "No active tab with a URL was found");
         return;
       }
-      return launch(tab.url, tab);
+      return launch(tab.url, tab, tab);
     })
     .then(() => undefined);
 };

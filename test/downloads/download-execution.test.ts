@@ -54,6 +54,59 @@ describe("renameAndDownload: terminal exclusion", () => {
       Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
     );
   });
+
+  test("does not identify an excluded private item in its notification", async () => {
+    options.filenamePatterns = [routingRule()];
+    options.notifyOnRuleMatch = true;
+    vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      outcome: "exclude",
+      rule: options.filenamePatterns[0]!,
+      destination: null,
+      fetch: null,
+      rename: null,
+      tabAction: null,
+    });
+    const state = makeState({
+      info: {
+        currentTab: { incognito: true },
+        url: "https://private.example/secret.png",
+      },
+    });
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
+
+    expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
+      "routeActionExcluded",
+      "notificationPrivateRuleExcludedMessage",
+      false,
+      Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+    );
+    expect(Notifier.createExtensionNotification).not.toHaveBeenCalledWith(
+      expect.anything(),
+      expect.stringContaining("private.example"),
+      expect.anything(),
+      expect.anything(),
+    );
+  });
+
+  test("does not misreport a quiet exclusion as a routing failure", async () => {
+    options.filenamePatterns = [routingRule()];
+    options.notifyOnRuleMatch = false;
+    options.notifyOnFailure = true;
+    options.routeSkipUnmatched = true;
+    vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      outcome: "exclude",
+      rule: options.filenamePatterns[0]!,
+      destination: null,
+      fetch: null,
+      rename: null,
+      tabAction: null,
+    });
+
+    await expect(Download.renameAndDownload(makeState())).resolves.toEqual({ status: "skipped" });
+
+    expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
+  });
 });
 
 describe("renameAndDownload: browserDownload", () => {

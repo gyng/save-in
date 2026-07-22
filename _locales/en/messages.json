@@ -117,6 +117,10 @@
       }
     }
   },
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "A private browsing item was not saved because a routing rule excluded it.",
+    "description": "Privacy-preserving notification body after an interactive private save matches a terminal exclude: true routing rule. Do not identify the item. Used in src/downloads/download-execution.ts."
+  },
   "routeActionExclude": {
     "message": "Do not save matching items",
     "description": "Action label for adding or displaying an exclude: true routing rule. Used in src/options/options.html, src/options/rule-editor/rule-visual-editor.ts, and src/options/route-debugger/route-debugger.ts."

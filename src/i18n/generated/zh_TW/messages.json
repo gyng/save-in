@@ -4418,6 +4418,9 @@
     "message": "由於路由規則將其排除，因此未儲存 $URL$。",
     "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
   },
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "由於路由規則將其排除，因此未儲存一個隱私瀏覽項目。"
+  },
   "routeActionExclude": { "message": "不儲存相符項目" },
   "routeActionCloseTab": { "message": "儲存後關閉來源分頁" },
   "routeActionKeepTab": { "message": "儲存後保留來源分頁" },

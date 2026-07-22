@@ -4430,6 +4430,9 @@
     "message": "$URL$ non è stato salvato perché una regola di instradamento lo ha escluso.",
     "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
   },
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "Un elemento di navigazione privata non è stato salvato perché una regola di instradamento lo ha escluso."
+  },
   "routeActionExclude": { "message": "Non salvare gli elementi corrispondenti" },
   "routeActionCloseTab": { "message": "Chiudi la scheda di origine dopo il salvataggio" },
   "routeActionKeepTab": { "message": "Mantieni la scheda di origine dopo il salvataggio" },

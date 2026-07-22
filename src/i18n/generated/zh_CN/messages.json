@@ -4416,6 +4416,9 @@
     "message": "由于路由规则将其排除，未保存 $URL$。",
     "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
   },
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "由于路由规则将其排除，未保存一个隐私浏览项目。"
+  },
   "routeActionExclude": { "message": "不保存匹配项" },
   "routeActionCloseTab": { "message": "保存后关闭来源标签页" },
   "routeActionKeepTab": { "message": "保存后保留来源标签页" },

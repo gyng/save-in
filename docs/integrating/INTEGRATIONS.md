@@ -113,7 +113,9 @@ that has already started, exclusion leaves it unchanged rather than cancelling
 it. A saving rule may include `after: close-tab`; interactive saves close their source
 tab only after the browser accepts the download. Automatic rules reject that
 action, and ordinary browser-download routing ignores it because it has no
-source tab to act on. `VALIDATE` traces expose `selectedOutcome`,
+source tab to act on. A `target: "activeTab"` request explicitly owns that tab
+for the action; an explicit-URL request does not close a caller or ambient tab.
+`VALIDATE` traces expose `selectedOutcome`,
 `selectedTabAction`, and each rule's `outcome`; these fields are additive.
 
 External validation is isolated from Save In's browser state: a trace uses only the sample fields supplied by the caller and never falls back to the active tab. Requests are bounded to 32,768 characters for each editable grammar, 4,096 characters per ordinary sample field, and 8,192 characters per sample URL. Bursts above 20 validation requests per 10 seconds per sender return `RATE_LIMITED`.

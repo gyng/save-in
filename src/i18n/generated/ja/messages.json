@@ -4428,6 +4428,9 @@
     "message": "ルーティングルールで除外されたため、$URL$ は保存されませんでした。",
     "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
   },
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "プライベートブラウジングの項目は、ルーティングルールで除外されたため保存されませんでした。"
+  },
   "routeActionExclude": { "message": "一致する項目を保存しない" },
   "routeActionCloseTab": { "message": "保存後に元のタブを閉じる" },
   "routeActionKeepTab": { "message": "保存後も元のタブを開いておく" },

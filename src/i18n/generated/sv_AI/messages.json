@@ -4428,6 +4428,9 @@
     "message": "$URL$ sparades inte eftersom en routningsregel uteslöt den.",
     "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
   },
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "Ett objekt från privat surfning sparades inte eftersom en routningsregel uteslöt det."
+  },
   "routeActionExclude": { "message": "Spara inte matchande objekt" },
   "routeActionCloseTab": { "message": "Stäng källfliken efter att objektet sparats" },
   "routeActionKeepTab": { "message": "Behåll källfliken efter att objektet sparats" },

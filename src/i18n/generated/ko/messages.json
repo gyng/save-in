@@ -4424,6 +4424,9 @@
     "message": "라우팅 규칙에서 제외되어 $URL$을(를) 저장하지 않았습니다.",
     "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
   },
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "라우팅 규칙에서 제외되어 비공개 브라우징 항목을 저장하지 않았습니다."
+  },
   "routeActionExclude": { "message": "일치하는 항목 저장 안 함" },
   "routeActionCloseTab": { "message": "저장 후 원본 탭 닫기" },
   "routeActionKeepTab": { "message": "저장 후 원본 탭 유지" },

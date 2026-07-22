@@ -544,20 +544,23 @@ export const renameAndDownload = async (
     const excluded = state.scratch.routeOutcome === "exclude";
     if (!excluded) await historyPort.setStatus(state.scratch.historyEntryId, "RULE_NO_MATCH");
     finishPreparation();
-    if (
-      excluded &&
-      options.notifyOnRuleMatch &&
-      state.info.context !== DOWNLOAD_TYPES.AUTO &&
-      !isSourceSidecar(state)
-    ) {
-      createExtensionNotification(
-        getMessage("routeActionExcluded"),
-        getMessage("notificationRuleExcludedMessage", [
-          truncateDataUrlForDisplay(requireDownloadUrl(state)),
-        ]),
-        false,
-        EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
-      );
+    if (excluded) {
+      if (
+        options.notifyOnRuleMatch &&
+        state.info.context !== DOWNLOAD_TYPES.AUTO &&
+        !isSourceSidecar(state)
+      ) {
+        createExtensionNotification(
+          getMessage("routeActionExcluded"),
+          isPrivateDownloadState(state)
+            ? getMessage("notificationPrivateRuleExcludedMessage")
+            : getMessage("notificationRuleExcludedMessage", [
+                truncateDataUrlForDisplay(requireDownloadUrl(state)),
+              ]),
+          false,
+          EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+        );
+      }
     } else if ((state.needRouteMatch || options.routeSkipUnmatched) && options.notifyOnFailure) {
       createExtensionNotification(
         getMessage("notificationRuleMatchFailedExclusiveTitle"),
