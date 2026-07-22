@@ -2097,6 +2097,181 @@ test("click-to-save rejects synthetic input and handles trusted single and doubl
   }
 });
 
+test("middle and right click gestures on a link save without the native action", async () => {
+  // Measured for this case (Chrome 150, CDP input): a synthesized middle
+  // click on a link opens it in a new tab, and a synthesized right click
+  // delivers a cancelable contextmenu — both renderer-level defaults the
+  // gesture must cancel alongside its own mousedown. The page registers its
+  // observers at parse time, before the document_idle content script, so it
+  // still sees suppressed events; defaultPrevented is read in a queued task
+  // because the extension's capture listener runs after the observer.
+  const png = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+    "base64",
+  );
+  const server = http.createServer((req, res) => {
+    if (req.url === "/pic.png") {
+      res.writeHead(200, { "Content-Type": "image/png" });
+      res.end(png);
+    } else {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(`<html><body style="margin:0">
+        <a id="lnk" href="/pic.png" style="display:block;width:200px;height:60px">save target</a>
+        <script>
+          window.__saveInGestureEvents = [];
+          for (const type of ["auxclick", "contextmenu", "click"]) {
+            window.addEventListener(type, (event) => {
+              window.__saveInGestureEvents.push({ type, event });
+            }, true);
+          }
+        </script></body></html>`);
+    }
+  });
+  const serverPort = await listenLocal(server);
+  const pageUrl = `http://127.0.0.1:${serverPort}/`;
+  const targetUrl = `127.0.0.1:${serverPort}`;
+  const previousStoredPatterns = (await control.storage.local.get("filenamePatterns"))
+    .filenamePatterns;
+  const previousOptions = {
+    contentClickToSave: await control.options.get("contentClickToSave"),
+    contentClickToSaveBindings: await control.options.get("contentClickToSaveBindings"),
+    filenamePatterns: typeof previousStoredPatterns === "string" ? previousStoredPatterns : "",
+  };
+
+  try {
+    await control.options.set({
+      contentClickToSave: true,
+      contentClickToSaveBindings: JSON.stringify({
+        version: 1,
+        bindings: [
+          { gesture: "middle-click", combo: "" },
+          { gesture: "right-click", combo: "" },
+        ],
+      }),
+      // The default links:true content option resolves the enclosing link.
+      filenamePatterns: [
+        "context: ^click$",
+        "gesture: ^middle-click$",
+        "into: e2e/middle-gesture/:filename:",
+        "",
+        "context: ^click$",
+        "gesture: ^right-click$",
+        "into: e2e/right-gesture/:filename:",
+      ].join("\n"),
+    });
+
+    await cdp.openTab(PORT, pageUrl);
+    const fixtureTab = await control.tabs.wait({ urlIncludes: targetUrl });
+    const fixtureTabId = requireValue(fixtureTab.id, "gesture fixture tab missing");
+    await control.tabs.waitContentReady(fixtureTabId);
+    await control.tabs.update(fixtureTabId, { active: true });
+    const tabsBefore = (await control.tabs.query()).length;
+
+    const point = parseJson(
+      await cdp.evalInTarget(
+        PORT,
+        targetUrl,
+        `(() => {
+          const rect = document.getElementById("lnk").getBoundingClientRect();
+          return JSON.stringify({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+        })()`,
+      ),
+      objectOf({ x: decodeNumber, y: decodeNumber }),
+    );
+
+    await cdp.dispatchInput(PORT, targetUrl, [
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mousePressed",
+          x: point.x,
+          y: point.y,
+          button: "middle",
+          buttons: 4,
+          clickCount: 1,
+        },
+      },
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mouseReleased",
+          x: point.x,
+          y: point.y,
+          button: "middle",
+          buttons: 0,
+          clickCount: 1,
+        },
+      },
+    ]);
+    const middleDownloads = await waitForDownloads("middle-gesture");
+    expect(middleDownloads).toHaveLength(1);
+    expect(middleDownloads[0]?.state).toBe("complete");
+    expect(fs.readFileSync(requireValue(middleDownloads[0]?.filename, "path"))).toEqual(png);
+
+    await cdp.dispatchInput(PORT, targetUrl, [
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mousePressed",
+          x: point.x,
+          y: point.y,
+          button: "right",
+          buttons: 2,
+          clickCount: 1,
+        },
+      },
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mouseReleased",
+          x: point.x,
+          y: point.y,
+          button: "right",
+          buttons: 0,
+          clickCount: 1,
+        },
+      },
+    ]);
+    const rightDownloads = await waitForDownloads("right-gesture");
+    expect(rightDownloads).toHaveLength(1);
+    expect(rightDownloads[0]?.state).toBe("complete");
+
+    // defaultPrevented is read here, after the dispatches completed: a
+    // microtask checkpoint runs between listeners, so any deferred read
+    // queued by this early observer would still run before the extension's
+    // later-registered capture listener called preventDefault.
+    const observed = parseJson(
+      await cdp.evalInTarget(
+        PORT,
+        targetUrl,
+        `JSON.stringify(window.__saveInGestureEvents.map(({ type, event }) =>
+          ({ type, button: event.button, prevented: event.defaultPrevented })))`,
+      ),
+      arrayOf(objectOf({ type: decodeString, button: decodeNumber, prevented: decodeBoolean })),
+    );
+    // The middle click's auxclick (new-tab default) and the right click's
+    // contextmenu (menu default) were both canceled by the extension.
+    expect(observed).toContainEqual({ type: "auxclick", button: 1, prevented: true });
+    expect(observed).toContainEqual({ type: "contextmenu", button: 2, prevented: true });
+    expect(observed.filter((event) => event.prevented === false)).toEqual([]);
+
+    // The saved link did not also open: the page stayed put and no tab opened.
+    const tabs = await control.tabs.query();
+    expect(tabs.length).toBe(tabsBefore);
+    expect(tabs.filter((tab) => tab.url?.includes("pic.png"))).toEqual([]);
+  } finally {
+    try {
+      await control.options.set(previousOptions);
+      const fixtureIds = (await control.tabs.query())
+        .filter((tab) => tab.url?.includes(targetUrl))
+        .flatMap((tab) => (tab.id === undefined ? [] : [tab.id]));
+      if (fixtureIds.length) await control.tabs.remove(fixtureIds);
+    } finally {
+      await closeLocal(server);
+    }
+  }
+});
+
 test("automatic Page Sources routes initial and live matches and enforces the visit limit", async () => {
   const { server, port } = await startSourcePanelServer();
   const target = `127.0.0.1:${port}/automatic-sources`;
