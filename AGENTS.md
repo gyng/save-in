@@ -204,8 +204,10 @@ to Firefox too.
   `browser` or `chrome` namespace (Chrome ≥ 123 is promise-native everywhere
   we await, contextMenus included). In Chrome-only code paths prefer bare
   `chrome.*` (e.g. DNR).
-- `contextMenus.create` with an `icons` property throws on Chrome — wrapped
-  in try/catch in `addLastUsed`.
+- `contextMenus.create` with an `icons` property throws on Chrome (schema
+  validation), and Firefox accepts it only on submenu items — the
+  `menuItemIcons` capability plus `createMenuWithThemedIcon` in
+  `background/menu-build.ts` own both rules; never give the root item icons.
 - Tab-strip context menus (`contexts: ["tab"]`) work on Firefox and Chrome
   150+. Feature-detect `chrome.contextMenus.ContextType.TAB`; Chrome 123–149
   remain supported and simply omit the tab-strip menu.

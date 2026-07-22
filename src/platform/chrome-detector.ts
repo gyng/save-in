@@ -70,7 +70,9 @@ export const detectCapabilities = (currentBrowser: string): WebExtensionCapabili
   // throw ("Error at parameter 'createProperties': Unexpected property:
   // 'icons'", measured on 150), not a lastError. So it cannot be asked politely,
   // and asking anyway made an exception the control flow of every menu build.
-  // Firefox honours icons on any item, which is what themes the menu (#184).
+  // Firefox honours icons on submenu items — not the root, where the create
+  // fails and takes every child with it (see addRoot) — which is what themes
+  // the menu (#184).
   menuItemIcons: currentBrowser === BROWSERS.FIREFOX,
   // Firefox 112 (bug 1815062 / CVE-2023-29542) moved the dangerous-extension
   // check into the sanitizer downloads.download validates its filename against,
