@@ -857,6 +857,61 @@ describe("SaveHistory", () => {
     expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({ terminalCount: 0 });
   });
 
+  test("cap eviction surviving a crash between remove and set leaves no orphaned shard", async () => {
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 2,
+      length: HISTORY_LIMIT,
+    };
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`] = ["oldest"];
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}1`] = [];
+    store[`${HISTORY_ENTRY_STORAGE_PREFIX}oldest`] = { id: "oldest", url: "https://a/old" };
+    global.browser.storage.local.set = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("crash before index write"));
+
+    SaveHistory.addHistoryEntry({ url: "https://a/new" });
+    await flushWrites();
+
+    // The reordered remove-then-set already ran remove(): the evicted oldest
+    // entry and its now-drained chunk are gone, even though the crash lost
+    // this call's own append and index update.
+    expect(store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`]).toBeUndefined();
+    expect(store[`${HISTORY_ENTRY_STORAGE_PREFIX}oldest`]).toBeUndefined();
+    // The crash left the OLD index untouched, still claiming the removed chunk.
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({
+      firstChunk: 0,
+      nextChunk: 2,
+      length: HISTORY_LIMIT,
+    });
+
+    // The read path tolerates the stale index's now-missing shard: it
+    // degrades to an empty result instead of throwing.
+    await expect(storedHistory()).resolves.toEqual([]);
+    expect(getPersistenceDiagnostics()).toEqual([
+      expect.objectContaining({ operation: "write", key: HISTORY_KEY }),
+    ]);
+
+    // A later add lands in the gap the crash left behind and reconciles the
+    // stale bookkeeping cleanly, with nothing left orphaned to garbage-collect.
+    global.browser.storage.local.set = vi.fn((obj: Record<string, unknown>) => {
+      Object.assign(store, obj);
+      return Promise.resolve();
+    });
+    SaveHistory.addHistoryEntry({ url: "https://a/reconciled" });
+    await flushWrites();
+
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({
+      firstChunk: 1,
+      nextChunk: 2,
+      length: HISTORY_LIMIT,
+    });
+    await expect(storedHistory()).resolves.toEqual([
+      expect.objectContaining({ url: "https://a/reconciled" }),
+    ]);
+  });
+
   test("add tolerates a storage backend returning nothing", async () => {
     returnRawStorageValueOnce(undefined);
 

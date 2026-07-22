@@ -439,8 +439,20 @@ export const addHistoryEntry = (
         ...(terminalCount === undefined ? {} : { terminalCount }),
       };
       writes[HISTORY_INDEX_STORAGE_KEY] = nextIndex;
-      await webExtensionApi.storage.local.set(writes);
+      // storage.local has no transactions, so order these for the failure mode
+      // that self-heals (see eaa31790's reasoning in pruneTerminalHistory):
+      // remove the now-unreferenced evicted shard/chunk BEFORE writing this
+      // call's new entry, appended chunk, and updated index. A worker death
+      // between them leaves the OLD index still referencing the removed shard
+      // key; readShardedHistory already tolerates a missing shard body
+      // (normalizeHistoryEntry(undefined) is null, skipped) and this call's
+      // catch records the failed write while a later add/prune reconciles the
+      // drift. The reverse order (set then remove, as this used to be) would
+      // instead make the NEW index authoritative first, leaving the evicted
+      // shard permanently orphaned if the remove never ran — a silent leak
+      // nothing ever garbage-collects short of Clear history.
       if (removeKeys.length > 0) await webExtensionApi.storage.local.remove(removeKeys);
+      await webExtensionApi.storage.local.set(writes);
     })
     .catch((error) => recordHistoryFailure("write", error));
 
