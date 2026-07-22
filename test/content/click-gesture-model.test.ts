@@ -1,8 +1,9 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { CLICK_GESTURES } from "../../src/shared/click-gesture.ts";
 import {
   createDoubleClickTracker,
   createFollowUpSuppressor,
+  createLongPressTracker,
   isSingleGestureButton,
 } from "../../src/content/click-gesture-model.ts";
 
@@ -53,6 +54,7 @@ describe("click gesture model", () => {
   test.each([
     CLICK_GESTURES.LEFT,
     CLICK_GESTURES.DOUBLE_LEFT,
+    CLICK_GESTURES.LONG_LEFT,
     CLICK_GESTURES.BACK,
     CLICK_GESTURES.FORWARD,
   ] as const)("%s arms no follow-up suppression", (gesture) => {
@@ -62,6 +64,110 @@ describe("click gesture model", () => {
     expect(suppressor.suppress("auxclick", 3)).toBe(false);
     expect(suppressor.suppress("contextmenu", 3)).toBe(false);
     expect(suppressor.suppress("mouseup", 3)).toBe(false);
+  });
+
+  test("completes a long press through one scheduled timer", () => {
+    let scheduled: (() => void) | undefined;
+    const clear = vi.fn();
+    const complete = vi.fn();
+    const tracker = createLongPressTracker(
+      500,
+      {
+        set: (callback, delay) => {
+          expect(delay).toBe(500);
+          scheduled = callback;
+          return 7;
+        },
+        clear,
+      },
+      complete,
+    );
+
+    tracker.press("source", 10, 20);
+    expect(tracker.isPending()).toBe(true);
+    scheduled?.();
+
+    expect(complete).toHaveBeenCalledOnce();
+    expect(complete).toHaveBeenCalledWith("source");
+    expect(tracker.isPending()).toBe(false);
+    expect(clear).not.toHaveBeenCalled();
+  });
+
+  test("cancels outside the movement slop but permits movement on its boundary", () => {
+    const scheduled = new Map<number, () => void>();
+    let nextTimer = 0;
+    const complete = vi.fn();
+    const tracker = createLongPressTracker(
+      500,
+      {
+        set: (callback) => {
+          nextTimer += 1;
+          scheduled.set(nextTimer, callback);
+          return nextTimer;
+        },
+        clear: (timer) => scheduled.delete(timer),
+      },
+      complete,
+    );
+
+    tracker.press("within", 0, 0);
+    tracker.move(8, 0);
+    scheduled.get(1)?.();
+    expect(complete).toHaveBeenCalledWith("within");
+
+    tracker.press("outside", 0, 0);
+    tracker.move(8, 1);
+    scheduled.get(2)?.();
+    expect(complete).toHaveBeenCalledTimes(1);
+    expect(tracker.isPending()).toBe(false);
+  });
+
+  test("a release or replacement press clears the previous timer", () => {
+    const clear = vi.fn();
+    let nextTimer = 0;
+    const tracker = createLongPressTracker(
+      500,
+      {
+        set: () => {
+          nextTimer += 1;
+          return nextTimer;
+        },
+        clear,
+      },
+      vi.fn(),
+    );
+
+    tracker.press("first", 0, 0);
+    tracker.press("second", 0, 0);
+    tracker.cancel();
+
+    expect(clear.mock.calls).toEqual([[1], [2]]);
+    expect(tracker.isPending()).toBe(false);
+  });
+
+  test("ignores a stale scheduled callback after cancellation", () => {
+    let scheduled: (() => void) | undefined;
+    const complete = vi.fn();
+    const tracker = createLongPressTracker(
+      500,
+      {
+        set: (callback) => {
+          scheduled = callback;
+          return 1;
+        },
+        // Model a timer callback that was already queued when cancellation
+        // raced it; the state guard remains the final authority.
+        clear: vi.fn(),
+      },
+      complete,
+    );
+
+    tracker.press("source", 0, 0);
+    tracker.cancel();
+    tracker.move(10, 10);
+    scheduled?.();
+
+    expect(complete).not.toHaveBeenCalled();
   });
 
   test("disarm clears a pending suppression", () => {

@@ -4387,10 +4387,13 @@
     "message": "O destino deve ser relativo e não pode conter componentes de caminho .."
   },
   "html_gestureMatcherDescription": {
-    "message": "Corresponde ao gesto usado por «Clique para salvar». Os padrões correspondem a qualquer parte do valor, então ancore-os (^left-click$) para impedir que left-click também corresponda a double-left-click."
+    "message": "Corresponde ao gesto usado por «Clique para salvar». Os padrões correspondem a qualquer parte do valor, então ancore-os (^left-click$) para impedir que left-click também corresponda a double-left-click ou long-left-click."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Clique duplo com o botão esquerdo"
+  },
+  "o_cKeyboardShortcutModifierLongLeftClick": {
+    "message": "Clique prolongado com o botão esquerdo"
   },
   "o_bAddClickToSaveBinding": {
     "message": "Adicionar gesto de clique"
@@ -4400,6 +4403,18 @@
   },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "O primeiro clique ainda é enviado à página. Uma imagem com link pode ser aberta ou levar a outra página antes do segundo clique."
+  },
+  "o_lClickToSaveLongClickHelp": {
+    "message": "Cliques breves continuam normais. Mantenha o ponteiro parado até o salvamento começar; mover cancela o gesto. Após salvar, o clique ao soltar é bloqueado para que os links não sejam abertos."
+  },
+  "o_lClickToSaveLongPressDuration": {
+    "message": "Duração do clique prolongado"
+  },
+  "o_lClickToSaveLongPressDurationHelp": {
+    "message": "Escolha de 250 a 2.000 milissegundos. O padrão é 500."
+  },
+  "o_lMilliseconds": {
+    "message": "milissegundos"
   },
   "routeDebuggerGesture": {
     "message": "Gesto de clique"

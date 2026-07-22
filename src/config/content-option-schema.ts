@@ -1,10 +1,12 @@
 import {
   CONTENT_OPTION_DEFAULTS,
   isAutoDownloadLimit,
+  isContentLongPressDuration,
   isClickType,
   isContentClickCombo,
   isStoredUiTheme,
   normalizeAutoDownloadLimit,
+  normalizeContentLongPressDuration,
   normalizeUiTheme,
   type UiTheme,
 } from "./content-options.ts";
@@ -125,6 +127,14 @@ export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
     type: "VALUE",
     validate: isClickType,
     default: CONTENT_OPTION_DEFAULTS.contentClickToSaveButton,
+  },
+  {
+    name: "contentClickToSaveLongPressMs",
+    type: "VALUE",
+    onLoad: normalizeContentLongPressDuration,
+    onSave: normalizeContentLongPressDuration,
+    validate: isContentLongPressDuration,
+    default: CONTENT_OPTION_DEFAULTS.contentClickToSaveLongPressMs,
   },
   {
     name: "contentClickToSaveUseDefault",

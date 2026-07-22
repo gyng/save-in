@@ -15,6 +15,7 @@ export interface E2EStoredOptionValues {
   contentClickToSave: boolean;
   contentClickToSaveBindings: string;
   contentClickToSaveCombo: string | number;
+  contentClickToSaveLongPressMs: string | number;
   externalDownloadAllowlist: string;
   fallbackFetch: boolean;
   fetchViaFetch: boolean;
@@ -54,9 +55,10 @@ export interface E2EStoredOptionValues {
 
 export interface E2ERuntimeOptionValues extends Omit<
   E2EStoredOptionValues,
-  "autoDownloadMaxPerPage" | "filenamePatterns" | "notifyDuration"
+  "autoDownloadMaxPerPage" | "contentClickToSaveLongPressMs" | "filenamePatterns" | "notifyDuration"
 > {
   autoDownloadMaxPerPage: number;
+  contentClickToSaveLongPressMs: number;
   notifyDuration: number;
 }
 

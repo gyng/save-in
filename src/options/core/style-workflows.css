@@ -44,8 +44,19 @@ fieldset.click-to-save-controls {
 .click-to-save-controls > .caption-line,
 .click-to-save-controls > #click-to-save-warning,
 .click-to-save-controls > #click-to-save-double-warning,
+.click-to-save-controls > #click-to-save-long-warning,
 .click-to-save-controls > #clickToSaveStatus {
   max-inline-size: 100%;
+}
+
+.click-to-save-timing {
+  display: grid;
+  gap: var(--space-1);
+  inline-size: 100%;
+}
+
+.click-to-save-timing > label {
+  font-weight: 600;
 }
 
 .click-to-save-additional {

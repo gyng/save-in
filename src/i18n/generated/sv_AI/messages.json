@@ -4387,10 +4387,13 @@
     "message": "Målet måste vara relativt och får inte innehålla ..-sökvägskomponenter"
   },
   "html_gestureMatcherDescription": {
-    "message": "Matchar klickgesten för ”Klicka för att spara”. Mönster matchar var som helst i värdet, så förankra dem (^left-click$) för att förhindra att left-click även matchar double-left-click."
+    "message": "Matchar klickgesten för ”Klicka för att spara”. Mönster matchar var som helst i värdet, så förankra dem (^left-click$) för att förhindra att left-click även matchar double-left-click eller long-left-click."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Dubbelklick med vänsterknappen"
+  },
+  "o_cKeyboardShortcutModifierLongLeftClick": {
+    "message": "Långt klick med vänsterknappen"
   },
   "o_bAddClickToSaveBinding": {
     "message": "Lägg till klickgest"
@@ -4400,6 +4403,18 @@
   },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "Det första klicket skickas fortfarande till sidan. En länkad bild kan öppnas eller leda till en annan sida före det andra klicket."
+  },
+  "o_lClickToSaveLongClickHelp": {
+    "message": "Korta klick fungerar som vanligt. Håll pekaren stilla tills sparandet börjar; rörelse avbryter gesten. Efter sparandet blockeras klicket när knappen släpps så att länkar inte öppnas."
+  },
+  "o_lClickToSaveLongPressDuration": {
+    "message": "Varaktighet för långt klick"
+  },
+  "o_lClickToSaveLongPressDurationHelp": {
+    "message": "Välj 250–2 000 millisekunder. Standardvärdet är 500."
+  },
+  "o_lMilliseconds": {
+    "message": "millisekunder"
   },
   "routeDebuggerGesture": {
     "message": "Klickgest"

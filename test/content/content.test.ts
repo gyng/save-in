@@ -1982,6 +1982,29 @@ describe("setupClickToSave", () => {
     remove();
   });
 
+  test("does not register long-press movement listeners when no long gesture is configured", () => {
+    const addEventListener = vi.spyOn(window, "addEventListener");
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.MIDDLE, combo: "Ctrl" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+    );
+
+    const registered = addEventListener.mock.calls.map(([type]) => type);
+    expect(registered).not.toContain("mousemove");
+    expect(registered).not.toContain("mouseup");
+    expect(registered).not.toContain("dragstart");
+    expect(registered).not.toContain("mouseout");
+    remove();
+    addEventListener.mockRestore();
+  });
+
   test("double-left saves once on the second press over the same source", () => {
     const remove = ClickToSave.setupClickToSave(
       {
@@ -2018,6 +2041,337 @@ describe("setupClickToSave", () => {
     img?.dispatchEvent(dblclick);
     expect(dblclick.preventDefault).toHaveBeenCalled();
     remove();
+  });
+
+  test("long-left uses the configured threshold and suppresses only its release click", async () => {
+    vi.useFakeTimers();
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        contentClickToSaveLongPressMs: 750,
+        links: true,
+      },
+      acceptTestInput,
+    );
+    document.body.innerHTML =
+      '<a id="link" href="http://x.test/full.png"><img id="held" src="http://x.test/preview.png"></a>';
+    const image = document.getElementById("held");
+
+    const press = new MouseEvent("mousedown", {
+      button: 0,
+      buttons: 1,
+      clientX: 20,
+      clientY: 30,
+      bubbles: true,
+      cancelable: true,
+    });
+    vi.spyOn(press, "preventDefault");
+    image?.dispatchEvent(press);
+    expect(press.preventDefault).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(749);
+    expect(downloadsSent()).toHaveLength(0);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(downloadsSent()).toHaveLength(1);
+    expect(downloadsSent()[0]?.[0]).toMatchObject({
+      body: {
+        url: "http://x.test/preview.png",
+        info: { gesture: "long-left-click" },
+      },
+    });
+
+    image?.dispatchEvent(new MouseEvent("mouseup", { button: 0, bubbles: true }));
+    const releaseClick = new MouseEvent("click", {
+      button: 0,
+      bubbles: true,
+      cancelable: true,
+    });
+    vi.spyOn(releaseClick, "preventDefault");
+    vi.spyOn(releaseClick, "stopImmediatePropagation");
+    image?.dispatchEvent(releaseClick);
+    expect(releaseClick.preventDefault).toHaveBeenCalled();
+    expect(releaseClick.stopImmediatePropagation).toHaveBeenCalled();
+
+    const laterClick = new MouseEvent("click", { button: 0, bubbles: true, cancelable: true });
+    vi.spyOn(laterClick, "preventDefault");
+    image?.dispatchEvent(laterClick);
+    expect(laterClick.preventDefault).not.toHaveBeenCalled();
+    remove();
+  });
+
+  test("long-left preserves short clicks and cancels for movement, dragging, and modifier release", async () => {
+    vi.useFakeTimers();
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.LONG_LEFT, combo: "Ctrl" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        contentClickToSaveLongPressMs: 500,
+        links: false,
+      },
+      acceptTestInput,
+    );
+    const image = document.getElementById("i");
+    window.dispatchEvent(keyEvent("keydown", 17));
+
+    mousedown(image);
+    image?.dispatchEvent(new MouseEvent("mouseup", { button: 0, bubbles: true }));
+    await vi.advanceTimersByTimeAsync(500);
+    expect(downloadsSent()).toHaveLength(0);
+
+    mousedown(image);
+    window.dispatchEvent(new MouseEvent("mousemove", { clientX: 9, clientY: 0, bubbles: true }));
+    await vi.advanceTimersByTimeAsync(500);
+    expect(downloadsSent()).toHaveLength(0);
+
+    mousedown(image);
+    image?.dispatchEvent(new MouseEvent("dragstart", { bubbles: true }));
+    await vi.advanceTimersByTimeAsync(500);
+    expect(downloadsSent()).toHaveLength(0);
+
+    mousedown(image);
+    window.dispatchEvent(keyEvent("keyup", 17));
+    await vi.advanceTimersByTimeAsync(500);
+    expect(downloadsSent()).toHaveLength(0);
+
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(image);
+    window.dispatchEvent(new MouseEvent("mouseout", { bubbles: true, relatedTarget: null }));
+    await vi.advanceTimersByTimeAsync(500);
+    expect(downloadsSent()).toHaveLength(0);
+    remove();
+  });
+
+  test("double-left takes precedence over a compatible pending long-left gesture", async () => {
+    vi.useFakeTimers();
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "" },
+          { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+    );
+    const image = document.getElementById("i");
+
+    mousedown(image, 1, 1);
+    image?.dispatchEvent(new MouseEvent("mouseup", { button: 0, bubbles: true }));
+    mousedown(image, 1, 2);
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(downloadsSent().map(([message]) => message.body.info.gesture)).toEqual([
+      "double-left-click",
+    ]);
+    remove();
+  });
+
+  test("synthetic release events cannot cancel or consume a trusted long-left gesture", async () => {
+    vi.useFakeTimers();
+    const acceptMarked = (event: KeyboardEvent | MouseEvent) =>
+      (event as unknown as { realInput?: boolean }).realInput === true;
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        contentClickToSaveLongPressMs: 500,
+        links: false,
+      },
+      acceptMarked,
+    );
+    const image = document.getElementById("i");
+    const press = new MouseEvent("mousedown", { button: 0, buttons: 1, bubbles: true });
+    (press as unknown as { realInput?: boolean }).realInput = true;
+    image?.dispatchEvent(press);
+
+    image?.dispatchEvent(new MouseEvent("mouseup", { button: 0, bubbles: true }));
+    await vi.advanceTimersByTimeAsync(500);
+    expect(downloadsSent()).toHaveLength(1);
+
+    const syntheticClick = new MouseEvent("click", {
+      button: 0,
+      bubbles: true,
+      cancelable: true,
+    });
+    vi.spyOn(syntheticClick, "preventDefault");
+    image?.dispatchEvent(syntheticClick);
+    expect(syntheticClick.preventDefault).not.toHaveBeenCalled();
+
+    const trustedClick = new MouseEvent("click", { button: 0, bubbles: true, cancelable: true });
+    (trustedClick as unknown as { realInput?: boolean }).realInput = true;
+    vi.spyOn(trustedClick, "preventDefault");
+    image?.dispatchEvent(trustedClick);
+    expect(trustedClick.preventDefault).toHaveBeenCalled();
+    remove();
+  });
+
+  test("long-left rechecks the live page policy before saving", async () => {
+    vi.useFakeTimers();
+    let disabled = false;
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        contentClickToSaveLongPressMs: 500,
+        links: false,
+      },
+      acceptTestInput,
+      () => disabled,
+    );
+    const image = document.getElementById("i");
+
+    mousedown(image);
+    await vi.advanceTimersByTimeAsync(499);
+    disabled = true;
+    await vi.advanceTimersByTimeAsync(1);
+    expect(downloadsSent()).toHaveLength(0);
+
+    const click = new MouseEvent("click", { button: 0, bubbles: true, cancelable: true });
+    vi.spyOn(click, "preventDefault");
+    image?.dispatchEvent(click);
+    expect(click.preventDefault).not.toHaveBeenCalled();
+    remove();
+  });
+
+  test("long-left stays pending when the pointer moves between page elements", async () => {
+    vi.useFakeTimers();
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        contentClickToSaveLongPressMs: 500,
+        links: false,
+      },
+      acceptTestInput,
+    );
+    const image = document.getElementById("i");
+
+    mousedown(image);
+    window.dispatchEvent(
+      new MouseEvent("mouseout", { bubbles: true, relatedTarget: document.body }),
+    );
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(downloadsSent()).toHaveLength(1);
+    remove();
+  });
+
+  test("long-left keeps release suppression through lifecycle resets while held", async () => {
+    vi.useFakeTimers();
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        contentClickToSaveLongPressMs: 500,
+        links: false,
+      },
+      acceptTestInput,
+    );
+    const image = document.getElementById("i");
+
+    mousedown(image);
+    await vi.advanceTimersByTimeAsync(500);
+    window.dispatchEvent(new Event("focus"));
+    window.dispatchEvent(new Event("blur"));
+    window.dispatchEvent(new MouseEvent("mouseout", { relatedTarget: null }));
+    await vi.advanceTimersByTimeAsync(5000);
+    image?.dispatchEvent(new MouseEvent("mouseup", { button: 0, bubbles: true }));
+    const click = new MouseEvent("click", { button: 0, bubbles: true, cancelable: true });
+    vi.spyOn(click, "preventDefault");
+    image?.dispatchEvent(click);
+
+    expect(click.preventDefault).toHaveBeenCalled();
+    remove();
+  });
+
+  test("long-left expires its element suppression when release produces no click", async () => {
+    vi.useFakeTimers();
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+    );
+    const image = document.getElementById("i");
+
+    mousedown(image);
+    await vi.advanceTimersByTimeAsync(500);
+    image?.dispatchEvent(new MouseEvent("mouseup", { button: 0, bubbles: true }));
+    image?.dispatchEvent(new MouseEvent("mouseup", { button: 0, bubbles: true }));
+    await vi.advanceTimersByTimeAsync(4999);
+
+    const withinGrace = new MouseEvent("click", { button: 0, bubbles: true, cancelable: true });
+    vi.spyOn(withinGrace, "preventDefault");
+    image?.dispatchEvent(withinGrace);
+    expect(withinGrace.preventDefault).toHaveBeenCalled();
+
+    mousedown(image);
+    await vi.advanceTimersByTimeAsync(500);
+    image?.dispatchEvent(new MouseEvent("mouseup", { button: 0, bubbles: true }));
+    await vi.advanceTimersByTimeAsync(5000);
+
+    const laterClick = new MouseEvent("click", { button: 0, bubbles: true, cancelable: true });
+    vi.spyOn(laterClick, "preventDefault");
+    image?.dispatchEvent(laterClick);
+    expect(laterClick.preventDefault).not.toHaveBeenCalled();
+    remove();
+  });
+
+  test("long-left releases its pending candidate on focus loss and teardown", async () => {
+    vi.useFakeTimers();
+    const setup = () =>
+      ClickToSave.setupClickToSave(
+        {
+          contentClickToSaveBindings: serializeClickToSaveBindings([
+            { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
+          ]),
+          contentClickToSaveCombo: "Alt",
+          contentClickToSaveButton: "LEFT_CLICK",
+          contentClickToSaveLongPressMs: 500,
+          links: false,
+        },
+        acceptTestInput,
+      );
+    const image = document.getElementById("i");
+
+    const removeAfterFocus = setup();
+    mousedown(image);
+    window.dispatchEvent(new Event("blur"));
+    await vi.advanceTimersByTimeAsync(500);
+    expect(downloadsSent()).toHaveLength(0);
+    removeAfterFocus();
+
+    const removeWhilePending = setup();
+    mousedown(image);
+    removeWhilePending();
+    await vi.advanceTimersByTimeAsync(500);
+    expect(downloadsSent()).toHaveLength(0);
   });
 
   const followUp = (type: string, button: number, target: EventTarget | null) => {

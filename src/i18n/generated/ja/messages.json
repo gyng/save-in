@@ -4387,10 +4387,13 @@
     "message": "保存先は相対パスにし、.. パス要素を含めないでください"
   },
   "html_gestureMatcherDescription": {
-    "message": "クリックして保存で使われたクリック操作に一致します。パターンは値内の任意の位置に一致するため、left-click が double-left-click にも一致しないように (^left-click$) のように固定してください。"
+    "message": "クリックして保存で使われたクリック操作に一致します。パターンは値内の任意の位置に一致するため、left-click が double-left-click や long-left-click にも一致しないように (^left-click$) のように固定してください。"
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "左ボタンのダブルクリック"
+  },
+  "o_cKeyboardShortcutModifierLongLeftClick": {
+    "message": "左ボタンの長押し"
   },
   "o_bAddClickToSaveBinding": {
     "message": "クリック操作を追加"
@@ -4400,6 +4403,18 @@
   },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "最初のクリックはページにも届きます。リンク付き画像では、2 回目のクリック前に画像が開いたり別のページに移動したりする場合があります。"
+  },
+  "o_lClickToSaveLongClickHelp": {
+    "message": "短いクリックは通常どおり動作します。保存が始まるまでポインターを動かさずに押し続けてください。動かすと操作はキャンセルされます。保存後はボタンを放したときのクリックが遮断されるため、リンクは開きません。"
+  },
+  "o_lClickToSaveLongPressDuration": {
+    "message": "長押し時間"
+  },
+  "o_lClickToSaveLongPressDurationHelp": {
+    "message": "250～2,000 ミリ秒から選択します。既定値は 500 です。"
+  },
+  "o_lMilliseconds": {
+    "message": "ミリ秒"
   },
   "routeDebuggerGesture": {
     "message": "クリック操作"

@@ -1,8 +1,10 @@
 import {
   CONTENT_OPTION_DEFAULTS,
   CONTENT_OPTION_KEYS,
+  CONTENT_LONG_PRESS_DEFAULT_MS,
   contentClickComboToKeyCodes,
   normalizeContentOptionsPatch,
+  normalizeContentLongPressDuration,
   resolveContentOptions,
 } from "../../src/config/content-options.ts";
 import { OPTION_KEYS } from "../../src/config/option-schema.ts";
@@ -184,6 +186,28 @@ test("accepts valid gesture bindings and rejects malformed or ambiguous lists", 
       resolveContentOptions({ contentClickToSaveBindings: value }).contentClickToSaveBindings,
     ).toBe("");
   }
+});
+
+test("normalizes the configurable long-press duration at both boundaries", () => {
+  expect(normalizeContentLongPressDuration(250)).toBe(250);
+  expect(normalizeContentLongPressDuration("500.4")).toBe(500);
+  expect(normalizeContentLongPressDuration(2000)).toBe(2000);
+  for (const value of [249, 2001, "", "slow", Number.POSITIVE_INFINITY]) {
+    expect(
+      resolveContentOptions({ contentClickToSaveLongPressMs: value }).contentClickToSaveLongPressMs,
+    ).toBe(CONTENT_LONG_PRESS_DEFAULT_MS);
+  }
+
+  const definition = CONTENT_FEATURE_OPTION_DEFINITIONS.find(
+    ({ name }) => name === "contentClickToSaveLongPressMs",
+  )! as Extract<
+    (typeof CONTENT_FEATURE_OPTION_DEFINITIONS)[number],
+    { name: "contentClickToSaveLongPressMs" }
+  >;
+  expect("onLoad" in definition && definition.onLoad("749.6")).toBe(750);
+  expect("onSave" in definition && definition.onSave(500)).toBe(500);
+  expect("validate" in definition && definition.validate(249)).toBe(false);
+  expect("validate" in definition && definition.validate(2000)).toBe(true);
 });
 
 test("validates the bounded recent-destination count", () => {

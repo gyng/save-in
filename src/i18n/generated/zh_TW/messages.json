@@ -4385,10 +4385,13 @@
     "message": "目的地必須是相對路徑，且不能包含 .. 路徑元件"
   },
   "html_gestureMatcherDescription": {
-    "message": "比對點選儲存時使用的點選手勢。模式會比對值中的任意位置，因此請將其錨定 (^left-click$)，避免 left-click 也比對到 double-left-click。"
+    "message": "比對點選儲存時使用的點選手勢。模式會比對值中的任意位置，因此請將其錨定 (^left-click$)，避免 left-click 也比對到 double-left-click 或 long-left-click。"
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "按兩下滑鼠左鍵"
+  },
+  "o_cKeyboardShortcutModifierLongLeftClick": {
+    "message": "長按滑鼠左鍵"
   },
   "o_bAddClickToSaveBinding": {
     "message": "新增點選手勢"
@@ -4398,6 +4401,18 @@
   },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "第一次點選仍會傳遞給頁面。附有連結的圖片可能會在第二次點選前開啟或導向其他頁面。"
+  },
+  "o_lClickToSaveLongClickHelp": {
+    "message": "短按仍會正常運作。請保持指標不動，直到開始儲存；移動會取消手勢。儲存後會阻擋放開按鈕時的點選，因此不會開啟連結。"
+  },
+  "o_lClickToSaveLongPressDuration": {
+    "message": "長按時間"
+  },
+  "o_lClickToSaveLongPressDurationHelp": {
+    "message": "請選擇 250 到 2,000 毫秒。預設值為 500。"
+  },
+  "o_lMilliseconds": {
+    "message": "毫秒"
   },
   "routeDebuggerGesture": {
     "message": "點選手勢"

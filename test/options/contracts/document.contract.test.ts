@@ -191,6 +191,11 @@ test("preserves backward-compatible option defaults", () => {
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier")?.value).toBe("Alt");
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier2")?.value).toBe("");
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveButton")?.value).toBe("left-click");
+  const longPress = document.querySelector<HTMLInputElement>("#contentClickToSaveLongPressMs");
+  expect(longPress?.value).toBe("500");
+  expect(longPress?.min).toBe("250");
+  expect(longPress?.max).toBe("2000");
+  expect(longPress?.step).toBe("50");
   expect(document.querySelector<HTMLInputElement>("#notifyDuration")?.type).toBe("hidden");
   expect(document.querySelector<HTMLInputElement>("#notifyDurationSeconds")?.value).toBe("");
   expect(

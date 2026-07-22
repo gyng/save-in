@@ -76,3 +76,49 @@ export const createDoubleClickTracker = <Candidate>(
     },
   };
 };
+
+const LONG_PRESS_MOVEMENT_SLOP_PX = 8;
+
+type LongPressScheduler = {
+  set: (callback: () => void, delayMs: number) => number;
+  clear: (timer: number) => void;
+};
+
+export const createLongPressTracker = <Candidate>(
+  delayMs: number,
+  scheduler: LongPressScheduler,
+  complete: (candidate: Candidate) => void,
+) => {
+  let pending: { candidate: Candidate; x: number; y: number; timer: number } | null = null;
+
+  const cancel = (): void => {
+    if (!pending) return;
+    scheduler.clear(pending.timer);
+    pending = null;
+  };
+
+  return {
+    press(candidate: Candidate, x: number, y: number): void {
+      cancel();
+      const timer = scheduler.set(() => {
+        const current = pending;
+        pending = null;
+        if (current) complete(current.candidate);
+      }, delayMs);
+      pending = { candidate, x, y, timer };
+    },
+    move(x: number, y: number): void {
+      if (!pending) return;
+      const deltaX = x - pending.x;
+      const deltaY = y - pending.y;
+      if (
+        deltaX * deltaX + deltaY * deltaY >
+        LONG_PRESS_MOVEMENT_SLOP_PX * LONG_PRESS_MOVEMENT_SLOP_PX
+      ) {
+        cancel();
+      }
+    },
+    cancel,
+    isPending: (): boolean => pending !== null,
+  };
+};

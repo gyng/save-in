@@ -326,7 +326,9 @@ export const createProtocolCodecs = () => {
       ? typeof value === "string" || typeof value === "number"
       : name === "contentClickToSaveBindings"
         ? typeof value === "string"
-        : name === "notifyDuration" || name === "autoDownloadMaxPerPage"
+        : name === "notifyDuration" ||
+            name === "autoDownloadMaxPerPage" ||
+            name === "contentClickToSaveLongPressMs"
           ? typeof value === "number"
           : name === "paths" || name === "setRefererHeaderFilter" || name === "quickSaveDirectory"
             ? typeof value === "string"

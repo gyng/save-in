@@ -1377,9 +1377,19 @@ export const runDownloadAttributeRoutingScenario = async ({
   // Routing on it proves the attribute-named download reached the ordinary
   // browser-download rule engine (#152).
   const attributeName = `attr-named-${browserLabel}.bin`;
+  let holdFirefoxOriginal = browserLabel === "firefox";
   const server = http.createServer((req, res) => {
     if (req.url === "/attr-asset") {
       res.writeHead(200, { "Content-Type": "application/octet-stream" });
+      if (holdFirefoxOriginal) {
+        holdFirefoxOriginal = false;
+        // Firefox routing cancels the browser-owned download and starts a
+        // replacement. Keep the original response open so a fast loopback
+        // payload cannot complete before the cancel; the replacement request
+        // below receives the bytes after the browser closes this connection.
+        res.write("pending");
+        return;
+      }
       res.end("download attribute payload");
       return;
     }

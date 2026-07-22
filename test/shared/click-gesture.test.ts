@@ -19,6 +19,7 @@ describe("click-to-save gesture bindings", () => {
     [CLICK_GESTURES.BACK, CLICK_TYPES.BACK_CLICK],
     [CLICK_GESTURES.FORWARD, CLICK_TYPES.FORWARD_CLICK],
     [CLICK_GESTURES.DOUBLE_LEFT, null],
+    [CLICK_GESTURES.LONG_LEFT, null],
   ] as const)("maps %s to its legacy compatibility value", (gesture, legacy) => {
     expect(gestureToClickType(gesture)).toBe(legacy);
   });
@@ -27,6 +28,7 @@ describe("click-to-save gesture bindings", () => {
     const bindings = [
       { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt" },
       { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "" },
+      { gesture: CLICK_GESTURES.LONG_LEFT, combo: "Ctrl" },
     ];
 
     expect(parseClickToSaveBindings(serializeClickToSaveBindings(bindings))).toEqual(bindings);
@@ -45,6 +47,21 @@ describe("click-to-save gesture bindings", () => {
         { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Ctrl" },
       ]),
     ).toThrow("Invalid click-to-save bindings");
+    expect(() =>
+      serializeClickToSaveBindings([
+        { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
+        { gesture: CLICK_GESTURES.LONG_LEFT, combo: "Ctrl" },
+      ]),
+    ).toThrow("Invalid click-to-save bindings");
+  });
+
+  test("allows double-left and long-left to coexist", () => {
+    const bindings = [
+      { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Alt" },
+      { gesture: CLICK_GESTURES.LONG_LEFT, combo: "Alt" },
+    ];
+
+    expect(parseClickToSaveBindings(serializeClickToSaveBindings(bindings))).toEqual(bindings);
   });
 
   test.each([

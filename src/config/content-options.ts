@@ -51,6 +51,25 @@ export const normalizeUiTheme = (value: unknown): UiTheme => {
 const DEFAULT_CONTENT_CLICK_COMBO = "Alt";
 export { contentClickComboToKeyCodes, isContentClickCombo };
 
+const CONTENT_LONG_PRESS_MIN_MS = 250;
+const CONTENT_LONG_PRESS_MAX_MS = 2000;
+export const CONTENT_LONG_PRESS_DEFAULT_MS = 500;
+
+export const isContentLongPressDuration = (value: unknown): value is string | number => {
+  if ((typeof value !== "string" && typeof value !== "number") || String(value).trim() === "") {
+    return false;
+  }
+  const milliseconds = Number(value);
+  return (
+    Number.isFinite(milliseconds) &&
+    milliseconds >= CONTENT_LONG_PRESS_MIN_MS &&
+    milliseconds <= CONTENT_LONG_PRESS_MAX_MS
+  );
+};
+
+export const normalizeContentLongPressDuration = (value: string | number): number =>
+  isContentLongPressDuration(value) ? Math.round(Number(value)) : CONTENT_LONG_PRESS_DEFAULT_MS;
+
 // These defaults are the single source of truth for both the background schema
 // and the lightweight direct-storage content path.
 export type ResolvedContentOptions = {
@@ -76,6 +95,7 @@ export type ResolvedContentOptions = {
   contentClickToSaveBindings: string;
   contentClickToSaveCombo: string | number;
   contentClickToSaveButton: ClickType;
+  contentClickToSaveLongPressMs: number;
   contentClickToSaveUseDefault: boolean;
   links: boolean;
   preferLinks: boolean;
@@ -113,6 +133,7 @@ export const CONTENT_OPTION_DEFAULTS: ResolvedContentOptions = {
   contentClickToSaveBindings: "",
   contentClickToSaveCombo: DEFAULT_CONTENT_CLICK_COMBO,
   contentClickToSaveButton: CLICK_TYPES.LEFT_CLICK,
+  contentClickToSaveLongPressMs: CONTENT_LONG_PRESS_DEFAULT_MS,
   // Click-to-save inherits the last save's folder, which is what #162 asked to
   // opt out of: picking one other folder from the menu silently redirects every
   // later click. Off keeps the inheriting behavior that predates this option.
@@ -209,6 +230,12 @@ const CONTENT_OPTION_NORMALIZERS: ContentOptionNormalizers = {
   quickSaveOnly: booleanOption(CONTENT_OPTION_DEFAULTS.quickSaveOnly),
   contentClickToSaveButton: (stored) =>
     isClickType(stored) ? stored : CONTENT_OPTION_DEFAULTS.contentClickToSaveButton,
+  contentClickToSaveLongPressMs: (stored) =>
+    normalizeContentLongPressDuration(
+      typeof stored === "string" || typeof stored === "number"
+        ? stored
+        : CONTENT_OPTION_DEFAULTS.contentClickToSaveLongPressMs,
+    ),
   links: booleanOption(CONTENT_OPTION_DEFAULTS.links),
   preferLinks: booleanOption(CONTENT_OPTION_DEFAULTS.preferLinks),
   preferLinksFilterEnabled: booleanOption(CONTENT_OPTION_DEFAULTS.preferLinksFilterEnabled),

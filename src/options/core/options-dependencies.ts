@@ -39,6 +39,7 @@ export const setupOptionDependencies = () => {
         "clickToSaveModifier",
         "clickToSaveModifier2",
         "contentClickToSaveButton",
+        "contentClickToSaveLongPressMs",
         "clickToSaveButton",
         "clickToSaveApply",
         "clickToSaveAdd",

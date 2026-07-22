@@ -108,6 +108,9 @@ export const setupShortcutOptions = () => {
   const clickToSave = document.querySelector<HTMLInputElement>("#contentClickToSave");
   const warning = document.querySelector<HTMLElement>("#click-to-save-warning");
   const doubleWarning = document.querySelector<HTMLElement>("#click-to-save-double-warning");
+  const longWarning = document.querySelector<HTMLElement>("#click-to-save-long-warning");
+  const longTiming = document.querySelector<HTMLElement>("#clickToSaveLongPressTiming");
+  const longDuration = document.querySelector<HTMLInputElement>("#contentClickToSaveLongPressMs");
   const additional = document.querySelector<HTMLElement>("#clickToSaveAdditionalBindings");
   const add = document.querySelector<HTMLButtonElement>("#clickToSaveAdd");
   type BindingControls = {
@@ -129,6 +132,7 @@ export const setupShortcutOptions = () => {
     [CLICK_GESTURES.BACK]: "o_cKeyboardShortcutModifierBackClick",
     [CLICK_GESTURES.FORWARD]: "o_cKeyboardShortcutModifierForwardClick",
     [CLICK_GESTURES.DOUBLE_LEFT]: "o_cKeyboardShortcutModifierDoubleLeftClick",
+    [CLICK_GESTURES.LONG_LEFT]: "o_cKeyboardShortcutModifierLongLeftClick",
   };
   const modifierOptions = [
     ["", "html_none"],
@@ -172,7 +176,9 @@ export const setupShortcutOptions = () => {
   const gestureConflicts = (gesture: ClickGesture, other: ClickGesture): boolean =>
     gesture === other ||
     (gesture === CLICK_GESTURES.LEFT && other === CLICK_GESTURES.DOUBLE_LEFT) ||
-    (gesture === CLICK_GESTURES.DOUBLE_LEFT && other === CLICK_GESTURES.LEFT);
+    (gesture === CLICK_GESTURES.DOUBLE_LEFT && other === CLICK_GESTURES.LEFT) ||
+    (gesture === CLICK_GESTURES.LEFT && other === CLICK_GESTURES.LONG_LEFT) ||
+    (gesture === CLICK_GESTURES.LONG_LEFT && other === CLICK_GESTURES.LEFT);
   const unusedGestures = (): ClickGesture[] => {
     const used = selectedBindings().map(({ gesture }) => gesture);
     return Object.values(CLICK_GESTURES).filter(
@@ -194,6 +200,10 @@ export const setupShortcutOptions = () => {
         !clickToSave?.checked ||
         !bindings.some(({ gesture }) => gesture === CLICK_GESTURES.DOUBLE_LEFT);
     }
+    const hasLongPress = bindings.some(({ gesture }) => gesture === CLICK_GESTURES.LONG_LEFT);
+    if (longWarning) longWarning.hidden = !clickToSave?.checked || !hasLongPress;
+    if (longTiming) longTiming.hidden = !hasLongPress;
+    if (longDuration) longDuration.disabled = clickToSave?.checked !== true || !hasLongPress;
   };
   const syncClickControls = () => {
     if (!primaryControls) return;

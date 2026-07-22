@@ -11,6 +11,7 @@ export const CLICK_GESTURES = {
   BACK: "back-click",
   FORWARD: "forward-click",
   DOUBLE_LEFT: "double-left-click",
+  LONG_LEFT: "long-left-click",
 } as const;
 
 export type ClickGesture = (typeof CLICK_GESTURES)[keyof typeof CLICK_GESTURES];
@@ -67,6 +68,7 @@ export const gestureToClickType = (gesture: ClickGesture): ClickType | null => {
     case CLICK_GESTURES.FORWARD:
       return CLICK_TYPES.FORWARD_CLICK;
     case CLICK_GESTURES.DOUBLE_LEFT:
+    case CLICK_GESTURES.LONG_LEFT:
       return null;
   }
 };
@@ -117,7 +119,8 @@ const hasBindingConflicts = (bindings: ClickToSaveBinding[]): boolean => {
   const gestures = new Set(bindings.map(({ gesture }) => gesture));
   return (
     gestures.size !== bindings.length ||
-    (gestures.has(CLICK_GESTURES.LEFT) && gestures.has(CLICK_GESTURES.DOUBLE_LEFT))
+    (gestures.has(CLICK_GESTURES.LEFT) &&
+      (gestures.has(CLICK_GESTURES.DOUBLE_LEFT) || gestures.has(CLICK_GESTURES.LONG_LEFT)))
   );
 };
 

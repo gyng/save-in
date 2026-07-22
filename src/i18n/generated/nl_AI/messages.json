@@ -4387,10 +4387,13 @@
     "message": "De bestemming moet relatief zijn en mag geen ..-padcomponenten bevatten"
   },
   "html_gestureMatcherDescription": {
-    "message": "Komt overeen met het klikgebaar voor ‘Klikken om op te slaan’. Patronen komen overeen op elke plek in de waarde, dus veranker ze (^left-click$) zodat left-click niet ook overeenkomt met double-left-click."
+    "message": "Komt overeen met het klikgebaar voor ‘Klikken om op te slaan’. Patronen komen overeen op elke plek in de waarde, dus veranker ze (^left-click$) zodat left-click niet ook overeenkomt met double-left-click of long-left-click."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Dubbelklik met de linkermuisknop"
+  },
+  "o_cKeyboardShortcutModifierLongLeftClick": {
+    "message": "Lang klikken met de linkermuisknop"
   },
   "o_bAddClickToSaveBinding": {
     "message": "Klikgebaar toevoegen"
@@ -4400,6 +4403,18 @@
   },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "De eerste klik wordt nog steeds aan de pagina doorgegeven. Een afbeelding met een koppeling kan vóór de tweede klik worden geopend of u naar een andere pagina brengen."
+  },
+  "o_lClickToSaveLongClickHelp": {
+    "message": "Korte klikken werken normaal. Houd de aanwijzer stil totdat het opslaan begint; bewegen annuleert het gebaar. Na het opslaan wordt de klik bij loslaten geblokkeerd, zodat koppelingen niet worden geopend."
+  },
+  "o_lClickToSaveLongPressDuration": {
+    "message": "Duur van lang klikken"
+  },
+  "o_lClickToSaveLongPressDurationHelp": {
+    "message": "Kies 250–2.000 milliseconden. De standaardwaarde is 500."
+  },
+  "o_lMilliseconds": {
+    "message": "milliseconden"
   },
   "routeDebuggerGesture": {
     "message": "Klikgebaar"

@@ -4387,10 +4387,13 @@
     "message": "El destino debe ser relativo y no puede contener componentes de ruta .."
   },
   "html_gestureMatcherDescription": {
-    "message": "Coincide con el gesto usado por «Clic para guardar». Los patrones coinciden en cualquier parte del valor, así que ánclelos (^left-click$) para evitar que left-click también coincida con double-left-click."
+    "message": "Coincide con el gesto usado por «Clic para guardar». Los patrones coinciden en cualquier parte del valor, así que ánclelos (^left-click$) para evitar que left-click también coincida con double-left-click o long-left-click."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Doble clic izquierdo"
+  },
+  "o_cKeyboardShortcutModifierLongLeftClick": {
+    "message": "Clic izquierdo prolongado"
   },
   "o_bAddClickToSaveBinding": {
     "message": "Añadir gesto de clic"
@@ -4400,6 +4403,18 @@
   },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "El primer clic se envía igualmente a la página. Una imagen con enlace puede abrirse o llevarle a otra página antes del segundo clic."
+  },
+  "o_lClickToSaveLongClickHelp": {
+    "message": "Los clics breves funcionan con normalidad. Mantenga el puntero quieto hasta que se inicie el guardado; moverlo cancela el gesto. Después de guardar, se bloquea el clic al soltar para que no se abran los enlaces."
+  },
+  "o_lClickToSaveLongPressDuration": {
+    "message": "Duración del clic prolongado"
+  },
+  "o_lClickToSaveLongPressDurationHelp": {
+    "message": "Elija entre 250 y 2000 milisegundos. El valor predeterminado es 500."
+  },
+  "o_lMilliseconds": {
+    "message": "milisegundos"
   },
   "routeDebuggerGesture": {
     "message": "Gesto de clic"

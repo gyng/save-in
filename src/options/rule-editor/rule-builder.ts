@@ -46,8 +46,9 @@ const MATCHER_PATTERN_PLACEHOLDERS: Record<string, string> = {
   sourceurl: "/images/|/media/",
   sourcekind: "image|video|audio|stream|document|link",
   // Anchored: matchers test anywhere in the value, so a bare left-click
-  // alternative would also match double-left-click and shadow it.
-  gesture: "^(left-click|middle-click|double-left-click)$",
+  // alternative would also match double-left-click and long-left-click and
+  // shadow them.
+  gesture: "^(left-click|middle-click|double-left-click|long-left-click)$",
 };
 
 const showTemplateFeedback = (

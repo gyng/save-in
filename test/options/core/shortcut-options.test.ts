@@ -228,6 +228,50 @@ describe("shortcut option controller", () => {
     ).toEqual([{ gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Alt" }]);
   });
 
+  test("allows long-left beside double-left and reveals its duration control", () => {
+    const stored = serializeClickToSaveBindings([
+      { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Alt" },
+      { gesture: CLICK_GESTURES.LONG_LEFT, combo: "Alt" },
+    ]);
+    document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>
+      <input id="contentClickToSaveBindings" value='${stored}'>
+      <input id="contentClickToSaveCombo" value="999">
+      <input id="contentClickToSaveButton" value="LEFT_CLICK">
+      <select id="clickToSaveModifier"><option></option><option value="Alt">Alt</option></select>
+      <select id="clickToSaveModifier2"><option></option></select>
+      <select id="clickToSaveButton">
+        <option value="left-click">Left</option><option value="double-left-click">Double</option>
+        <option value="long-left-click">Long</option>
+      </select>
+      <div id="clickToSaveAdditionalBindings"></div>
+      <div id="clickToSaveLongPressTiming" hidden><input id="contentClickToSaveLongPressMs" value="500"></div>
+      <button id="clickToSaveAdd"></button><button id="clickToSaveApply"></button>
+      <button id="clickToSaveReset"></button><span id="clickToSaveStatus"></span>
+      <div id="click-to-save-double-warning" hidden></div>
+      <div id="click-to-save-long-warning" hidden></div>`;
+    setupShortcutOptions();
+
+    const primary = document.querySelector<HTMLSelectElement>("#clickToSaveButton")!;
+    const extra = document.querySelectorAll<HTMLSelectElement>(".click-to-save-binding select")[2]!;
+    expect(primary.value).toBe("double-left-click");
+    expect(extra.value).toBe("long-left-click");
+    expect(document.querySelector<HTMLButtonElement>("#clickToSaveApply")?.disabled).toBe(true);
+    expect(primary.querySelector<HTMLOptionElement>('option[value="left-click"]')?.disabled).toBe(
+      true,
+    );
+    expect(document.querySelector<HTMLElement>("#clickToSaveLongPressTiming")?.hidden).toBe(false);
+    expect(
+      document.querySelector<HTMLInputElement>("#contentClickToSaveLongPressMs")?.disabled,
+    ).toBe(false);
+    expect(document.querySelector<HTMLElement>("#click-to-save-long-warning")?.hidden).toBe(false);
+
+    document.querySelector<HTMLButtonElement>(".click-to-save-binding button")?.click();
+    expect(document.querySelector<HTMLElement>("#clickToSaveLongPressTiming")?.hidden).toBe(true);
+    expect(
+      document.querySelector<HTMLInputElement>("#contentClickToSaveLongPressMs")?.disabled,
+    ).toBe(true);
+  });
+
   test("writes the disabled legacy mirror when no binding is legacy-representable", () => {
     vi.mocked(browser.i18n.getMessage).mockReturnValue("");
     document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>

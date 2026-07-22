@@ -1108,7 +1108,7 @@
     "description": "Description of the cross-browser context routing matcher, its values, and tab-save browser requirement. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_gestureMatcherDescription": {
-    "message": "Matches the click gesture used by click-to-save. Patterns match anywhere in the value, so anchor them (^left-click$) to keep left-click from also matching double-left-click.",
+    "message": "Matches the click gesture used by click-to-save. Patterns match anywhere in the value, so anchor them (^left-click$) to keep left-click from also matching double-left-click or long-left-click.",
     "description": "Description of the click-to-save gesture routing matcher, with the anchoring recommendation. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_or": {
@@ -1483,6 +1483,10 @@
     "message": "Double left-click",
     "description": "Click-to-save gesture label for two primary-button clicks on the same media item. Used in src/options/options.html and src/options/core/shortcut-options.ts."
   },
+  "o_cKeyboardShortcutModifierLongLeftClick": {
+    "message": "Long left-click",
+    "description": "Click-to-save gesture label for pressing and holding the primary mouse button. Used in src/options/options.html and src/options/core/shortcut-options.ts."
+  },
   "o_bAddClickToSaveBinding": {
     "message": "Add click gesture",
     "description": "Button that adds another click-to-save gesture binding. Used in src/options/options.html."
@@ -1494,6 +1498,22 @@
   "o_lClickToSaveDoubleClickHelp": {
     "message": "The page still receives the first click. A linked image may open or take you to another page before the second click.",
     "description": "Warning shown when double-left-click saving is configured. Used in src/options/options.html."
+  },
+  "o_lClickToSaveLongClickHelp": {
+    "message": "Short clicks remain normal. Hold still until the save starts; moving cancels the gesture. After saving, the release click is blocked so links do not open.",
+    "description": "Behavior guidance shown when long-left-click saving is configured. Used in src/options/options.html."
+  },
+  "o_lClickToSaveLongPressDuration": {
+    "message": "Long-press duration",
+    "description": "Label for the configurable long-left-click hold duration. Used in src/options/options.html."
+  },
+  "o_lClickToSaveLongPressDurationHelp": {
+    "message": "Choose 250–2,000 milliseconds. The default is 500.",
+    "description": "Range and default guidance for the long-left-click hold duration. Used in src/options/options.html."
+  },
+  "o_lMilliseconds": {
+    "message": "milliseconds",
+    "description": "Unit label for the long-left-click hold duration. Used in src/options/options.html."
   },
   "o_cKeyboardShortcutModifierHelp": {
     "message": "Hold the selected modifier keys while using the chosen click gesture. Choose None for both modifiers to use the gesture alone. Changes also apply to pages that are already open.",

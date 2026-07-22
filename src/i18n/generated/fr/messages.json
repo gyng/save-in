@@ -4387,10 +4387,13 @@
     "message": "La destination doit être relative et ne peut pas contenir de composants de chemin .."
   },
   "html_gestureMatcherDescription": {
-    "message": "Correspond au geste de clic de « Enregistrement au clic ». Les motifs correspondent n’importe où dans la valeur ; ancrez-les donc (^left-click$) pour empêcher left-click de correspondre aussi à double-left-click."
+    "message": "Correspond au geste de clic de « Enregistrement au clic ». Les motifs correspondent n’importe où dans la valeur ; ancrez-les donc (^left-click$) pour empêcher left-click de correspondre aussi à double-left-click ou long-left-click."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Double-clic gauche"
+  },
+  "o_cKeyboardShortcutModifierLongLeftClick": {
+    "message": "Clic gauche prolongé"
   },
   "o_bAddClickToSaveBinding": {
     "message": "Ajouter un geste de clic"
@@ -4400,6 +4403,18 @@
   },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "Le premier clic est toujours transmis à la page. Une image associée à un lien peut s’ouvrir ou mener à une autre page avant le second clic."
+  },
+  "o_lClickToSaveLongClickHelp": {
+    "message": "Les clics brefs restent normaux. Gardez le pointeur immobile jusqu’au début de l’enregistrement ; tout mouvement annule le geste. Après l’enregistrement, le clic au relâchement est bloqué afin que les liens ne s’ouvrent pas."
+  },
+  "o_lClickToSaveLongPressDuration": {
+    "message": "Durée du clic prolongé"
+  },
+  "o_lClickToSaveLongPressDurationHelp": {
+    "message": "Choisissez entre 250 et 2 000 millisecondes. La valeur par défaut est 500."
+  },
+  "o_lMilliseconds": {
+    "message": "millisecondes"
   },
   "routeDebuggerGesture": {
     "message": "Geste de clic"

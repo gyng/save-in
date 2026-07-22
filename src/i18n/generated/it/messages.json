@@ -4389,10 +4389,13 @@
     "message": "La destinazione deve essere relativa e non può contenere componenti di percorso .."
   },
   "html_gestureMatcherDescription": {
-    "message": "Corrisponde al gesto usato da «Clic per salvare». I pattern corrispondono in qualsiasi punto del valore, quindi ancorali (^left-click$) per evitare che left-click corrisponda anche a double-left-click."
+    "message": "Corrisponde al gesto usato da «Clic per salvare». I pattern corrispondono in qualsiasi punto del valore, quindi ancorali (^left-click$) per evitare che left-click corrisponda anche a double-left-click o long-left-click."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Doppio clic sinistro"
+  },
+  "o_cKeyboardShortcutModifierLongLeftClick": {
+    "message": "Clic sinistro prolungato"
   },
   "o_bAddClickToSaveBinding": {
     "message": "Aggiungi gesto di clic"
@@ -4402,6 +4405,18 @@
   },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "Il primo clic viene comunque trasmesso alla pagina. Un’immagine con un collegamento può aprirsi o portare a un’altra pagina prima del secondo clic."
+  },
+  "o_lClickToSaveLongClickHelp": {
+    "message": "I clic brevi restano normali. Tieni fermo il puntatore finché inizia il salvataggio; il movimento annulla il gesto. Dopo il salvataggio, il clic al rilascio viene bloccato per impedire l’apertura dei collegamenti."
+  },
+  "o_lClickToSaveLongPressDuration": {
+    "message": "Durata del clic prolungato"
+  },
+  "o_lClickToSaveLongPressDurationHelp": {
+    "message": "Scegli da 250 a 2.000 millisecondi. Il valore predefinito è 500."
+  },
+  "o_lMilliseconds": {
+    "message": "millisecondi"
   },
   "routeDebuggerGesture": {
     "message": "Gesto di clic"

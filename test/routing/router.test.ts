@@ -747,9 +747,12 @@ describe("filename rewrite and routing", () => {
     });
 
     test("gesture matches the click-to-save mouse action", () => {
-      const matcher = router.matcherFunctions.gesture(/^double-left-click$/);
+      const matcher = router.matcherFunctions.gesture(/^(double|long)-left-click$/);
       expect(expectMatch(matcher({ ...info, gesture: "double-left-click" }))[0]!).toBe(
         "double-left-click",
+      );
+      expect(expectMatch(matcher({ ...info, gesture: "long-left-click" }))[0]!).toBe(
+        "long-left-click",
       );
       expect(matcher({ ...info, gesture: "middle-click" })).toBeNull();
       expect(matcher({})).toBeNull();

@@ -209,7 +209,9 @@ const startPageServer = async () => {
       res.end(PNG);
     } else {
       res.writeHead(200, { "Content-Type": "text/html" });
-      res.end('<html><body><img id="img" src="/pic.png" width="50" height="50"></body></html>');
+      res.end(
+        '<html><body><a id="image-link" href="/opened"><img id="img" src="/pic.png" width="50" height="50"></a></body></html>',
+      );
     }
   });
   const port = await listenLocal(server);
@@ -815,7 +817,7 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
   }
 });
 
-test("click-to-save rejects synthetic input and handles trusted single and double clicks", async () => {
+test("click-to-save rejects synthetic input and handles trusted single, double, and long clicks", async () => {
   const { server, port } = await startPageServer();
   const pageUrl = `http://127.0.0.1:${port}/`;
   const targetUrl = `127.0.0.1:${port}`;
@@ -823,6 +825,9 @@ test("click-to-save rejects synthetic input and handles trusted single and doubl
   const previousContentClickToSaveCombo = await control.options.get("contentClickToSaveCombo");
   const previousContentClickToSaveBindings = await control.options.get(
     "contentClickToSaveBindings",
+  );
+  const previousContentClickToSaveLongPressMs = await control.options.get(
+    "contentClickToSaveLongPressMs",
   );
   const previousFilenamePatterns = (await control.storage.local.get("filenamePatterns"))
     .filenamePatterns;
@@ -877,6 +882,81 @@ test("click-to-save rejects synthetic input and handles trusted single and doubl
     const trusted = requireValue(trustedDownloads.at(-1), "Trusted Firefox download was missing");
     expect(fs.readFileSync(trusted.filename)).toEqual(PNG);
 
+    const longClickConfig = {
+      contentClickToSaveBindings: JSON.stringify({
+        version: 1,
+        bindings: [{ gesture: "long-left-click", combo: "" }],
+      }),
+      contentClickToSaveLongPressMs: 500,
+      filenamePatterns:
+        "context: ^click$\ngesture: ^long-left-click$\ninto: e2e/long-click/:filename:",
+    };
+    const appliedLongClick = await control.runtime.send({
+      type: "APPLY_CONFIG",
+      body: { config: longClickConfig },
+    });
+    expect(appliedLongClick.body.applied).toMatchObject(longClickConfig);
+    await session.evaluateInTab(
+      targetUrl,
+      `(() => {
+        document.getElementById("image-link").href = "#opened";
+        window.__saveInLongClickEvents = [];
+        for (const type of ["mousedown", "mouseup", "click"]) {
+          window.addEventListener(type, (event) => {
+            window.__saveInLongClickEvents.push(type);
+          }, true);
+        }
+        return true;
+      })()`,
+    );
+    const longMouseId = "save-in-long-click";
+    const longContext = await session.bidi.findContext(targetUrl);
+    const performLongActions = (/** @type {Array<Record<string, unknown>>} */ actions) =>
+      session.bidi.send("input.performActions", {
+        context: longContext,
+        actions: [
+          {
+            type: "pointer",
+            id: longMouseId,
+            parameters: { pointerType: "mouse" },
+            actions,
+          },
+        ],
+      });
+
+    await performLongActions([
+      { type: "pointerMove", x: point.x, y: point.y, duration: 0, origin: "viewport" },
+      { type: "pointerDown", button: 0 },
+      { type: "pointerUp", button: 0 },
+    ]);
+    expect(
+      parseJson(
+        await session.evaluateInTab(targetUrl, "JSON.stringify(window.__saveInLongClickEvents)"),
+        arrayOf(decodeString),
+      ),
+    ).toEqual(["mousedown", "mouseup", "click"]);
+    expect(await session.evaluateInTab(targetUrl, "location.hash")).toBe("#opened");
+    await session.evaluateInTab(
+      targetUrl,
+      `history.replaceState(null, "", location.pathname); window.__saveInLongClickEvents = []; true`,
+    );
+
+    await performLongActions([
+      { type: "pointerMove", x: point.x, y: point.y, duration: 0, origin: "viewport" },
+      { type: "pointerDown", button: 0 },
+    ]);
+    const longClickDownloads = await waitForDownloads("long-click");
+    await performLongActions([{ type: "pointerUp", button: 0 }]);
+    expect(longClickDownloads).toHaveLength(1);
+    expect(longClickDownloads[0]?.state).toBe("complete");
+    expect(fs.readFileSync(requireValue(longClickDownloads[0]?.filename, "path"))).toEqual(PNG);
+    const longEvents = parseJson(
+      await session.evaluateInTab(targetUrl, "JSON.stringify(window.__saveInLongClickEvents)"),
+      arrayOf(decodeString),
+    );
+    expect(longEvents.slice(0, 2)).toEqual(["mousedown", "mouseup"]);
+    expect(await session.evaluateInTab(targetUrl, "location.hash")).toBe("");
+
     const doubleClickConfig = {
       contentClickToSaveBindings: JSON.stringify({
         version: 1,
@@ -897,6 +977,7 @@ test("click-to-save rejects synthetic input and handles trusted single and doubl
         for (const type of ["mousedown", "click", "dblclick"]) {
           window.addEventListener(type, (event) => {
             window.__saveInDoubleClickEvents.push({ type, detail: event.detail, button: event.button });
+            if (type === "click") event.preventDefault();
           }, true);
         }
         return true;
@@ -921,6 +1002,7 @@ test("click-to-save rejects synthetic input and handles trusted single and doubl
         contentClickToSave: previousContentClickToSave,
         contentClickToSaveBindings: previousContentClickToSaveBindings,
         contentClickToSaveCombo: previousContentClickToSaveCombo,
+        contentClickToSaveLongPressMs: previousContentClickToSaveLongPressMs,
         filenamePatterns:
           typeof previousFilenamePatterns === "string" ? previousFilenamePatterns : "",
       });

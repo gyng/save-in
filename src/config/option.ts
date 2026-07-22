@@ -45,6 +45,8 @@ export const OptionsManagement: OptionsManagementApi = {
     contentClickToSaveCombo:
       "Modifiers to hold for click-to-save; legacy raw keyCodes remain supported.",
     contentClickToSaveButton: "Mouse button for click-to-save.",
+    contentClickToSaveLongPressMs:
+      "Milliseconds to hold the primary mouse button before a long-left-click save.",
     contentClickToSaveUseDefault:
       "Send click-to-save to the default destination instead of the last folder saved to.",
     autoDownloadEnabled:
