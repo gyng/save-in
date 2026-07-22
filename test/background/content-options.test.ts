@@ -27,6 +27,7 @@ test("broadcasts only a small normalized content-option patch", async () => {
   await expect(
     broadcastContentOptions({
       contentClickToSave: true,
+      contentClickToSaveLongPressMs: "501",
       autoDownloadMaxPerPage: "40",
       filenamePatterns: "sourceurl: image",
       prompt: true,
@@ -41,6 +42,7 @@ test("broadcasts only a small normalized content-option patch", async () => {
     body: {
       options: {
         contentClickToSave: true,
+        contentClickToSaveLongPressMs: 501,
         autoDownloadMaxPerPage: 40,
         filenamePatterns: "sourceurl: image",
       },

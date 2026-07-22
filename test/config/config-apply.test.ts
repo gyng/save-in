@@ -46,6 +46,32 @@ test("rejects values when schema normalization throws", async () => {
   });
 });
 
+test("persists exact whole-millisecond long-press durations", async () => {
+  const storage = { get: vi.fn(), set: vi.fn(async () => undefined) };
+  const apply = (contentClickToSaveLongPressMs: unknown) =>
+    applyConfigSerialized(
+      { queue: Promise.resolve() },
+      storage,
+      { contentClickToSaveLongPressMs },
+      undefined,
+      vi.fn(async () => undefined),
+    );
+
+  await expect(apply("501")).resolves.toEqual({
+    applied: { contentClickToSaveLongPressMs: 501 },
+    rejected: [],
+  });
+  expect(storage.set).toHaveBeenCalledWith({ contentClickToSaveLongPressMs: 501 });
+
+  for (const value of [500.5, "749.6", 249, 2001]) {
+    await expect(apply(value)).resolves.toEqual({
+      applied: {},
+      rejected: [{ name: "contentClickToSaveLongPressMs", reason: "invalid value" }],
+    });
+  }
+  expect(storage.set).toHaveBeenCalledTimes(1);
+});
+
 test("rejects unsafe automatic rules before writing configuration", async () => {
   const storage = { get: vi.fn(), set: vi.fn() };
   const reset = vi.fn();

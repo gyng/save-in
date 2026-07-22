@@ -1788,30 +1788,46 @@ test("a bundled direct save delivers the configured webhook payload once", async
 test("options page autosave persists to storage and survives a restart", async () => {
   // "promptOnShift" is a safe toggle: it never opens a Save As dialog that
   // would stall later downloads, unlike "prompt"
+  const originalLongPressMs = await control.options.get("contentClickToSaveLongPressMs");
   try {
     await evalOptions(`(async () => {
       const cb = document.querySelector("#promptOnShift");
-      const stored = ${localStorageValue("promptOnShift", false)};
+      const duration = document.querySelector("#contentClickToSaveLongPressMs");
+      const promptStored = ${localStorageValue("promptOnShift", false)};
+      const durationStored = ${localStorageValue("contentClickToSaveLongPressMs", 501)};
       cb.checked = false;
       cb.dispatchEvent(new Event("change", { bubbles: true }));
-      await stored;
+      duration.value = "501";
+      duration.dispatchEvent(new Event("input", { bubbles: true }));
+      await Promise.all([promptStored, durationStored]);
       return "toggled";
     })()`);
 
     // Persisted to storage.local (not just the in-memory option)...
-    const stored = await control.storage.local.get("promptOnShift");
-    expect(stored.promptOnShift).toBe(false);
+    const stored = await control.storage.local.get([
+      "promptOnShift",
+      "contentClickToSaveLongPressMs",
+    ]);
+    expect(stored).toMatchObject({ promptOnShift: false, contentClickToSaveLongPressMs: 501 });
 
     // ...and survives a simulated service-worker restart
     await control.runtime.reset();
     expect(await control.options.get("promptOnShift")).toBe(false);
+    expect(await control.options.get("contentClickToSaveLongPressMs")).toBe(501);
   } finally {
     await evalOptions(`(async () => {
       const cb = document.querySelector("#promptOnShift");
-      const stored = ${localStorageValue("promptOnShift", true)};
+      const duration = document.querySelector("#contentClickToSaveLongPressMs");
+      const promptStored = ${localStorageValue("promptOnShift", true)};
+      const durationStored = ${localStorageValue(
+        "contentClickToSaveLongPressMs",
+        originalLongPressMs,
+      )};
       cb.checked = true;
       cb.dispatchEvent(new Event("change", { bubbles: true }));
-      await stored;
+      duration.value = ${JSON.stringify(String(originalLongPressMs))};
+      duration.dispatchEvent(new Event("input", { bubbles: true }));
+      await Promise.all([promptStored, durationStored]);
       return "restored";
     })()`);
     await control.runtime.reset();
