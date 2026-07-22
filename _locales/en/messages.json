@@ -1108,8 +1108,8 @@
     "description": "Description of the cross-browser context routing matcher, its values, and tab-save browser requirement. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_gestureMatcherDescription": {
-    "message": "Matches the click gesture used by click-to-save.",
-    "description": "Description of the click-to-save gesture routing matcher. Used in src/options/clauselist.html and src/options/options.html."
+    "message": "Matches the click gesture used by click-to-save. Patterns match anywhere in the value, so anchor them (^left-click$) to keep left-click from also matching double-left-click.",
+    "description": "Description of the click-to-save gesture routing matcher, with the anchoring recommendation. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_or": {
     "message": ", or",
