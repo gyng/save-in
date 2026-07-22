@@ -56,6 +56,13 @@ type RuleUnit = {
 
 const newlineFor = (source: string): "\r\n" | "\n" => (source.includes("\r\n") ? "\r\n" : "\n");
 
+// Editable-rule invariants the parser establishes: a rule spans at least one
+// line node, and an editable rule carries at least one clause. Seedless
+// reduce() expresses non-emptiness natively — it throws a TypeError on an
+// empty array — so no cast or unreachable defensive branch is needed.
+const firstOf = <T>(items: readonly T[]): T => items.reduce((first) => first);
+const lastOf = <T>(items: readonly T[]): T => items.reduce((_, item) => item);
+
 const lineNodesWithin = (lines: RoutingLineNode[], start: number, end: number): RoutingLineNode[] =>
   lines.filter((line) => line.span.start.offset >= start && line.span.end.offset <= end);
 
@@ -82,8 +89,8 @@ const parseWithUnits = (source: string) => {
       rule.span.start.offset,
       rule.span.end.offset,
     );
-    const firstLine = ruleLines[0] as (typeof ruleLines)[number];
-    const lastLine = ruleLines.at(-1) as (typeof ruleLines)[number];
+    const firstLine = firstOf(ruleLines);
+    const lastLine = lastOf(ruleLines);
     const attached = attachedCommentNodes(parsed.ast.lines, firstLine.cst.line.span.start.offset);
     const start = attached[0]?.cst.line.span.start.offset ?? firstLine.cst.line.span.start.offset;
     const end = lastLine.cst.line.span.end.offset;
@@ -208,8 +215,7 @@ export const setRoutingRuleEnabled = (
     });
   }
   const newline = newlineFor(source);
-  const lastClause = unit.rule.clauses.at(-1) as (typeof unit.rule.clauses)[number];
-  const offset = lastClause.span.end.offset;
+  const offset = lastOf(unit.rule.clauses).span.end.offset;
   return `${source.slice(0, offset)}${newline}disabled: true${source.slice(offset)}`;
 };
 
@@ -364,23 +370,28 @@ export const deleteRoutingRule = (source: string, ruleIndex: number): string => 
   if (units.length === 1) return `${source.slice(0, unit.start)}${source.slice(unit.end)}`;
   const next = units[ruleIndex + 1];
   if (next) return `${source.slice(0, unit.start)}${source.slice(next.start)}`;
-  const previous = units[ruleIndex - 1] as (typeof units)[number];
+  // No `next` and more than one unit means this is the last rule, so the
+  // preceding slice is non-empty.
+  const previous = lastOf(units.slice(0, ruleIndex));
   return `${source.slice(0, previous.end)}${source.slice(unit.end)}`;
 };
 
 export const moveRoutingRule = (source: string, from: number, to: number): string => {
-  const { units } = editableRule(source, from);
+  // editableRule validates `from`, so its unit is the moved rule.
+  const { unit: moved, units } = editableRule(source, from);
   if (to < 0 || to >= units.length) throw new RangeError(`Routing rule ${to + 1} does not exist.`);
   if (from === to) return source;
-  const first = units[0] as (typeof units)[number];
-  const last = units.at(-1) as (typeof units)[number];
-  const separators = units
-    .slice(0, -1)
-    .map((unit, index) =>
-      source.slice(unit.end, (units[index + 1] as (typeof units)[number]).start),
-    );
+  const first = firstOf(units);
+  // Walking the remaining units pairwise collects the inter-rule separators
+  // and leaves `last` on the final unit, with no index arithmetic to assert.
+  let last = first;
+  const separators: string[] = [];
+  for (const unit of units.slice(1)) {
+    separators.push(source.slice(last.end, unit.start));
+    last = unit;
+  }
   const ordered = [...units];
-  const [moved] = ordered.splice(from, 1) as [(typeof units)[number]];
+  ordered.splice(from, 1);
   ordered.splice(to, 0, moved);
   const body = ordered.map((unit, index) => `${unit.content}${separators[index] ?? ""}`).join("");
   return `${source.slice(0, first.start)}${body}${source.slice(last.end)}`;

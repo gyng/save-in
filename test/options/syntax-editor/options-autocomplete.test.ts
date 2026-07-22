@@ -146,6 +146,22 @@ describe("attachAutocomplete", () => {
     expect(document.querySelector(".autocomplete-dropdown")).toBeNull();
   });
 
+  test("a stale retained cleanup does not tear down a replacement instance's ARIA wiring", () => {
+    const stale = cleanup;
+    cleanup = attachAutocomplete(textarea, [pathVariableStrategy(VARIABLES)]);
+    stale();
+
+    expect(textarea.getAttribute("role")).toBe("combobox");
+    expect(textarea.getAttribute("aria-autocomplete")).toBe("list");
+    type("a/:d");
+    key("Enter");
+    expect(textarea.value).toBe("a/:date:");
+
+    cleanup();
+    expect(textarea.getAttribute("role")).toBeNull();
+    expect(textarea.getAttribute("aria-autocomplete")).toBeNull();
+  });
+
   test("arrow keys cycle the selection", () => {
     type("a/:d");
     key("ArrowDown");

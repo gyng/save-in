@@ -436,12 +436,14 @@ export const attachAutocomplete = (
     listenerOptions,
   );
 
-  let cleaned = false;
   const cleanup = () => {
-    if (cleaned) return;
-    cleaned = true;
+    // abort() and remove() are idempotent and own only this instance's
+    // resources. The map identity check is the real guard: a caller-retained
+    // stale handle, run again after a replacement instance attached to the
+    // same field, must not tear down the replacement's ARIA wiring.
     controller.abort();
     dropdown.remove();
+    if (autocompleteCleanups.get(textarea) !== cleanup) return;
     autocompleteCleanups.delete(textarea);
     textarea.removeAttribute("role");
     textarea.removeAttribute("aria-autocomplete");
