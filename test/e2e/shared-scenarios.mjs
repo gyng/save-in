@@ -323,6 +323,18 @@ into: e2e/private-auto/:filename:`,
       `Boolean(document.querySelector("#save-in-source-panel")?.shadowRoot)`,
       { description: "private content script" },
     );
+    const privateRuleActions = await evaluatePrivatePage(
+      privatePage.target,
+      `(() => {
+        const panel = document.querySelector("#save-in-source-panel")?.shadowRoot;
+        return panel
+          ? [...panel.querySelectorAll(".action-menu button")].filter(
+              (button) => button.textContent?.trim() === "Create automatic rule",
+            ).length
+          : -1;
+      })()`,
+    );
+    expect(privateRuleActions).toBe(0);
     const beforeOptIn = (await control.downloads.search()).filter(
       (item) => item.url === `http://127.0.0.1:${port}/${initialName}`,
     );
