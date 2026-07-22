@@ -30,7 +30,7 @@ import { isStringKeyedRecord } from "../shared/util.ts";
 import { truncateDataUrlForDisplay } from "../shared/data-url.ts";
 import { notifyRouteExclusion } from "./route-exclusion-notification.ts";
 import { getTrackedDownload } from "./expected-downloads.ts";
-import { releaseTerminalDownload } from "./terminal-download.ts";
+import { releaseTerminalDownload, runLateRouteCancellation } from "./terminal-download.ts";
 import { requireDownloadUrl } from "./download-pipeline-state.ts";
 
 const historyPort = downloadPorts.history;
@@ -343,31 +343,39 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           ? logPort.add(message, data, { privateContext: true })
           : logPort.add(message, data);
       if (typeof downloadItem.id === "number") {
-        if (excluded) {
-          const canceled = await webExtensionApi.downloads
+        const canceled = await runLateRouteCancellation(downloadItem.id, async () => {
+          const accepted = await webExtensionApi.downloads
             .cancel(downloadItem.id)
             .then(() => true)
             .catch((error) => {
-              addRouteLog("late routing exclusion could not cancel download", String(error));
+              addRouteLog(
+                excluded
+                  ? "late routing exclusion could not cancel download"
+                  : "late routing rejection could not cancel download",
+                String(error),
+              );
               return false;
             });
-          if (!canceled) return;
-          const record = await getTrackedDownload(downloadItem.id);
+          if (!accepted) return false;
+          const record = await getTrackedDownload(downloadItem.id).catch((error) => {
+            addRouteLog("late routing cancellation lookup failed", String(error));
+            return null;
+          });
           if (record) {
             await releaseTerminalDownload(downloadItem.id, record, addRouteLog).catch((error) =>
-              addRouteLog("late routing exclusion cleanup failed", String(error)),
+              addRouteLog("late routing cancellation cleanup failed", String(error)),
             );
           }
-        } else {
-          await webExtensionApi.downloads.cancel(downloadItem.id).catch(() => {});
-        }
-        await historyPort
-          .setStatus(
-            state.scratch?.historyEntryId,
-            excluded ? "RULE_EXCLUDED" : "RULE_NO_MATCH",
-            downloadItem.id,
-          )
-          .catch((error) => addRouteLog("route-miss history update failed", String(error)));
+          await historyPort
+            .setStatus(
+              state.scratch?.historyEntryId,
+              excluded ? "RULE_EXCLUDED" : "RULE_NO_MATCH",
+              downloadItem.id,
+            )
+            .catch((error) => addRouteLog("route-miss history update failed", String(error)));
+          return true;
+        });
+        if (!canceled) return;
       }
       if (excluded) {
         notifyRouteExclusion(state);

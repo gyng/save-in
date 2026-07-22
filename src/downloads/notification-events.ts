@@ -62,7 +62,7 @@ import {
   relativeDirectoryWithinRoot,
   rememberDownloadsRoot,
 } from "./browser-last-used.ts";
-import { releaseTerminalDownload } from "./terminal-download.ts";
+import { releaseTerminalDownload, waitForLateRouteCancellation } from "./terminal-download.ts";
 
 type HostDownloadItem = Parameters<
   Parameters<typeof webExtensionApi.downloads.onCreated.addListener>[0]
@@ -716,10 +716,14 @@ const notifyDownloadSuccess = async (
 };
 
 const handleDownloadChanged = async (downloadDelta: HostDownloadDelta): Promise<void> => {
+  // Capture this before initialization yields: the filename listener may
+  // finish its cancellation while this wake-up is still waiting for ready.
+  const lateRouteCancellation = waitForLateRouteCancellation(downloadDelta.id);
   if (backgroundRuntime.ready) {
     await backgroundRuntime.ready.catch(() => {});
   }
   const notify = readNotifySettings();
+  if (lateRouteCancellation && (await lateRouteCancellation)) return;
 
   // The record IS the membership check: no record (or one whose adoption was
   // cleared at a prior terminal delta) means this download is not ours. After

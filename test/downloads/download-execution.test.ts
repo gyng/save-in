@@ -954,6 +954,7 @@ describe("onDeterminingFilename listener: sync path", () => {
 
   test("cancels and records an exclusion that matches Chrome's final filename", async () => {
     setCurrentBrowser("CHROME");
+    const { onDownloadChanged } = await import("../../src/downloads/notification-events.ts");
     vi.spyOn(OffscreenClient, "release").mockResolvedValue(false);
     options.notifyOnRuleMatch = true;
     const exclusionRule = routingRule("finalfilename");
@@ -970,7 +971,11 @@ describe("onDeterminingFilename listener: sync path", () => {
           }
         : null,
     );
-    const cancel = vi.fn(() => Promise.resolve());
+    let terminalEvent: Promise<void> | undefined;
+    const cancel = vi.fn((id: number) => {
+      terminalEvent = onDownloadChanged({ id, error: { current: "USER_CANCELED" } });
+      return Promise.resolve();
+    });
     global.browser.downloads.cancel = cancel;
     const state = makeState({
       path: new Path.Path("downloads"),
@@ -1008,6 +1013,8 @@ describe("onDeterminingFilename listener: sync path", () => {
     await vi.waitFor(() =>
       expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101),
     );
+    await terminalEvent;
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith("h-test", "USER_CANCELED", 101);
     expect(suggest).toHaveBeenCalledWith();
     expect(downloadState.records.get(101)).toEqual(
       expect.objectContaining({
@@ -1028,6 +1035,7 @@ describe("onDeterminingFilename listener: sync path", () => {
 
   test("does not claim a late exclusion when Chrome can no longer cancel it", async () => {
     setCurrentBrowser("CHROME");
+    const { onDownloadChanged } = await import("../../src/downloads/notification-events.ts");
     options.notifyOnRuleMatch = true;
     const exclusionRule = routingRule("finalfilename");
     options.filenamePatterns = [exclusionRule];
@@ -1043,7 +1051,14 @@ describe("onDeterminingFilename listener: sync path", () => {
           }
         : null,
     );
-    global.browser.downloads.cancel = vi.fn(() => Promise.reject(new Error("already complete")));
+    let concurrentProgress: Promise<void> | undefined;
+    global.browser.downloads.cancel = vi.fn((id: number) => {
+      concurrentProgress = onDownloadChanged({
+        id,
+        state: { current: "in_progress", previous: "in_progress" },
+      });
+      return Promise.reject(new Error("already complete"));
+    });
     const state = makeState({
       info: {
         currentTab: { incognito: true },
@@ -1063,6 +1078,7 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
 
     await vi.waitFor(() => expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101));
+    await concurrentProgress;
     expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
     expect(downloadState.records.get(101)?.adopted).toBe(true);
     expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
@@ -1105,7 +1121,7 @@ describe("onDeterminingFilename listener: sync path", () => {
 
     await vi.waitFor(() =>
       expect(Log.addLogEntry).toHaveBeenCalledWith(
-        "late routing exclusion cleanup failed",
+        "late routing cancellation cleanup failed",
         expect.stringContaining("session full"),
       ),
     );
@@ -1147,6 +1163,47 @@ describe("onDeterminingFilename listener: sync path", () => {
     await vi.waitFor(() => expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101));
     expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
     expect(downloadState.records.has(101)).toBe(false);
+  });
+
+  test("records a late exclusion when its tracking lookup fails", async () => {
+    setCurrentBrowser("CHROME");
+    const exclusionRule = routingRule("finalfilename");
+    options.filenamePatterns = [exclusionRule];
+    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "excluded.bin"
+        ? {
+            outcome: "exclude",
+            rule: exclusionRule,
+            destination: null,
+            fetch: null,
+            rename: null,
+            tabAction: null,
+          }
+        : null,
+    );
+    const state = makeState({ info: { url: "https://example.com/download" } });
+    await Download.renameAndDownload(state);
+    downloadState.records.delete(101);
+    vi.mocked(SessionState.getSession).mockRejectedValueOnce(new Error("session unavailable"));
+
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "excluded.bin",
+      },
+      vi.fn(),
+    );
+
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "late routing cancellation lookup failed",
+        expect.stringContaining("session unavailable"),
+      ),
+    );
+    expect(global.browser.downloads.cancel).toHaveBeenCalledTimes(1);
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
   });
 
   test("resolves MIME only when Chrome's final filename loses its extension", async () => {
@@ -1473,7 +1530,7 @@ describe("onDeterminingFilename listener: sync path", () => {
     expect(cancel).not.toHaveBeenCalled();
   });
 
-  test("cancels a deferred exclusive download when the resolved filename still misses", async () => {
+  test("does not report a route miss when Chrome refuses its late cancellation", async () => {
     setCurrentBrowser("CHROME");
     options.routeSkipUnmatched = true;
     options.notifyOnFailure = true;
@@ -1483,7 +1540,6 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
     const cancel = vi.fn(() => Promise.reject(new Error("already stopped")));
     global.browser.downloads.cancel = cancel;
-    vi.mocked(SaveHistory.setHistoryStatus).mockRejectedValue(new Error("history unavailable"));
     const state = makeState({
       path: new Path.Path("downloads"),
       info: { url: "https://example.com/file.pdf" },
@@ -1507,7 +1563,46 @@ describe("onDeterminingFilename listener: sync path", () => {
 
     await vi.waitFor(() => expect(cancel).toHaveBeenCalledWith(101));
     expect(suggest).toHaveBeenCalledWith();
-    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_NO_MATCH", 101);
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith("h-test", "RULE_NO_MATCH", 101);
+    expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
+    expect(downloadState.records.get(101)?.adopted).toBe(true);
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "late routing rejection could not cancel download",
+      expect.stringContaining("already stopped"),
+    );
+  });
+
+  test("contains a History failure after canceling a late route miss", async () => {
+    setCurrentBrowser("CHROME");
+    options.routeSkipUnmatched = true;
+    options.notifyOnFailure = true;
+    options.filenamePatterns = [routingRule("actualfileext")];
+    vi.mocked(router.matchRules).mockImplementation((_rules, info) =>
+      info.filename === "file.pdf" ? "pdf/:filename:" : null,
+    );
+    vi.mocked(SaveHistory.setHistoryStatus).mockRejectedValue(new Error("history unavailable"));
+    const state = makeState({
+      path: new Path.Path("downloads"),
+      info: { url: "https://example.com/file.pdf" },
+    });
+
+    await Download.renameAndDownload(state);
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "server-name.exe",
+      },
+      vi.fn(),
+    );
+
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "route-miss history update failed",
+        expect.stringContaining("history unavailable"),
+      ),
+    );
     expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
       "notificationRuleMatchFailedExclusiveTitle",
       "notificationRuleMatchFailedExclusiveMessage",
