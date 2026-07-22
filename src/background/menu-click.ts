@@ -299,13 +299,15 @@ const handleContextMenuClickInternal = async (
     }
 
     const downloadType = target.downloadType;
-    // The destination this click is about to resolve to: Last used and
-    // recent-destination items save into a stored path string, not
-    // options.paths, so the metadata-usage gate must see it too.
+    // The destination this click is about to resolve to: Last used,
+    // recent-destination, and Quick save items all save into a stored path
+    // string, not options.paths, so the metadata-usage gate must see it too.
     const storedDestinationPath =
       info.menuItemId === MENU_IDS.LAST_USED
         ? (getLastUsed(isolatedPrivateContext).path ?? undefined)
-        : menuInfo?.parsedDir;
+        : info.menuItemId === MENU_IDS.QUICK_SAVE
+          ? resolveDefaultDestination(options)
+          : menuInfo?.parsedDir;
     const contextLinkMetadata = await readContextLinkMetadata(
       info,
       clickTab,

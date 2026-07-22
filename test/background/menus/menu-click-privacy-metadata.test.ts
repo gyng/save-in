@@ -8,6 +8,7 @@ vi.mock(import("../../../src/downloads/shortcut.ts"), { spy: true });
 import {
   Download,
   Runtime,
+  options,
   setupBrowserMocks,
   importMenus,
   setCurrentTab,
@@ -72,6 +73,25 @@ describe("context menu click privacy and metadata hardening", () => {
 
       expect(global.browser.tabs.sendMessage).toHaveBeenCalledOnce();
       expect(lastState().info.linkDownload).toBe("original.jpg");
+    });
+
+    test("a Quick save directory still containing :linktitle: triggers the lookup", async () => {
+      // Quick save resolves saveIntoPath from options.quickSaveDirectory
+      // (resolveDefaultDestination), a stored path distinct from
+      // options.paths/filenamePatterns — the gate must scan it too.
+      options.quickSaveUseDirectory = true;
+      options.quickSaveDirectory = "archive/:linktitle:";
+      global.browser.tabs.sendMessage = vi.fn(() =>
+        Promise.resolve({ href: "https://example.com/file", title: "Full size" }),
+      );
+
+      await listener(
+        { menuItemId: Menus.IDS.QUICK_SAVE, linkUrl: "https://example.com/file" },
+        { id: 42 },
+      );
+
+      expect(global.browser.tabs.sendMessage).toHaveBeenCalledOnce();
+      expect(lastState().info.linkTitle).toBe("Full size");
     });
 
     test("stays quiet when neither options nor the stored Last used path use metadata", async () => {
