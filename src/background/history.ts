@@ -453,24 +453,31 @@ const queueHistoryPatch = (
   id: string | null | undefined,
   fields: Partial<HistoryEntry> | ((entry: HistoryEntry) => Partial<HistoryEntry>),
   strict: boolean,
+  requireExisting = false,
 ): Promise<unknown> => {
-  if (!id) return writeQueue;
+  if (!id) return requireExisting ? Promise.resolve(false) : writeQueue;
 
   const operation = writeQueue.then(async () => {
     const entryKey = historyEntryStorageKey(id);
     const loaded = await loadWritableIndex([entryKey]);
-    if (loaded.index.length === 0) return;
+    if (loaded.index.length === 0) {
+      if (requireExisting) return false;
+      return;
+    }
     let storedEntry = loaded.snapshot[entryKey];
     if (storedEntry === undefined) {
       const latest = await storageSnapshot([entryKey]);
       storedEntry = latest[entryKey];
     }
     const entry = normalizeHistoryEntry(storedEntry);
-    if (!entry) return;
+    if (!entry) {
+      if (requireExisting) return false;
+      return;
+    }
     const resolved = typeof fields === "function" ? fields(entry) : fields;
     // An empty patch (a guarded write whose condition no longer holds)
     // must not rewrite the entry for nothing.
-    if (Object.keys(resolved).length === 0) return;
+    if (Object.keys(resolved).length === 0) return requireExisting ? true : undefined;
     const merged = Object.assign({}, entry, resolved);
     // An explicitly-undefined field means "remove": Firefox's structured
     // clone would otherwise persist the key, and normalization must never
@@ -493,11 +500,13 @@ const queueHistoryPatch = (
       ...(nextIndex === loaded.index ? {} : { [HISTORY_INDEX_STORAGE_KEY]: nextIndex }),
     });
     if (wasTerminal !== isTerminal) await pruneTerminalHistory(nextIndex);
+    return requireExisting ? true : undefined;
   });
   const settled = operation.catch((error) => recordHistoryFailure("write", error));
   // The shared queue must always settle so one failed storage operation does
   // not poison later History work. Strict callers still receive the original
-  // rejection when they need to withhold an irreversible side effect.
+  // rejection when they need to withhold an irreversible side effect, while a
+  // required relationship write reports false when its row no longer exists.
   writeQueue = settled;
   return strict ? operation : settled;
 };
@@ -510,7 +519,7 @@ export const patchHistoryEntry = (
 export const patchHistoryEntryStrict = (
   id: string | null | undefined,
   fields: Partial<HistoryEntry> | ((entry: HistoryEntry) => Partial<HistoryEntry>),
-): Promise<unknown> => queueHistoryPatch(id, fields, true);
+): Promise<unknown> => queueHistoryPatch(id, fields, true, true);
 
 const historyStatusPatch =
   (
@@ -547,7 +556,7 @@ export const setHistoryStatusStrict = (
   status: string,
   downloadId?: number,
   fileSize?: number,
-) => patchHistoryEntryStrict(id, historyStatusPatch(status, downloadId, fileSize));
+) => queueHistoryPatch(id, historyStatusPatch(status, downloadId, fileSize), true);
 
 // Binds the browser download id to the entry as soon as the download starts,
 // so the options page can poll its progress while it is still in flight.

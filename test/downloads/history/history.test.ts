@@ -154,6 +154,48 @@ describe("SaveHistory", () => {
     expect(byId[id2!]).toBe("complete");
   });
 
+  test("a strict relationship patch reports when queued entry creation was lost", async () => {
+    const original = SaveHistory.addHistoryEntry({ url: "https://a/original" });
+    await flushWrites();
+    vi.mocked(global.browser.storage.local.set).mockRejectedValueOnce(
+      new Error("history unavailable"),
+    );
+    const replacement = SaveHistory.addHistoryEntry({ url: "https://a/replacement" });
+    await flushWrites();
+    if (!original || !replacement) throw new Error("History ids were not created");
+
+    await expect(
+      SaveHistory.patchHistoryEntryStrict(replacement, { rerouteOf: original }),
+    ).resolves.toBe(false);
+
+    await expect(
+      SaveHistory.patchHistoryEntryStrict(original, { finalFullPath: "queue/recovered" }),
+    ).resolves.toBe(true);
+    await expect(storedHistory()).resolves.toEqual([
+      expect.objectContaining({ id: original, finalFullPath: "queue/recovered" }),
+    ]);
+  });
+
+  test("a strict terminal status tolerates a concurrently cleared History", async () => {
+    await expect(
+      SaveHistory.setHistoryStatusStrict("cleared-during-move", "moved", 42),
+    ).resolves.toBeUndefined();
+  });
+
+  test("strict relationship patches distinguish absent IDs from existing guarded no-ops", async () => {
+    await expect(SaveHistory.patchHistoryEntryStrict(null, { rerouteOf: "old" })).resolves.toBe(
+      false,
+    );
+    const id = SaveHistory.addHistoryEntry({ url: "https://a/existing" });
+    await flushWrites();
+    if (!id) throw new Error("History id was not created");
+    vi.mocked(global.browser.storage.local.set).mockClear();
+
+    await expect(SaveHistory.patchHistoryEntryStrict(id, () => ({}))).resolves.toBe(true);
+
+    expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+  });
+
   test("decrements terminal-count metadata when an entry becomes active again", async () => {
     const id = SaveHistory.addHistoryEntry({ url: "https://a/1" });
     await SaveHistory.setHistoryStatus(id, "complete");

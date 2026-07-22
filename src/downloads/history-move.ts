@@ -24,13 +24,24 @@ const completionTasks = new Map<number, Promise<CompletedHistoryMove>>();
 export const registerPendingHistoryMove = (
   replacementDownloadId: number,
   pending: PendingHistoryMove,
-): Promise<unknown> =>
-  mergeDownloadStrict(
-    downloadsState,
-    sessionWriteState,
-    extensionSessionStorage,
-    replacementDownloadId,
-    { pendingHistoryMove: pending },
+): Promise<boolean> =>
+  getDownload(downloadsState, extensionSessionStorage, replacementDownloadId).then(
+    async (record) => {
+      if (
+        record?.historyEntryId &&
+        (await downloadPorts.history.patchStrict(record.historyEntryId, {})) === false
+      ) {
+        return false;
+      }
+      await mergeDownloadStrict(
+        downloadsState,
+        sessionWriteState,
+        extensionSessionStorage,
+        replacementDownloadId,
+        { pendingHistoryMove: pending },
+      );
+      return true;
+    },
   );
 
 export const abandonPendingHistoryMove = (replacementDownloadId: number): Promise<unknown> =>
@@ -49,8 +60,23 @@ const runPendingHistoryMove = async (
   if (newHistoryId) {
     // Establish the auditable relationship before touching the old file. A
     // storage failure leaves both copies intact and the durable intent retries.
-    await downloadPorts.history.patchStrict(newHistoryId, { rerouteOf: pending.historyId });
-    await downloadPorts.history.patchStrict(pending.historyId, { rerouteTo: newHistoryId });
+    const linkedNew = await downloadPorts.history.patchStrict(newHistoryId, {
+      rerouteOf: pending.historyId,
+    });
+    if (linkedNew === false) {
+      await abandonPendingHistoryMove(replacementDownloadId);
+      return { handled: true, oldRemoved: false };
+    }
+    const linkedOld = await downloadPorts.history.patchStrict(pending.historyId, {
+      rerouteTo: newHistoryId,
+    });
+    if (linkedOld === false) {
+      // The old row may have been cleared after the move was requested. Undo
+      // the one-sided link when possible and keep both files.
+      await downloadPorts.history.patch(newHistoryId, { rerouteOf: undefined });
+      await abandonPendingHistoryMove(replacementDownloadId);
+      return { handled: true, oldRemoved: false, newHistoryId };
+    }
   }
   const oldRemoved = await removeVerifiedDownloadFile(pending.downloadId, {
     startTime: pending.startTime,

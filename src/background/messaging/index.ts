@@ -318,8 +318,9 @@ const internalHandlers = {
     }
     const scratchEntryId = rerouteState.scratch.historyEntryId;
     const newHistoryId = typeof scratchEntryId === "string" ? scratchEntryId : undefined;
+    let moveRegistered: boolean | undefined;
     try {
-      await registerPendingHistoryMove(replacement.downloadId, {
+      moveRegistered = await registerPendingHistoryMove(replacement.downloadId, {
         historyId,
         downloadId,
         startTime: entry.downloadStartTime || verifiedOriginal.startTime,
@@ -340,6 +341,14 @@ const internalHandlers = {
           oldRemoved: false,
           ...(newHistoryId ? { newHistoryId } : {}),
         },
+      });
+      return;
+    }
+    if (moveRegistered === false) {
+      await abandonPendingHistoryMove(replacement.downloadId);
+      sendResponse({
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { rerouted: true, oldRemoved: false },
       });
       return;
     }

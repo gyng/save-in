@@ -374,6 +374,44 @@ describe("onMessage", () => {
     });
   });
 
+  test("HISTORY_REROUTE omits an allocated replacement row that was never persisted", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-20",
+        url: "https://x.test/moved.png",
+        finalFullPath: "from/moved.png",
+        downloadId: 41,
+        status: "complete",
+      },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 41, url: "https://x.test/moved.png", state: "complete" } as never,
+    ]);
+    vi.mocked(Download.launchDownload).mockImplementation(async (state) => {
+      state.scratch.historyEntryId = "missing-history-new";
+      return { status: "started", downloadId: 42 };
+    });
+    vi.mocked(HistoryMove.registerPendingHistoryMove).mockResolvedValue(false);
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { historyId: "history-20", destination: "moved/here" },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(HistoryMove.abandonPendingHistoryMove).toHaveBeenCalledWith(42);
+    expect(HistoryMove.completePendingHistoryMove).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: { rerouted: true, oldRemoved: false },
+    });
+  });
+
   test("HISTORY_REROUTE reports an accepted untracked replacement without inventing a row id", async () => {
     vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
       {

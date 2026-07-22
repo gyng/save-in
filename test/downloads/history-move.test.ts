@@ -6,11 +6,14 @@ import {
   completePendingHistoryMove,
   registerPendingHistoryMove,
 } from "../../src/downloads/history-move.ts";
+import type { HistoryEntry } from "../../src/shared/history-types.ts";
 
 const history = {
   add: vi.fn(() => "new-history"),
   patch: vi.fn(async () => undefined),
-  patchStrict: vi.fn(async () => undefined),
+  patchStrict: vi.fn<
+    (id: string | null | undefined, fields: Partial<HistoryEntry>) => Promise<unknown>
+  >(async () => undefined),
   setDownloadId: vi.fn(async () => undefined),
   setStatus: vi.fn(async () => undefined),
   setStatusStrict: vi.fn(async () => undefined),
@@ -95,6 +98,25 @@ test("rejects when a pending move cannot be made restart-safe", async () => {
   });
 });
 
+test("refuses to register a move for an allocated but missing replacement row", async () => {
+  await mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, 26, {
+    adopted: true,
+    historyEntryId: "missing-new-history",
+  });
+  history.patchStrict.mockResolvedValueOnce(false);
+
+  await expect(
+    registerPendingHistoryMove(26, {
+      historyId: "old-history",
+      downloadId: 25,
+      filename: "old/photo.png",
+    }),
+  ).resolves.toBe(false);
+
+  expect(downloadsState.records.get(26)?.pendingHistoryMove).toBeUndefined();
+  expect(global.browser.storage.session.set).toHaveBeenCalledTimes(1);
+});
+
 test("keeps the original when its persisted identity no longer matches", async () => {
   await registerPendingHistoryMove(12, {
     historyId: "old-history",
@@ -111,6 +133,50 @@ test("keeps the original when its persisted identity no longer matches", async (
   });
   expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
   expect(history.setStatusStrict).not.toHaveBeenCalled();
+});
+
+test("keeps both files when the replacement History row was not persisted", async () => {
+  await mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, 22, {
+    adopted: true,
+    historyEntryId: "missing-new-history",
+  });
+  await registerPendingHistoryMove(22, {
+    historyId: "old-history",
+    downloadId: 21,
+    filename: "old/photo.png",
+  });
+  history.patchStrict.mockResolvedValueOnce(false);
+
+  await expect(completePendingHistoryMove(22)).resolves.toEqual({
+    handled: true,
+    oldRemoved: false,
+  });
+
+  expect(global.browser.downloads.search).not.toHaveBeenCalled();
+  expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+  expect(downloadsState.records.get(22)?.pendingHistoryMove).toBeUndefined();
+});
+
+test("removes a one-sided new-row link when the original History row disappeared", async () => {
+  await mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, 24, {
+    adopted: true,
+    historyEntryId: "new-history",
+  });
+  await registerPendingHistoryMove(24, {
+    historyId: "missing-old-history",
+    downloadId: 23,
+    filename: "old/photo.png",
+  });
+  history.patchStrict.mockResolvedValueOnce(undefined).mockResolvedValueOnce(false);
+
+  await expect(completePendingHistoryMove(24)).resolves.toMatchObject({
+    handled: true,
+    oldRemoved: false,
+  });
+
+  expect(history.patch).toHaveBeenCalledWith("new-history", { rerouteOf: undefined });
+  expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+  expect(downloadsState.records.get(24)?.pendingHistoryMove).toBeUndefined();
 });
 
 test("serializes concurrent completion observers for the same move", async () => {
