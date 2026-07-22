@@ -93,13 +93,21 @@ export const SOURCE_PANEL_RESOURCE_TIMING_LIMIT = 512;
 export const mergeResourceTimings = (
   target: Map<string, SourcePanelResourceTiming>,
   entries: Iterable<SourcePanelResourceTiming>,
+  isPinned?: (url: string) => boolean,
 ): Map<string, SourcePanelResourceTiming> => {
   for (const entry of entries) {
     // Refresh insertion order as well as metadata, so the cap retains the most
     // recently observed version of a URL rather than its first occurrence.
     target.delete(entry.name);
     if (target.size >= SOURCE_PANEL_RESOURCE_TIMING_LIMIT) {
+      // Evict the oldest unpinned entry. A pinned URL backs a discovered
+      // stream row or a live selection, and full refreshes rebuild those rows
+      // from this map alone — evicting it would silently drop the row on a
+      // long-lived streaming page whose segment fetches outnumber the cap.
+      // When every retained entry is pinned, grow past the cap instead; the
+      // excess stays bounded by the number of discovered/selected sources.
       for (const oldest of target.keys()) {
+        if (isPinned?.(oldest)) continue;
         target.delete(oldest);
         break;
       }

@@ -35,6 +35,12 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
   let backgroundCandidates: PageSourceCandidate[] = [];
   let resourceHintSources: PageSourceCandidate[] = [];
   let sourcesByUrl = new Map<string, PageSource>();
+  // Stream rows exist only as projections of timingByUrl: full refreshes
+  // rebuild resourceHintSources from that map, so letting recency eviction
+  // drop a manifest entry would also drop its discovered row and prune its
+  // selection. Both backing sets are bounded by discovered sources.
+  const pinnedTimingUrl = (url: string): boolean =>
+    ctx.selectedSourceUrls.has(url) || resourceHintSources.some((source) => source.url === url);
   const firstSeen = new Map<string, { at: number; order: number }>();
   const commitSources = () => {
     const candidates = [sourceCandidates, backgroundCandidates, resourceHintSources].flat();
@@ -351,7 +357,7 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
     typeof PerformanceObserver === "function"
       ? new PerformanceObserver((entries) => {
           const observed = entries.getEntries().filter(isPerformanceResourceTiming);
-          mergeResourceTimings(timingByUrl, observed);
+          mergeResourceTimings(timingByUrl, observed, pinnedTimingUrl);
           let changed = false;
           observed.forEach((timing) => {
             const source = sourcesByUrl.get(timing.name);
@@ -404,7 +410,7 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
   ctx.refreshSources = refreshSources;
   ctx.configureLiveObservers = configureLiveObservers;
   ctx.resyncResourceTiming = () =>
-    mergeResourceTimings(timingByUrl, resourceTimingByUrl().values());
+    mergeResourceTimings(timingByUrl, resourceTimingByUrl().values(), pinnedTimingUrl);
   ctx.cleanupTasks.push(() => {
     observer.disconnect();
     resourceObserver?.disconnect();

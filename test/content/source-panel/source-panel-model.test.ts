@@ -80,6 +80,51 @@ test("bounds the timing map while a large observation batch is merged", () => {
   expect(timing.peakSize).toBe(SOURCE_PANEL_RESOURCE_TIMING_LIMIT);
 });
 
+test("pins a timing entry backing a discovered source while evicting the oldest unpinned", () => {
+  const manifest = "https://cdn.test/master.m3u8";
+  const timing = mergeResourceTimings(new Map<string, SourcePanelResourceTiming>(), [
+    { name: manifest, encodedBodySize: 128, transferSize: 128 },
+  ]);
+  const segments = Array.from(
+    { length: SOURCE_PANEL_RESOURCE_TIMING_LIMIT },
+    (_, index): SourcePanelResourceTiming => ({
+      name: `https://cdn.test/segment-${index}.ts`,
+      encodedBodySize: 1,
+      transferSize: 1,
+    }),
+  );
+
+  mergeResourceTimings(timing, segments, (url) => url === manifest);
+
+  expect(timing.has(manifest)).toBe(true);
+  expect(timing.has("https://cdn.test/segment-0.ts")).toBe(false);
+  expect(timing.size).toBe(SOURCE_PANEL_RESOURCE_TIMING_LIMIT);
+});
+
+test("grows past the timing cap instead of evicting when every entry is pinned", () => {
+  const timing = mergeResourceTimings(
+    new Map<string, SourcePanelResourceTiming>(),
+    Array.from(
+      { length: SOURCE_PANEL_RESOURCE_TIMING_LIMIT },
+      (_, index): SourcePanelResourceTiming => ({
+        name: `https://cdn.test/pinned-${index}.m3u8`,
+        encodedBodySize: 1,
+        transferSize: 1,
+      }),
+    ),
+  );
+
+  mergeResourceTimings(
+    timing,
+    [{ name: "https://cdn.test/extra.m3u8", encodedBodySize: 1, transferSize: 1 }],
+    () => true,
+  );
+
+  expect(timing.size).toBe(SOURCE_PANEL_RESOURCE_TIMING_LIMIT + 1);
+  expect(timing.has("https://cdn.test/pinned-0.m3u8")).toBe(true);
+  expect(timing.has("https://cdn.test/extra.m3u8")).toBe(true);
+});
+
 test("skips an obsolete timing prefix once the newest unique set is full", () => {
   const entries = Array.from(
     { length: SOURCE_PANEL_RESOURCE_TIMING_LIMIT + 1 },

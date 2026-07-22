@@ -14,6 +14,7 @@ import {
   setSourcePanelOpen,
   toggleSourcePanel,
 } from "../../../src/content/source-panel.ts";
+import { SOURCE_PANEL_RESOURCE_TIMING_LIMIT } from "../../../src/content/source-panel-model.ts";
 import { createSourcePanelCopy } from "../../../src/shared/source-panel-copy.ts";
 import { SOURCE_PANEL_LAYOUT_STORAGE_KEY } from "../../../src/shared/storage-keys.ts";
 
@@ -1792,6 +1793,57 @@ describe("Page Sources panel interactions", () => {
         .getElementById("save-in-source-panel")!
         .shadowRoot!.querySelector<HTMLAnchorElement>(".source-link")!.href,
     ).toBe("https://cdn.test/new.m3u8");
+  });
+
+  test("keeps a discovered stream row and its selection through a segment flood", () => {
+    vi.useFakeTimers();
+    let performanceCallback: PerformanceObserverCallback | undefined;
+    class PerformanceObserverStub {
+      constructor(callback: PerformanceObserverCallback) {
+        performanceCallback = callback;
+      }
+      observe = vi.fn();
+      disconnect = vi.fn();
+      takeRecords = vi.fn(() => []);
+    }
+    vi.stubGlobal("PerformanceObserver", PerformanceObserverStub);
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true, resourceHints: true });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const deliver = (entries: Array<{ name: string }>) =>
+      performanceCallback!(
+        { getEntries: () => entries } as unknown as PerformanceObserverEntryList,
+        {} as PerformanceObserver,
+      );
+    const segments = (offset: number) =>
+      Array.from({ length: SOURCE_PANEL_RESOURCE_TIMING_LIMIT }, (_, index) => ({
+        name: `https://cdn.test/segment-${offset + index}.ts`,
+      }));
+
+    deliver([{ name: "https://cdn.test/master.m3u8" }]);
+    vi.advanceTimersByTime(200);
+    // Unselected: this flood can only pin the manifest as a discovered row.
+    deliver(segments(0));
+    const checkbox = shadow.querySelector<HTMLInputElement>(
+      'input[data-source-url="https://cdn.test/master.m3u8"]',
+    )!;
+    checkbox.checked = true;
+    checkbox.dispatchEvent(new Event("change"));
+    // Selected: this flood pins the manifest through the selection check.
+    deliver(segments(SOURCE_PANEL_RESOURCE_TIMING_LIMIT));
+    // A newly observed manifest rebuilds every stream row from the timing map.
+    deliver([{ name: "https://cdn.test/other.m3u8" }]);
+    vi.advanceTimersByTime(200);
+
+    const urls = [...shadow.querySelectorAll<HTMLAnchorElement>(".source-link")].map(
+      ({ href }) => href,
+    );
+    expect(urls).toContain("https://cdn.test/master.m3u8");
+    expect(urls).toContain("https://cdn.test/other.m3u8");
+    expect(
+      shadow.querySelector<HTMLInputElement>(
+        'input[data-source-url="https://cdn.test/master.m3u8"]',
+      )?.checked,
+    ).toBe(true);
   });
 
   test("falls back across unsupported PerformanceObserver signatures", () => {
