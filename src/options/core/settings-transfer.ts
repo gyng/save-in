@@ -2,6 +2,8 @@ import type { ApplyConfigResponse } from "../../shared/message-protocol.ts";
 import { isStringKeyedRecord } from "../../shared/message-protocol.ts";
 import { assertApplyAcknowledged } from "./options-save.ts";
 import { cssSelectorErrors } from "./css-selector-validation.ts";
+import type { SavedChange } from "./options-persistence.ts";
+import { lowersHistoryRetention } from "../history/history-retention-model.ts";
 
 type OptionSchema = { keys: Array<{ name: string }> };
 
@@ -10,6 +12,13 @@ type SettingsTransferDependencies = {
   getStored: (keys: string[]) => Promise<Record<string, unknown>>;
   apply: (config: Record<string, unknown>) => Promise<ApplyConfigResponse>;
   restore: () => Promise<void>;
+  // Shared with the autosave boundary (options.ts) so declining a History
+  // retention lowering behaves the same wherever it can be triggered. Left
+  // unwired, a lowering is treated as declined rather than silently applied.
+  confirmChanges?: (changes: SavedChange[]) => Promise<boolean>;
+  // Called after a successful apply that included a confirmed retention
+  // lowering, so History drops the rows storage already pruned.
+  onHistoryRetentionLowered?: () => void;
 };
 
 export const setupSettingsTransfer = (dependencies: SettingsTransferDependencies) => {
@@ -49,8 +58,33 @@ export const setupSettingsTransfer = (dependencies: SettingsTransferDependencies
         const invalidCss = cssSelectorErrors(settings.filenamePatterns)[0];
         if (invalidCss) throw new TypeError(`${invalidCss.message}: ${invalidCss.error}`);
       }
+
+      // An imported historyRetentionLimit lower than what's stored would
+      // otherwise reach APPLY_CONFIG unconfirmed and silently prune older
+      // completed entries. Declining keeps every other imported setting —
+      // only the retention limit itself is left at its current value.
+      let confirmedRetentionLowering = false;
+      if (Object.hasOwn(settings, "historyRetentionLimit")) {
+        const stored = await dependencies.getStored(["historyRetentionLimit"]);
+        const changes: SavedChange[] = [
+          {
+            name: "historyRetentionLimit",
+            before: stored.historyRetentionLimit,
+            after: settings.historyRetentionLimit,
+          },
+        ];
+        if (lowersHistoryRetention(changes)) {
+          if (dependencies.confirmChanges && (await dependencies.confirmChanges(changes))) {
+            confirmedRetentionLowering = true;
+          } else {
+            delete settings.historyRetentionLimit;
+          }
+        }
+      }
+
       const response = assertApplyAcknowledged(await dependencies.apply(settings));
       await dependencies.restore();
+      if (confirmedRetentionLowering) dependencies.onHistoryRetentionLowered?.();
       const rejected = response.body.rejected;
       window.alert(
         rejected.length > 0

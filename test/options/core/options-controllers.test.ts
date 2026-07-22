@@ -316,6 +316,109 @@ describe("settings transfer", () => {
     expect(apply).toHaveBeenCalledWith(settings);
   });
 
+  test("applies an imported historyRetentionLimit lowering once confirmed", async () => {
+    importMarkup();
+    vi.spyOn(window, "prompt").mockReturnValue(
+      JSON.stringify({ paths: "kept", historyRetentionLimit: 10 }),
+    );
+    vi.spyOn(window, "alert").mockImplementation(() => {});
+    const apply = vi.fn().mockResolvedValue(applyResult());
+    const getStored = vi.fn(async () => ({ historyRetentionLimit: 500 }));
+    const confirmChanges = vi.fn(() => Promise.resolve(true));
+    const onHistoryRetentionLowered = vi.fn();
+    setupSettingsTransfer({
+      getSchema: () => Promise.resolve({ keys: [] }),
+      getStored,
+      apply,
+      restore: restore(),
+      confirmChanges,
+      onHistoryRetentionLowered,
+    });
+
+    document.querySelector<HTMLButtonElement>("#settings-import")!.click();
+
+    await vi.waitFor(() => expect(apply).toHaveBeenCalled());
+    expect(getStored).toHaveBeenCalledWith(["historyRetentionLimit"]);
+    expect(confirmChanges).toHaveBeenCalledWith([
+      { name: "historyRetentionLimit", before: 500, after: 10 },
+    ]);
+    expect(apply).toHaveBeenCalledWith({ paths: "kept", historyRetentionLimit: 10 });
+    expect(onHistoryRetentionLowered).toHaveBeenCalledOnce();
+  });
+
+  test("declines an imported historyRetentionLimit lowering but keeps the rest of the import", async () => {
+    importMarkup();
+    vi.spyOn(window, "prompt").mockReturnValue(
+      JSON.stringify({ paths: "kept", historyRetentionLimit: 10 }),
+    );
+    vi.spyOn(window, "alert").mockImplementation(() => {});
+    const apply = vi.fn().mockResolvedValue(applyResult());
+    const getStored = vi.fn(async () => ({ historyRetentionLimit: 500 }));
+    const confirmChanges = vi.fn(() => Promise.resolve(false));
+    const onHistoryRetentionLowered = vi.fn();
+    setupSettingsTransfer({
+      getSchema: () => Promise.resolve({ keys: [] }),
+      getStored,
+      apply,
+      restore: restore(),
+      confirmChanges,
+      onHistoryRetentionLowered,
+    });
+
+    document.querySelector<HTMLButtonElement>("#settings-import")!.click();
+
+    await vi.waitFor(() => expect(apply).toHaveBeenCalled());
+    // Declining never reaches storage for the limit: the rest of the import
+    // still lands, and the previous limit is left untouched.
+    expect(apply).toHaveBeenCalledWith({ paths: "kept" });
+    expect(onHistoryRetentionLowered).not.toHaveBeenCalled();
+  });
+
+  test("treats an unconfirmable historyRetentionLimit lowering as declined", async () => {
+    importMarkup();
+    vi.spyOn(window, "prompt").mockReturnValue(JSON.stringify({ historyRetentionLimit: 10 }));
+    vi.spyOn(window, "alert").mockImplementation(() => {});
+    const apply = vi.fn().mockResolvedValue(applyResult());
+    const getStored = vi.fn(async () => ({ historyRetentionLimit: 500 }));
+    setupSettingsTransfer({
+      getSchema: () => Promise.resolve({ keys: [] }),
+      getStored,
+      apply,
+      restore: restore(),
+      // No confirmChanges wired: a caller that cannot ask must not prune.
+    });
+
+    document.querySelector<HTMLButtonElement>("#settings-import")!.click();
+
+    await vi.waitFor(() => expect(apply).toHaveBeenCalled());
+    expect(apply).toHaveBeenCalledWith({});
+  });
+
+  test("does not gate a historyRetentionLimit raise behind confirmation", async () => {
+    importMarkup();
+    vi.spyOn(window, "prompt").mockReturnValue(JSON.stringify({ historyRetentionLimit: 5000 }));
+    vi.spyOn(window, "alert").mockImplementation(() => {});
+    const apply = vi.fn().mockResolvedValue(applyResult());
+    const getStored = vi.fn(async () => ({ historyRetentionLimit: 500 }));
+    const confirmChanges = vi.fn(() => Promise.resolve(true));
+    const onHistoryRetentionLowered = vi.fn();
+    setupSettingsTransfer({
+      getSchema: () => Promise.resolve({ keys: [] }),
+      getStored,
+      apply,
+      restore: restore(),
+      confirmChanges,
+      onHistoryRetentionLowered,
+    });
+
+    document.querySelector<HTMLButtonElement>("#settings-import")!.click();
+
+    await vi.waitFor(() => expect(apply).toHaveBeenCalled());
+    expect(confirmChanges).not.toHaveBeenCalled();
+    expect(apply).toHaveBeenCalledWith({ historyRetentionLimit: 5000 });
+    expect(onHistoryRetentionLowered).not.toHaveBeenCalled();
+  });
+
   test.each([
     ["schema", () => Promise.reject(new Error("schema unavailable")), vi.fn()],
     [

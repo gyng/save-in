@@ -22,6 +22,7 @@ import {
   createOptionsPersistence,
   type JsonRecord,
   type OptionSchema,
+  type SavedChange,
 } from "./options-persistence.ts";
 import { optionsRuntime } from "./options-runtime.ts";
 import { bootstrapOptionsPage } from "./options-bootstrap.ts";
@@ -60,6 +61,13 @@ const restoreOptionsHandler = (result: JsonRecord, schema: OptionSchema) => {
   document.dispatchEvent(new Event("options-restored"));
 };
 
+// The single confirm gate for a History retention lowering: the autosave
+// boundary, the saved-indicator undo (options-persistence.ts, on the
+// reversed change set), and settings import (settings-transfer.ts) all reuse
+// this so declining a prune stays consistent everywhere it can happen.
+const confirmHistoryRetentionChanges = async (changes: SavedChange[]): Promise<boolean> =>
+  !lowersHistoryRetention(changes) || showHistoryRetentionDialog();
+
 const optionsPersistence = createOptionsPersistence({
   getSchema: getOptionsSchema,
   getStored: (keys) => webExtensionApi.storage.local.get(keys),
@@ -69,16 +77,20 @@ const optionsPersistence = createOptionsPersistence({
   // Autosave is the only place a user's switch reaches storage, so it is where
   // a page-load option earns its reload.
   markSaved: (changes, undo) => {
+    const lowersRetention = lowersHistoryRetention(changes);
     // Increasing the limit can be undone, but lowering it may already have
     // permanently pruned entries by the time the acknowledgement arrives.
-    markSavedNow(changes, lowersHistoryRetention(changes) ? undefined : undo);
+    markSavedNow(changes, lowersRetention ? undefined : undo);
+    // A confirmed lowering already pruned rows in storage; refresh History so
+    // the table (and its now-stale per-row Undo/Move actions) doesn't keep
+    // showing entries that are gone.
+    if (lowersRetention) void renderHistory();
     if (changesNeedPageReload(changes)) optionPageReload.request();
   },
   assertUndoSafe: () =>
     assertSettingsUndoSafe(pendingChanges.hasUnsavedField(), manualEditorState.anyDirty()),
   onRestore: restoreOptionsHandler,
-  confirmChanges: async (changes) =>
-    !lowersHistoryRetention(changes) || showHistoryRetentionDialog(),
+  confirmChanges: confirmHistoryRetentionChanges,
   onDecline: (values, schema) => {
     schema.keys.forEach((option) => {
       if (Object.hasOwn(values, option.name)) {
@@ -186,6 +198,8 @@ const setupSettingsTransferPanel = (): void => {
     getStored: (keys) => webExtensionApi.storage.local.get(keys),
     apply: (config) => optionsRuntime.apply(config),
     restore: restoreOptions,
+    confirmChanges: confirmHistoryRetentionChanges,
+    onHistoryRetentionLowered: () => void renderHistory(),
   });
 };
 
