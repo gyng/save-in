@@ -318,6 +318,32 @@ describe("startup restore", () => {
     expect(sessionStore.siDownloads[36]).toMatchObject({ adopted: false });
   });
 
+  test("abandons inactive no-row History Move intent when its replacement failed", async () => {
+    vi.useFakeTimers();
+    const sessionStore = {
+      siDownloads: {
+        37: {
+          adopted: false,
+          pendingHistoryMove: {
+            historyId: "old-h35",
+            downloadId: 35,
+            filename: "old/photo.png",
+          },
+        },
+      },
+    } as Record<string, any>;
+    setupGlobals(sessionStore, (query) =>
+      query.id === 37 ? [{ id: 37, state: "interrupted", error: "NETWORK_FAILED" }] : [],
+    );
+
+    await loadNotification();
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    expect(sessionStore.siDownloads[37]).not.toHaveProperty("pendingHistoryMove");
+    expect(sessionStore.siDownloads[37]).toMatchObject({ adopted: false });
+  });
+
   test("contains a recovered record disappearing during browser lookup", async () => {
     vi.useFakeTimers();
     let liveDownloadState: typeof import("../../../src/downloads/download-state-instances.ts").downloadsState;

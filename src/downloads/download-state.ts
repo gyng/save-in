@@ -210,9 +210,9 @@ export const hydrateDownloads = (state: DownloadsState, storage: StorageReader |
 };
 
 const capDownloads = (records: Record<string, PersistedDownloadRecord>) => {
-  const inactiveKeys = Object.keys(records).filter(
-    (key) => !requiresDownloadRecordRetention(records[key] ?? {}),
-  );
+  const inactiveKeys = Object.entries(records)
+    .filter(([, record]) => !requiresDownloadRecordRetention(record))
+    .map(([key]) => key);
   inactiveKeys
     .slice(0, Math.max(0, inactiveKeys.length - MAX_INACTIVE_RECORDS))
     .forEach((key) => delete records[key]);
