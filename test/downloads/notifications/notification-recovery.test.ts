@@ -244,7 +244,13 @@ describe("startup restore", () => {
     vi.useFakeTimers();
     const sessionStore = {
       siDownloads: {
-        31: { adopted: true, historyEntryId: "h31", offscreenRequestId: "offscreen-31" },
+        31: {
+          adopted: true,
+          historyEntryId: "h31",
+          offscreenRequestId: "offscreen-31",
+          pendingHistoryMove: { historyId: "old-h31", downloadId: 30 },
+          pendingSourceSidecar: { sourceUrl: "https://x/source" },
+        },
         32: { adopted: true, historyEntryId: "h32" },
         33: { adopted: false, historyEntryId: "h33" },
       },
@@ -273,6 +279,35 @@ describe("startup restore", () => {
     expect(setStatus).toHaveBeenCalledWith("h32", "complete", 32, 9);
     expect(setStatus).not.toHaveBeenCalledWith("h33", expect.anything(), expect.anything());
     expect(OffscreenClient.release).toHaveBeenCalledWith("offscreen-31");
+    expect(sessionStore.siDownloads[31]).not.toHaveProperty("offscreenRequestId");
+    expect(sessionStore.siDownloads[31]).not.toHaveProperty("pendingHistoryMove");
+    expect(sessionStore.siDownloads[31]).not.toHaveProperty("pendingSourceSidecar");
+  });
+
+  test("contains a recovered record disappearing during browser lookup", async () => {
+    vi.useFakeTimers();
+    let liveDownloadState: typeof import("../../../src/downloads/download-state-instances.ts").downloadsState;
+    const sessionStore = {
+      siDownloads: { 35: { adopted: true, historyEntryId: "h35" } },
+      siNotificationRecovery: {
+        version: 1,
+        token: "existing",
+        deadline: 0,
+        pendingDownloads: 0,
+        adoptedDownloadIds: [35],
+      },
+    } as Record<string, any>;
+    setupGlobals(sessionStore, () => {
+      liveDownloadState.records.delete(35);
+      return [{ id: 35, state: "complete", fileSize: 12 }];
+    });
+
+    await loadNotification();
+    ({ downloadsState: liveDownloadState } =
+      await import("../../../src/downloads/download-state-instances.ts"));
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(sessionStore.siNotificationRecovery).toBeUndefined();
   });
 
   test("retires a failed delayed recovery task", async () => {

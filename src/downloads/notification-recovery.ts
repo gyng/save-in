@@ -14,11 +14,11 @@ import {
   PRIVATE_PENDING_DOWNLOADS_SESSION_KEY,
 } from "../shared/storage-keys.ts";
 import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
-import { hydrateDownloads, mergeDownload } from "./download-state.ts";
-import { OffscreenClient } from "../platform/offscreen-client.ts";
+import { hydrateDownloads } from "./download-state.ts";
 import { downloadPorts } from "./ports.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 import { abandonPendingHistoryMove, completePendingHistoryMove } from "./history-move.ts";
+import { releaseTerminalDownload } from "./terminal-download.ts";
 
 const PENDING_RECOVERY_GRACE_MS = 10000;
 
@@ -168,12 +168,7 @@ const reconcileAdoptedDownloads = async (expected: NotificationRecovery) => {
           await abandonPendingHistoryMove(id);
         }
       }
-      if (record?.offscreenRequestId) {
-        await OffscreenClient.release(record.offscreenRequestId).catch(() => {});
-      }
-      await mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, id, {
-        adopted: false,
-      });
+      if (record) await releaseTerminalDownload(id, record, () => {});
     }),
   );
 };

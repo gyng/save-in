@@ -59,6 +59,7 @@ describe("external active-tab downloads", () => {
   test("closes only the tab explicitly selected by an active-tab request", async () => {
     const activeTab = { id: 42, title: "Active Tab", url: "https://x/active" };
     vi.mocked(webExtensionApi.tabs.query).mockResolvedValueOnce([activeTab] as any);
+    vi.mocked(webExtensionApi.tabs.get).mockResolvedValueOnce(activeTab as any);
     vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
       state.scratch.routeTabAction = "close";
       return { status: "started", downloadId: 7 };

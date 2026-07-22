@@ -47,6 +47,7 @@ import {
   type MessageSender,
   type ProtocolSendResponse,
 } from "./protocol.ts";
+import { closeRoutingSourceTab } from "../tab-action.ts";
 
 export const sourcePanelCopies = new Map<string, ReturnType<typeof createSourcePanelCopy>>();
 const allowExternalValidation = createExternalValidationRateLimiter();
@@ -538,7 +539,7 @@ export const handleDownloadMessage = (
         postSaveActionTab?.id != null
       ) {
         try {
-          await webExtensionApi.tabs.remove(postSaveActionTab.id);
+          await closeRoutingSourceTab(postSaveActionTab, postSaveActionTab.id);
         } catch (error) {
           await addLogEntry("post-save tab action failed", String(error), {
             privateContext: postSaveActionTab.incognito === true,

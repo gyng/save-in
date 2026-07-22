@@ -46,7 +46,9 @@ once, so overlapping close settings never issue duplicate tab operations.
 The source must be unambiguous. A save sent by Save In's page content script
 may close that sending tab, and an integration using `target: "activeTab"` may
 close the tab it explicitly selected. An explicit-URL request from an extension
-page or external integration does not close the caller's ambient tab.
+page or external integration does not close the caller's ambient tab. If the
+source tab navigates while the save is starting, Save In leaves the new page
+open.
 
 Automatic rules cannot use `after: close-tab`: unattended source discovery must not
 close a page. Ordinary browser-download routing also ignores post-save tab

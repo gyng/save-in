@@ -12,6 +12,7 @@ import { Path } from "../routing/path.ts";
 import { launchDownload } from "../downloads/download.ts";
 import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-types.ts";
 import { addLogEntry } from "./log.ts";
+import { closeRoutingSourceTab } from "./tab-action.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { runBackgroundTask } from "./background-event-task.ts";
 import { isDownloadableTab } from "./downloadable-tab.ts";
@@ -170,7 +171,11 @@ export const handleTabMenuClick = async (
         const tabId = t.id;
         if (tabId == null) continue;
         try {
-          await webExtensionApi.tabs.remove(tabId);
+          if (state.scratch.routeTabAction === "close" && !options.closeTabOnSave) {
+            await closeRoutingSourceTab(t, tabId);
+          } else {
+            await webExtensionApi.tabs.remove(tabId);
+          }
         } catch (error) {
           // The tab may have been closed manually while its save was starting;
           // that must not prevent later tabs in the batch from being saved.

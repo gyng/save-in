@@ -28,6 +28,7 @@ import {
 } from "../downloads/notification.ts";
 import { makeShortcut, suggestShortcutFilename } from "../downloads/shortcut.ts";
 import { createSourceSidecarRequest } from "../downloads/source-sidecar.ts";
+import { closeRoutingSourceTab } from "./tab-action.ts";
 import { options } from "../config/options-data.ts";
 import { currentTab } from "../platform/current-tab.ts";
 import type { CurrentTab } from "../platform/current-tab.ts";
@@ -499,6 +500,7 @@ const handleContextMenuClickInternal = async (
       menuInfo?.tabAction ??
       state.scratch.routeTabAction ??
       (options.closeTabOnSave && downloadType === DOWNLOAD_TYPES.PAGE ? "close" : undefined);
+    const routingTabAction = menuInfo?.tabAction == null && state.scratch.routeTabAction != null;
     if (
       state.scratch.routeOutcome !== "exclude" &&
       tabAction &&
@@ -509,7 +511,8 @@ const handleContextMenuClickInternal = async (
       const tabId = clickTab.id;
       try {
         if (tabAction === "close") {
-          await webExtensionApi.tabs.remove(tabId);
+          if (routingTabAction) await closeRoutingSourceTab(clickTab, tabId);
+          else await webExtensionApi.tabs.remove(tabId);
         } else {
           await webExtensionApi.tabs.update(tabId, { active: true });
         }

@@ -53,6 +53,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
     vi.restoreAllMocks();
     setupBrowserMocks();
     (global.browser as any).tabs = {
+      get: vi.fn((id: number) => Promise.resolve(tabFixtures().find((tab) => tab.id === id))),
       query: vi.fn(() => Promise.resolve(tabFixtures())),
       remove: vi.fn(),
     };

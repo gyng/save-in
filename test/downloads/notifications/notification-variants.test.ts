@@ -5,6 +5,7 @@ import {
   Log,
   SaveHistory,
   Runtime,
+  retryHolder,
   loadNotification,
   adoptedIds,
   setupGlobals,
@@ -95,6 +96,54 @@ describe("notification variants", () => {
       "offscreen blob release failed",
       expect.stringContaining("release failed"),
     );
+  });
+
+  test("releases one offscreen blob once across concurrent terminal deltas", async () => {
+    await install({ notifyOnSuccess: false, notifyOnFailure: false });
+    const { OffscreenClient } = await import("../../../src/platform/offscreen-client.ts");
+    vi.spyOn(OffscreenClient, "release").mockResolvedValue(false);
+    Notifier.expectDownload("https://x/p.png", { offscreenRequestId: "offscreen-once" });
+    await onCreated({
+      id: 7,
+      byExtensionId: "save-in",
+      filename: "/dl/pic.png",
+      url: "https://x/p.png",
+    });
+
+    await Promise.all([
+      onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } }),
+      onChanged({ id: 7, error: { current: "USER_CANCELED" } }),
+    ]);
+
+    expect(OffscreenClient.release).toHaveBeenCalledTimes(1);
+    expect(OffscreenClient.release).toHaveBeenCalledWith("offscreen-once");
+  });
+
+  test("processes concurrent terminal deltas for one download only once", async () => {
+    await install({ notifyOnSuccess: false, notifyOnFailure: false });
+    browserState.current = "FIREFOX";
+    vi.spyOn(SaveHistory, "setHistoryStatus").mockResolvedValue(undefined);
+    Notifier.expectDownload("https://x/p.png", { historyEntryId: "h7" });
+    await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
+    let resolveRetry!: (started: boolean) => void;
+    retryHolder.retry = vi.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveRetry = resolve;
+        }),
+    );
+
+    const terminalEvents = Promise.all([
+      onChanged({ id: 7, error: { current: "NETWORK_FAILED" } }),
+      onChanged({ id: 7, state: { current: "interrupted", previous: "in_progress" } }),
+    ]);
+    await vi.waitFor(() => expect(retryHolder.retry).toHaveBeenCalled());
+    await Promise.resolve();
+    resolveRetry(false);
+    await terminalEvents;
+
+    expect(retryHolder.retry).toHaveBeenCalledTimes(1);
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledTimes(1);
   });
 
   test("promptOnFailure keeps a Firefox private download off the record", async () => {

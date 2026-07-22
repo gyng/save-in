@@ -611,6 +611,7 @@ describe("renameAndDownload: notification triggers", () => {
   test("does not emit one route notification per automatic source", async () => {
     setCurrentBrowser("CHROME");
     options.notifyOnRuleMatch = true;
+    options.routeSkipUnmatched = true;
     const state = makeState({
       info: { context: "AUTO" },
       scratch: { routeTemplateRaw: "automatic/" },
@@ -1304,6 +1305,68 @@ describe("onDeterminingFilename listener: sync path", () => {
     expect(suggest).toHaveBeenCalledWith();
     resolveDownload(101);
     await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
+    await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toEqual({}));
+  });
+
+  test("recovers a private legacy deferred exclusion without canceling it twice", async () => {
+    setCurrentBrowser("CHROME");
+    options.notifyOnRuleMatch = true;
+    options.routeSkipUnmatched = true;
+    const exclusionRule = routingRule("finalfilename");
+    options.filenamePatterns = [exclusionRule];
+    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "excluded.bin"
+        ? {
+            outcome: "exclude",
+            rule: exclusionRule,
+            destination: null,
+            fetch: null,
+            rename: null,
+            tabAction: null,
+          }
+        : null,
+    );
+    const cancel = vi.fn(() => Promise.resolve());
+    global.browser.downloads.cancel = cancel;
+    let resolveDownload!: (downloadId: number) => void;
+    global.browser.downloads.download = vi.fn(
+      () =>
+        new Promise<number>((resolve) => {
+          resolveDownload = resolve;
+        }),
+    );
+    const state = makeState({ info: { url: "https://example.com/legacy" } });
+
+    const launch = Download.renameAndDownload(state);
+    await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toBeDefined());
+    for (const entry of Object.values<any>(sessionStore.siDeferredRoutes)) {
+      for (const record of [entry].flat()) delete record.state.info.url;
+    }
+    Download.downloadRuntime.pendingStates.clear();
+
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "excluded.bin",
+        incognito: true,
+      },
+      vi.fn(),
+    );
+
+    await vi.waitFor(() => expect(cancel).toHaveBeenCalledWith(101));
+    await vi.waitFor(() =>
+      expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
+        "routeActionExcluded",
+        "notificationPrivateRuleExcludedMessage",
+        false,
+        Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+      ),
+    );
+    expect(cancel).toHaveBeenCalledTimes(1);
+    resolveDownload(101);
+    await launch;
     await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toEqual({}));
   });
 

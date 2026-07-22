@@ -1473,7 +1473,11 @@ describe("addDownloadListener", () => {
 
   describe("per-menu-item post-save tab action", () => {
     beforeEach(() => {
-      (global.browser as any).tabs = { remove: vi.fn(), update: vi.fn() };
+      (global.browser as any).tabs = {
+        get: vi.fn((id: number) => Promise.resolve({ id, url: "https://example.com/" })),
+        remove: vi.fn(),
+        update: vi.fn(),
+      };
     });
 
     const pageClick = (tab: Record<string, unknown>) =>

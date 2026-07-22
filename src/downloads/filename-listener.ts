@@ -27,10 +27,11 @@ import { createExtensionNotification, EXTENSION_NOTIFICATION_STREAMS } from "./n
 import { isWireDownloadState, type WireDownloadState } from "../shared/message-protocol.ts";
 import { fromWireDownloadState, toWireDownloadState } from "./wire-state.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
-import { historyDisplayUrl } from "../shared/data-url.ts";
+import { truncateDataUrlForDisplay } from "../shared/data-url.ts";
 import { notifyRouteExclusion } from "./route-exclusion-notification.ts";
 import { getTrackedDownload } from "./expected-downloads.ts";
 import { releaseTerminalDownload } from "./terminal-download.ts";
+import { requireDownloadUrl } from "./download-pipeline-state.ts";
 
 const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
@@ -376,7 +377,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         createExtensionNotification(
           getMessage("notificationRuleMatchFailedExclusiveTitle"),
           getMessage("notificationRuleMatchFailedExclusiveMessage", [
-            historyDisplayUrl(state.info.url) ?? "",
+            truncateDataUrlForDisplay(requireDownloadUrl(state)),
           ]),
           true,
           EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
@@ -417,6 +418,16 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
 
         if (recovery && deferredUrl) {
           const recoveredState = restoreDeferredRoute(recovery);
+          const recoveredDownloadUrl = downloadItem.finalUrl || downloadItem.url;
+          if (!recoveredState.info.url && recoveredDownloadUrl) {
+            recoveredState.info.url = recoveredDownloadUrl;
+          }
+          if (downloadItem.incognito && recoveredState.info.currentTab?.incognito !== true) {
+            recoveredState.info.currentTab = {
+              ...recoveredState.info.currentTab,
+              incognito: true,
+            };
+          }
           recoveredState.info.resolvedFilename = downloadItem.filename
             ? proposedFilename(downloadItem.filename)
             : undefined;

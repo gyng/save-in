@@ -81,6 +81,7 @@ const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
 const backgroundRuntime = downloadPorts.runtime;
 const notificationUndoTasks = new Map<number, Promise<void>>();
+const downloadChangeTasks = new Map<number, Promise<void>>();
 
 const addDownloadLog = (record: DownloadRecord, message: string, data?: unknown): unknown =>
   isPrivateDownloadRecord(record)
@@ -714,7 +715,7 @@ const notifyDownloadSuccess = async (
   }
 };
 
-export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
+const handleDownloadChanged = async (downloadDelta: HostDownloadDelta): Promise<void> => {
   if (backgroundRuntime.ready) {
     await backgroundRuntime.ready.catch(() => {});
   }
@@ -806,4 +807,21 @@ export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
       addDownloadLog(record, message, data),
     );
   }
+};
+
+// Browsers may emit separate terminal error/state deltas back-to-back. Keep
+// one ordered task per download so both listeners cannot capture the same
+// adopted record and publish duplicate or contradictory terminal outcomes.
+export const onDownloadChanged = (downloadDelta: HostDownloadDelta): Promise<void> => {
+  const run = () => handleDownloadChanged(downloadDelta);
+  const prior = downloadChangeTasks.get(downloadDelta.id);
+  const task = prior ? prior.then(run, run) : run();
+  downloadChangeTasks.set(downloadDelta.id, task);
+  const retire = () => {
+    if (downloadChangeTasks.get(downloadDelta.id) === task) {
+      downloadChangeTasks.delete(downloadDelta.id);
+    }
+  };
+  void task.then(retire, retire);
+  return task;
 };

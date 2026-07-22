@@ -106,6 +106,10 @@ describe("handleDownloadMessage", () => {
 
   test("closes the source tab after a matched route action starts", async () => {
     vi.mocked(global.browser.tabs.remove).mockClear();
+    vi.mocked(global.browser.tabs.get).mockResolvedValueOnce({
+      id: 9,
+      url: "https://x/",
+    } as browser.tabs.Tab);
     vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
       state.scratch.routeTabAction = "close";
       return { status: "started", downloadId: 7 };
@@ -124,6 +128,34 @@ describe("handleDownloadMessage", () => {
     ).toBe(true);
     await waitForCall(sendResponse);
     await vi.waitFor(() => expect(global.browser.tabs.remove).toHaveBeenCalledWith(9));
+  });
+
+  test("does not close a source tab that navigated while the save was starting", async () => {
+    vi.mocked(global.browser.tabs.remove).mockClear();
+    vi.mocked(global.browser.tabs.get).mockResolvedValueOnce({
+      id: 9,
+      url: "https://x/next",
+    } as browser.tabs.Tab);
+    vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
+      state.scratch.routeTabAction = "close";
+      return { status: "started", downloadId: 7 };
+    });
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessage(
+        request(),
+        {
+          id: global.browser.runtime.id,
+          url: "https://x/",
+          tab: { id: 9, url: "https://x/" },
+        },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
   });
 
   test("keeps the source tab when an action-bearing save does not start", async () => {
@@ -161,6 +193,10 @@ describe("handleDownloadMessage", () => {
   });
 
   test("contains and logs a post-save tab close failure", async () => {
+    vi.mocked(global.browser.tabs.get).mockResolvedValueOnce({
+      id: 9,
+      url: "https://x/",
+    } as browser.tabs.Tab);
     vi.mocked(global.browser.tabs.remove).mockRejectedValueOnce(new Error("tab vanished"));
     vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
       state.scratch.routeTabAction = "close";
