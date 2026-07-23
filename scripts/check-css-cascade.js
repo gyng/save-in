@@ -68,6 +68,34 @@ const REVIEWED_ORDER_OVERRIDES = [
 const stripComments = (source) => source.replace(/\/\*[\s\S]*?\*\//g, "");
 
 /**
+ * Split a selector list on top-level commas only. Commas inside `:is()`,
+ * `:where()`, `:not()`, etc. group alternatives within one selector and must not
+ * be torn apart — doing so invents a bare-class fragment out of a descendant or
+ * attribute-scoped rule the check means to skip (e.g. the theme skins'
+ * `:root[data-theme="x"] :is(.a, .b)`), fabricating a cross-file conflict that
+ * never renders.
+ *
+ * @param {string} selector
+ * @returns {string[]}
+ */
+const splitTopLevelCommas = (selector) => {
+  const parts = [];
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < selector.length; index += 1) {
+    const character = selector[index];
+    if (character === "(") depth += 1;
+    else if (character === ")") depth -= 1;
+    else if (character === "," && depth === 0) {
+      parts.push(selector.slice(start, index));
+      start = index + 1;
+    }
+  }
+  parts.push(selector.slice(start));
+  return parts;
+};
+
+/**
  * Conditional rules are dropped rather than compared: an override that applies
  * at one viewport is a deliberate act, and reading it as a conflict with the
  * unconditional rule invents a disagreement that never renders.
@@ -216,7 +244,7 @@ const silentOrderOverrides = ({ layerNames, imports, styleRoot, markupRoot }) =>
     if (!fs.existsSync(stylePath)) return;
     const source = stripAtRuleBlocks(stripComments(fs.readFileSync(stylePath, "utf8")));
     parseRules(source).forEach(({ selector, declarations }, ruleIndex) => {
-      for (const part of selector.split(",").map((piece) => piece.trim())) {
+      for (const part of splitTopLevelCommas(selector).map((piece) => piece.trim())) {
         const compound = parseCompound(part);
         if (!compound) continue;
         rules.push({
