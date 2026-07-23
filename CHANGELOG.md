@@ -1,9 +1,22 @@
 # 4.1.0 (unreleased)
 
 - Expanded click-to-save from one modifier/button pair to multiple configurable
-  gestures, including middle, right, back, forward, and double-left click.
-  Routing rules and the debugger can distinguish them with `gesture:`.
-  Click-to-save now also honors **Prefer links** and its page filter.
+  gestures, including middle, right, back, forward, double-left, and long-left
+  click with a hold configurable from 250 to 2,000 milliseconds. Routing rules
+  and the debugger can distinguish them with `gesture:`. Click-to-save now also
+  honors **Prefer links** and its page filter.
+- Added routing rule actions. A rule ending in `exclude: true` instead of
+  `into:` stops a matching save before later rules: interactive and automatic
+  saves are skipped and History records them as excluded, while a tracked
+  ordinary browser download is left unchanged. `after: close-tab` on a saving
+  rule closes the source tab only once the browser accepts the download; a
+  menu item's own tab action takes precedence, and automatic rules reject it.
+  Both actions work across the Visual editor, the Route debugger, the
+  reference pages, and integration `VALIDATE` traces
+  ([docs/using/ROUTING-ACTIONS.md](docs/using/ROUTING-ACTIONS.md)).
+- Menu items can spell their post-save tab action `(after: close-tab)` or
+  `(after: return-tab)`, sharing the routing grammar's vocabulary; the
+  existing `(tab: close)` and `(tab: return)` spellings stay accepted.
 - Made **Last used** reliable in Private Browsing and Incognito across event-page
   and service-worker sleeps. Private Last used remains separate and clears when
   private browsing ends by default. Chrome worker restarts can no longer
@@ -15,14 +28,28 @@
   includes private saves in normal local Last used, Recent locations, History,
   counter, diagnostics, and restart-recovery state, while webhooks and browser
   credentials remain disabled in private windows.
+- Made every OS notification about a private-browsing save non-identifying:
+  success, failure, exclusion, and unmatched-route notifications no longer
+  carry the URL, filename, or destination.
 - Added a completed-History retention limit from 0 to 10,000. Active saves stay
   visible until they finish, and lowering the limit asks before permanently
   pruning older completed entries.
+- Made History **Move** durable across background restarts: the moved entry
+  commits before the original files are removed, interrupted moves are
+  recovered or reported, and originals are kept when their links are missing.
 - Reduced repeated work and retained memory in History and Page Sources, and
   hardened their large-list and long-lived-page behavior.
 - Hardened Chrome and Firefox browser-test control, lifecycle recovery, and
   constrained-CI execution, with full source coverage and real-browser memory
   gates.
+- Fixed the Route debugger's context choices to the values saves actually
+  carry — media, tab-strip, and browser-initiated contexts are now selectable
+  and survive loading a recorded save — replacing entries no save produces.
+- Fixed a parser stack overflow on deeply nested parentheses in menu comment
+  metadata, which the external `VALIDATE` message could reach.
+- Integrations: `DOWNLOAD` responses echo the canonical form of the requested
+  URL, `GET_KEYWORDS` lists the routing action clauses, and `VALIDATE` traces
+  report each rule's outcome and selected post-save action.
 - Refined every generated catalog for the new 4.1 controls, including consistent
   Last used and Click-to-save terminology, explicit private-data boundaries,
   and clearer browser-download and History behavior.

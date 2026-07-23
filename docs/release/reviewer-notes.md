@@ -5,7 +5,7 @@ why it requests each permission, how to exercise the main flows, and what data
 it does and does not handle. Keep this in sync with `manifest.json` and the
 [store descriptions](../store/descriptions.md) at each release.
 
-- Version: 4.0.1
+- Version: 4.1.0 (in preparation; manifest and package bump at release)
 - Manifest: MV3, one shared `manifest.json` for Firefox (event page) and Chrome
   (service worker). Minimum Firefox 140, minimum Chrome 123.
 
@@ -52,6 +52,9 @@ is no account and no first-party server.
    folder. The file is saved into that subfolder of the download directory.
 2. Open the options page → Routing rules → add a rule (e.g. match file type
    `pdf`, save into `pdfs/`) and use the route debugger to preview a match.
+   A rule may instead end in `exclude: true` to skip matching saves, or add
+   `after: close-tab` to close the source tab once the browser accepts the
+   save; both act only on saves the user initiates.
 3. Open Page Sources (toolbar action or the shortcut) on a media-rich page to
    list and batch-save its images, video, and audio.
 4. Optionally enable Browser routings to record or route downloads the browser
