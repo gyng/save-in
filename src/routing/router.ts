@@ -115,22 +115,25 @@ export const traceRules = async (
   info: RoutingInfo,
   isEligible: (rule: RoutingRule) => boolean = () => true,
 ): Promise<RuleTrace> => {
-  const eligibility = rules.map(isEligible);
-  const evaluations = rules.map((rule, index) =>
-    eligibility[index]
-      ? evaluateRule(rule, info)
-      : {
-          outcome: null,
-          destination: false as const,
-          fetch: false as const,
-          rename: false as const,
-          tabAction: false as const,
-          clauses: [],
-        },
-  );
-  const matchedOutcomes = evaluations.map(({ outcome }) => outcome);
-  const traced = rules.map((rule, index) => {
-    const evaluation = evaluations[index] as (typeof evaluations)[number];
+  const evaluatedRules = rules.map((rule) => {
+    const eligible = isEligible(rule);
+    return {
+      rule,
+      eligible,
+      evaluation: eligible
+        ? evaluateRule(rule, info)
+        : {
+            outcome: null,
+            destination: false as const,
+            fetch: false as const,
+            rename: false as const,
+            tabAction: false as const,
+            clauses: [],
+          },
+    };
+  });
+  const matchedOutcomes = evaluatedRules.map(({ evaluation }) => evaluation.outcome);
+  const traced = evaluatedRules.map(({ rule, eligible, evaluation }, index) => {
     const clauses = rule
       .filter((clause) => clause.type === RULE_TYPES.MATCHER)
       .map((clause) => {
@@ -138,7 +141,7 @@ export const traceRules = async (
         return {
           name: clause.name,
           pattern: String(clause.value),
-          matched: eligibility[index] ? Boolean(evaluated?.result) : false,
+          matched: eligible ? Boolean(evaluated?.result) : false,
           attempts: evaluated?.attempts ?? [],
         };
       });
@@ -147,7 +150,7 @@ export const traceRules = async (
     const rename = rule.find((clause) => clause.type === RULE_TYPES.RENAME)?.value ?? "";
     return {
       index: index + 1,
-      matched: matchedOutcomes[index] !== null,
+      matched: evaluation.outcome !== null,
       outcome: evaluation.outcome,
       destination,
       fetch,
@@ -157,7 +160,8 @@ export const traceRules = async (
   });
   const selectedIndex = matchedOutcomes.findIndex((outcome) => outcome !== null);
   const selectedRule = selectedIndex >= 0 ? selectedIndex + 1 : null;
-  const selectedEvaluation = selectedIndex >= 0 ? evaluations[selectedIndex] : undefined;
+  const selectedEvaluation =
+    selectedIndex >= 0 ? evaluatedRules[selectedIndex]?.evaluation : undefined;
   const selectedOutcome = selectedEvaluation?.outcome ?? null;
   const selectedTabAction = selectedEvaluation?.tabAction || null;
   const destination = selectedEvaluation?.destination || null;
