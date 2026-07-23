@@ -8,6 +8,7 @@ import {
   removeSession,
   setSession,
   updateSession,
+  updateSessionStrict,
 } from "../../src/shared/session-state.ts";
 
 describe("persistence diagnostics", () => {
@@ -95,6 +96,55 @@ describe("persistence diagnostics", () => {
     // there is a no-op, unlike the rejected read above.
     await updateSession({ queues: new Map() }, undefined, "state", () => 1);
 
+    expect(getPersistenceDiagnostics()).toEqual([]);
+  });
+
+  test("a strict queued update reports diagnostics and rejects its caller", async () => {
+    const writes = { queues: new Map() };
+    const storage = {
+      get: vi.fn(() => Promise.resolve({ state: 1 })),
+      set: vi.fn(() => Promise.reject(new Error("write denied"))),
+    };
+
+    await expect(
+      updateSessionStrict(writes, storage, "state", (value) => Number(value) + 1),
+    ).rejects.toThrow("write denied");
+    await vi.waitFor(() => expect(writes.queues.size).toBe(0));
+
+    expect(getPersistenceDiagnostics()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ area: "session", operation: "update", key: "state" }),
+      ]),
+    );
+  });
+
+  test("strict updates support a missing session area and retire superseded queue turns", async () => {
+    const writes = { queues: new Map<string, Promise<unknown>>() };
+    await expect(
+      updateSessionStrict(writes, undefined, "absent", () => 1),
+    ).resolves.toBeUndefined();
+
+    let releaseFirst: (() => void) | undefined;
+    const storage = {
+      get: vi.fn(() => Promise.resolve({ state: 0 })),
+      set: vi
+        .fn()
+        .mockImplementationOnce(
+          () =>
+            new Promise<void>((resolve) => {
+              releaseFirst = resolve;
+            }),
+        )
+        .mockResolvedValue(undefined),
+    };
+    const first = updateSessionStrict(writes, storage, "state", () => 1);
+    const second = updateSessionStrict(writes, storage, "state", () => 2);
+    await vi.waitFor(() => expect(releaseFirst).toBeTypeOf("function"));
+    releaseFirst?.();
+
+    await expect(Promise.all([first, second])).resolves.toEqual([undefined, undefined]);
+    await vi.waitFor(() => expect(writes.queues.size).toBe(0));
+    expect(storage.set).toHaveBeenCalledTimes(2);
     expect(getPersistenceDiagnostics()).toEqual([]);
   });
 });

@@ -106,6 +106,36 @@ describe("handleDownloadMessage", () => {
 
   test("closes the source tab after a matched route action starts", async () => {
     vi.mocked(global.browser.tabs.remove).mockClear();
+    vi.mocked(global.browser.tabs.get).mockResolvedValueOnce({
+      id: 9,
+      url: "https://x/",
+    } as browser.tabs.Tab);
+    vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
+      state.scratch.routeTabAction = "close";
+      return { status: "started", downloadId: 7 };
+    });
+    const sendResponse = vi.fn();
+    expect(
+      onMessage(
+        request(),
+        {
+          id: global.browser.runtime.id,
+          url: "https://x/",
+          tab: { id: 9, url: "https://x/" },
+        },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+    await vi.waitFor(() => expect(global.browser.tabs.remove).toHaveBeenCalledWith(9));
+  });
+
+  test("does not close a source tab that navigated while the save was starting", async () => {
+    vi.mocked(global.browser.tabs.remove).mockClear();
+    vi.mocked(global.browser.tabs.get).mockResolvedValueOnce({
+      id: 9,
+      url: "https://x/next",
+    } as browser.tabs.Tab);
     vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
       state.scratch.routeTabAction = "close";
       return { status: "started", downloadId: 7 };
@@ -113,10 +143,19 @@ describe("handleDownloadMessage", () => {
     const sendResponse = vi.fn();
 
     expect(
-      onMessage(request(), { id: global.browser.runtime.id, tab: { id: 9 } }, sendResponse),
+      onMessage(
+        request(),
+        {
+          id: global.browser.runtime.id,
+          url: "https://x/",
+          tab: { id: 9, url: "https://x/" },
+        },
+        sendResponse,
+      ),
     ).toBe(true);
     await waitForCall(sendResponse);
-    await vi.waitFor(() => expect(global.browser.tabs.remove).toHaveBeenCalledWith(9));
+
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
   });
 
   test("keeps the source tab when an action-bearing save does not start", async () => {
@@ -126,13 +165,64 @@ describe("handleDownloadMessage", () => {
       return { status: "skipped" };
     });
     const sendResponse = vi.fn();
-
     expect(
       onMessage(request(), { id: global.browser.runtime.id, tab: { id: 9 } }, sendResponse),
     ).toBe(true);
     await waitForCall(sendResponse);
-
     expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+  });
+
+  test("does not close an ambient tab for a URL requested by an extension page", async () => {
+    vi.mocked(global.browser.tabs.remove).mockClear();
+    vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
+      state.scratch.routeTabAction = "close";
+      return { status: "started", downloadId: 7 };
+    });
+    const optionsUrl = global.browser.runtime.getURL("options.html");
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessage(
+        request(),
+        { id: global.browser.runtime.id, url: optionsUrl, tab: { id: 9, url: optionsUrl } },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+  });
+
+  test("contains and logs a post-save tab close failure", async () => {
+    vi.mocked(global.browser.tabs.get).mockResolvedValueOnce({
+      id: 9,
+      url: "https://x/",
+    } as browser.tabs.Tab);
+    vi.mocked(global.browser.tabs.remove).mockRejectedValueOnce(new Error("tab vanished"));
+    vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
+      state.scratch.routeTabAction = "close";
+      return { status: "started", downloadId: 7 };
+    });
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessage(
+        request(),
+        {
+          id: global.browser.runtime.id,
+          url: "https://x/",
+          tab: { id: 9, url: "https://x/", incognito: true },
+        },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "post-save tab action failed",
+        "Error: tab vanished",
+        { privateContext: true },
+      ),
+    );
   });
 
   test("acknowledges the primary media save without waiting for its deferred sidecar", async () => {
@@ -505,9 +595,6 @@ describe("handleDownloadMessage", () => {
     ).toBe(true);
     await waitForCall(sendResponse);
 
-    expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.scratch).toMatchObject({
-      routeTabActionSuppressed: true,
-    });
     expect(global.browser.tabs.remove).not.toHaveBeenCalled();
   });
 
@@ -584,6 +671,32 @@ into: automatic/:pagedomain:/
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
       body: { status: "started" },
+    });
+  });
+
+  test("revalidates a terminal exclusion without launching a download", async () => {
+    configure();
+    options.filenamePatterns = parseRulesCollecting(`
+context: ^auto$
+pageurl: ^https://example\\.test/gallery/
+sourceurl: /original/
+exclude: true
+
+context: ^auto$
+pageurl: ^https://example\\.test/gallery/
+sourcekind: image
+into: automatic/
+`).rules;
+    const sendResponse = vi.fn();
+    const senderTab = { id: 7, url: request.body.pageUrl, incognito: false };
+
+    expect(onMessage(request, { tab: senderTab }, sendResponse)).toBe(true);
+    await waitForCall(sendResponse);
+
+    expect(Download.launchDownload).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: { status: "skipped" },
     });
   });
 

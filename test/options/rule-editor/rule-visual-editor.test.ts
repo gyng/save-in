@@ -519,68 +519,39 @@ describe("routing visual editor", () => {
     setupRuleVisualEditor({ matchers: ["filename"] });
     const menu = element<HTMLDetailsElement>(".rule-add-menu");
     menu.open = true;
-
     element<HTMLButtonElement>("#rule-editor-add-exclusion").click();
-
     const source = element<HTMLTextAreaElement>("#filenamePatterns").value;
     expect(source).toContain("filename: .*\nexclude: true");
     expect(document.querySelectorAll(".rule-clause-action")).toHaveLength(1);
-    expect(element<HTMLElement>(".rule-clause-action-value").textContent).toBe("Do not save");
+    expect(element<HTMLElement>(".rule-clause-action-value").textContent).toBe(
+      "Do not save matching items",
+    );
     expect(menu.open).toBe(false);
   });
 
-  test("a valid action row shares the click-to-highlight behavior of other rows", () => {
-    element<HTMLTextAreaElement>("#filenamePatterns").value =
-      "filename: tracker\\.gif$\nexclude: true";
+  test("adds an exclusion when the optional add menu wrapper is absent", () => {
+    const add = element<HTMLButtonElement>("#rule-editor-add-exclusion");
+    element<HTMLElement>("#rules-visual").append(add);
+    element<HTMLDetailsElement>(".rule-add-menu").remove();
 
     setupRuleVisualEditor({ matchers: ["filename"] });
+    add.click();
 
-    const actionRow = element<HTMLElement>(".rule-clause-action");
-    actionRow.click();
-    expect(actionRow.classList).toContain("is-active");
-    const matcherRow = element<HTMLElement>(".rule-clause-row");
-    matcherRow.click();
-    expect(actionRow.classList).not.toContain("is-active");
-    expect(matcherRow.classList).toContain("is-active");
-  });
-
-  test("shows an invalid action value instead of presenting it as enabled", async () => {
-    element<HTMLTextAreaElement>("#filenamePatterns").value =
-      "filename: tracker\\.gif$\nexclude: false";
-
-    setupRuleVisualEditor({ matchers: ["filename"] });
-
-    expect(document.querySelector(".rule-clause-action-value")).toBeNull();
-    const value = element<HTMLInputElement>(".rule-clause-action .rule-clause-value");
-    expect(value.value).toBe("false");
-    expect(value.placeholder).toBe("true");
-    expect(value.getAttribute("aria-label")).toBe("Matching items");
-    value.value = "true";
-    value.dispatchEvent(new InputEvent("input", { bubbles: true }));
     expect(element<HTMLTextAreaElement>("#filenamePatterns").value).toContain("exclude: true");
-
-    element<HTMLTextAreaElement>("#filenamePatterns").value =
-      "filename: document\\.pdf$\nafter: later\ninto: documents/";
-    element<HTMLTextAreaElement>("#filenamePatterns").dispatchEvent(
-      new InputEvent("input", { bubbles: true }),
-    );
-    await vi.waitFor(() => {
-      const action = element<HTMLInputElement>(".rule-clause-action .rule-clause-value");
-      expect(action.placeholder).toBe("closetab");
-      expect(action.getAttribute("aria-label")).toBe("After saving");
-    });
   });
 
   test("toggles the close-source-tab action from the rule menu", () => {
     setupRuleVisualEditor({ matchers: ["filename"] });
-
     element<HTMLButtonElement>('[data-rule-action="toggle-close-tab"]').click();
-
     const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
-    expect(textarea.value).toBe("filename/i: \\.jpg$\nafter: closetab\ninto: images/:filename:");
-    expect(element<HTMLElement>(".rule-clause-action-value").textContent).toBe("Close source tab");
-
-    element<HTMLButtonElement>('[data-rule-action="toggle-close-tab"]').click();
+    expect(textarea.value).toBe("filename/i: \\.jpg$\nafter: close-tab\ninto: images/:filename:");
+    expect(element<HTMLElement>(".rule-clause-action-value").textContent).toBe(
+      "Close source tab after saving",
+    );
+    const actionRow = element<HTMLElement>(".rule-clause-action");
+    actionRow.click();
+    expect(actionRow.classList.contains("is-active")).toBe(true);
+    element<HTMLButtonElement>('.rule-clause-action [data-rule-action="delete-clause"]').click();
     expect(textarea.value).toBe("filename/i: \\.jpg$\ninto: images/:filename:");
     expect(document.querySelector(".rule-clause-action")).toBeNull();
   });
@@ -657,6 +628,9 @@ describe("routing visual editor", () => {
     element<HTMLButtonElement>("#rules-mode-visual").click();
 
     expect(element<HTMLElement>(".rule-editor-unsupported").textContent).toContain("line 2");
+    const postSaveAction = element<HTMLButtonElement>('[data-rule-action="toggle-close-tab"]');
+    expect(postSaveAction.disabled).toBe(true);
+    expect(() => postSaveAction.click()).not.toThrow();
     element<HTMLButtonElement>(".rule-editor-edit-text").click();
     expect(element<HTMLElement>("#rules-text-editor").hidden).toBe(false);
     expect(element<HTMLElement>("#rules-visual").hidden).toBe(true);

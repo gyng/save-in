@@ -73,3 +73,27 @@ export const updateSession = <T>(
   });
   return queue;
 };
+
+// A few accepted one-shot operations need proof that their recovery intent is
+// durable before promising later work. Keep the shared queue settled so one
+// failed turn cannot poison later writers, while returning the original
+// rejection to the transaction that must choose an honest fallback outcome.
+export const updateSessionStrict = <T>(
+  writes: SessionWriteState,
+  storage: StorageWriter | undefined,
+  key: string,
+  update: (value: unknown) => T,
+): Promise<void> => {
+  const operation = (writes.queues.get(key) || Promise.resolve())
+    .then(() => readSessionToUpdate(storage, key))
+    .then((stored) => (storage ? storage.set({ [key]: update(stored[key]) }) : Promise.resolve()));
+  const settled = operation.catch((error) => {
+    recordPersistenceFailure({ area: "session", operation: "update", key }, error);
+  });
+  writes.queues.set(key, settled);
+  const retire = () => {
+    if (writes.queues.get(key) === settled) writes.queues.delete(key);
+  };
+  void settled.then(retire, retire);
+  return operation;
+};

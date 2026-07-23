@@ -11,12 +11,19 @@ export type DownloadPorts = {
   history: {
     add(entry: HistoryEntryInput, options?: PrivateWriteOptions): string | null;
     patch(id: string | null | undefined, fields: Partial<HistoryEntry>): Promise<unknown>;
+    patchStrict(id: string | null | undefined, fields: Partial<HistoryEntry>): Promise<unknown>;
     setDownloadId(
       id: string | null | undefined,
       downloadId: number,
       startTime?: string,
     ): Promise<unknown>;
     setStatus(
+      id: string | null | undefined,
+      status: string,
+      downloadId?: number,
+      fileSize?: number,
+    ): Promise<unknown>;
+    setStatusStrict(
       id: string | null | undefined,
       status: string,
       downloadId?: number,
@@ -79,8 +86,10 @@ export const createDownloadPortRegistry = (): DownloadPortRegistry => {
     history: {
       add: (...args) => requirePort("history").add(...args),
       patch: (...args) => requirePort("history").patch(...args),
+      patchStrict: (...args) => requirePort("history").patchStrict(...args),
       setDownloadId: (...args) => requirePort("history").setDownloadId(...args),
       setStatus: (...args) => requirePort("history").setStatus(...args),
+      setStatusStrict: (...args) => requirePort("history").setStatusStrict(...args),
       entries: (...args) => requirePort("history").entries(...args),
       anchorStartTime: (...args) => requirePort("history").anchorStartTime(...args),
     },

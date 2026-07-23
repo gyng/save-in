@@ -365,8 +365,8 @@ export const setupRouteDebugger = (): void => {
       "route-debugger-message-title",
       trace.selectedOutcome === "exclude"
         ? localize(
-            "routeDebuggerExcluded",
-            "A rule matched. This save is excluded, so later rules are not evaluated.",
+            "routeActionExcludedSummary",
+            "A rule matched. This save is excluded, so later rules do not run.",
           )
         : matchedRuleCount === 0
           ? localize("routeDebuggerNoMatch", "No routing rule matched.")
@@ -517,7 +517,7 @@ export const setupRouteDebugger = (): void => {
     destination.dataset.path = rule.destination;
     destination.textContent =
       rule.outcome === "exclude"
-        ? localize("routeDebuggerRuleExcluded", "Does not save matching items")
+        ? localize("routeActionExclude", "Do not save matching items")
         : localize(
             "routeDebuggerRuleDestination",
             `Saves to ${rule.destination}`,
@@ -541,7 +541,7 @@ export const setupRouteDebugger = (): void => {
     badge.className = "route-debugger-rule-badge";
     badge.textContent = selected
       ? rule.outcome === "exclude"
-        ? localize("routeDebuggerSelectedExcluded", "Excluded")
+        ? localize("routeActionExcluded", "Excluded by routing rule")
         : localize("routeDebuggerSelected", "Used")
       : rule.matched
         ? localize("routeDebuggerAlsoMatches", "Matched, not used")
@@ -606,9 +606,9 @@ export const setupRouteDebugger = (): void => {
       [localize("routeDebuggerRenamedName", "Renamed name"), renamed],
       [localize("routeDebuggerFinalPath", "Final path"), trace.finalPath],
       [
-        localize("routeVisualAfterSaveLabel", "After saving"),
+        localize("routeActionAfterSave", "After saving"),
         trace.selectedTabAction === "close"
-          ? localize("routeVisualCloseTabValue", "Close source tab")
+          ? localize("routeActionCloseTab", "Close source tab after saving")
           : null,
       ],
     ];

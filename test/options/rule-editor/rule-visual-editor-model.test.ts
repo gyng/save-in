@@ -10,7 +10,7 @@ import {
   parseVisualRoutingRules,
   setRoutingRuleEnabled,
   setRoutingRuleName,
-  setRoutingRuleTabAction,
+  setRoutingRulePostSaveAction,
   updateRoutingClause,
 } from "../../../src/options/rule-editor/rule-visual-editor-model.ts";
 
@@ -193,18 +193,13 @@ describe("routing visual editor model", () => {
   });
 
   test("adds and removes the close-tab action before the destination", () => {
-    const withAction = setRoutingRuleTabAction("filename: jpg\ninto: images", 0, true);
-    expect(withAction).toBe("filename: jpg\nafter: closetab\ninto: images");
-    expect(setRoutingRuleTabAction(withAction, 0, false)).toBe("filename: jpg\ninto: images");
-  });
-
-  test("inserts a new exclusion matcher before the terminal action", () => {
-    expect(
-      addRoutingClause("filename: jpg\nexclude: true", 0, {
-        name: "pageurl",
-        value: "example\\.com",
-      }),
-    ).toBe("filename: jpg\npageurl: example\\.com\nexclude: true");
+    const withAction = setRoutingRulePostSaveAction("filename: jpg\ninto: images", 0, true);
+    expect(withAction).toBe("filename: jpg\nafter: close-tab\ninto: images");
+    expect(setRoutingRulePostSaveAction(withAction, 0, true)).toBe(withAction);
+    expect(setRoutingRulePostSaveAction(withAction, 0, false)).toBe("filename: jpg\ninto: images");
+    expect(setRoutingRulePostSaveAction("filename: jpg\ninto: images", 0, false)).toBe(
+      "filename: jpg\ninto: images",
+    );
   });
 
   test("deletes one clause line without disturbing comments or other rules", () => {
@@ -243,6 +238,17 @@ describe("routing visual editor model", () => {
   test("adds a canonical terminal exclusion rule", () => {
     expect(addExclusionRoutingRule("filename: jpg\ninto: images/:filename:\n")).toBe(
       "filename: jpg\ninto: images/:filename:\n\nfilename: .*\nexclude: true\n",
+    );
+  });
+
+  test.each([
+    ["", ""],
+    ["filename: jpg\ninto: images", "\n\n"],
+    ["filename: jpg\ninto: images\n", "\n"],
+    ["filename: jpg\ninto: images\n\n", ""],
+  ])("adds an exclusion after separator form %j", (prefix, separator) => {
+    expect(addExclusionRoutingRule(prefix)).toBe(
+      `${prefix}${separator}filename: .*\nexclude: true\n`,
     );
   });
 
@@ -328,6 +334,8 @@ describe("routing visual editor model", () => {
     "into/i: images\nfilename: jpg",
     "filename/: jpg\ninto: images",
     "disabled: false\ndisabled: true\nfilename: jpg\ninto: images",
+    "filename: jpg\nexclude: false",
+    "filename: jpg\nafter: later\ninto: images",
   ])("marks unsupported visual control syntax as read-only", (unsupported) => {
     expect(parseVisualRoutingRules(unsupported).rules[0]?.editable).toBe(false);
     expect(() => setRoutingRuleEnabled(unsupported, 0, false)).toThrow(/Text mode/);

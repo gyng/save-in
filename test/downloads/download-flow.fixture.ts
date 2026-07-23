@@ -71,6 +71,9 @@ Object.assign(hostBrowser, {
   i18n: { getMessage: vi.fn((key: string) => key) },
   downloads: {
     download: vi.fn(() => Promise.resolve(101)),
+    search: vi.fn(() =>
+      Promise.resolve([{ id: 101, state: "interrupted", error: "USER_CANCELED" }]),
+    ),
     onChanged: { addListener: vi.fn() },
   },
 } as any);
@@ -147,10 +150,14 @@ beforeEach(() => {
         SaveHistory.addHistoryEntry(...a),
       patch: (...a: Parameters<typeof SaveHistory.patchHistoryEntry>) =>
         SaveHistory.patchHistoryEntry(...a),
+      patchStrict: (...a: Parameters<typeof SaveHistory.patchHistoryEntryStrict>) =>
+        SaveHistory.patchHistoryEntryStrict(...a),
       setDownloadId: (...a: Parameters<typeof SaveHistory.setHistoryDownloadId>) =>
         SaveHistory.setHistoryDownloadId(...a),
       setStatus: (...a: Parameters<typeof SaveHistory.setHistoryStatus>) =>
         SaveHistory.setHistoryStatus(...a),
+      setStatusStrict: (...a: Parameters<typeof SaveHistory.setHistoryStatusStrict>) =>
+        SaveHistory.setHistoryStatusStrict(...a),
       entries: () => SaveHistory.getHistoryEntries(),
       anchorStartTime: (...a: Parameters<typeof SaveHistory.anchorHistoryDownloadStartTime>) =>
         SaveHistory.anchorHistoryDownloadStartTime(...a),
@@ -256,6 +263,9 @@ beforeEach(() => {
   (global.browser.i18n as any).getMessage = (key: string) => key;
   (global.browser.downloads as any).download = vi.fn(() => Promise.resolve(101));
   (global.browser.downloads as any).cancel = vi.fn(() => Promise.resolve());
+  (global.browser.downloads as any).search = vi.fn(() =>
+    Promise.resolve([{ id: 101, state: "interrupted", error: "USER_CANCELED" }]),
+  );
 
   global.fetch = vi.fn(() =>
     Promise.resolve({ headers: { has: () => false, get: () => null } }),

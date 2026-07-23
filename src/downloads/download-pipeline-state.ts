@@ -20,6 +20,12 @@ export const isSourceSidecar = (state: Pick<DownloadPipelineState, "info">): boo
 export const isPrivateDownloadState = (state: Pick<DownloadPipelineState, "info">): boolean =>
   state.info.currentTab?.incognito === true;
 
+// Chrome can accept the browser download before final-filename routing has
+// accepted it. Callers may perform post-start effects only after both routing
+// rejection signals have cleared.
+export const isRoutingAccepted = (state: Pick<DownloadPipelineState, "scratch">): boolean =>
+  state.scratch.routeOutcome !== "exclude" && state.scratch.deferredRouteRequirement !== true;
+
 export const addDownloadLog = (
   state: Pick<DownloadPipelineState, "info">,
   message: string,

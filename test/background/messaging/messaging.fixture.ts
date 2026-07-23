@@ -70,7 +70,7 @@ const setupGlobals = () => {
     perSiteDisableList: "",
   });
   vi.spyOn(Download, "launchDownload").mockResolvedValue({ status: "started", downloadId: 1 });
-  vi.spyOn(HistoryMove, "registerPendingHistoryMove").mockResolvedValue(undefined);
+  vi.spyOn(HistoryMove, "registerPendingHistoryMove").mockResolvedValue(true);
   vi.spyOn(HistoryMove, "abandonPendingHistoryMove").mockResolvedValue(undefined);
   vi.spyOn(HistoryMove, "completePendingHistoryMove").mockResolvedValue({
     handled: true,

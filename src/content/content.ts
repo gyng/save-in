@@ -1021,7 +1021,11 @@ try {
       (typeof chrome.i18n.getUILanguage === "function" ? chrome.i18n.getUILanguage() : ""),
     theme: currentOptions.uiTheme,
     onSaveIntent: warmBackground,
-    onCreateRule: createAutomaticRule,
+    // The background refuses private-page drafts so their page/source URLs
+    // never cross into extension storage. Keep the content-side affordance in
+    // sync with that boundary instead of offering an action that must silently
+    // fail. Both supported hosts expose this capability in content scripts.
+    ...(chrome.extension?.inIncognitoContext === true ? {} : { onCreateRule: createAutomaticRule }),
     onOpenChange: (open: boolean) => {
       sourcePanelIsOpen = open;
       if (!open) sourcePanelForcedOpen = false;

@@ -14,11 +14,11 @@ import {
   PRIVATE_PENDING_DOWNLOADS_SESSION_KEY,
 } from "../shared/storage-keys.ts";
 import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
-import { hydrateDownloads, mergeDownload } from "./download-state.ts";
-import { OffscreenClient } from "../platform/offscreen-client.ts";
+import { hydrateDownloads } from "./download-state.ts";
 import { downloadPorts } from "./ports.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 import { abandonPendingHistoryMove, completePendingHistoryMove } from "./history-move.ts";
+import { releaseTerminalDownload } from "./terminal-download.ts";
 
 const PENDING_RECOVERY_GRACE_MS = 10000;
 
@@ -53,9 +53,13 @@ const normalizeRecovery = (value: unknown): NotificationRecovery | null => {
     deadline: candidate.deadline,
     pendingDownloads: normalizeSessionCounter(candidate.pendingDownloads),
     privatePendingDownloads: normalizeSessionCounter(candidate.privatePendingDownloads),
-    adoptedDownloadIds: candidate.adoptedDownloadIds.filter(
-      (id): id is number => typeof id === "number" && Number.isSafeInteger(id) && id >= 0,
-    ),
+    adoptedDownloadIds: [
+      ...new Set(
+        candidate.adoptedDownloadIds.filter(
+          (id): id is number => typeof id === "number" && Number.isSafeInteger(id) && id >= 0,
+        ),
+      ),
+    ],
   };
 };
 
@@ -133,7 +137,8 @@ const reconcileAdoptedDownloads = async (expected: NotificationRecovery) => {
   await hydrateDownloads(downloadsState, extensionSessionStorage);
   await Promise.all(
     expected.adoptedDownloadIds.map(async (id) => {
-      if (!downloadsState.records.get(id)?.adopted) return;
+      const initialRecord = downloadsState.records.get(id);
+      if (!initialRecord?.adopted && !initialRecord?.pendingHistoryMove) return;
       let item:
         | {
             state?: string | undefined;
@@ -149,31 +154,30 @@ const reconcileAdoptedDownloads = async (expected: NotificationRecovery) => {
       }
       if (item?.state === "in_progress") return;
       const record = downloadsState.records.get(id);
-      if (record?.historyEntryId) {
+      if (record) {
         if (item?.state === "complete") {
-          const bytes = (item.fileSize ?? 0) > 0 ? item.fileSize : item.totalBytes;
-          await downloadPorts.history.setStatus(
-            record.historyEntryId,
-            "complete",
-            id,
-            (bytes ?? 0) > 0 ? bytes : undefined,
-          );
-          await completePendingHistoryMove(id);
+          if (record.historyEntryId) {
+            const bytes = (item.fileSize ?? 0) > 0 ? item.fileSize : item.totalBytes;
+            await downloadPorts.history.setStatus(
+              record.historyEntryId,
+              "complete",
+              id,
+              (bytes ?? 0) > 0 ? bytes : undefined,
+            );
+          }
+          if (record.pendingHistoryMove) await completePendingHistoryMove(id);
         } else {
-          await downloadPorts.history.setStatus(
-            record.historyEntryId,
-            item?.error || "DOWNLOAD_STATE_LOST",
-            id,
-          );
-          await abandonPendingHistoryMove(id);
+          if (record.historyEntryId) {
+            await downloadPorts.history.setStatus(
+              record.historyEntryId,
+              item?.error || "DOWNLOAD_STATE_LOST",
+              id,
+            );
+          }
+          if (record.pendingHistoryMove) await abandonPendingHistoryMove(id);
         }
       }
-      if (record?.offscreenRequestId) {
-        await OffscreenClient.release(record.offscreenRequestId).catch(() => {});
-      }
-      await mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, id, {
-        adopted: false,
-      });
+      if (record) await releaseTerminalDownload(id, record, () => {});
     }),
   );
 };
@@ -217,7 +221,7 @@ const initializeRecovery = async (): Promise<void> => {
     pendingStored[PRIVATE_PENDING_DOWNLOADS_SESSION_KEY],
   );
   const adoptedDownloadIds = [...downloadsState.records]
-    .filter(([, record]) => record.adopted)
+    .filter(([, record]) => record.adopted || record.pendingHistoryMove)
     .map(([id]) => id);
 
   let expected = storedRecovery;

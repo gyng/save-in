@@ -5,17 +5,27 @@
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
     "message": "Funciona para subpastas dentro de Downloads após um download do Save In sem a caixa Salvar como nesta sessão. Downloads do navegador salvos diretamente em Downloads não alteram Último local. Não é necessário adicionar esses downloads ao histórico do Save In."
   },
-  "historyRetentionLimit": { "message": "Manter entradas concluídas" },
+  "historyRetentionLimit": {
+    "message": "Manter entradas concluídas"
+  },
   "historyRetentionLimitHelp": {
     "message": "Com 0, os salvamentos em andamento ficam visíveis, mas são removidos quando terminam."
   },
-  "historyRetentionConfirmTitle": { "message": "Reduzir o limite do histórico?" },
+  "historyRetentionConfirmTitle": {
+    "message": "Reduzir o limite do histórico?"
+  },
   "historyRetentionConfirmDescription": {
     "message": "As entradas concluídas mais antigas acima do novo limite serão excluídas permanentemente. Os salvamentos em andamento serão mantidos. Isso não pode ser desfeito."
   },
-  "historyRetentionKeepLimit": { "message": "Manter o limite atual" },
-  "historyRetentionLowerLimit": { "message": "Reduzir o limite" },
-  "browserLastUsedNoticeTitle": { "message": "O último local não foi alterado" },
+  "historyRetentionKeepLimit": {
+    "message": "Manter o limite atual"
+  },
+  "historyRetentionLowerLimit": {
+    "message": "Reduzir o limite"
+  },
+  "browserLastUsedNoticeTitle": {
+    "message": "O último local não foi alterado"
+  },
   "browserLastUsedOutsideDownloads": {
     "message": "Essa pasta está fora de Downloads, então o Save In não pode reutilizá-la."
   },
@@ -528,6 +538,9 @@
   "notificationSuccessTitle": {
     "message": "Salvo"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "Um item da navegação privativa foi salvo."
+  },
   "notificationFailureTitle": {
     "message": "Falha ao salvar $FILENAME$.",
     "placeholders": {
@@ -537,19 +550,21 @@
       }
     }
   },
+  "notificationPrivateFailureTitle": {
+    "message": "Não foi possível salvar um item da navegação privativa."
+  },
   "notificationUndoSave": {
     "message": "Desfazer salvamento"
   },
   "notificationRuleMatchedTitle": {
     "message": "Save In: regra aplicada"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "Um item da navegação privativa correspondeu a uma regra de roteamento."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Falha ao rotear ou renomear download"
   },
-  "notificationPrivateDetailsHidden": {
-    "message": "Os detalhes do salvamento privado estão ocultos"
-  },
-  "notificationPrivateFailureTitle": { "message": "Save In: falha no salvamento privado" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "Nenhuma regra correspondente encontrada para $URL$",
     "placeholders": {
@@ -558,6 +573,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "Nenhuma regra de roteamento correspondeu ao item da navegação privativa."
   },
   "ruleMissingMatcher": {
     "message": "Adicione pelo menos uma condição de correspondência à regra"
@@ -1147,6 +1165,9 @@
   "notificationLinkPreferred": {
     "message": "Destino do link baixado no lugar da mídia"
   },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "O destino do link da navegação privativa foi selecionado."
+  },
   "o_cPreferLinksFilterEnabled": {
     "message": "Somente nas páginas correspondentes"
   },
@@ -1373,7 +1394,7 @@
     "message": "Todos os comparadores de uma regra devem corresponder."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Toda regra que salva deve terminar com um"
+    "message": "Uma regra de salvamento termina com um"
   },
   "html_filterClauses": {
     "message": "Cláusulas de filtro"
@@ -3188,7 +3209,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "As condições de tipo de fonte não correspondem a nenhum tipo de fonte da página; esta regra nunca poderá salvar."
+    "message": "As condições de tipo de fonte não correspondem a nenhum tipo de fonte da página; esta regra nunca poderá ser aplicada."
   },
   "ruleReachabilityLinkOnly": {
     "message": "Esta regra corresponde apenas a links simples, que o salvamento automático nunca adota."
@@ -4441,30 +4462,46 @@
   "html_linkDownloadMatcherDescription": {
     "message": "Corresponde ao nome de download sugerido pelo link."
   },
-  "routeDebuggerLinkTitle": { "message": "Título do link" },
-  "routeDebuggerLinkDownload": { "message": "Nome de download do link" },
-  "notificationRuleExcludedTitle": { "message": "Save In: salvamento excluído" },
-  "notificationRuleExcludedPrivateMessage": {
-    "message": "Uma regra de roteamento excluiu este salvamento privado"
+  "routeDebuggerLinkTitle": {
+    "message": "Título do link"
+  },
+  "routeDebuggerLinkDownload": {
+    "message": "Nome de download do link"
   },
   "notificationRuleExcludedMessage": {
-    "message": "Uma regra de roteamento excluiu $URL$",
-    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+    "message": "$URL$ não foi salvo porque uma regra de roteamento o excluiu.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/tracker.gif"
+      }
+    }
   },
-  "o_lRoutingExcluded": { "message": "excluído por uma regra de roteamento" },
-  "routeDebuggerExcluded": {
-    "message": "Uma regra correspondeu. Este salvamento foi excluído, portanto as regras posteriores não são avaliadas."
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "Um item da navegação privativa não foi salvo porque uma regra de roteamento o excluiu."
   },
-  "routeDebuggerRuleExcluded": { "message": "Não salva os itens correspondentes" },
-  "routeDebuggerSelectedExcluded": { "message": "Excluído" },
-  "routeVisualAddExclusionRule": { "message": "Adicionar regra de exclusão" },
-  "routeVisualAfterSaveLabel": { "message": "Após salvar" },
-  "routeVisualCloseSourceTab": { "message": "Fechar a guia de origem após salvar" },
-  "routeVisualCloseTabValue": { "message": "Fechar a guia de origem" },
-  "routeVisualExcludeLabel": { "message": "Itens correspondentes" },
-  "routeVisualExcludeValue": { "message": "Não salvar" },
-  "routeVisualKeepSourceTab": { "message": "Manter a guia de origem aberta após salvar" },
-  "html_routingActionClauses": {
-    "message": "Use exclude: true em vez de into: para interromper salvamentos correspondentes. Adicione after: closetab a uma regra de salvamento para fechar a guia de origem após o início do salvamento; regras automáticas não podem fechar guias."
+  "routeActionExclude": {
+    "message": "Não salvar itens correspondentes"
+  },
+  "routeActionCloseTab": {
+    "message": "Fechar a aba de origem após salvar"
+  },
+  "routeActionKeepTab": {
+    "message": "Manter a aba de origem após salvar"
+  },
+  "routeActionAfterSave": {
+    "message": "Depois de salvar"
+  },
+  "routeActionOutcome": {
+    "message": "Resultado da regra"
+  },
+  "routeActionExcluded": {
+    "message": "Excluído por regra de roteamento"
+  },
+  "routeActionExcludedSummary": {
+    "message": "Uma regra correspondeu. Este salvamento foi excluído, portanto as regras posteriores não são executadas."
+  },
+  "routeActionRuleEnding": {
+    "message": "Uma regra de exclusão termina com exclude: true."
   }
 }

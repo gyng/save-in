@@ -5,17 +5,27 @@
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
     "message": "Fungerar för undermappar i Hämtade filer efter en Save In-hämtning utan dialogrutan Spara som under den här sessionen. Webbläsarnedladdningar som sparas direkt i Hämtade filer ändrar inte Senast använd. De behöver inte läggas till i Save In-historiken."
   },
-  "historyRetentionLimit": { "message": "Behåll slutförda poster" },
+  "historyRetentionLimit": {
+    "message": "Behåll slutförda poster"
+  },
   "historyRetentionLimitHelp": {
     "message": "Med 0 visas pågående sparningar, men de tas bort när de är klara."
   },
-  "historyRetentionConfirmTitle": { "message": "Sänka historikgränsen?" },
+  "historyRetentionConfirmTitle": {
+    "message": "Sänka historikgränsen?"
+  },
   "historyRetentionConfirmDescription": {
     "message": "Äldre slutförda poster över den nya gränsen tas bort permanent. Pågående sparningar behålls. Detta går inte att ångra."
   },
-  "historyRetentionKeepLimit": { "message": "Behåll aktuell gräns" },
-  "historyRetentionLowerLimit": { "message": "Sänk gränsen" },
-  "browserLastUsedNoticeTitle": { "message": "Senast använd ändrades inte" },
+  "historyRetentionKeepLimit": {
+    "message": "Behåll aktuell gräns"
+  },
+  "historyRetentionLowerLimit": {
+    "message": "Sänk gränsen"
+  },
+  "browserLastUsedNoticeTitle": {
+    "message": "Senast använd ändrades inte"
+  },
   "browserLastUsedOutsideDownloads": {
     "message": "Mappen ligger utanför Hämtade filer och kan därför inte återanvändas av Save In."
   },
@@ -528,6 +538,9 @@
   "notificationSuccessTitle": {
     "message": "Sparad"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "Ett objekt från privat surfning sparades."
+  },
   "notificationFailureTitle": {
     "message": "Det gick inte att spara $FILENAME$.",
     "placeholders": {
@@ -537,19 +550,21 @@
       }
     }
   },
+  "notificationPrivateFailureTitle": {
+    "message": "Det gick inte att spara ett objekt från privat surfning."
+  },
   "notificationUndoSave": {
     "message": "Ångra sparning"
   },
   "notificationRuleMatchedTitle": {
     "message": "Save In: Regel matchad"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "Ett objekt från privat surfning matchade en dirigeringsregel."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Det gick inte att dirigera eller byta namn på nedladdningen"
   },
-  "notificationPrivateDetailsHidden": {
-    "message": "Detaljer om privat sparning är dolda"
-  },
-  "notificationPrivateFailureTitle": { "message": "Save In: privat sparning misslyckades" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "Ingen matchande regel hittades för $URL$",
     "placeholders": {
@@ -558,6 +573,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "Ingen dirigeringsregel matchade objektet från privat surfning."
   },
   "ruleMissingMatcher": {
     "message": "Lägg till minst ett matchningsvillkor i regeln"
@@ -1147,6 +1165,9 @@
   "notificationLinkPreferred": {
     "message": "Länkmålet laddades ner i stället"
   },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "Länkmålet från privat surfning valdes."
+  },
   "o_cPreferLinksFilterEnabled": {
     "message": "Endast på matchande sidor"
   },
@@ -1373,7 +1394,7 @@
     "message": "Varje matchare i en regel måste matcha."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Varje regel som sparar måste sluta med en"
+    "message": "En sparregel slutar med ett"
   },
   "html_filterClauses": {
     "message": "Filterklausuler"
@@ -3188,7 +3209,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "Källtypsvillkoren matchar ingen av sidkällornas typer; regeln kan aldrig spara."
+    "message": "Källtypsvillkoren matchar ingen av sidkällornas typer; regeln kan aldrig tillämpas."
   },
   "ruleReachabilityLinkOnly": {
     "message": "Regeln matchar bara vanliga länkar, som automatisk sparning aldrig tar med."
@@ -4441,30 +4462,46 @@
   "html_linkDownloadMatcherDescription": {
     "message": "Matchar nedladdningsnamnet som länken föreslår."
   },
-  "routeDebuggerLinkTitle": { "message": "Länktitel" },
-  "routeDebuggerLinkDownload": { "message": "Länkens nedladdningsnamn" },
-  "notificationRuleExcludedTitle": { "message": "Save In: sparande undantaget" },
-  "notificationRuleExcludedPrivateMessage": {
-    "message": "En dirigeringsregel undantog denna privata sparning"
+  "routeDebuggerLinkTitle": {
+    "message": "Länktitel"
+  },
+  "routeDebuggerLinkDownload": {
+    "message": "Länkens nedladdningsnamn"
   },
   "notificationRuleExcludedMessage": {
-    "message": "En dirigeringsregel undantog $URL$",
-    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+    "message": "$URL$ sparades inte eftersom en routningsregel uteslöt den.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/tracker.gif"
+      }
+    }
   },
-  "o_lRoutingExcluded": { "message": "undantaget av dirigeringsregel" },
-  "routeDebuggerExcluded": {
-    "message": "En regel matchade. Det här sparandet är undantaget, så senare regler utvärderas inte."
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "Ett objekt från privat surfning sparades inte eftersom en routningsregel uteslöt det."
   },
-  "routeDebuggerRuleExcluded": { "message": "Sparar inte matchande objekt" },
-  "routeDebuggerSelectedExcluded": { "message": "Undantaget" },
-  "routeVisualAddExclusionRule": { "message": "Lägg till undantagsregel" },
-  "routeVisualAfterSaveLabel": { "message": "Efter sparandet" },
-  "routeVisualCloseSourceTab": { "message": "Stäng källfliken efter sparandet" },
-  "routeVisualCloseTabValue": { "message": "Stäng källfliken" },
-  "routeVisualExcludeLabel": { "message": "Matchande objekt" },
-  "routeVisualExcludeValue": { "message": "Spara inte" },
-  "routeVisualKeepSourceTab": { "message": "Håll källfliken öppen efter sparandet" },
-  "html_routingActionClauses": {
-    "message": "Använd exclude: true i stället för into: för att stoppa matchande sparanden. Lägg till after: closetab i en sparregel för att stänga källfliken efter att sparandet har startat; automatiska regler kan inte stänga flikar."
+  "routeActionExclude": {
+    "message": "Spara inte matchande objekt"
+  },
+  "routeActionCloseTab": {
+    "message": "Stäng källfliken efter att objektet sparats"
+  },
+  "routeActionKeepTab": {
+    "message": "Behåll källfliken efter att objektet sparats"
+  },
+  "routeActionAfterSave": {
+    "message": "Efter att objektet sparats"
+  },
+  "routeActionOutcome": {
+    "message": "Regelresultat"
+  },
+  "routeActionExcluded": {
+    "message": "Utesluten av routningsregel"
+  },
+  "routeActionExcludedSummary": {
+    "message": "En regel matchade. Den här sparningen är utesluten, så senare regler körs inte."
+  },
+  "routeActionRuleEnding": {
+    "message": "En uteslutningsregel slutar med exclude: true."
   }
 }

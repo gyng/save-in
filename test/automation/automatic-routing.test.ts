@@ -35,30 +35,30 @@ into: automatic/:pagedomain:/
     );
   });
 
-  test("a guarded exclusion stops a later broad automatic route", () => {
+  test("lets a guarded exclusion stop a later broad automatic route", () => {
     const parsed = parseRulesCollecting(`
 context: ^auto$
 pageurl: gallery\\.example\\.test
-sourceurl: /thumbnail/
+sourceurl: /original/
 exclude: true
 
 context: ^auto$
 pageurl: gallery\\.example\\.test
 sourcekind: image
-into: automatic/:filename:
+into: automatic/
 `);
 
     expect(parsed.errors.filter((error) => !error.warning)).toEqual([]);
+    expect(matchAutomaticRoutingRule(parsed.rules, candidate)).toMatchObject({
+      outcome: "exclude",
+      destination: null,
+    });
     expect(
       matchAutomaticRoutingRule(parsed.rules, {
         ...candidate,
-        sourceUrl: "https://cdn.example.test/thumbnail/cat.jpg",
+        sourceUrl: "https://cdn.example.test/other/cat.JPG",
       }),
-    ).toMatchObject({ outcome: "exclude", destination: null });
-    expect(matchAutomaticRoutingRule(parsed.rules, candidate)).toMatchObject({
-      outcome: "route",
-      destination: "automatic/:filename:",
-    });
+    ).toMatchObject({ outcome: "route", destination: "automatic/" });
   });
 
   test("carries the matched rule's capture-substituted fetch template", () => {

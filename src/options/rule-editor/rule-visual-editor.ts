@@ -16,7 +16,7 @@ import {
   parseVisualRoutingRules,
   setRoutingRuleEnabled,
   setRoutingRuleName,
-  setRoutingRuleTabAction,
+  setRoutingRulePostSaveAction,
   updateRoutingClause,
   type VisualRoutingRule,
 } from "./rule-visual-editor-model.ts";
@@ -44,7 +44,6 @@ import {
   validationFeedbackLabel,
   type EditorValidationFeedback,
 } from "../syntax-editor/editor-validation.ts";
-import { routingActionValue } from "../../routing/action-values.ts";
 
 const DEFAULT_MATCHERS = [
   "context",
@@ -155,7 +154,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       case "no-kinds":
         return localize(
           "ruleReachabilityNoKinds",
-          "The source kind conditions match none of the page source kinds, so this rule can never save.",
+          "The source kind conditions match none of the page source kinds, so this rule can never apply.",
         );
       case "link-only":
         return localize(
@@ -385,6 +384,12 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     const row = document.createElement("div");
     row.className = `visual-editor-row rule-clause-row rule-clause-${clause.kind}`;
     row.dataset.line = String(clause.line);
+    row.addEventListener("click", () => {
+      cards
+        .querySelectorAll(".rule-clause-row.is-active")
+        .forEach((item) => item.classList.remove("is-active"));
+      row.classList.add("is-active");
+    });
 
     const marker = document.createElement("span");
     marker.className = "rule-clause-marker";
@@ -409,13 +414,6 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       clause.kind === "matcher"
         ? rule.clauses.slice(0, clause.index + 1).filter((item) => item.kind === "matcher").length
         : undefined;
-    const actionLabel =
-      clause.kind === "action"
-        ? clause.name === "exclude"
-          ? localize("routeVisualExcludeLabel", "Matching items")
-          : localize("routeVisualAfterSaveLabel", "After saving")
-        : undefined;
-
     if (clause.kind === "matcher" && conditionNumber !== undefined && clause.name !== "css") {
       row.append(createMatcherInput(rule, clause, conditionNumber));
     } else {
@@ -426,31 +424,30 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           ? localize("routeVisualFetchLabel", "Rewrite download URL")
           : clause.kind === "rename"
             ? localize("routeVisualRenameLabel", "Rename the file")
-            : (actionLabel ?? clause.name);
+            : clause.kind === "action"
+              ? clause.name === "exclude"
+                ? localize("routeActionOutcome", "Rule outcome")
+                : localize("routeActionAfterSave", "After saving")
+              : clause.name;
       row.append(name);
     }
 
-    const expectedActionValue = routingActionValue(clause.name);
-    const validAction =
-      clause.kind === "action" &&
-      expectedActionValue !== undefined &&
-      clause.value.trim().toLowerCase() === expectedActionValue;
-    if (validAction) {
+    if (clause.kind === "action") {
       const actionValue = document.createElement("span");
       actionValue.className = "rule-clause-value rule-clause-action-value";
       actionValue.textContent =
         clause.name === "exclude"
-          ? localize("routeVisualExcludeValue", "Do not save")
-          : localize("routeVisualCloseTabValue", "Close source tab");
+          ? localize("routeActionExclude", "Do not save matching items")
+          : localize("routeActionCloseTab", "Close source tab after saving");
       row.append(actionValue);
       if (clause.name === "after") {
         const remove = button(
           "×",
           "delete-clause",
-          localize("routeVisualKeepSourceTab", "Keep source tab after saving"),
+          localize("routeActionKeepTab", "Keep source tab after saving"),
         );
         remove.addEventListener("click", () =>
-          commit(setRoutingRuleTabAction(textarea.value, rule.index, false)),
+          commit(setRoutingRulePostSaveAction(textarea.value, rule.index, false)),
         );
         row.append(remove);
       }
@@ -465,17 +462,15 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     value.value = clause.value;
     value.spellcheck = false;
     value.placeholder =
-      expectedActionValue !== undefined
-        ? expectedActionValue
-        : clause.kind === "destination"
-          ? "folder/:filename:"
-          : clause.kind === "fetch"
-            ? "https://example.com/:$1:"
-            : clause.kind === "rename"
-              ? "find -> replacement"
-              : clause.name === "css"
-                ? "article img, .gallery video"
-                : ".*";
+      clause.kind === "destination"
+        ? "folder/:filename:"
+        : clause.kind === "fetch"
+          ? "https://example.com/:$1:"
+          : clause.kind === "rename"
+            ? "find -> replacement"
+            : clause.name === "css"
+              ? "article img, .gallery video"
+              : ".*";
     value.setAttribute(
       "aria-label",
       clause.kind === "destination"
@@ -511,7 +506,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
                   ),
                   rule.index + 1,
                 )
-              : (actionLabel ?? clause.name),
+              : clause.name,
     );
     value.addEventListener("input", () => {
       commit(
@@ -767,12 +762,13 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     if (!automatic && !exclusion) {
       const postSaveAction = button(
         closeTab
-          ? localize("routeVisualKeepSourceTab", "Keep source tab after saving")
-          : localize("routeVisualCloseSourceTab", "Close source tab after saving"),
+          ? localize("routeActionKeepTab", "Keep source tab after saving")
+          : localize("routeActionCloseTab", "Close source tab after saving"),
         "toggle-close-tab",
       );
+      postSaveAction.disabled = !rule.editable;
       postSaveAction.addEventListener("click", () => {
-        commit(setRoutingRuleTabAction(textarea.value, rule.index, !closeTab));
+        commit(setRoutingRulePostSaveAction(textarea.value, rule.index, !closeTab));
         closeActions();
       });
       actionsMenu.append(postSaveAction);

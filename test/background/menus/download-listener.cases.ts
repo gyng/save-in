@@ -695,6 +695,7 @@ describe("addDownloadListener", () => {
       expect.stringContaining("Invalid regular expression"),
       undefined,
       "prefer-links-pattern-error",
+      { privateContext: false },
     );
     expect(lastState().info).toMatchObject({
       url: "https://example.com/i.png",
@@ -718,6 +719,7 @@ describe("addDownloadListener", () => {
       "https://example.com/gallery.html",
       undefined,
       "link-preferred",
+      { privateContext: false },
     );
     expect(lastState().info).toMatchObject({
       linkText: "Gallery link",
@@ -725,18 +727,19 @@ describe("addDownloadListener", () => {
     });
   });
 
-  test("hides a preferred private link from the OS notification", async () => {
+  test("does not put a private preferred-link URL in the notification", async () => {
     options.preferLinks = true;
     options.notifyOnLinkPreferred = true;
     Menus.addPaths(["dir1"], ["image"]);
 
-    await listener(mediaClick, { id: 8, incognito: true });
+    await listener(mediaClick, { id: 7, incognito: true });
 
     expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
       "Translated<notificationLinkPreferred>",
-      "Translated<notificationPrivateDetailsHidden>",
+      "Translated<notificationPrivateLinkPreferredMessage>",
       undefined,
       "link-preferred",
+      { privateContext: true },
     );
   });
 
@@ -919,6 +922,23 @@ describe("addDownloadListener", () => {
     expect(global.browser.tabs.remove).toHaveBeenCalledWith(42);
   });
 
+  test("closeTabOnSave does not close unrelated content after source navigation", async () => {
+    options.closeTabOnSave = true;
+    (global.browser as any).tabs = {
+      get: vi.fn(() => Promise.resolve({ id: 42, url: "https://example.com/replaced" })),
+      remove: vi.fn(),
+    };
+
+    Menus.addPaths(["dir1"], ["page"]);
+    await listener(
+      { menuItemId: "save-in-0", pageUrl: "https://example.com/original" },
+      { id: 42, title: "Title", url: "https://example.com/original" },
+    );
+
+    expect(global.browser.tabs.get).toHaveBeenCalledWith(42);
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+  });
+
   test("a page-save tab-close race does not reject the menu handler", async () => {
     options.closeTabOnSave = true;
     (global.browser as any).tabs = {
@@ -961,6 +981,28 @@ describe("addDownloadListener", () => {
     expect(Menus.state.lastUsedPath).toBeNull();
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
     expect(global.browser.contextMenus.update).not.toHaveBeenCalled();
+  });
+
+  test("a late route rejection suppresses location history and tab actions", async () => {
+    (global.browser as any).tabs = { remove: vi.fn(), update: vi.fn() };
+    vi.mocked(Download.launchDownload).mockImplementationOnce(
+      async (state: DownloadPipelineState) => {
+        state.scratch.routeTabAction = "close";
+        state.scratch.deferredRouteRequirement = true;
+        return { status: "started", downloadId: 1 };
+      },
+    );
+    Menus.addPaths(["dir1 // (tab: return)"], ["page"]);
+
+    await listener(
+      { menuItemId: "save-in-0", pageUrl: "https://example.com/" },
+      { id: 42, title: "Title" },
+    );
+
+    expect(Menus.state.lastUsedPath).toBeNull();
+    expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+    expect(global.browser.tabs.update).not.toHaveBeenCalled();
   });
 
   test("does not close the tab for a non-page save even with closeTabOnSave", async () => {
@@ -1488,7 +1530,11 @@ describe("addDownloadListener", () => {
 
   describe("per-menu-item post-save tab action", () => {
     beforeEach(() => {
-      (global.browser as any).tabs = { remove: vi.fn(), update: vi.fn() };
+      (global.browser as any).tabs = {
+        get: vi.fn((id: number) => Promise.resolve({ id, url: "https://example.com/" })),
+        remove: vi.fn(),
+        update: vi.fn(),
+      };
     });
 
     const pageClick = (tab: Record<string, unknown>) =>
@@ -1526,7 +1572,6 @@ describe("addDownloadListener", () => {
         },
       );
       Menus.addPaths(["dir1"], ["link"]);
-
       await listener(
         {
           menuItemId: "save-in-0",
@@ -1535,7 +1580,6 @@ describe("addDownloadListener", () => {
         },
         { id: 42, title: "Title" },
       );
-
       expect(global.browser.tabs.remove).toHaveBeenCalledOnce();
       expect(global.browser.tabs.remove).toHaveBeenCalledWith(42);
     });
@@ -1549,9 +1593,7 @@ describe("addDownloadListener", () => {
         },
       );
       Menus.addPaths(["dir1 // (tab: return)"], ["page"]);
-
       await pageClick({ id: 42, title: "Title" });
-
       expect(global.browser.tabs.update).toHaveBeenCalledOnce();
       expect(global.browser.tabs.remove).not.toHaveBeenCalled();
     });
@@ -1565,9 +1607,7 @@ describe("addDownloadListener", () => {
         },
       );
       Menus.addPaths(["dir1"], ["page"]);
-
       await pageClick({ id: 42, title: "Title" });
-
       expect(global.browser.tabs.remove).toHaveBeenCalledOnce();
     });
 

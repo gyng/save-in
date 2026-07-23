@@ -5,7 +5,6 @@ import {
   type RoutingTriviaNode,
   type RuleSyntaxIssue,
 } from "../../routing/rule-syntax.ts";
-import { ROUTING_ACTION_VALUES } from "../../routing/action-values.ts";
 
 export type VisualRoutingClause = {
   index: number;
@@ -137,6 +136,14 @@ const hasUnsupportedFlags = (clauses: RoutingClauseNode[]): boolean =>
         (clause.clauseKind !== "matcher" && clause.clauseKind !== "rename")),
   );
 
+const supportsActionValues = (clauses: RoutingClauseNode[]): boolean =>
+  clauses.every(
+    (clause) =>
+      clause.clauseKind !== "action" ||
+      (clause.name === "exclude" && clause.value.trim().toLowerCase() === "true") ||
+      (clause.name === "after" && clause.value.trim().toLowerCase() === "close-tab"),
+  );
+
 export const parseVisualRoutingRules = (source: string): VisualRoutingDocument => {
   const { parsed, units } = parseWithUnits(source);
   return {
@@ -166,7 +173,10 @@ export const parseVisualRoutingRules = (source: string): VisualRoutingDocument =
             line: clause.span.start.line,
           })),
         editable:
-          issues.length === 0 && !unsupportedFlags && supportsDisabledControl(unit.rule.clauses),
+          issues.length === 0 &&
+          !unsupportedFlags &&
+          supportsDisabledControl(unit.rule.clauses) &&
+          supportsActionValues(unit.rule.clauses),
         issues,
         source: unit.content,
       };
@@ -180,7 +190,12 @@ const editableRule = (source: string, ruleIndex: number) => {
   if (!unit) throw new RangeError(`Routing rule ${ruleIndex + 1} does not exist.`);
   const issues = result.parsed.issues.filter((issue) => issueInRule(issue, unit));
   const unsupportedFlags = hasUnsupportedFlags(unit.rule.clauses);
-  if (issues.length > 0 || unsupportedFlags || !supportsDisabledControl(unit.rule.clauses)) {
+  if (
+    issues.length > 0 ||
+    unsupportedFlags ||
+    !supportsDisabledControl(unit.rule.clauses) ||
+    !supportsActionValues(unit.rule.clauses)
+  ) {
     throw new Error("Edit this rule in Text mode before using visual controls.");
   }
   return { ...result, unit };
@@ -371,10 +386,10 @@ export const addExclusionRoutingRule = (source: string): string => {
         : source.endsWith(newline)
           ? newline
           : `${newline}${newline}`;
-  return `${source}${separator}filename: .*${newline}exclude: ${ROUTING_ACTION_VALUES.exclude}${newline}`;
+  return `${source}${separator}filename: .*${newline}exclude: true${newline}`;
 };
 
-export const setRoutingRuleTabAction = (
+export const setRoutingRulePostSaveAction = (
   source: string,
   ruleIndex: number,
   enabled: boolean,
@@ -384,12 +399,9 @@ export const setRoutingRuleTabAction = (
   if (enabled) {
     return action
       ? updateRoutingClause(source, ruleIndex, unit.rule.clauses.indexOf(action), {
-          value: ROUTING_ACTION_VALUES.after,
+          value: "close-tab",
         })
-      : addRoutingClause(source, ruleIndex, {
-          name: "after",
-          value: ROUTING_ACTION_VALUES.after,
-        });
+      : addRoutingClause(source, ruleIndex, { name: "after", value: "close-tab" });
   }
   return action
     ? deleteRoutingClause(source, ruleIndex, unit.rule.clauses.indexOf(action))

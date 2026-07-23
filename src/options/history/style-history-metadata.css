@@ -143,9 +143,10 @@
   text-transform: capitalize;
 }
 
-/* Deliberate user actions: neutral like pending, not errors */
+/* Deliberate or policy outcomes: neutral like pending, not errors */
 .status-badge.status-undone,
-.status-badge.status-moved {
+.status-badge.status-moved,
+.status-badge.status-excluded {
   color: var(--color-text-muted);
   background-color: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
 }

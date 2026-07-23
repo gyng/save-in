@@ -67,8 +67,9 @@ export const launchDownload = (state: DownloadPipelineState): Promise<DownloadLa
     // whole).
     const name = state.info.suggestedFilename || historyDisplayUrl(state.info.url) || "";
     if (!isSourceSidecar(state)) {
-      if (isPrivateDownloadState(state)) reportDownloadFailure(name, String(e), true);
-      else reportDownloadFailure(name, String(e));
+      if (isPrivateDownloadState(state)) {
+        reportDownloadFailure(name, String(e), { privateContext: true });
+      } else reportDownloadFailure(name, String(e));
     }
     return { status: "failed" as const };
   });

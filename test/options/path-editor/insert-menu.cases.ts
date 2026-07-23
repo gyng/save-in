@@ -149,7 +149,7 @@ describe("path editor insert menu", () => {
     );
     expect(document.querySelector('[data-insert-line="fetch: "]')).not.toBeNull();
     expect(document.querySelector('[data-insert-line="exclude: true"]')).not.toBeNull();
-    expect(document.querySelector('[data-insert-line="after: closetab"]')).not.toBeNull();
+    expect(document.querySelector('[data-insert-line="after: close-tab"]')).not.toBeNull();
     expect(document.querySelector('[data-insert-line="invalid: "]')).toBeNull();
     document.querySelector<HTMLButtonElement>('[data-insert-line="exclude: true"]')?.click();
     expect(insert).toHaveBeenCalledWith(document.querySelector("#paths"), "exclude: true");

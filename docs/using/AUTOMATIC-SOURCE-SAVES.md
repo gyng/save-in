@@ -40,7 +40,7 @@ An automatic exclusion rule uses `exclude: true` instead of `into:`. It must
 keep the same explicit automatic context, page matcher, and source matcher as
 an automatic save rule. A matching exclusion is terminal: that source is not
 saved, later rules are ignored for it, and it does not consume the page's save
-limit. Automatic rules cannot use `after: closetab` because discovery is unattended
+limit. Automatic rules cannot use `after: close-tab` because discovery is unattended
 and may match many sources from one page.
 
 An automatic rule may also carry a `fetch:` clause. When the rule matches, Save
@@ -68,7 +68,10 @@ context: ^auto$
 ```
 
 Use `context: auto` with page and source conditions to match automatic
-downloads. The first matching rule sets the save location.
+downloads. The first matching rule either sets the save location or, when it
+ends with `exclude: true`, stops processing without saving. Excluded candidates
+do not consume the per-page limit. Automatic rules cannot use `after: close-tab`.
+See [Routing actions](ROUTING-ACTIONS.md) for the ordering and action contracts.
 
 Save In deliberately ignores ordinary routing rules during automatic discovery,
 including broad rules such as `context: .*`. An automatic rule must explicitly

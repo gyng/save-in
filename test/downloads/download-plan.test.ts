@@ -2,6 +2,7 @@
 import type { SaveInOptions } from "../../src/config/option-schema.ts";
 import type { DownloadScratch } from "../../src/downloads/download-types.ts";
 import { OPTION_DEFAULTS } from "../../src/config/option-defaults.ts";
+import type { DownloadPipelineState } from "../../src/downloads/download-types.ts";
 import type { RuleMatch } from "../../src/routing/router.ts";
 import { DOWNLOAD_TYPES } from "../../src/shared/constants.ts";
 import {
@@ -75,19 +76,54 @@ describe("getRoutingMatches", () => {
     expect(router.matchRules).not.toHaveBeenCalled();
   });
 
-  test("delegates to matchRules with the rename-only predicate", () => {
+  test("delegates to detailed matching with the rename-only predicates", () => {
     options.filenamePatterns = [routingRule()];
-    vi.mocked(router.matchRules).mockReturnValue("the/route");
-    const state = { info: { url: "x" }, scratch: {} };
+    vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      outcome: "route",
+      rule: options.filenamePatterns[0]!,
+      destination: "the/route",
+      fetch: null,
+      rename: null,
+      tabAction: "close",
+    });
+    const state: Pick<DownloadPipelineState, "info" | "scratch"> = {
+      info: { url: "x" },
+      scratch: {},
+    };
 
     expect(Download.getRoutingMatches(state)).toBe("the/route");
     // Callers of this seam rename downloads that already started, so rules
     // that rewrite the URL must be skipped rather than match-consuming.
-    expect(router.matchRules).toHaveBeenCalledWith(
+    expect(router.matchRulesDetailed).toHaveBeenCalledWith(
       options.filenamePatterns,
       state.info,
       router.isRenameOnlyEligibleRule,
+      router.isRenameOnlyEligibleMatch,
     );
+    expect(state.scratch.routeTabAction).toBe("close");
+  });
+
+  test("returns no rename for a terminal exclusion of an in-flight browser download", () => {
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      outcome: "exclude",
+      rule: options.filenamePatterns[0]!,
+      destination: null,
+      fetch: null,
+      rename: null,
+      tabAction: null,
+    });
+    const state: Pick<DownloadPipelineState, "info" | "scratch"> = {
+      info: { url: "https://cdn.example/tracker.gif" },
+      scratch: {
+        renameTemplate: { find: "old", flags: "", replacement: "stale" },
+      },
+    };
+
+    expect(Download.getRoutingMatches(state)).toBeNull();
+    expect(state.scratch.renameTemplate).toBeUndefined();
+    expect(state.scratch.routeOutcome).toBe("exclude");
+    expect(state.scratch.routeTabAction).toBeUndefined();
   });
 
   test("carries late exclusion and tab-action outcomes on scratch state", () => {
@@ -229,7 +265,6 @@ describe("routing actions in the plan", () => {
     const state = makeState({ info: { url: "https://cdn.example/photo.jpg" } });
 
     await expect(Download.resolveDownloadPlan(state)).resolves.not.toBeNull();
-
     expect(state.scratch.routeTabAction).toBe("close");
   });
 });
@@ -638,10 +673,7 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
     );
 
     const state = makeState({ info: { url: "https://cdn.example.com/download/12345" } });
-    await expect(Download.renameAndDownload(state)).resolves.toEqual({
-      status: "started",
-      downloadId: 101,
-    });
+    await expect(Download.resolveDownloadPlan(state)).resolves.not.toBeNull();
 
     expect(router.matchRules).toHaveBeenCalledWith(
       options.filenamePatterns,
@@ -658,7 +690,7 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
     vi.spyOn(Variable, "mimeToExtension").mockReturnValue("pdf");
 
     const state = makeState({ info: { url: "https://cdn.example.com/file.pdf" } });
-    await Download.renameAndDownload(state);
+    await Download.resolveDownloadPlan(state);
 
     expect(Variable.resolveMime).not.toHaveBeenCalled();
     expect(state.info.mimeExtension).toBeUndefined();
@@ -685,7 +717,7 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
     vi.spyOn(Variable, "mimeToExtension").mockReturnValue("");
 
     const state = makeState({ info: { url: "https://cdn.example.com/download/12345" } });
-    await Download.renameAndDownload(state);
+    await Download.resolveDownloadPlan(state);
 
     expect(state.info.mimeExtension).toBeUndefined();
     expect(Download.finalizeFullPath(state)).toMatch(/12345$/);

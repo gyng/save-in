@@ -8,6 +8,7 @@
 // same shape as downloads/download-pipeline-state.ts.
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { options } from "../config/options-data.ts";
+import type { PrivateWriteOptions } from "../shared/persistence-context.ts";
 import { downloadPorts } from "./ports.ts";
 
 const logPort = downloadPorts.log;
@@ -38,10 +39,20 @@ type TimerHandle = ReturnType<typeof globalThis.setTimeout>;
 const notificationClearTimers = new Map<string, TimerHandle>();
 const extensionNotificationDebounceTimers = new Map<string, TimerHandle>();
 
+const addNotificationLog = (
+  message: string,
+  error: unknown,
+  writeOptions: PrivateWriteOptions,
+): unknown =>
+  writeOptions.privateContext === true
+    ? logPort.add(message, String(error), { privateContext: true })
+    : logPort.add(message, String(error));
+
 export const createNotification = (
   id: string,
   details: SaveInNotificationOptions,
   duration = options.notifyDuration,
+  writeOptions: PrivateWriteOptions = {},
 ) => {
   const previousClearTimer = notificationClearTimers.get(id);
   if (previousClearTimer !== undefined) {
@@ -52,14 +63,14 @@ export const createNotification = (
   const created = Promise.resolve(webExtensionApi.notifications.create(id, details)).then(
     () => undefined,
     (error) => {
-      logPort.add("notification create failed", String(error));
+      addNotificationLog("notification create failed", error, writeOptions);
     },
   );
   if (duration > 0) {
     const clearTimer = globalThis.setTimeout(() => {
       notificationClearTimers.delete(id);
       void Promise.resolve(webExtensionApi.notifications.clear(id)).catch((error) =>
-        logPort.add("notification clear failed", String(error)),
+        addNotificationLog("notification clear failed", error, writeOptions),
       );
     }, duration);
     notificationClearTimers.set(id, clearTimer);
@@ -71,6 +82,7 @@ export const queueExtensionNotification = (
   id: string,
   details: SaveInNotificationOptions,
   duration = options.notifyDuration,
+  writeOptions: PrivateWriteOptions = {},
 ) => {
   const previousClearTimer = notificationClearTimers.get(id);
   if (previousClearTimer !== undefined) {
@@ -83,7 +95,7 @@ export const queueExtensionNotification = (
 
   const debounceTimer = globalThis.setTimeout(() => {
     extensionNotificationDebounceTimers.delete(id);
-    createNotification(id, details, duration);
+    createNotification(id, details, duration, writeOptions);
   }, EXTENSION_NOTIFICATION_DEBOUNCE_MS);
   extensionNotificationDebounceTimers.set(id, debounceTimer);
 };

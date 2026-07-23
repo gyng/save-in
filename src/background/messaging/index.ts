@@ -318,12 +318,40 @@ const internalHandlers = {
     }
     const scratchEntryId = rerouteState.scratch.historyEntryId;
     const newHistoryId = typeof scratchEntryId === "string" ? scratchEntryId : undefined;
-    await registerPendingHistoryMove(replacement.downloadId, {
-      historyId,
-      downloadId,
-      startTime: entry.downloadStartTime || verifiedOriginal.startTime,
-      filename: entry.finalFullPath || verifiedOriginal.filename,
-    });
+    let moveRegistered: boolean | undefined;
+    try {
+      moveRegistered = await registerPendingHistoryMove(replacement.downloadId, {
+        historyId,
+        downloadId,
+        startTime: entry.downloadStartTime || verifiedOriginal.startTime,
+        filename: entry.finalFullPath || verifiedOriginal.filename,
+      });
+    } catch (error) {
+      // The replacement already exists, so reporting failure could make a
+      // second click create another copy. Without durable recovery intent the
+      // only honest transaction is to keep the original and retire the move.
+      await abandonPendingHistoryMove(replacement.downloadId);
+      await addLogEntry("history move recovery unavailable", String(error), {
+        privateContext: entry.private === true,
+      });
+      sendResponse({
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: {
+          rerouted: true,
+          oldRemoved: false,
+          ...(newHistoryId ? { newHistoryId } : {}),
+        },
+      });
+      return;
+    }
+    if (moveRegistered === false) {
+      await abandonPendingHistoryMove(replacement.downloadId);
+      sendResponse({
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { rerouted: true, oldRemoved: false },
+      });
+      return;
+    }
 
     // Close the fast-completion race: the terminal event may have fired before
     // the pending intent was persisted. Ordinary in-progress replacements are
@@ -337,7 +365,27 @@ const internalHandlers = {
       // unavailable; retaining the original is always the safe fallback.
     }
     if (replacementState === "complete") {
-      const completedMove = await completePendingHistoryMove(replacement.downloadId);
+      let completedMove;
+      try {
+        completedMove = await completePendingHistoryMove(replacement.downloadId);
+      } catch (error) {
+        // The replacement is already accepted and the pending intent is
+        // durable. Reporting failure would invite a second click and another
+        // replacement; recovery can safely finish the same move later.
+        await addLogEntry("history move completion deferred", String(error), {
+          privateContext: entry.private === true,
+        });
+        sendResponse({
+          type: MESSAGE_TYPES.HISTORY_REROUTE,
+          body: {
+            rerouted: true,
+            oldRemoved: false,
+            pending: true,
+            ...(newHistoryId ? { newHistoryId } : {}),
+          },
+        });
+        return;
+      }
       sendResponse({
         type: MESSAGE_TYPES.HISTORY_REROUTE,
         body: {
@@ -448,7 +496,7 @@ const externalHandlers = {
         });
       })();
     }
-    return handleDownloadMessage(request, sender, sendResponse, false, true);
+    return handleDownloadMessage(request, sender, sendResponse);
   },
 } satisfies HandlerTable<ExternalMessage>;
 

@@ -52,9 +52,9 @@ export const parseTabAction = (value: string | undefined): TabAction | undefined
 // shipped (tab: …) key stays accepted forever: stored menus already carry it.
 const parseAfterAction = (value: string | undefined): TabAction | undefined => {
   switch (value?.trim().toLowerCase()) {
-    case "closetab":
+    case "close-tab":
       return "close";
-    case "returntab":
+    case "return-tab":
       return "return";
     default:
       return undefined;

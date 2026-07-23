@@ -160,6 +160,85 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     // The direct bind is containment-wrapped off the await chain: a refused
     // history write must not turn a successful replacement into a failure.
     await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "retry history binding failed",
+        "Error: write refused",
+      ),
+    );
+  });
+
+  test("does not report failure after the browser accepts a retry whose recovery write fails", async () => {
+    await seedStartedDownload();
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    vi.mocked(global.browser.downloads.download).mockResolvedValue(202);
+    const update = vi.mocked(SessionState.updateSession);
+    const realUpdate = update.getMockImplementation()!;
+    let downloadRecordWrites = 0;
+    update.mockImplementation((...args) => {
+      if (args[2] === "siDownloads" && ++downloadRecordWrites === 2) {
+        return Promise.reject(new Error("session record unavailable"));
+      }
+      return realUpdate(...args);
+    });
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(global.browser.downloads.download).toHaveBeenCalledTimes(2);
+    expect(downloadState.records.get(202)).toMatchObject({ viaFetch: true, adopted: true });
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "accepted retry recovery record failed",
+      "Error: session record unavailable",
+    );
+  });
+
+  test("cancels an accepted retry when cancellation races its failed recovery write", async () => {
+    await seedStartedDownload();
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    vi.mocked(global.browser.downloads.download).mockResolvedValue(202);
+    vi.mocked(global.browser.downloads.cancel).mockRejectedValueOnce(new Error("already stopped"));
+    const update = vi.mocked(SessionState.updateSession);
+    const realUpdate = update.getMockImplementation()!;
+    let downloadRecordWrites = 0;
+    update.mockImplementation((...args) => {
+      if (args[2] === "siDownloads" && ++downloadRecordWrites === 2) {
+        expect(ActiveTransfers.cancelActiveTransfer("h-test")).toBe(true);
+        return Promise.reject(new Error("session record unavailable"));
+      }
+      return realUpdate(...args);
+    });
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(global.browser.downloads.cancel).toHaveBeenCalledWith(202);
+  });
+
+  test("contains retry cleanup failure after browser acceptance", async () => {
+    await seedStartedDownload();
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    vi.mocked(global.browser.downloads.download).mockResolvedValue(202);
+    const update = vi.mocked(SessionState.updateSession);
+    const realUpdate = update.getMockImplementation()!;
+    let pendingWrites = 0;
+    update.mockImplementation((...args) => {
+      if (args[2] === "siPendingDownloads" && ++pendingWrites === 2) {
+        return Promise.reject(new Error("cleanup unavailable"));
+      }
+      return realUpdate(...args);
+    });
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "retry session cleanup failed",
+      "Error: cleanup unavailable",
+    );
   });
 
   test("re-derives Referer protection for the retry fetch", async () => {

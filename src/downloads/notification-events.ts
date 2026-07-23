@@ -50,13 +50,11 @@ import {
   EXTENSION_NOTIFICATION_STREAMS,
 } from "./notification-runtime.ts";
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
-import { OffscreenClient } from "../platform/offscreen-client.ts";
 import {
   searchDownloadStartTime,
   undoDownloadAndMark,
   type ExpectedDownloadIdentity,
 } from "./undo-download.ts";
-import { isDataUrl } from "../shared/data-url.ts";
 import { abandonPendingHistoryMove, completePendingHistoryMove } from "./history-move.ts";
 import {
   deriveDownloadsRoot,
@@ -64,6 +62,7 @@ import {
   relativeDirectoryWithinRoot,
   rememberDownloadsRoot,
 } from "./browser-last-used.ts";
+import { releaseTerminalDownload, waitForLateRouteCancellation } from "./terminal-download.ts";
 
 type HostDownloadItem = Parameters<
   Parameters<typeof webExtensionApi.downloads.onCreated.addListener>[0]
@@ -82,11 +81,27 @@ const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
 const backgroundRuntime = downloadPorts.runtime;
 const notificationUndoTasks = new Map<number, Promise<void>>();
+const downloadChangeTasks = new Map<number, Promise<void>>();
 
 const addDownloadLog = (record: DownloadRecord, message: string, data?: unknown): unknown =>
   isPrivateDownloadRecord(record)
     ? logPort.add(message, data, { privateContext: true })
     : logPort.add(message, data);
+
+const bindHistoryDownloadId = (
+  historyEntryId: string | null | undefined,
+  downloadId: number,
+  startTime: string | undefined,
+  privateContext: boolean,
+): void => {
+  void historyPort.setDownloadId(historyEntryId, downloadId, startTime).catch((error) =>
+    privateContext
+      ? logPort.add("download event history binding failed", String(error), {
+          privateContext: true,
+        })
+      : logPort.add("download event history binding failed", String(error)),
+  );
+};
 
 // Handlers are registered once at load, by registerNotifier in notification.ts:
 // MV3 workers must register listeners synchronously or they miss the very
@@ -141,7 +156,12 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
       privateContext: item.incognito === true || isPrivateDownloadRecord(matched.record || {}),
     });
     if (matched.record?.historyEntryId) {
-      void historyPort.setDownloadId(matched.record.historyEntryId, item.id, item.startTime);
+      bindHistoryDownloadId(
+        matched.record.historyEntryId,
+        item.id,
+        item.startTime,
+        item.incognito === true || isPrivateDownloadRecord(matched.record),
+      );
     }
     return;
   }
@@ -232,10 +252,11 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
           conflictAction: options.conflictAction,
         });
         setTimeout(() => cancelExpectedDownload(expected), 10000);
-        void historyPort.setDownloadId(
+        bindHistoryDownloadId(
           historyEntryId,
           replacementId,
           await searchDownloadStartTime(replacementId),
+          false,
         );
       } catch (error) {
         cancelExpectedDownload(expected);
@@ -270,7 +291,7 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
       allowOriginalUrlFallback: false,
       privateContext: item.incognito === true,
     });
-    void historyPort.setDownloadId(historyEntryId, item.id, item.startTime);
+    bindHistoryDownloadId(historyEntryId, item.id, item.startTime, item.incognito === true);
   }
 };
 
@@ -327,6 +348,7 @@ const undoFromNotification = async (notId: string, downloadId: number) => {
         message: getMessage("historyUndoFailed") || "Could not undo this save.",
       },
       options && options.notifyDuration,
+      { privateContext: undoPrivateContext() },
     );
   // These diagnostics describe a record this handler already looked up, so
   // they must honor its private-debug-log gate the same way addDownloadLog
@@ -507,17 +529,22 @@ const handleObservedBrowserDownload = async (
         await extensionSessionStorage.set({
           [BROWSER_LAST_USED_NOTICE_SESSION_KEY]: noticeReason,
         });
-        createNotification("save-in-not-browser-last-used", {
-          type: "basic",
-          title: getMessage("browserLastUsedNoticeTitle"),
-          iconUrl: ERROR_ICON_URL,
-          message:
-            noticeReason === "needs-save"
-              ? getMessage("browserLastUsedNeedsSave")
-              : noticeReason === "outside"
-                ? getMessage("browserLastUsedOutsideDownloads")
-                : getMessage("browserLastUsedUnsupportedPath"),
-        });
+        createNotification(
+          "save-in-not-browser-last-used",
+          {
+            type: "basic",
+            title: getMessage("browserLastUsedNoticeTitle"),
+            iconUrl: ERROR_ICON_URL,
+            message:
+              noticeReason === "needs-save"
+                ? getMessage("browserLastUsedNeedsSave")
+                : noticeReason === "outside"
+                  ? getMessage("browserLastUsedOutsideDownloads")
+                  : getMessage("browserLastUsedUnsupportedPath"),
+          },
+          undefined,
+          { privateContext: isPrivateDownloadRecord(record) },
+        );
       }
     }
   }
@@ -580,11 +607,10 @@ const notifyDownloadFailure = async (
           ? getMessage("notificationPrivateFailureTitle")
           : getMessage("notificationFailureTitle", [filename]),
         iconUrl: ERROR_ICON_URL,
-        message: privateContext
-          ? getMessage("notificationPrivateDetailsHidden")
-          : downloadFailureReason(failed) || getMessage("genericUnknownError"),
+        message: downloadFailureReason(failed) || getMessage("genericUnknownError"),
       },
       notify.duration,
+      { privateContext },
     );
   }
 
@@ -684,32 +710,38 @@ const notifyDownloadSuccess = async (
   notify: NotifySettings,
 ): Promise<void> => {
   addDownloadLog(record, "download complete", { id: downloadDelta.id, filename });
-  const res = await webExtensionApi.downloads.search({ id: downloadDelta.id });
-  const completedItem = res[0];
-  const mime = completedItem?.mime;
   const successfulLabel = getMessage("notificationSuccessTitle");
   const privateContext = isPrivateDownloadRecord(record);
-  const title = privateContext
-    ? successfulLabel
-    : buildSuccessNotificationTitle(successfulLabel, completedItem?.fileSize, mime);
+  let title = successfulLabel;
+  if (!privateContext) {
+    const res = await webExtensionApi.downloads.search({ id: downloadDelta.id });
+    const completedItem = res[0];
+    title = buildSuccessNotificationTitle(
+      successfulLabel,
+      completedItem?.fileSize,
+      completedItem?.mime,
+    );
+  }
 
   const successDetails: SaveInNotificationOptions = {
     type: "basic",
     title,
     iconUrl: SUCCESS_ICON_URL,
-    message: privateContext ? getMessage("notificationPrivateDetailsHidden") : filename,
+    message: privateContext ? getMessage("notificationPrivateSuccessMessage") : filename,
   };
   // Undo needs a History row to mark. Isolated private saves have no row;
   // opted-in private saves carry one and can use the normal Chrome action.
   if (
     WEB_EXTENSION_CAPABILITIES.notificationButtons &&
-    (!isPrivateDownloadRecord(record) || Boolean(record.historyEntryId))
+    (!privateContext || Boolean(record.historyEntryId))
   ) {
     Object.assign(successDetails, {
       buttons: [{ title: getMessage("notificationUndoSave") || "Undo save" }],
     });
   }
-  createNotification(String(downloadDelta.id), successDetails, notify.duration);
+  createNotification(String(downloadDelta.id), successDetails, notify.duration, {
+    privateContext,
+  });
 
   if (backgroundRuntime.debug && !isPrivateDownloadRecord(record)) {
     /* eslint-disable no-console */
@@ -723,30 +755,15 @@ const notifyDownloadSuccess = async (
   }
 };
 
-// The download reached a terminal state: give back anything it was holding.
-const releaseTerminalDownload = async (
-  downloadDelta: HostDownloadDelta,
-  record: DownloadRecord,
-): Promise<void> => {
-  if (record.offscreenRequestId) {
-    await OffscreenClient.release(record.offscreenRequestId).catch((error) =>
-      addDownloadLog(record, "offscreen blob release failed", String(error)),
-    );
-  }
-  // Clear adoption but keep the record: recordHistoryStatus (above) and any
-  // in-flight retry still read its historyEntryId; the cap evicts it later
-  await mergeTrackedDownload(downloadDelta.id, {
-    adopted: false,
-    pendingSourceSidecar: undefined,
-    ...(record.url && isDataUrl(record.url) ? { url: undefined } : {}),
-  });
-};
-
-export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
+const handleDownloadChanged = async (downloadDelta: HostDownloadDelta): Promise<void> => {
+  // Capture this before initialization yields: the filename listener may
+  // finish its cancellation while this wake-up is still waiting for ready.
+  const lateRouteCancellation = waitForLateRouteCancellation(downloadDelta.id);
   if (backgroundRuntime.ready) {
     await backgroundRuntime.ready.catch(() => {});
   }
   const notify = readNotifySettings();
+  if (lateRouteCancellation && (await lateRouteCancellation)) return;
 
   // The record IS the membership check: no record (or one whose adoption was
   // cleared at a prior terminal delta) means this download is not ours. After
@@ -830,6 +847,25 @@ export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
 
   const isComplete = downloadDelta.state && downloadDelta.state.current === "complete";
   if (failed || isComplete) {
-    await releaseTerminalDownload(downloadDelta, record);
+    await releaseTerminalDownload(downloadDelta.id, record, (message, data) =>
+      addDownloadLog(record, message, data),
+    );
   }
+};
+
+// Browsers may emit separate terminal error/state deltas back-to-back. Keep
+// one ordered task per download so both listeners cannot capture the same
+// adopted record and publish duplicate or contradictory terminal outcomes.
+export const onDownloadChanged = (downloadDelta: HostDownloadDelta): Promise<void> => {
+  const run = () => handleDownloadChanged(downloadDelta);
+  const prior = downloadChangeTasks.get(downloadDelta.id);
+  const task = prior ? prior.then(run, run) : run();
+  downloadChangeTasks.set(downloadDelta.id, task);
+  const retire = () => {
+    if (downloadChangeTasks.get(downloadDelta.id) === task) {
+      downloadChangeTasks.delete(downloadDelta.id);
+    }
+  };
+  void task.then(retire, retire);
+  return task;
 };

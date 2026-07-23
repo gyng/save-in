@@ -105,6 +105,19 @@ Unknown options and type mismatches are rejected. Omitted options remain unchang
 
 Routing validation is fail-closed per rule: a malformed line, unsupported clause, invalid capture reference, absolute or parent destination, or invalid URL template makes that entire rule inert without consuming a later match. `disabled: true` prevents a valid rule from running but does not bypass validation. Empty regex matchers remain compatible match-all conditions but produce `ruleEmptyMatcher`; write `.*` when match-all is intentional. Leading or trailing regex whitespace produces `ruleSuspiciousWhitespace`, and potentially expensive regex structure produces `ruleUnsafeRegex`; these three diagnostics are warnings for local configuration.
 
+A rule has one terminal outcome. A saving rule ends with `into:`. An exclusion
+rule ends with `exclude: true`, must contain a matcher, and stops processing
+without starting a Save In download. Exclusions may not carry destination,
+capture, fetch, rename, or tab-action clauses. For an ordinary browser download
+that has already started, exclusion leaves it unchanged rather than cancelling
+it. A saving rule may include `after: close-tab`; interactive saves close their source
+tab only after the browser accepts the download. Automatic rules reject that
+action, and ordinary browser-download routing ignores it because it has no
+source tab to act on. A `target: "activeTab"` request explicitly owns that tab
+for the action; an explicit-URL request does not close a caller or ambient tab.
+`VALIDATE` traces expose `selectedOutcome`,
+`selectedTabAction`, and each rule's `outcome`; these fields are additive.
+
 External validation is isolated from Save In's browser state: a trace uses only the sample fields supplied by the caller and never falls back to the active tab. Requests are bounded to 32,768 characters for each editable grammar, 4,096 characters per ordinary sample field, and 8,192 characters per sample URL. Bursts above 20 validation requests per 10 seconds per sender return `RATE_LIMITED`.
 
 External validation runs a deliberately narrower regular-expression grammar than the routing engine itself, because an external trace executes caller-supplied patterns against caller-supplied samples on the background event loop. A rule whose matcher or `rename:` find pattern falls outside that grammar is reported in `ruleErrors` with the offending pattern in `error`, and is inert for that trace — the same treatment any other invalid rule receives. The rest of the request still validates. Such a rule is not rejected by the options page, so a pattern Save In declines to trace here may still be one the engine runs; check it in the route debugger.
@@ -144,13 +157,13 @@ still preventing later Save In routing rules from adopting it. Automatic
 exclusions retain the normal explicit context, page, and source requirements
 and do not consume the per-page save limit.
 
-A save rule may carry `after: closetab`. Once that rule wins and the browser accepts
+A save rule may carry `after: close-tab`. Once that rule wins and the browser accepts
 the Save In download, the extension closes the source tab. The action does not
 run for a skipped or failed save, and an explicit per-menu-item tab action takes
-precedence. Automatic rules reject `after: closetab`; ordinary browser downloads do
+precedence. Automatic rules reject `after: close-tab`; ordinary browser downloads do
 not expose a source tab for this action.
 
-External `DOWNLOAD` requests never execute `after: closetab`; allowing another
+External `DOWNLOAD` requests never execute `after: close-tab`; allowing another
 extension grants it download access, not authority to close browser tabs.
 
 Check for the `vocabulary`, `grammar`, and `automatic_routing_validation` capabilities before using these additive API v1 features. Older callers can ignore the new capability and response fields.

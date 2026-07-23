@@ -96,7 +96,7 @@ describe("reference controller", () => {
     document.body.innerHTML = `
       <span class="reference-copy-status" role="status"></span>
       <table><tbody><tr><th>
-        <code class="click-to-copy" data-copy-value="after: closetab">after:</code>
+        <code class="click-to-copy" data-copy-value="after: close-tab">after:</code>
       </th><td>Close the source tab</td></tr></tbody></table>`;
     const copy = vi.fn(async () => undefined);
     setupReferencePage(document, copy, referenceMessage);
@@ -104,10 +104,10 @@ describe("reference controller", () => {
     const token = document.querySelector<HTMLElement>(".click-to-copy")!;
     token.click();
 
-    await vi.waitFor(() => expect(copy).toHaveBeenCalledWith("after: closetab"));
-    expect(token.getAttribute("aria-label")).toBe("Copy after: closetab");
+    await vi.waitFor(() => expect(copy).toHaveBeenCalledWith("after: close-tab"));
+    expect(token.getAttribute("aria-label")).toBe("Copy after: close-tab");
     expect(document.querySelector(".reference-copy-status")?.textContent).toBe(
-      "Copied after: closetab",
+      "Copied after: close-tab",
     );
   });
 

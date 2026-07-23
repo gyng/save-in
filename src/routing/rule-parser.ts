@@ -30,7 +30,6 @@ import { isSafeRoutingRegex } from "./regex-safety.ts";
 import { isUsableFetchTemplate } from "./fetch-url.ts";
 import { invalidDestinationRange } from "./destination-safety.ts";
 import { ROUTES_TO_FOLDER_REGEX } from "./path.ts";
-import { isRoutingActionName, ROUTING_ACTION_VALUES } from "./action-values.ts";
 
 // A trailing separator routes into a directory and keeps the download's own
 // name. Shared with the router and the download plan so the warning below can
@@ -268,20 +267,29 @@ const parseSemanticRule = (
       // template is accidental and would corrupt the request line.
       return { name, value: rawValue.trim(), type: RULE_TYPES.FETCH };
     }
-    if (isRoutingActionName(name)) {
-      const expectedValue = ROUTING_ACTION_VALUES[name];
-      if (rawValue.trim().toLowerCase() !== expectedValue) {
+    if (name === "exclude") {
+      if (rawValue.trim().toLowerCase() !== "true") {
         appendError(
           errors,
           routingPorts.getMessage("ruleBadClause"),
-          `${name} must be ${expectedValue}`,
+          "exclude must be true",
           line.valueSpan,
         );
         return false;
       }
-      return name === "exclude"
-        ? { name, value: ROUTING_ACTION_VALUES.exclude, type: RULE_TYPES.ACTION }
-        : { name, value: ROUTING_ACTION_VALUES.after, type: RULE_TYPES.ACTION };
+      return { name, value: "true", type: RULE_TYPES.ACTION };
+    }
+    if (name === "after") {
+      if (rawValue.trim().toLowerCase() !== "close-tab") {
+        appendError(
+          errors,
+          routingPorts.getMessage("ruleBadClause"),
+          "after must be close-tab",
+          line.valueSpan,
+        );
+        return false;
+      }
+      return { name, value: "close-tab", type: RULE_TYPES.ACTION };
     }
     if (name === "rename") {
       const parts = splitRenameValue(rawValue);
@@ -394,7 +402,7 @@ const parseSemanticRule = (
   const valid = clauses.filter((clause): clause is RuleClause => clause !== false);
   if (valid.length !== clauses.length || automaticIssues.length > 0) return false;
   const exclusionNodes = lines.filter((line) => line.name === "exclude");
-  const tabActionNodes = lines.filter((line) => line.name === "after");
+  const postSaveActionNodes = lines.filter((line) => line.name === "after");
   if (exclusionNodes.length > 1) {
     appendError(
       errors,
@@ -404,17 +412,16 @@ const parseSemanticRule = (
     );
     return false;
   }
-  if (tabActionNodes.length > 1) {
+  if (postSaveActionNodes.length > 1) {
     appendError(
       errors,
       routingPorts.getMessage("ruleBadClause"),
       "after may appear only once",
-      (tabActionNodes[1] as (typeof tabActionNodes)[number]).span,
+      (postSaveActionNodes[1] as (typeof postSaveActionNodes)[number]).span,
     );
     return false;
   }
-  const excluded = exclusionNodes.length === 1;
-  if (excluded) {
+  if (exclusionNodes.length === 1) {
     const incompatible = lines.find((line) =>
       ["after", "capture", "capturegroups", "fetch", "into", "rename"].includes(line.name),
     );
@@ -438,12 +445,12 @@ const parseSemanticRule = (
     }
     return disabled ? false : (valid as RoutingRule);
   }
-  if (tabActionNodes.length === 1 && isAutomaticRuleClauses(valid)) {
+  if (postSaveActionNodes.length === 1 && isAutomaticRuleClauses(valid)) {
     appendError(
       errors,
       routingPorts.getMessage("ruleBadClause"),
       "automatic rules cannot close tabs",
-      (tabActionNodes[0] as (typeof tabActionNodes)[number]).span,
+      (postSaveActionNodes[0] as (typeof postSaveActionNodes)[number]).span,
     );
     return false;
   }

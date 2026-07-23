@@ -574,8 +574,8 @@ describe("OptionsManagement", () => {
       });
     });
 
-    test("reports a terminal exclusion without constructing a destination preview", async () => {
-      const rule = routingRule("exclude");
+    test("returns a terminal exclusion without interpolating a path", async () => {
+      const rule = routingRule("excluded");
       OptionsManagement.setOption("filenamePatterns", [rule]);
       mocks.Download.getRoutingMatch.mockReturnValue({
         outcome: "exclude",
@@ -589,8 +589,8 @@ describe("OptionsManagement", () => {
       await expect(
         previewRoutes({ info: { filename: "tracker.gif", url: "https://x/tracker.gif" } }),
       ).resolves.toEqual({ path: null, captures: null, outcome: "exclude" });
-      expect(mocks.Path).not.toHaveBeenCalled();
       expect(mocks.applyVariables).not.toHaveBeenCalled();
+      expect(mocks.router.getCaptureMatches).not.toHaveBeenCalled();
     });
 
     test("applies the winning rule's rename to the previewed final component", async () => {

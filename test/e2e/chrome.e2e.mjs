@@ -1037,6 +1037,114 @@ test("Save In filenames match live Chrome Content-Disposition behavior", async (
   });
 });
 
+test("a final Chrome filename can exclude an already-started Save In download", async () => {
+  const filename = "blocked-by-final.bin";
+  const server = http.createServer((_req, res) => {
+    res.writeHead(200, {
+      "Content-Type": "application/octet-stream",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+    });
+    res.end("must not be saved");
+  });
+  const port = await listenLocal(server);
+  const url = `http://127.0.0.1:${port}/initial-name.bin`;
+
+  await control.options.set({
+    filenamePatterns: `finalfilename: ^${filename.replace(".", "\\.")}$
+exclude: true
+
+url: .*
+into: fallback/:filename:`,
+    notifyOnRuleMatch: false,
+  });
+  const launch = await control.background.startDownload({
+    url,
+    suggestedFilename: "initial-name.bin",
+    pageUrl: "https://example.com/",
+  });
+  expect(launch.status).toBe("started");
+  if (launch.status !== "started") throw new Error("Late exclusion did not start its handoff");
+
+  const [excluded] = await Promise.all([
+    control.history.wait({ url, status: "RULE_EXCLUDED" }),
+    control.downloads.waitReleased(launch.downloadId),
+  ]);
+  const [interrupted] = await control.downloads.search({ id: launch.downloadId });
+  expect(interrupted?.state).toBe("interrupted");
+  expect(excluded.at(-1)).toMatchObject({ status: "RULE_EXCLUDED", info: { sourceUrl: url } });
+  expect(fs.existsSync(path.join(DOWNLOADS, "e2e", "fallback", filename))).toBe(false);
+});
+
+test("a final Chrome filename resolves its tab action before the menu command returns", async () => {
+  const filename = "final-filename-action.txt";
+  const previous = await control.storage.local.get(["paths", "filenamePatterns", "closeTabOnSave"]);
+  const missing = ["paths", "filenamePatterns", "closeTabOnSave"].filter(
+    (key) => !Object.hasOwn(previous, key),
+  );
+  const server = http.createServer((req, res) => {
+    if (req.url === "/download") {
+      res.writeHead(200, {
+        "Content-Type": "text/plain",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+      });
+      res.end("final filename action");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end("<!doctype html><title>Final filename action source</title>");
+  });
+  const port = await listenLocal(server);
+  const pageUrl = `http://127.0.0.1:${port}/source`;
+  const downloadUrl = `http://127.0.0.1:${port}/download`;
+  /** @type {number | undefined} */
+  let tabId;
+
+  try {
+    await control.options.set({
+      paths: "e2e/menu-fallback",
+      closeTabOnSave: false,
+      filenamePatterns: `finalfilename: ^${filename.replace(".", "\\.")}$
+after: close-tab
+into: e2e/final-action/:filename:`,
+    });
+    const created = await control.tabs.create({ url: pageUrl });
+    tabId = requireValue(created.id, "Final-filename action tab has no ID");
+    const tab = await control.tabs.wait({ id: tabId });
+
+    await control.background.clickContextMenu({
+      info: {
+        menuItemId: "save-in-0",
+        linkUrl: downloadUrl,
+        pageUrl,
+      },
+      tab: {
+        id: tabId,
+        windowId: tab.windowId,
+        title: tab.title,
+        url: tab.url,
+      },
+    });
+
+    const downloads = await waitForDownloads(filename);
+    const history = await control.history.wait({ url: downloadUrl, status: "complete" });
+    expect(downloads.some((row) => row.state === "complete")).toBe(true);
+    expect(downloads[0]?.filename).toMatch(/e2e[\\/]final-action[\\/]final-filename-action\.txt$/);
+    expect(history.at(-1)).toMatchObject({
+      routed: true,
+      finalFullPath: "e2e/menu-fallback/e2e/final-action/final-filename-action.txt",
+      variables: { filename },
+    });
+    expect((await control.tabs.query({})).some((candidate) => candidate.id === tabId)).toBe(false);
+    tabId = undefined;
+  } finally {
+    if (tabId !== undefined) await control.tabs.remove(tabId).catch(() => {});
+    await closeLocal(server);
+    await control.storage.local.set(previous);
+    if (missing.length > 0) await control.storage.local.remove(missing);
+    await control.runtime.reset();
+  }
+});
+
 test("success notifications are created by the real download listener", async () => {
   try {
     await control.background.notificationCalls("reset");

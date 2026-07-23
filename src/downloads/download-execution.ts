@@ -43,6 +43,7 @@ import {
   addDownloadLog,
   isHttpDownloadUrl,
   isPrivateDownloadState,
+  isRoutingAccepted,
   isSourceSidecar,
   releaseUnusedContent,
   requireDownloadUrl,
@@ -65,6 +66,12 @@ import {
   updateActiveTransfer,
 } from "./active-transfers.ts";
 import { deliverSaveWebhook } from "./webhook-delivery.ts";
+import { notifyRouteExclusion } from "./route-exclusion-notification.ts";
+import {
+  discardRoutingResolution,
+  prepareRoutingResolution,
+  waitForRoutingResolution,
+} from "./routing-resolution.ts";
 
 const logPort = downloadPorts.log;
 const historyPort = downloadPorts.history;
@@ -141,7 +148,7 @@ const releaseAcquiredDownload = async (acquired: AcquiredDownload): Promise<void
   }
 };
 
-const recordDownloadRequest = (plan: DownloadPlan): void => {
+const recordDownloadRequest = (plan: DownloadPlan): DownloadPipelineState | undefined => {
   const { state } = plan;
   const privateContext = isPrivateDownloadState(state);
   if (shouldPersistActivity(privateContext)) {
@@ -168,8 +175,11 @@ const recordDownloadRequest = (plan: DownloadPlan): void => {
 
   if (shouldPersistActivity(privateContext) && !isSourceSidecar(state)) {
     emitDownloaded(state);
-    backgroundRuntime.lastDownloadState = retainedDownloadSnapshot(state);
+    const snapshot = retainedDownloadSnapshot(state);
+    backgroundRuntime.lastDownloadState = snapshot;
+    return snapshot;
   }
+  return undefined;
 };
 
 export const acquireFetchedUrl = async (
@@ -269,9 +279,13 @@ export const executeBrowserDownload = async (
   const persistActivity =
     shouldPersistActivity(privateContext) || typeof historyEntryId === "string";
   const pendingSourceSidecar = !prompt && !privateContext ? state.scratch.sourceSidecar : undefined;
-  void historyPort.patch(historyEntryId, {
-    mechanism: acquired.source === "fetched" ? "fetch-downloads-api" : "downloads-api",
-  });
+  void historyPort
+    .patch(historyEntryId, {
+      mechanism: acquired.source === "fetched" ? "fetch-downloads-api" : "downloads-api",
+    })
+    .catch((error) =>
+      addDownloadLog(state, "download mechanism history update failed", String(error)),
+    );
   const filename = finalFullPath || "_";
   const headers =
     acquired.source === "direct" || acquired.source === "fetch-fallback-direct"
@@ -355,6 +369,7 @@ export const executeBrowserDownload = async (
     if (headers) downloadOptions.headers = headers;
     Object.assign(downloadOptions, await resolveFirefoxDownloadContext(state.info.currentTab));
     throwIfAborted(signal);
+    if (browserFilenameResolution) prepareRoutingResolution(state);
     const downloadId = await webExtensionApi.downloads.download(downloadOptions);
     cancelExpectedDownload(expected);
     if (acquired.ownedObjectUrl) {
@@ -362,42 +377,58 @@ export const executeBrowserDownload = async (
     }
     const browserFilename = downloadRuntime.finalFilenamesByDownloadId.get(downloadId);
     downloadRuntime.finalFilenamesByDownloadId.delete(downloadId);
-    await rememberStartedDownload(downloadId, {
-      url: state.info.url,
-      pageUrl: state.info.pageUrl,
-      filename: browserFilename || filename,
-      conflictAction: options.conflictAction,
-      viaFetch: acquired.source === "fetched",
-      retried: false,
-      allowOriginalUrlFallback,
-      saveAsPrompted: prompt,
-      ...(acquired.offscreenRequestId ? { offscreenRequestId: acquired.offscreenRequestId } : {}),
-      ...(historyEntryId ? { historyEntryId } : {}),
-      ...(isSourceSidecar(state) ? { sourceSidecar: true } : {}),
-      ...(pendingSourceSidecar ? { pendingSourceSidecar } : {}),
-      // Answered here, where the tab and the save command are still in reach.
-      // The completion path has neither, and must not have to guess.
-      webhookEligible: state.info.webhookEligible === true && privateContext !== true,
-      privateContext,
-      adopted: true,
-    });
+    try {
+      await rememberStartedDownload(downloadId, {
+        url: state.info.url,
+        pageUrl: state.info.pageUrl,
+        filename: browserFilename || filename,
+        conflictAction: options.conflictAction,
+        viaFetch: acquired.source === "fetched",
+        retried: false,
+        allowOriginalUrlFallback,
+        saveAsPrompted: prompt,
+        ...(acquired.offscreenRequestId ? { offscreenRequestId: acquired.offscreenRequestId } : {}),
+        ...(historyEntryId ? { historyEntryId } : {}),
+        ...(isSourceSidecar(state) ? { sourceSidecar: true } : {}),
+        ...(pendingSourceSidecar ? { pendingSourceSidecar } : {}),
+        // Answered here, where the tab and the save command are still in reach.
+        // The completion path has neither, and must not have to guess.
+        webhookEligible: state.info.webhookEligible === true && privateContext !== true,
+        privateContext,
+        adopted: true,
+      });
+    } catch (error) {
+      // downloads.download already returned an id. Recovery persistence is
+      // best-effort from here: replaying this one-shot handoff could save the
+      // same item twice when storage is merely unavailable.
+      addDownloadLog(state, "download recovery record failed", String(error));
+    }
     if (historyEntryId) {
-      updateActiveTransfer(historyEntryId, { downloadId });
-      // This bind only publishes the bare id early so the options page can
-      // poll progress; onDownloadCreated supplies the item's startTime from
-      // the event payload, and a same-id bind without a time never clobbers
-      // one already captured. The event path can lose its race against
-      // cancelExpectedDownload, so the anchor is backfilled off the hot path.
-      await historyPort.setDownloadId(historyEntryId, downloadId);
+      try {
+        updateActiveTransfer(historyEntryId, { downloadId });
+        // This bind only publishes the bare id early so the options page can
+        // poll progress; onDownloadCreated supplies the item's startTime from
+        // the event payload, and a same-id bind without a time never clobbers
+        // one already captured. The event path can lose its race against
+        // cancelExpectedDownload, so the anchor is backfilled off the hot path.
+        await historyPort.setDownloadId(historyEntryId, downloadId);
+      } catch (error) {
+        addDownloadLog(state, "download history binding failed", String(error));
+      }
       backfillDownloadStartTime(historyEntryId, downloadId, historyPort.anchorStartTime);
     }
     if (signal?.aborted) {
       await webExtensionApi.downloads.cancel(downloadId).catch(() => {});
-      await historyPort.setStatus(historyEntryId, "USER_CANCELED", downloadId);
+      await historyPort
+        .setStatus(historyEntryId, "USER_CANCELED", downloadId)
+        .catch((error) =>
+          addDownloadLog(state, "download cancellation history failed", String(error)),
+        );
       return { status: "skipped" };
     }
     return { status: "started", downloadId };
   } catch (e) {
+    discardRoutingResolution(state);
     cancelExpectedDownload(expected);
     await releaseAcquiredDownload(acquired);
     if (signal?.aborted) {
@@ -418,13 +449,14 @@ export const executeBrowserDownload = async (
       await historyPort.setStatus(historyEntryId, "DOWNLOAD_API_FAILED");
       if (!isSourceSidecar(state)) {
         const failureName = finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(state));
-        if (privateContext) reportDownloadFailure(failureName, String(e), true);
-        else reportDownloadFailure(failureName, String(e));
+        if (privateContext) {
+          reportDownloadFailure(failureName, String(e), { privateContext: true });
+        } else reportDownloadFailure(failureName, String(e));
       }
       return { status: "failed" };
     }
   } finally {
-    await Promise.all([
+    const cleanupResults = await Promise.allSettled([
       ...(persistActivity
         ? [
             updateSession<number>(
@@ -457,6 +489,13 @@ export const executeBrowserDownload = async (
         : []),
       ...(releasePrivateDownloadGuard ? [releasePrivateDownloadGuard()] : []),
     ]);
+    for (const result of cleanupResults) {
+      if (result.status === "rejected") {
+        // Cleanup state is bounded and repaired by startup recovery. Never let
+        // its failure replace an already authoritative browser result.
+        addDownloadLog(state, "download session cleanup failed", String(result.reason));
+      }
+    }
   }
 };
 
@@ -468,8 +507,9 @@ const reportPreparationFailure = (plan: DownloadPlan, error: unknown): void => {
   if (isSourceSidecar(plan.state)) return;
   const failureName =
     plan.finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(plan.state));
-  if (isPrivateDownloadState(plan.state)) reportDownloadFailure(failureName, String(error), true);
-  else reportDownloadFailure(failureName, String(error));
+  if (isPrivateDownloadState(plan.state)) {
+    reportDownloadFailure(failureName, String(error), { privateContext: true });
+  } else reportDownloadFailure(failureName, String(error));
 };
 
 // async because applyVariables may await a
@@ -543,39 +583,26 @@ export const renameAndDownload = async (
     const excluded = state.scratch.routeOutcome === "exclude";
     if (!excluded) await historyPort.setStatus(state.scratch.historyEntryId, "RULE_NO_MATCH");
     finishPreparation();
-    if (
-      excluded &&
-      options.notifyOnRuleMatch &&
-      state.info.context !== DOWNLOAD_TYPES.AUTO &&
-      !isSourceSidecar(state)
-    ) {
-      createExtensionNotification(
-        getMessage("notificationRuleExcludedTitle"),
-        isPrivateDownloadState(state)
-          ? getMessage("notificationRuleExcludedPrivateMessage")
-          : getMessage("notificationRuleExcludedMessage", [
-              truncateDataUrlForDisplay(requireDownloadUrl(state)),
-            ]),
-        false,
-        EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
-      );
+    if (excluded) {
+      notifyRouteExclusion(state);
     } else if ((state.needRouteMatch || options.routeSkipUnmatched) && options.notifyOnFailure) {
       createExtensionNotification(
         getMessage("notificationRuleMatchFailedExclusiveTitle"),
         isPrivateDownloadState(state)
-          ? getMessage("notificationPrivateDetailsHidden")
+          ? getMessage("notificationPrivateRuleMatchFailedMessage")
           : getMessage("notificationRuleMatchFailedExclusiveMessage", [
               truncateDataUrlForDisplay(requireDownloadUrl(state)),
             ]),
         true,
         EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
+        { privateContext: isPrivateDownloadState(state) },
       );
     }
     return { status: "skipped" };
   }
 
   registerTransfer();
-  recordDownloadRequest(plan);
+  const recordedSnapshot = recordDownloadRequest(plan);
   let acquired: AcquiredDownload;
   try {
     acquired = await acquireDownloadUrl(plan, preparationController.signal, activeRequestId);
@@ -618,8 +645,26 @@ export const renameAndDownload = async (
     finishPreparation();
     return { status: "failed" };
   }
+  const routingResolutionPending = state.scratch.deferredRoutingResolution === true;
+  if (result.status === "started") {
+    await waitForRoutingResolution(state);
+    // Preserve last-command ordering: an older, slower filename event must not
+    // replace the diagnostic snapshot installed by a newer save.
+    if (
+      routingResolutionPending &&
+      recordedSnapshot &&
+      backgroundRuntime.lastDownloadState === recordedSnapshot
+    ) {
+      backgroundRuntime.lastDownloadState = retainedDownloadSnapshot(state);
+      // The initial event renders the in-flight row. A second event is the
+      // event-driven acknowledgement that filename-dependent diagnostics and
+      // History metadata now reflect Chrome's settled route.
+      emitDownloaded(state);
+    }
+  } else discardRoutingResolution(state);
   finishPreparation();
   if (result.status !== "started") return result;
+  if (!isRoutingAccepted(state)) return result;
 
   // Webhooks are an optional side effect of the user's save command. They
   // never change, delay, or retry the browser download that already started.
@@ -633,10 +678,11 @@ export const renameAndDownload = async (
       createExtensionNotification(
         getMessage("notificationRuleMatchedTitle"),
         isPrivateDownloadState(state)
-          ? getMessage("notificationPrivateDetailsHidden")
+          ? getMessage("notificationPrivateRuleMatchedMessage")
           : `${state.info.initialFilename}\n⬇\n${state.route}`,
         false,
         EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+        { privateContext: isPrivateDownloadState(state) },
       );
     }
   }

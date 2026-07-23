@@ -209,8 +209,10 @@ describe("createExtensionNotification", () => {
       history: {
         add: () => null,
         patch: () => Promise.resolve(),
+        patchStrict: () => Promise.resolve(),
         setDownloadId: () => Promise.resolve(),
         setStatus: () => Promise.resolve(),
+        setStatusStrict: () => Promise.resolve(),
         entries: () => Promise.resolve([]),
         anchorStartTime: () => Promise.resolve(),
       },

@@ -788,7 +788,8 @@ Briefly explain the structure, check that every line follows this syntax, then p
               <li>
                 __MSG_html_everyRuleMustEndWithAn__ <code>into:</code> __MSG_html_destination__
               </li>
-              <li>__MSG_html_routingActionClauses__</li>
+              <li>__MSG_routeActionRuleEnding__</li>
+              <li><code>after: close-tab</code> — __MSG_routeActionCloseTab__.</li>
               <li><code>disabled: true</code> __MSG_html_keepsARuleWithoutRunningIt__</li>
             </ul>
             <div class="guide-steps guide-steps-routing">
@@ -884,15 +885,15 @@ Save In syntax:
 - Every matcher in one rule must match. Matcher values are JavaScript regular expressions except css:, which takes a CSS selector and no flags. Do not leave a regex matcher empty; write .* explicitly for a match-all condition. Use at most 64 css: matchers in one rule and 256 across the configuration.
 - Common matchers include filename:, finalfilename:, actualfileext:, mime:, sourceurl:, sourcedomain:, sourcerootdomain:, sourcekind:, gesture:, css:, pageurl:, pagedomain:, pagerootdomain:, referrerurl:, referrerdomain:, pagetitle:, context:, and mediatype:.
 - Add /i to a matcher name for case-insensitive matching, for example filename/i: \.pdf$. Regex flags are allowed only on matcher names and rename:.
-- Every non-exclusion rule must contain exactly one into: clause. Its value is a relative destination or filename template and cannot contain .. path components.
+- Every saving rule must contain exactly one into: clause. Its value is a relative destination or filename template and cannot contain .. path components.
+- To stop processing without saving, replace into: with exclude: true. An exclusion must contain at least one matcher and cannot contain after:, capture:, fetch:, or rename:.
+- Add after: close-tab to a destination rule to close the source tab only after the browser accepts a user-initiated save. Automatic Page Sources rules cannot close tabs.
 - End into: with / to move the file while preserving its resolved filename.
 - Otherwise include :filename: unless the goal explicitly requests renaming.
 - Variables use :name: syntax. Useful choices include :filename:, :fileext:, :sourcedomain:, :year:, :month:, :day:, :counter:, and :uuid:.
 - To reuse regex groups in new rules, add capturegroups: followed by the matcher name, then use :$1:, :$2:, and so on in into:. capture: is only for compatibility with legacy flattened indexes.
 - Add an optional fetch: clause with a literal http:// or https:// URL template to download from that address instead of the matched source; into: still sets the destination. It may reuse :$1:, :$2:, and other routing variables except :mime:, :contenttype:, :mimeext:, :sha256:, :sha256full:, :finalurl:, and :redirecturl:. The save fails if expansion does not produce a usable HTTP(S) URL. A rule may contain at most one fetch: clause.
 - Add an optional rename: clause written as "find -> replacement" to edit the final filename: find is a regular expression (add flags after the name, for example rename/gi:), and replacement is literal text where routing variables and :$1: expand. An empty replacement deletes matches; folders are never affected. Rules that need a content hash are skipped for ordinary browser downloads already in flight. A rule may contain at most one rename: clause.
-- Use exclude: true instead of into: to stop a matching save before later rules. Exclusion rules must have at least one matcher and cannot contain output, capture, or after action clauses.
-- Add after: closetab to a non-automatic save rule to close its source tab only after the browser accepts the download.
 - Add disabled: true to a valid rule to keep it without running it. Disabled rules are still validated.
 - Lines beginning with // are comments. Never use absolute paths, parent path components, or unsupported clause names.
 
@@ -1010,7 +1011,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                           __MSG_autoDownloadAddRule__
                         </button>
                         <button type="button" id="rule-editor-add-exclusion">
-                          __MSG_routeVisualAddExclusionRule__
+                          __MSG_routeActionExclude__
                         </button>
                         <button
                           type="button"
@@ -2058,6 +2059,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             <option value="complete">__MSG_o_lHistorySaved__</option>
             <option value="pending">__MSG_o_lHistorySaving__</option>
             <option value="failed">__MSG_o_lHistoryFailed__</option>
+            <option value="RULE_EXCLUDED">__MSG_routeActionExcluded__</option>
             <option value="undone">__MSG_historyStatusUndone__</option>
             <option value="moved">__MSG_historyStatusMoved__</option>
           </select>
@@ -3747,6 +3749,16 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 </td>
               </tr>
               <tr>
+                <td><code class="click-to-copy">exclude:</code></td>
+                <td><code>true</code></td>
+                <td>__MSG_routeActionExclude__. __MSG_routeActionRuleEnding__</td>
+              </tr>
+              <tr>
+                <td><code class="click-to-copy">after:</code></td>
+                <td><code>close-tab</code></td>
+                <td>__MSG_routeActionCloseTab__.</td>
+              </tr>
+              <tr>
                 <td>
                   <code class="click-to-copy">fetch:</code>
                 </td>
@@ -3777,19 +3789,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <code>-></code>__MSG_html_renameReplacementExpandsVariables__
                   <code class="click-to-copy">:$1:</code>.
                   <div class="caption">__MSG_html_renameClauseCompatibility__</div>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <code class="click-to-copy" data-copy-value="exclude: true">exclude:</code>
-                  <code class="click-to-copy" data-copy-value="after: closetab">after:</code>
-                </td>
-                <td>
-                  <code>true</code>
-                  <code>closetab</code>
-                </td>
-                <td>
-                  <span class="badge">__MSG_html_optional__</span> __MSG_html_routingActionClauses__
                 </td>
               </tr>
             </tbody>

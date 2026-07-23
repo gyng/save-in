@@ -5,6 +5,7 @@ import {
   Log,
   SaveHistory,
   Runtime,
+  retryHolder,
   loadNotification,
   adoptedIds,
   setupGlobals,
@@ -95,6 +96,54 @@ describe("notification variants", () => {
       "offscreen blob release failed",
       expect.stringContaining("release failed"),
     );
+  });
+
+  test("releases one offscreen blob once across concurrent terminal deltas", async () => {
+    await install({ notifyOnSuccess: false, notifyOnFailure: false });
+    const { OffscreenClient } = await import("../../../src/platform/offscreen-client.ts");
+    vi.spyOn(OffscreenClient, "release").mockResolvedValue(false);
+    Notifier.expectDownload("https://x/p.png", { offscreenRequestId: "offscreen-once" });
+    await onCreated({
+      id: 7,
+      byExtensionId: "save-in",
+      filename: "/dl/pic.png",
+      url: "https://x/p.png",
+    });
+
+    await Promise.all([
+      onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } }),
+      onChanged({ id: 7, error: { current: "USER_CANCELED" } }),
+    ]);
+
+    expect(OffscreenClient.release).toHaveBeenCalledTimes(1);
+    expect(OffscreenClient.release).toHaveBeenCalledWith("offscreen-once");
+  });
+
+  test("processes concurrent terminal deltas for one download only once", async () => {
+    await install({ notifyOnSuccess: false, notifyOnFailure: false });
+    browserState.current = "FIREFOX";
+    vi.spyOn(SaveHistory, "setHistoryStatus").mockResolvedValue(undefined);
+    Notifier.expectDownload("https://x/p.png", { historyEntryId: "h7" });
+    await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
+    let resolveRetry!: (started: boolean) => void;
+    retryHolder.retry = vi.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveRetry = resolve;
+        }),
+    );
+
+    const terminalEvents = Promise.all([
+      onChanged({ id: 7, error: { current: "NETWORK_FAILED" } }),
+      onChanged({ id: 7, state: { current: "interrupted", previous: "in_progress" } }),
+    ]);
+    await vi.waitFor(() => expect(retryHolder.retry).toHaveBeenCalled());
+    await Promise.resolve();
+    resolveRetry(false);
+    await terminalEvents;
+
+    expect(retryHolder.retry).toHaveBeenCalledTimes(1);
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledTimes(1);
   });
 
   test("promptOnFailure keeps a Firefox private download off the record", async () => {
@@ -222,9 +271,9 @@ describe("notification variants", () => {
     );
   });
 
-  test("hides private filenames in terminal notifications", async () => {
-    await install({ notifyOnSuccess: true, notifyOnFailure: true, notifyDuration: 1000 }, () => [
-      { id: 8, fileSize: 42, mime: "image/png" },
+  test("private success notifications omit identifying file metadata", async () => {
+    await install({ notifyOnSuccess: true, notifyDuration: 1000 }, () => [
+      { id: 8, fileSize: 2500000, mime: "image/png" },
     ]);
     Notifier.expectDownload("https://private.example/secret.png", { privateContext: true });
     await onCreated({
@@ -234,29 +283,42 @@ describe("notification variants", () => {
       url: "https://private.example/secret.png",
     });
 
-    await onChanged({ id: 8, error: { current: "NETWORK_FAILED" } });
-    expect(global.browser.notifications.create).toHaveBeenLastCalledWith(
+    await onChanged({ id: 8, state: { current: "complete", previous: "in_progress" } });
+
+    expect(global.browser.downloads.search).not.toHaveBeenCalled();
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      "8",
+      expect.objectContaining({
+        title: "Translated<notificationSuccessTitle>",
+        message: "Translated<notificationPrivateSuccessMessage>",
+      }),
+    );
+    expect(JSON.stringify(vi.mocked(global.browser.notifications.create).mock.calls)).not.toMatch(
+      /secret\.png|image\/png|2\.5 MB/,
+    );
+  });
+
+  test("private failure notifications omit the filename", async () => {
+    await install({ notifyOnFailure: true, notifyDuration: 1000 });
+    Notifier.expectDownload("https://private.example/secret.png", { privateContext: true });
+    await onCreated({
+      id: 8,
+      incognito: true,
+      filename: "/dl/secret.png",
+      url: "https://private.example/secret.png",
+    });
+
+    await onChanged({ id: 8, error: { current: "FILE_FAILED" } });
+
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
       "8",
       expect.objectContaining({
         title: "Translated<notificationPrivateFailureTitle>",
-        message: "Translated<notificationPrivateDetailsHidden>",
+        message: "FILE_FAILED",
       }),
     );
-
-    Notifier.expectDownload("https://private.example/other.png", { privateContext: true });
-    await onCreated({
-      id: 9,
-      incognito: true,
-      filename: "/dl/other-secret.png",
-      url: "https://private.example/other.png",
-    });
-    await onChanged({ id: 9, state: { current: "complete", previous: "in_progress" } });
-    expect(global.browser.notifications.create).toHaveBeenLastCalledWith(
-      "9",
-      expect.objectContaining({
-        title: "Translated<notificationSuccessTitle>",
-        message: "Translated<notificationPrivateDetailsHidden>",
-      }),
+    expect(JSON.stringify(vi.mocked(global.browser.notifications.create).mock.calls)).not.toContain(
+      "secret.png",
     );
   });
 

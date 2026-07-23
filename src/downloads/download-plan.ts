@@ -256,6 +256,16 @@ export const resolveDownloadPlan = async (
     typeof state.scratch.routeTemplateRaw === "string" &&
     WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
     isHttpDownloadUrl(downloadUrl);
+  delete state.scratch.deferredRoutingResolution;
+  // A server filename can reselect the route after downloads.download()
+  // resolves. Post-start side effects must wait for that browser event.
+  if (
+    usesResolvedFilename &&
+    WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
+    isHttpDownloadUrl(downloadUrl)
+  ) {
+    state.scratch.deferredRoutingResolution = true;
+  }
   if (deferRouteRequirement || persistAutomaticRoute) state.scratch.deferredRouteRequirement = true;
   if (routeRequired && !routeMatches && !deferRouteRequirement) {
     downloadRuntime.forgetPendingState(state);

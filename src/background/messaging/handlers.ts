@@ -4,6 +4,7 @@ import { getMessage } from "../../platform/localization.ts";
 import { splitLines } from "../../shared/util.ts";
 import { MESSAGE_TYPES, DOWNLOAD_TYPES } from "../../shared/constants.ts";
 import { applyVariables, transformers } from "../../routing/variable.ts";
+import { ROUTING_ACTION_VALUES } from "../../routing/action-values.ts";
 import { Path } from "../../routing/path.ts";
 import { OptionsManagement } from "../../config/option.ts";
 import { options } from "../../config/options-data.ts";
@@ -33,7 +34,6 @@ import {
 } from "../../routing/automatic-rule.ts";
 import { getFilenameFromUrl } from "../../routing/filename.ts";
 import { isDataUrl, parseDataUrlMediaType } from "../../shared/data-url.ts";
-import { ROUTING_ACTION_VALUES } from "../../routing/action-values.ts";
 import {
   createExternalValidationRateLimiter,
   externalValidationRequestError,
@@ -48,6 +48,7 @@ import {
   type MessageSender,
   type ProtocolSendResponse,
 } from "./protocol.ts";
+import { closeRoutingSourceTab } from "../tab-action.ts";
 
 export const sourcePanelCopies = new Map<string, ReturnType<typeof createSourcePanelCopy>>();
 const allowExternalValidation = createExternalValidationRateLimiter();
@@ -429,7 +430,6 @@ export const handleDownloadMessage = (
   sender: MessageSender,
   sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.DOWNLOAD>>,
   internal = false,
-  external = false,
 ): Promise<void> | void => {
   const requestBody = request.body || {};
   const { url: requestedUrl, target, comment } = requestBody;
@@ -446,6 +446,7 @@ export const handleDownloadMessage = (
   const launch = (
     url: string,
     resolvedTab: CurrentTab | null = (sender && sender.tab) || currentTab,
+    postSaveActionTab: CurrentTab | null = internal ? sender.tab || null : null,
   ): Promise<void> | void => {
     if (!isValidDownloadUrl(url)) {
       fail(API_ERRORS.INVALID_URL, "URL must be http(s), ftp, data or blob");
@@ -499,12 +500,11 @@ export const handleDownloadMessage = (
     // opts out, take the same destination Quick save resolves, so the two
     // one-click saves cannot disagree about where "default" is. A matched
     // `into:` route still overrides this — download-plan re-roots CLICK saves.
-    const mayRunTabAction = !external && sender.id === webExtensionApi.runtime.id;
     const clickState: DownloadPipelineState = {
       path: options.contentClickToSaveUseDefault
         ? new Path(resolveDefaultDestination(options))
         : last?.path || new Path("."),
-      scratch: external ? { routeTabActionSuppressed: true } : {},
+      scratch: {},
       info: {
         ...opts,
         menuIndex: opts.menuIndex ?? last?.info.menuIndex,
@@ -539,17 +539,14 @@ export const handleDownloadMessage = (
       });
       if (
         result.status === "started" &&
-        mayRunTabAction &&
         clickState.scratch.routeTabAction === "close" &&
-        !clickState.scratch.routeTabActionHandled &&
-        resolvedTab?.id != null
+        postSaveActionTab?.id != null
       ) {
-        clickState.scratch.routeTabActionHandled = true;
         try {
-          await webExtensionApi.tabs.remove(resolvedTab.id);
+          await closeRoutingSourceTab(postSaveActionTab, postSaveActionTab.id);
         } catch (error) {
           await addLogEntry("post-save tab action failed", String(error), {
-            privateContext: resolvedTab.incognito === true,
+            privateContext: postSaveActionTab.incognito === true,
           });
         }
       }
@@ -571,7 +568,7 @@ export const handleDownloadMessage = (
   // last-focused window instead of relying on Save In's lifecycle-bound tab
   // mirror; prefer sender.tab when the caller did originate in a tab.
   if (sender && sender.tab && sender.tab.url) {
-    return launch(sender.tab.url, sender.tab);
+    return launch(sender.tab.url, sender.tab, sender.tab);
   }
   return webExtensionApi.tabs
     .query({ active: true, lastFocusedWindow: true })
@@ -581,7 +578,7 @@ export const handleDownloadMessage = (
         fail(API_ERRORS.BAD_REQUEST, "No active tab with a URL was found");
         return;
       }
-      return launch(tab.url, tab);
+      return launch(tab.url, tab, tab);
     })
     .then(() => undefined);
 };

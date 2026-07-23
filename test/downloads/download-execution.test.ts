@@ -24,6 +24,13 @@ import {
   setCurrentBrowser,
   Variable,
 } from "./download-flow.fixture.ts";
+import { discardRoutingResolution } from "../../src/downloads/routing-resolution.ts";
+
+const startFilenameResolvedLaunch = async (state: ReturnType<typeof makeState>) => {
+  const launch = Download.renameAndDownload(state);
+  await vi.waitFor(() => expect(global.browser.downloads.download).toHaveBeenCalled());
+  return { launch };
+};
 
 describe("renameAndDownload: terminal exclusion", () => {
   test("skips normally and reports the configured rule outcome", async () => {
@@ -48,14 +55,15 @@ describe("renameAndDownload: terminal exclusion", () => {
       expect.anything(),
     );
     expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
-      "notificationRuleExcludedTitle",
+      "routeActionExcluded",
       "notificationRuleExcludedMessage",
       false,
       Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+      { privateContext: false },
     );
   });
 
-  test("does not put a private URL on the OS notification surface", async () => {
+  test("does not identify an excluded private item in its notification", async () => {
     options.filenamePatterns = [routingRule()];
     options.notifyOnRuleMatch = true;
     vi.mocked(router.matchRulesDetailed).mockReturnValue({
@@ -69,18 +77,44 @@ describe("renameAndDownload: terminal exclusion", () => {
     const state = makeState({
       info: {
         currentTab: { incognito: true },
-        url: "https://private.example/secret.gif",
+        url: "https://private.example/secret.png",
       },
     });
 
-    await Download.renameAndDownload(state);
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
 
     expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
-      "notificationRuleExcludedTitle",
-      "notificationRuleExcludedPrivateMessage",
+      "routeActionExcluded",
+      "notificationPrivateRuleExcludedMessage",
       false,
       Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+      { privateContext: true },
     );
+    expect(Notifier.createExtensionNotification).not.toHaveBeenCalledWith(
+      expect.anything(),
+      expect.stringContaining("private.example"),
+      expect.anything(),
+      expect.anything(),
+    );
+  });
+
+  test("does not misreport a quiet exclusion as a routing failure", async () => {
+    options.filenamePatterns = [routingRule()];
+    options.notifyOnRuleMatch = false;
+    options.notifyOnFailure = true;
+    options.routeSkipUnmatched = true;
+    vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      outcome: "exclude",
+      rule: options.filenamePatterns[0]!,
+      destination: null,
+      fetch: null,
+      rename: null,
+      tabAction: null,
+    });
+
+    await expect(Download.renameAndDownload(makeState())).resolves.toEqual({ status: "skipped" });
+
+    expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
   });
 });
 
@@ -177,6 +211,97 @@ describe("renameAndDownload: browserDownload", () => {
     expect([...Download.downloadRuntime.pendingStates.values()].flat()).not.toContain(state);
   });
 
+  test("does not replay an accepted download when History binding fails", async () => {
+    setCurrentBrowser("CHROME");
+    vi.mocked(SaveHistory.setHistoryDownloadId).mockRejectedValue(new Error("history unavailable"));
+    const state = makeState();
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({
+      status: "started",
+      downloadId: 101,
+    });
+
+    expect(global.browser.downloads.download).toHaveBeenCalledTimes(1);
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith("h-test", "DOWNLOAD_API_FAILED");
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "download history binding failed",
+      "Error: history unavailable",
+    );
+  });
+
+  test("contains an initial History patch failure without delaying the download", async () => {
+    setCurrentBrowser("CHROME");
+    vi.mocked(SaveHistory.patchHistoryEntry).mockImplementation((_id, fields) =>
+      Object.hasOwn(fields, "mechanism")
+        ? Promise.reject(new Error("history unavailable"))
+        : Promise.resolve(),
+    );
+    const state = makeState();
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({
+      status: "started",
+      downloadId: 101,
+    });
+
+    expect(global.browser.downloads.download).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "download mechanism history update failed",
+        "Error: history unavailable",
+      ),
+    );
+  });
+
+  test("does not replay an accepted download when its recovery record fails", async () => {
+    setCurrentBrowser("CHROME");
+    const update = vi.mocked(SessionState.updateSession);
+    const realUpdate = update.getMockImplementation()!;
+    update.mockImplementation((...args) =>
+      args[2] === "siDownloads"
+        ? Promise.reject(new Error("session record unavailable"))
+        : realUpdate(...args),
+    );
+    const state = makeState();
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({
+      status: "started",
+      downloadId: 101,
+    });
+
+    expect(global.browser.downloads.download).toHaveBeenCalledTimes(1);
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "download recovery record failed",
+      "Error: session record unavailable",
+    );
+  });
+
+  test("contains session cleanup failure after the browser accepts the download", async () => {
+    setCurrentBrowser("CHROME");
+    const update = vi.mocked(SessionState.updateSession);
+    const realUpdate = update.getMockImplementation()!;
+    let pendingWrites = 0;
+    update.mockImplementation((...args) => {
+      if (args[2] === "siPendingDownloads" && ++pendingWrites === 2) {
+        return Promise.reject(new Error("cleanup unavailable"));
+      }
+      return realUpdate(...args);
+    });
+    const state = makeState();
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({
+      status: "started",
+      downloadId: 101,
+    });
+
+    expect(global.browser.downloads.download).toHaveBeenCalledTimes(1);
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "download session cleanup failed",
+      "Error: cleanup unavailable",
+    );
+  });
+
   test("releases offscreen content after a terminal browser rejection", async () => {
     setCurrentBrowser("CHROME");
     options.fallbackFetch = false;
@@ -231,6 +356,25 @@ describe("renameAndDownload: browserDownload", () => {
 
     expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101);
     expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED", 101);
+  });
+
+  test("contains a History failure after canceling an accepted download", async () => {
+    setCurrentBrowser("CHROME");
+    vi.mocked(SaveHistory.setHistoryStatus).mockRejectedValue(new Error("history unavailable"));
+    vi.mocked(global.browser.downloads.download).mockImplementation(async () => {
+      expect(ActiveTransfers.cancelActiveTransfer("h-test")).toBe(true);
+      return 101;
+    });
+    const state = makeState();
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
+
+    expect(global.browser.downloads.download).toHaveBeenCalledTimes(1);
+    expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101);
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "download cancellation history failed",
+      "Error: history unavailable",
+    );
   });
 
   test("rejects before browser setup when acquisition is already aborted", async () => {
@@ -326,6 +470,27 @@ describe("renameAndDownload: browserDownload", () => {
     // The preparation is retired rather than left cancellable forever.
     expect(state.info.abortSignal).toBeUndefined();
     expect(ActiveTransfers.cancelActiveTransfer("h-test")).toBe(false);
+  });
+
+  test("marks a private pre-browser session failure for generic notification copy", async () => {
+    setCurrentBrowser("CHROME");
+    options.persistPrivateActivity = true;
+    const update = vi.mocked(SessionState.updateSession);
+    const realUpdate = update.getMockImplementation()!;
+    update.mockImplementation((...args) =>
+      args[2] === "siPendingDownloads"
+        ? Promise.reject(new Error("private URL leaked here"))
+        : realUpdate(...args),
+    );
+    const state = makeState({ info: { currentTab: { incognito: true } } });
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "failed" });
+
+    expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.stringContaining("private URL leaked here"),
+      { privateContext: true },
+    );
   });
 
   test("treats an invalid acquired URL as ineligible for HTTP fallback", async () => {
@@ -570,22 +735,33 @@ describe("renameAndDownload: notification triggers", () => {
       "file.png\n⬇\nmatched/route.txt",
       false,
       "route-match",
+      { privateContext: false },
     );
   });
 
-  test("hides private route details in a matched-rule notification", async () => {
+  test("does not identify a private item in a rule-match notification", async () => {
     setCurrentBrowser("CHROME");
+    options.persistPrivateActivity = true;
     options.filenamePatterns = [routingRule()];
-    vi.mocked(router.matchRules).mockReturnValue("private/secret.txt");
+    vi.mocked(router.matchRules).mockReturnValue("private/secret-route.txt");
     options.notifyOnRuleMatch = true;
 
-    await Download.renameAndDownload(makeState({ info: { currentTab: { incognito: true } } }));
+    await Download.renameAndDownload(
+      makeState({
+        info: {
+          currentTab: { incognito: true },
+          url: "https://private.example/secret.png",
+          suggestedFilename: "secret.png",
+        },
+      }),
+    );
 
     expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
       "notificationRuleMatchedTitle",
-      "notificationPrivateDetailsHidden",
+      "notificationPrivateRuleMatchedMessage",
       false,
       "route-match",
+      { privateContext: true },
     );
   });
 
@@ -602,6 +778,7 @@ describe("renameAndDownload: notification triggers", () => {
   test("does not emit one route notification per automatic source", async () => {
     setCurrentBrowser("CHROME");
     options.notifyOnRuleMatch = true;
+    options.routeSkipUnmatched = true;
     const state = makeState({
       info: { context: "AUTO" },
       scratch: { routeTemplateRaw: "automatic/" },
@@ -625,29 +802,31 @@ describe("renameAndDownload: notification triggers", () => {
       "notificationRuleMatchFailedExclusiveMessage",
       true,
       "route-miss",
+      { privateContext: false },
     );
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
   });
 
-  test("hides the URL when a private save has no matching route", async () => {
+  test("does not identify a private item in an unmatched-route notification", async () => {
     setCurrentBrowser("CHROME");
     options.routeSkipUnmatched = true;
     options.notifyOnFailure = true;
 
-    await Download.renameAndDownload(
-      makeState({
-        info: {
-          currentTab: { incognito: true },
-          url: "https://private.example/secret.png",
-        },
-      }),
-    );
+    const state = makeState({
+      info: {
+        currentTab: { incognito: true },
+        url: "https://private.example/secret.png",
+        suggestedFilename: "secret.png",
+      },
+    });
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
 
     expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
       "notificationRuleMatchFailedExclusiveTitle",
-      "notificationPrivateDetailsHidden",
+      "notificationPrivateRuleMatchFailedMessage",
       true,
       "route-miss",
+      { privateContext: true },
     );
   });
 
@@ -814,6 +993,12 @@ describe("onDeterminingFilename listener: sync path", () => {
     });
     expect(SaveHistory.patchHistoryEntry).toHaveBeenCalledWith("h-test", {
       finalFullPath: "downloads/from-download-item.bin",
+      routed: false,
+      variables: {
+        filename: "from-download-item.bin",
+        initialfilename: "suggested.txt",
+        suggestedfilename: "suggested.txt",
+      },
     });
   });
 
@@ -847,6 +1032,56 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
   });
 
+  test.each([
+    { name: "public", incognito: false },
+    { name: "private", incognito: true },
+  ])("contains a $name final-filename recovery-record failure", async ({ incognito }) => {
+    setCurrentBrowser("CHROME");
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRules).mockReturnValue("pdf/:filename:");
+    const state = makeState({
+      path: new Path.Path("downloads"),
+      info: {
+        currentTab: incognito ? { incognito: true } : null,
+        url: `https://example.com/${incognito ? "private" : "public"}`,
+      },
+    });
+    const { launch } = await startFilenameResolvedLaunch(state);
+    await vi.waitFor(() => expect(downloadState.records.get(101)?.adopted).toBe(true));
+    const update = vi.mocked(SessionState.updateSession);
+    const realUpdate = update.getMockImplementation()!;
+    update.mockImplementation((...args) => {
+      if (args[2] !== "siDownloads") return realUpdate(...args);
+      if (incognito) return Promise.reject(new Error("session record unavailable"));
+      throw new Error("session record unavailable");
+    });
+
+    const suggest = vi.fn();
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "server-name.pdf",
+      },
+      suggest,
+    );
+
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
+    await vi.waitFor(() =>
+      expect(suggest).toHaveBeenCalledWith(
+        expect.objectContaining({ filename: "downloads/pdf/server-name.pdf" }),
+      ),
+    );
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "final filename record failed",
+        "Error: session record unavailable",
+        ...(incognito ? [{ privateContext: true }] : []),
+      ),
+    );
+  });
+
   test("defers an exclusive actual-filename rule until Chrome resolves the filename", async () => {
     setCurrentBrowser("CHROME");
     options.routeSkipUnmatched = true;
@@ -859,10 +1094,7 @@ describe("onDeterminingFilename listener: sync path", () => {
       info: { url: "https://example.com/download" },
     });
 
-    await expect(Download.renameAndDownload(state)).resolves.toEqual({
-      status: "started",
-      downloadId: 101,
-    });
+    const { launch } = await startFilenameResolvedLaunch(state);
     expect(state.scratch.deferredRouteRequirement).toBe(true);
 
     const suggest = vi.fn();
@@ -882,6 +1114,7 @@ describe("onDeterminingFilename listener: sync path", () => {
         expect.objectContaining({ filename: "downloads/pdf/server-name.pdf" }),
       ),
     );
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
   });
 
   test("defers finalfilename and matches Chrome's browser-resolved name", async () => {
@@ -899,10 +1132,7 @@ describe("onDeterminingFilename listener: sync path", () => {
       },
     });
 
-    await expect(Download.renameAndDownload(state)).resolves.toEqual({
-      status: "started",
-      downloadId: 101,
-    });
+    const { launch } = await startFilenameResolvedLaunch(state);
     expect(state.scratch.deferredRouteRequirement).toBe(true);
 
     const suggest = vi.fn();
@@ -929,6 +1159,213 @@ describe("onDeterminingFilename listener: sync path", () => {
         expect.objectContaining({ filename: "downloads/pdf/server-name.pdf" }),
       ),
     );
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
+  });
+
+  test("does not report a started save before its final-filename tab action resolves", async () => {
+    setCurrentBrowser("CHROME");
+    const [rule] = router.parseRules(
+      "finalfilename: ^server-name\\.pdf$\nafter: close-tab\ninto: pdf/:filename:",
+    );
+    if (!rule) throw new Error("Expected a parsed final-filename action rule");
+    options.filenamePatterns = [rule];
+    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "server-name.pdf"
+        ? {
+            outcome: "route",
+            rule,
+            destination: "pdf/:filename:",
+            fetch: null,
+            rename: null,
+            tabAction: "close",
+          }
+        : null,
+    );
+    let resolveDownload: ((id: number) => void) | undefined;
+    vi.mocked(hostBrowser.downloads.download).mockImplementationOnce(
+      () =>
+        new Promise<number>((resolve) => {
+          resolveDownload = resolve;
+        }),
+    );
+    let resolveHistoryPatch: (() => void) | undefined;
+    vi.mocked(SaveHistory.patchHistoryEntry).mockImplementation((_id, fields) =>
+      Object.hasOwn(fields, "finalFullPath")
+        ? new Promise<void>((resolve) => {
+            resolveHistoryPatch = resolve;
+          })
+        : Promise.resolve(),
+    );
+    const state = makeState({ path: new Path.Path("downloads") });
+    let settled = false;
+    const launch = Download.renameAndDownload(state).finally(() => {
+      settled = true;
+    });
+    await vi.waitFor(() => expect(resolveDownload).toBeTypeOf("function"));
+    resolveDownload?.(101);
+    await vi.waitFor(() =>
+      expect(SaveHistory.setHistoryDownloadId).toHaveBeenCalledWith("h-test", 101),
+    );
+    await Promise.resolve();
+
+    expect(settled).toBe(false);
+
+    const suggest = vi.fn();
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "server-name.pdf",
+      },
+      suggest,
+    );
+    await vi.waitFor(() => expect(resolveHistoryPatch).toBeTypeOf("function"));
+    await Promise.resolve();
+    expect(settled).toBe(false);
+    expect(downloaded).toHaveBeenCalledTimes(1);
+
+    resolveHistoryPatch?.();
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
+    expect(state.scratch.routeTabAction).toBe("close");
+    expect(backgroundRuntime.lastDownloadState).toMatchObject({
+      info: { resolvedFilename: "server-name.pdf" },
+      route: expect.objectContaining({ raw: "pdf/:filename:" }),
+    });
+    expect(SaveHistory.patchHistoryEntry).toHaveBeenCalledWith("h-test", {
+      finalFullPath: "downloads/pdf/server-name.pdf",
+      routed: true,
+      variables: expect.objectContaining({ filename: "server-name.pdf" }),
+    });
+    expect(downloaded).toHaveBeenCalledTimes(2);
+  });
+
+  test("a slower final-filename result does not replace a newer diagnostic snapshot", async () => {
+    setCurrentBrowser("CHROME");
+    options.filenamePatterns = [routingRule("finalfilename")];
+    const older = makeState({ info: { url: "https://example.com/older" } });
+    const { launch: olderLaunch } = await startFilenameResolvedLaunch(older);
+
+    options.filenamePatterns = [];
+    const newer = makeState({ info: { url: "https://example.com/newer.png" } });
+    await Download.renameAndDownload(newer);
+    capturedListener(
+      {
+        id: 102,
+        byExtensionId: global.browser.runtime.id,
+        url: newer.info.url,
+        filename: "newer.png",
+      },
+      vi.fn(),
+    );
+
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: older.info.url,
+        filename: "older-final.png",
+      },
+      vi.fn(),
+    );
+    await olderLaunch;
+
+    expect(backgroundRuntime.lastDownloadState?.info.url).toBe(newer.info.url);
+  });
+
+  test("a final-filename History failure does not strand the settled route", async () => {
+    setCurrentBrowser("CHROME");
+    options.filenamePatterns = [routingRule("finalfilename")];
+    const state = makeState({ info: { url: "https://example.com/history-failure" } });
+    const { launch } = await startFilenameResolvedLaunch(state);
+    vi.mocked(SaveHistory.patchHistoryEntry).mockRejectedValueOnce(
+      new Error("history unavailable"),
+    );
+
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "settled.png",
+      },
+      vi.fn(),
+    );
+
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "final filename history update failed",
+      expect.stringContaining("history unavailable"),
+    );
+  });
+
+  test("keeps a late private History failure behind the current privacy gate", async () => {
+    setCurrentBrowser("CHROME");
+    options.persistPrivateActivity = true;
+    options.filenamePatterns = [routingRule("finalfilename")];
+    const state = makeState({
+      info: {
+        currentTab: { incognito: true },
+        url: "https://private.example/history-failure",
+      },
+    });
+    const { launch } = await startFilenameResolvedLaunch(state);
+    options.persistPrivateActivity = false;
+    vi.mocked(SaveHistory.patchHistoryEntry).mockRejectedValueOnce(
+      new Error("private history unavailable"),
+    );
+
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "settled.png",
+      },
+      vi.fn(),
+    );
+
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "final filename history update failed",
+      expect.stringContaining("private history unavailable"),
+      { privateContext: true },
+    );
+  });
+
+  test("keeps a private final-filename resolution failure out of the default log", async () => {
+    setCurrentBrowser("CHROME");
+    options.filenamePatterns = [routingRule("finalfilename")];
+    vi.mocked(router.matchRules).mockImplementation((_rules, info) => {
+      if (info.resolvedFilename) throw new Error("private.example resolution failed");
+      return "resolved/:filename:";
+    });
+    const state = makeState({
+      info: {
+        currentTab: { incognito: true },
+        url: "https://private.example/download",
+      },
+    });
+    const { launch } = await startFilenameResolvedLaunch(state);
+    const suggest = vi.fn();
+
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "private-final.png",
+      },
+      suggest,
+    );
+
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
+    expect(suggest).toHaveBeenCalledWith();
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "filename resolution failed",
+      expect.stringContaining("private.example"),
+      { privateContext: true },
+    );
   });
 
   test("rechecks finalfilename even when Chrome keeps the pre-final name", async () => {
@@ -942,7 +1379,7 @@ describe("onDeterminingFilename listener: sync path", () => {
       info: { url: "https://example.com/server-name.pdf" },
     });
 
-    await Download.renameAndDownload(state);
+    const { launch } = await startFilenameResolvedLaunch(state);
     expect(state.info.filename).toBe("server-name.pdf");
 
     const suggest = vi.fn();
@@ -962,6 +1399,339 @@ describe("onDeterminingFilename listener: sync path", () => {
         expect.objectContaining({ filename: "downloads/resolved/server-name.pdf" }),
       ),
     );
+    await launch;
+  });
+
+  test("cancels and records an exclusion that matches Chrome's final filename", async () => {
+    setCurrentBrowser("CHROME");
+    const { onDownloadChanged } = await import("../../src/downloads/notification-events.ts");
+    vi.spyOn(OffscreenClient, "release").mockResolvedValue(false);
+    options.notifyOnRuleMatch = true;
+    const exclusionRule = routingRule("finalfilename");
+    options.filenamePatterns = [exclusionRule];
+    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "blocked-by-final.bin"
+        ? {
+            outcome: "exclude",
+            rule: exclusionRule,
+            destination: null,
+            fetch: null,
+            rename: null,
+            tabAction: null,
+          }
+        : null,
+    );
+    let terminalEvent: Promise<void> | undefined;
+    const cancel = vi.fn((id: number) => {
+      terminalEvent = onDownloadChanged({ id, error: { current: "USER_CANCELED" } });
+      return Promise.resolve();
+    });
+    global.browser.downloads.cancel = cancel;
+    const state = makeState({
+      path: new Path.Path("downloads"),
+      info: { url: "https://example.com/download" },
+    });
+
+    const { launch } = await startFilenameResolvedLaunch(state);
+    await vi.waitFor(() => expect(downloadState.records.has(101)).toBe(true));
+    Object.assign(downloadState.records.get(101)!, {
+      offscreenRequestId: "late-exclusion-offscreen",
+      pendingHistoryMove: {
+        historyId: "old-history",
+        downloadId: 88,
+      },
+      pendingSourceSidecar: {
+        sourceUrl: "https://example.com/source",
+        title: "Source title",
+      },
+    });
+
+    const suggest = vi.fn();
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "blocked-by-final.bin",
+      },
+      suggest,
+    );
+
+    await vi.waitFor(() => expect(cancel).toHaveBeenCalledWith(101));
+    await vi.waitFor(() =>
+      expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101),
+    );
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
+    await terminalEvent;
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith("h-test", "USER_CANCELED", 101);
+    expect(suggest).toHaveBeenCalledWith();
+    expect(downloadState.records.get(101)).toEqual(
+      expect.objectContaining({
+        adopted: false,
+        offscreenRequestId: undefined,
+        pendingHistoryMove: undefined,
+        pendingSourceSidecar: undefined,
+      }),
+    );
+    expect(OffscreenClient.release).toHaveBeenCalledWith("late-exclusion-offscreen");
+    expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
+      "routeActionExcluded",
+      "notificationRuleExcludedMessage",
+      false,
+      Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+      { privateContext: false },
+    );
+  });
+
+  test("does not claim a late exclusion when Chrome can no longer cancel it", async () => {
+    setCurrentBrowser("CHROME");
+    const { onDownloadChanged } = await import("../../src/downloads/notification-events.ts");
+    options.notifyOnRuleMatch = true;
+    const exclusionRule = routingRule("finalfilename");
+    options.filenamePatterns = [exclusionRule];
+    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "too-late.bin"
+        ? {
+            outcome: "exclude",
+            rule: exclusionRule,
+            destination: null,
+            fetch: null,
+            rename: null,
+            tabAction: null,
+          }
+        : null,
+    );
+    let concurrentProgress: Promise<void> | undefined;
+    global.browser.downloads.cancel = vi.fn((id: number) => {
+      concurrentProgress = onDownloadChanged({
+        id,
+        state: { current: "in_progress", previous: "in_progress" },
+      });
+      return Promise.reject(new Error("already complete"));
+    });
+    const state = makeState({
+      info: {
+        currentTab: { incognito: true },
+        url: "https://example.com/download",
+      },
+    });
+
+    const { launch } = await startFilenameResolvedLaunch(state);
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "too-late.bin",
+      },
+      vi.fn(),
+    );
+
+    await vi.waitFor(() => expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101));
+    await launch;
+    await concurrentProgress;
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
+    expect(downloadState.records.get(101)?.adopted).toBe(true);
+    expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "late routing exclusion could not cancel download",
+      expect.stringContaining("already complete"),
+      { privateContext: true },
+    );
+  });
+
+  test.each([
+    {
+      name: "the download already completed",
+      result: [{ id: 101, state: "complete" } as browser.downloads.DownloadItem],
+      logMessage: "late routing cancellation did not stop download",
+      logData: { state: "complete", error: undefined },
+    },
+    {
+      name: "the download already failed",
+      result: [
+        {
+          id: 101,
+          state: "interrupted",
+          error: "NETWORK_FAILED",
+        } as browser.downloads.DownloadItem,
+      ],
+      logMessage: "late routing cancellation did not stop download",
+      logData: { state: "interrupted", error: "NETWORK_FAILED" },
+    },
+    {
+      name: "the browser state cannot be read",
+      result: new Error("search unavailable"),
+      logMessage: "late routing cancellation could not be verified",
+      logData: expect.stringContaining("search unavailable"),
+    },
+  ])("does not claim a late exclusion when $name", async ({ result, logMessage, logData }) => {
+    setCurrentBrowser("CHROME");
+    options.notifyOnRuleMatch = true;
+    const exclusionRule = routingRule("finalfilename");
+    options.filenamePatterns = [exclusionRule];
+    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "too-late.bin"
+        ? {
+            outcome: "exclude",
+            rule: exclusionRule,
+            destination: null,
+            fetch: null,
+            rename: null,
+            tabAction: null,
+          }
+        : null,
+    );
+    const state = makeState({ info: { url: "https://example.com/download" } });
+
+    const { launch } = await startFilenameResolvedLaunch(state);
+    vi.mocked(global.browser.downloads.search).mockReset();
+    if (result instanceof Error) {
+      vi.mocked(global.browser.downloads.search).mockRejectedValue(result);
+    } else {
+      vi.mocked(global.browser.downloads.search).mockResolvedValue(result);
+    }
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "too-late.bin",
+      },
+      vi.fn(),
+    );
+
+    await vi.waitFor(() => expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101));
+    await vi.waitFor(() =>
+      expect(global.browser.downloads.search).toHaveBeenCalledWith({ id: 101 }),
+    );
+    await launch;
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
+    expect(downloadState.records.get(101)?.adopted).toBe(true);
+    expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
+    expect(Log.addLogEntry).toHaveBeenCalledWith(logMessage, logData);
+  });
+
+  test("contains a session cleanup failure after canceling a late exclusion", async () => {
+    setCurrentBrowser("CHROME");
+    const exclusionRule = routingRule("finalfilename");
+    options.filenamePatterns = [exclusionRule];
+    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "excluded.bin"
+        ? {
+            outcome: "exclude",
+            rule: exclusionRule,
+            destination: null,
+            fetch: null,
+            rename: null,
+            tabAction: null,
+          }
+        : null,
+    );
+    const state = makeState({ info: { url: "https://example.com/download" } });
+    const { launch } = await startFilenameResolvedLaunch(state);
+    vi.mocked(SessionState.updateSession).mockRejectedValueOnce(new Error("session full"));
+
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "excluded.bin",
+      },
+      vi.fn(),
+    );
+
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "late routing cancellation cleanup failed",
+        expect.stringContaining("session full"),
+      ),
+    );
+    await launch;
+    expect(downloadState.records.get(101)?.adopted).toBe(false);
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
+  });
+
+  test("records a late exclusion when its tracking record is already gone", async () => {
+    setCurrentBrowser("CHROME");
+    const exclusionRule = routingRule("finalfilename");
+    options.filenamePatterns = [exclusionRule];
+    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "excluded.bin"
+        ? {
+            outcome: "exclude",
+            rule: exclusionRule,
+            destination: null,
+            fetch: null,
+            rename: null,
+            tabAction: null,
+          }
+        : null,
+    );
+    const state = makeState({ info: { url: "https://example.com/download" } });
+    const { launch } = await startFilenameResolvedLaunch(state);
+    await vi.waitFor(() => expect(downloadState.records.has(101)).toBe(true));
+    downloadState.records.delete(101);
+    sessionStore.siDownloads = {};
+
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "excluded.bin",
+      },
+      vi.fn(),
+    );
+
+    await vi.waitFor(() => expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101));
+    await launch;
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
+    expect(downloadState.records.has(101)).toBe(false);
+  });
+
+  test("records a late exclusion when its tracking lookup fails", async () => {
+    setCurrentBrowser("CHROME");
+    const exclusionRule = routingRule("finalfilename");
+    options.filenamePatterns = [exclusionRule];
+    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "excluded.bin"
+        ? {
+            outcome: "exclude",
+            rule: exclusionRule,
+            destination: null,
+            fetch: null,
+            rename: null,
+            tabAction: null,
+          }
+        : null,
+    );
+    const state = makeState({ info: { url: "https://example.com/download" } });
+    const { launch } = await startFilenameResolvedLaunch(state);
+    await vi.waitFor(() => expect(downloadState.records.has(101)).toBe(true));
+    downloadState.records.delete(101);
+    vi.mocked(SessionState.getSession).mockRejectedValueOnce(new Error("session unavailable"));
+
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "excluded.bin",
+      },
+      vi.fn(),
+    );
+
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "late routing cancellation lookup failed",
+        expect.stringContaining("session unavailable"),
+      ),
+    );
+    await launch;
+    expect(global.browser.downloads.cancel).toHaveBeenCalledTimes(1);
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
   });
 
   test("resolves MIME only when Chrome's final filename loses its extension", async () => {
@@ -979,7 +1749,7 @@ describe("onDeterminingFilename listener: sync path", () => {
       info: { url: "https://example.com/file.pdf" },
     });
 
-    await Download.renameAndDownload(state);
+    const { launch } = await startFilenameResolvedLaunch(state);
     expect(Variable.resolveMime).not.toHaveBeenCalled();
 
     const suggest = vi.fn();
@@ -999,6 +1769,7 @@ describe("onDeterminingFilename listener: sync path", () => {
         expect.objectContaining({ filename: "downloads/pdf/server-name.pdf" }),
       ),
     );
+    await launch;
   });
 
   // The persisted state carries an optional filename, so a record written by an
@@ -1028,6 +1799,8 @@ describe("onDeterminingFilename listener: sync path", () => {
 
     const launch = Download.renameAndDownload(state);
     await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toBeDefined());
+    await vi.waitFor(() => expect(global.browser.downloads.download).toHaveBeenCalled());
+    discardRoutingResolution(state);
     // An older record simply never stored the field.
     for (const entry of Object.values<any>(sessionStore.siDeferredRoutes))
       for (const record of [entry].flat()) delete record.state.info.filename;
@@ -1103,6 +1876,8 @@ describe("onDeterminingFilename listener: sync path", () => {
 
     const launch = Download.renameAndDownload(state);
     await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toBeDefined());
+    await vi.waitFor(() => expect(global.browser.downloads.download).toHaveBeenCalled());
+    discardRoutingResolution(state);
     Download.downloadRuntime.pendingStates.clear();
 
     const suggest = vi.fn();
@@ -1120,6 +1895,71 @@ describe("onDeterminingFilename listener: sync path", () => {
     expect(suggest).toHaveBeenCalledWith();
     resolveDownload(101);
     await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
+    await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toEqual({}));
+  });
+
+  test("recovers a private legacy deferred exclusion without canceling it twice", async () => {
+    setCurrentBrowser("CHROME");
+    options.notifyOnRuleMatch = true;
+    options.routeSkipUnmatched = true;
+    const exclusionRule = routingRule("finalfilename");
+    options.filenamePatterns = [exclusionRule];
+    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "excluded.bin"
+        ? {
+            outcome: "exclude",
+            rule: exclusionRule,
+            destination: null,
+            fetch: null,
+            rename: null,
+            tabAction: null,
+          }
+        : null,
+    );
+    const cancel = vi.fn(() => Promise.resolve());
+    global.browser.downloads.cancel = cancel;
+    let resolveDownload!: (downloadId: number) => void;
+    global.browser.downloads.download = vi.fn(
+      () =>
+        new Promise<number>((resolve) => {
+          resolveDownload = resolve;
+        }),
+    );
+    const state = makeState({ info: { url: "https://example.com/legacy" } });
+
+    const launch = Download.renameAndDownload(state);
+    await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toBeDefined());
+    await vi.waitFor(() => expect(global.browser.downloads.download).toHaveBeenCalled());
+    discardRoutingResolution(state);
+    for (const entry of Object.values<any>(sessionStore.siDeferredRoutes)) {
+      for (const record of [entry].flat()) delete record.state.info.url;
+    }
+    Download.downloadRuntime.pendingStates.clear();
+
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "excluded.bin",
+        incognito: true,
+      },
+      vi.fn(),
+    );
+
+    await vi.waitFor(() => expect(cancel).toHaveBeenCalledWith(101));
+    await vi.waitFor(() =>
+      expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
+        "routeActionExcluded",
+        "notificationPrivateRuleExcludedMessage",
+        false,
+        Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+        { privateContext: true },
+      ),
+    );
+    expect(cancel).toHaveBeenCalledTimes(1);
+    resolveDownload(101);
+    await launch;
     await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toEqual({}));
   });
 
@@ -1226,7 +2066,7 @@ describe("onDeterminingFilename listener: sync path", () => {
     expect(cancel).not.toHaveBeenCalled();
   });
 
-  test("cancels a deferred exclusive download when the resolved filename still misses", async () => {
+  test("does not report a route miss when Chrome refuses its late cancellation", async () => {
     setCurrentBrowser("CHROME");
     options.routeSkipUnmatched = true;
     options.notifyOnFailure = true;
@@ -1236,16 +2076,12 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
     const cancel = vi.fn(() => Promise.reject(new Error("already stopped")));
     global.browser.downloads.cancel = cancel;
-    vi.mocked(SaveHistory.setHistoryStatus).mockRejectedValue(new Error("history unavailable"));
     const state = makeState({
       path: new Path.Path("downloads"),
       info: { url: "https://example.com/file.pdf" },
     });
 
-    await expect(Download.renameAndDownload(state)).resolves.toEqual({
-      status: "started",
-      downloadId: 101,
-    });
+    const { launch } = await startFilenameResolvedLaunch(state);
 
     const suggest = vi.fn();
     capturedListener(
@@ -1259,201 +2095,56 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
 
     await vi.waitFor(() => expect(cancel).toHaveBeenCalledWith(101));
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
     expect(suggest).toHaveBeenCalledWith();
-    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_NO_MATCH", 101);
-    expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
-      "notificationRuleMatchFailedExclusiveTitle",
-      "notificationRuleMatchFailedExclusiveMessage",
-      true,
-      "route-miss",
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith("h-test", "RULE_NO_MATCH", 101);
+    expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
+    expect(downloadState.records.get(101)?.adopted).toBe(true);
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "late routing rejection could not cancel download",
+      expect.stringContaining("already stopped"),
     );
   });
 
-  test("records a late exclusion as a rule outcome instead of a route miss", async () => {
+  test("contains a History failure after canceling a late route miss", async () => {
     setCurrentBrowser("CHROME");
     options.routeSkipUnmatched = true;
-    options.notifyOnRuleMatch = true;
     options.notifyOnFailure = true;
-    const exclusionRule = routingRule("actualfileext");
-    options.filenamePatterns = [exclusionRule];
-    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
-      info.filename === "blocked.exe"
-        ? {
-            outcome: "exclude",
-            rule: exclusionRule,
-            destination: null,
-            fetch: null,
-            rename: null,
-            tabAction: null,
-          }
-        : null,
+    options.filenamePatterns = [routingRule("actualfileext")];
+    vi.mocked(router.matchRules).mockImplementation((_rules, info) =>
+      info.filename === "file.pdf" ? "pdf/:filename:" : null,
     );
-    const cancel = vi.fn(() => Promise.resolve());
-    global.browser.downloads.cancel = cancel;
+    vi.mocked(SaveHistory.setHistoryStatus).mockRejectedValue(new Error("history unavailable"));
     const state = makeState({
       path: new Path.Path("downloads"),
-      info: { url: "https://example.com/file" },
+      info: { url: "https://example.com/file.pdf" },
     });
 
-    await expect(Download.renameAndDownload(state)).resolves.toEqual({
-      status: "started",
-      downloadId: 101,
-    });
+    const { launch } = await startFilenameResolvedLaunch(state);
     capturedListener(
       {
         id: 101,
         byExtensionId: global.browser.runtime.id,
         url: state.info.url,
-        filename: "blocked.exe",
-      },
-      vi.fn(),
-    );
-
-    await vi.waitFor(() => expect(cancel).toHaveBeenCalledWith(101));
-    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_EXCLUDED", 101);
-    expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
-      "notificationRuleExcludedTitle",
-      "notificationRuleExcludedMessage",
-      false,
-      Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
-    );
-    expect(Notifier.createExtensionNotification).not.toHaveBeenCalledWith(
-      "notificationRuleMatchFailedExclusiveTitle",
-      expect.anything(),
-      true,
-      Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
-    );
-  });
-
-  test("does not put a private URL in a late exclusion notification", async () => {
-    setCurrentBrowser("CHROME");
-    options.routeSkipUnmatched = true;
-    options.notifyOnRuleMatch = true;
-    const exclusionRule = routingRule("actualfileext");
-    options.filenamePatterns = [exclusionRule];
-    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
-      info.filename === "blocked.exe"
-        ? {
-            outcome: "exclude",
-            rule: exclusionRule,
-            destination: null,
-            fetch: null,
-            rename: null,
-            tabAction: null,
-          }
-        : null,
-    );
-    global.browser.downloads.cancel = vi.fn(() => Promise.resolve());
-    const state = makeState({
-      path: new Path.Path("downloads"),
-      info: {
-        currentTab: { incognito: true },
-        url: "https://private.example/secret",
-      },
-    });
-
-    await Download.renameAndDownload(state);
-    capturedListener(
-      {
-        id: 101,
-        byExtensionId: global.browser.runtime.id,
-        url: state.info.url,
-        filename: "blocked.exe",
+        filename: "server-name.exe",
       },
       vi.fn(),
     );
 
     await vi.waitFor(() =>
-      expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
-        "notificationRuleExcludedTitle",
-        "notificationRuleExcludedPrivateMessage",
-        false,
-        Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "route-miss history update failed",
+        expect.stringContaining("history unavailable"),
       ),
     );
-  });
-
-  test("applies a close-tab action selected by the late filename pass once", async () => {
-    setCurrentBrowser("CHROME");
-    options.routeSkipUnmatched = true;
-    const closeRule = routingRule("actualfileext");
-    options.filenamePatterns = [closeRule];
-    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
-      info.filename === "server.pdf"
-        ? {
-            outcome: "route",
-            rule: closeRule,
-            destination: "pdf/:filename:",
-            fetch: null,
-            rename: null,
-            tabAction: "close",
-          }
-        : null,
+    await launch;
+    expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
+      "notificationRuleMatchFailedExclusiveTitle",
+      "notificationRuleMatchFailedExclusiveMessage",
+      true,
+      "route-miss",
+      { privateContext: false },
     );
-    vi.mocked(global.browser.tabs.remove).mockClear();
-    const state = makeState({
-      path: new Path.Path("downloads"),
-      info: { currentTab: { id: 77 }, url: "https://example.com/file" },
-    });
-
-    await expect(Download.renameAndDownload(state)).resolves.toEqual({
-      status: "started",
-      downloadId: 101,
-    });
-    const suggest = vi.fn();
-    capturedListener(
-      {
-        id: 101,
-        byExtensionId: global.browser.runtime.id,
-        url: state.info.url,
-        filename: "server.pdf",
-      },
-      suggest,
-    );
-
-    await vi.waitFor(() => expect(global.browser.tabs.remove).toHaveBeenCalledWith(77));
-    expect(state.scratch.routeTabActionHandled).toBe(true);
-    expect(global.browser.tabs.remove).toHaveBeenCalledOnce();
-  });
-
-  test("does not apply a suppressed close-tab action in the late filename pass", async () => {
-    setCurrentBrowser("CHROME");
-    options.routeSkipUnmatched = true;
-    const closeRule = routingRule("actualfileext");
-    options.filenamePatterns = [closeRule];
-    vi.mocked(router.matchRulesDetailed).mockImplementation((_rules, info) =>
-      info.filename === "server.pdf"
-        ? {
-            outcome: "route",
-            rule: closeRule,
-            destination: "pdf/:filename:",
-            fetch: null,
-            rename: null,
-            tabAction: "close",
-          }
-        : null,
-    );
-    vi.mocked(global.browser.tabs.remove).mockClear();
-    const state = makeState({
-      path: new Path.Path("downloads"),
-      scratch: { routeTabActionSuppressed: true },
-      info: { currentTab: { id: 77 }, url: "https://example.com/file" },
-    });
-
-    await Download.renameAndDownload(state);
-    const suggest = vi.fn();
-    capturedListener(
-      {
-        id: 101,
-        byExtensionId: global.browser.runtime.id,
-        url: state.info.url,
-        filename: "server.pdf",
-      },
-      suggest,
-    );
-
-    await vi.waitFor(() => expect(suggest).toHaveBeenCalled());
-    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
   });
 
   test("truncates a data URL in a deferred route-miss notification", async () => {
@@ -1486,22 +2177,31 @@ describe("onDeterminingFilename listener: sync path", () => {
     expect(getMessage.mock.calls.flatMap((call) => call.slice(1)).join(" ")).not.toContain(url);
   });
 
-  test("hides a private URL in a deferred route-miss notification", async () => {
+  test("does not identify a private item in a deferred route-miss notification", async () => {
     setCurrentBrowser("CHROME");
+    options.persistPrivateActivity = true;
     options.routeSkipUnmatched = true;
     options.notifyOnFailure = true;
     options.filenamePatterns = [routingRule("actualfileext")];
     vi.mocked(router.matchRules).mockReturnValue(null);
-    const url = "https://private.example/secret";
+    const url = "https://private.example/secret.png";
     const state = makeState({
       path: new Path.Path("downloads"),
       info: { currentTab: { incognito: true }, url },
     });
+    let resolveDownload!: (downloadId: number) => void;
+    global.browser.downloads.download = vi.fn(
+      () =>
+        new Promise<number>((resolve) => {
+          resolveDownload = resolve;
+        }),
+    );
 
-    await Download.renameAndDownload(state);
+    const launch = Download.renameAndDownload(state);
+    await vi.waitFor(() => expect(global.browser.downloads.download).toHaveBeenCalled());
     capturedListener(
       {
-        id: 103,
+        id: 102,
         byExtensionId: global.browser.runtime.id,
         url,
         filename: "server-name.exe",
@@ -1512,11 +2212,14 @@ describe("onDeterminingFilename listener: sync path", () => {
     await vi.waitFor(() =>
       expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
         "notificationRuleMatchFailedExclusiveTitle",
-        "notificationPrivateDetailsHidden",
+        "notificationPrivateRuleMatchFailedMessage",
         true,
-        Notifier.EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
+        "route-miss",
+        { privateContext: true },
       ),
     );
+    resolveDownload(102);
+    await launch;
   });
 
   test("keeps the state's filename when the download item has none", async () => {
@@ -1622,10 +2325,14 @@ describe("concurrent downloads (pendingStates)", () => {
           freshHistory.addHistoryEntry(...a),
         patch: (...a: Parameters<typeof freshHistory.patchHistoryEntry>) =>
           freshHistory.patchHistoryEntry(...a),
+        patchStrict: (...a: Parameters<typeof freshHistory.patchHistoryEntryStrict>) =>
+          freshHistory.patchHistoryEntryStrict(...a),
         setDownloadId: (...a: Parameters<typeof freshHistory.setHistoryDownloadId>) =>
           freshHistory.setHistoryDownloadId(...a),
         setStatus: (...a: Parameters<typeof freshHistory.setHistoryStatus>) =>
           freshHistory.setHistoryStatus(...a),
+        setStatusStrict: (...a: Parameters<typeof freshHistory.setHistoryStatusStrict>) =>
+          freshHistory.setHistoryStatusStrict(...a),
         entries: () => freshHistory.getHistoryEntries(),
         anchorStartTime: (...a: Parameters<typeof freshHistory.anchorHistoryDownloadStartTime>) =>
           freshHistory.anchorHistoryDownloadStartTime(...a),
@@ -1763,7 +2470,7 @@ describe("launchDownload (fire-and-forget with a user-facing failure)", () => {
     expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
       "",
       expect.stringContaining("Download URL is required"),
-      true,
+      { privateContext: true },
     );
   });
 });
@@ -1796,6 +2503,21 @@ describe("terminal browserDownload failure surfaces to the user", () => {
     await Download.renameAndDownload(makeState());
 
     expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
+  });
+
+  test("marks a private browser rejection for generic notification copy", async () => {
+    setCurrentBrowser("CHROME");
+    options.fallbackFetch = false;
+    vi.mocked(global.browser.downloads.download).mockRejectedValue(new Error("private disk path"));
+    const state = makeState({ info: { currentTab: { incognito: true } } });
+
+    await Download.renameAndDownload(state);
+
+    expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.stringContaining("private disk path"),
+      { privateContext: true },
+    );
   });
 });
 

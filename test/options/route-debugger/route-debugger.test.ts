@@ -202,7 +202,7 @@ test("shows production rule and clause decisions and jumps back to their source"
     "Final pathpdf/report.pdf",
   );
   expect(ruleCards[1]?.querySelector(".route-debugger-pipeline")?.textContent).toContain(
-    "After savingClose source tab",
+    "After savingClose source tab after saving",
   );
   expect(result.textContent).toContain("Tested “pdf” from Source URL — matched.");
   expect(result.textContent).toContain("Tested “pdf” from Source URL — did not match.");
@@ -308,12 +308,14 @@ test("shows a terminal exclusion as the selected outcome without a path pipeline
   const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
   await vi.waitFor(() => expect(result.dataset.state).toBe("matched"));
   expect(result.querySelector(".route-debugger-match-summary")?.textContent).toBe(
-    "A rule matched. This save is excluded, so later rules are not evaluated.",
+    "A rule matched. This save is excluded, so later rules do not run.",
   );
   expect(result.querySelector(".route-debugger-rule-destination")?.textContent).toBe(
-    "Does not save matching items",
+    "Do not save matching items",
   );
-  expect(result.querySelector(".route-debugger-rule-badge")?.textContent).toBe("Excluded");
+  expect(result.querySelector(".route-debugger-rule-badge")?.textContent).toBe(
+    "Excluded by routing rule",
+  );
   expect(result.querySelector(".route-debugger-pipeline")).toBeNull();
 });
 

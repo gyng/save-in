@@ -244,7 +244,13 @@ describe("startup restore", () => {
     vi.useFakeTimers();
     const sessionStore = {
       siDownloads: {
-        31: { adopted: true, historyEntryId: "h31", offscreenRequestId: "offscreen-31" },
+        31: {
+          adopted: true,
+          historyEntryId: "h31",
+          offscreenRequestId: "offscreen-31",
+          pendingHistoryMove: { historyId: "old-h31", downloadId: 30 },
+          pendingSourceSidecar: { sourceUrl: "https://x/source" },
+        },
         32: { adopted: true, historyEntryId: "h32" },
         33: { adopted: false, historyEntryId: "h33" },
       },
@@ -253,7 +259,8 @@ describe("startup restore", () => {
         token: "existing",
         deadline: 0,
         pendingDownloads: 0,
-        adoptedDownloadIds: [31, 32, 33],
+        // A malformed duplicate must not replay terminal cleanup twice.
+        adoptedDownloadIds: [31, 31, 32, 33],
       },
     } as Record<string, any>;
     setupGlobals(sessionStore, (query) => {
@@ -272,7 +279,95 @@ describe("startup restore", () => {
     expect(setStatus).toHaveBeenCalledWith("h31", "complete", 31, 12);
     expect(setStatus).toHaveBeenCalledWith("h32", "complete", 32, 9);
     expect(setStatus).not.toHaveBeenCalledWith("h33", expect.anything(), expect.anything());
+    expect(global.browser.downloads.search).toHaveBeenCalledWith({ id: 31 });
+    expect(
+      vi.mocked(global.browser.downloads.search).mock.calls.filter(([query]) => query.id === 31),
+    ).toHaveLength(1);
     expect(OffscreenClient.release).toHaveBeenCalledWith("offscreen-31");
+    expect(sessionStore.siDownloads[31]).not.toHaveProperty("offscreenRequestId");
+    expect(sessionStore.siDownloads[31]).not.toHaveProperty("pendingHistoryMove");
+    expect(sessionStore.siDownloads[31]).not.toHaveProperty("pendingSourceSidecar");
+  });
+
+  test("recovers inactive no-row History Move intent after a terminal-event race", async () => {
+    vi.useFakeTimers();
+    const sessionStore = {
+      siDownloads: {
+        36: {
+          adopted: false,
+          pendingHistoryMove: {
+            historyId: "old-h35",
+            downloadId: 35,
+            filename: "old/photo.png",
+          },
+        },
+      },
+    } as Record<string, any>;
+    setupGlobals(sessionStore, (query) =>
+      query.id === 36
+        ? [{ id: 36, state: "complete", fileSize: 12 }]
+        : [{ id: 35, state: "complete", exists: false, filename: "/downloads/photo.png" }],
+    );
+
+    await loadNotification();
+    expect(sessionStore.siNotificationRecovery.adoptedDownloadIds).toEqual([36]);
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    expect(global.browser.downloads.erase).toHaveBeenCalledWith({ id: 35 });
+    expect(sessionStore.siDownloads[36]).not.toHaveProperty("pendingHistoryMove");
+    expect(sessionStore.siDownloads[36]).toMatchObject({ adopted: false });
+  });
+
+  test("abandons inactive no-row History Move intent when its replacement failed", async () => {
+    vi.useFakeTimers();
+    const sessionStore = {
+      siDownloads: {
+        37: {
+          adopted: false,
+          pendingHistoryMove: {
+            historyId: "old-h35",
+            downloadId: 35,
+            filename: "old/photo.png",
+          },
+        },
+      },
+    } as Record<string, any>;
+    setupGlobals(sessionStore, (query) =>
+      query.id === 37 ? [{ id: 37, state: "interrupted", error: "NETWORK_FAILED" }] : [],
+    );
+
+    await loadNotification();
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    expect(sessionStore.siDownloads[37]).not.toHaveProperty("pendingHistoryMove");
+    expect(sessionStore.siDownloads[37]).toMatchObject({ adopted: false });
+  });
+
+  test("contains a recovered record disappearing during browser lookup", async () => {
+    vi.useFakeTimers();
+    let liveDownloadState: typeof import("../../../src/downloads/download-state-instances.ts").downloadsState;
+    const sessionStore = {
+      siDownloads: { 35: { adopted: true, historyEntryId: "h35" } },
+      siNotificationRecovery: {
+        version: 1,
+        token: "existing",
+        deadline: 0,
+        pendingDownloads: 0,
+        adoptedDownloadIds: [35],
+      },
+    } as Record<string, any>;
+    setupGlobals(sessionStore, () => {
+      liveDownloadState.records.delete(35);
+      return [{ id: 35, state: "complete", fileSize: 12 }];
+    });
+
+    await loadNotification();
+    ({ downloadsState: liveDownloadState } =
+      await import("../../../src/downloads/download-state-instances.ts"));
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(sessionStore.siNotificationRecovery).toBeUndefined();
   });
 
   test("retires a failed delayed recovery task", async () => {

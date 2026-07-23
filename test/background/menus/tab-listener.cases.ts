@@ -53,6 +53,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
     vi.restoreAllMocks();
     setupBrowserMocks();
     (global.browser as any).tabs = {
+      get: vi.fn((id: number) => Promise.resolve(tabFixtures().find((tab) => tab.id === id))),
       query: vi.fn(() => Promise.resolve(tabFixtures())),
       remove: vi.fn(),
     };
@@ -257,16 +258,46 @@ describe("addTabMenuListener tabstrip downloads", () => {
         return { status: "started", downloadId: 1 };
       },
     );
+    await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
+    expect(global.browser.tabs.remove).toHaveBeenCalledOnce();
+    expect(global.browser.tabs.remove).toHaveBeenCalledWith(2);
+  });
+
+  test("global close keeps its navigation guard when the saved tab is replaced", async () => {
+    options.closeTabOnSave = true;
+    vi.mocked(global.browser.tabs.get).mockResolvedValueOnce({
+      id: 2,
+      index: 1,
+      url: "https://b.test/replaced",
+      highlighted: false,
+      active: true,
+      pinned: false,
+      incognito: false,
+    });
 
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
 
-    expect(global.browser.tabs.remove).toHaveBeenCalledOnce();
-    expect(global.browser.tabs.remove).toHaveBeenCalledWith(2);
+    expect(global.browser.tabs.get).toHaveBeenCalledWith(2);
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
   });
 
   test("closeTabOnSave keeps a tab whose save is skipped", async () => {
     options.closeTabOnSave = true;
     vi.mocked(Download.launchDownload).mockResolvedValueOnce({ status: "skipped" });
+
+    await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
+
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+  });
+
+  test("closeTabOnSave keeps a tab after a late required-route rejection", async () => {
+    options.closeTabOnSave = true;
+    vi.mocked(Download.launchDownload).mockImplementationOnce(
+      async (state: DownloadPipelineState) => {
+        state.scratch.deferredRouteRequirement = true;
+        return { status: "started", downloadId: 1 };
+      },
+    );
 
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
 

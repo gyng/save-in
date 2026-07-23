@@ -3,7 +3,6 @@ import type { ContentFetchResult } from "../shared/content-fetch-types.ts";
 import type { LazyDownloadMetadata } from "../shared/lazy-download-metadata.ts";
 import type { PageSourceKind } from "../shared/page-source.ts";
 import type { ClickGesture } from "../shared/click-gesture.ts";
-import type { ROUTING_ACTION_VALUES } from "./action-values.ts";
 
 export type RoutingContent = ContentFetchResult;
 
@@ -132,15 +131,15 @@ export type RenameClause = {
 };
 export type ExcludeClause = {
   name: "exclude";
-  value: (typeof ROUTING_ACTION_VALUES)["exclude"];
+  value: "true";
   type: typeof RULE_TYPES.ACTION;
 };
-export type TabActionClause = {
+export type PostSaveActionClause = {
   name: "after";
-  value: (typeof ROUTING_ACTION_VALUES)["after"];
+  value: "close-tab";
   type: typeof RULE_TYPES.ACTION;
 };
-export type RoutingActionClause = ExcludeClause | TabActionClause;
+export type RoutingActionClause = ExcludeClause | PostSaveActionClause;
 export type RuleClause =
   | MatcherClause
   | CaptureClause

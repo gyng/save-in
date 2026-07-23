@@ -17,9 +17,9 @@ export const INTEGRATION_GRAMMARS: readonly IntegrationGrammar[] = [
     semantics: [
       "Each non-empty line is a menu item; leading > characters set its nesting depth.",
       "A path may contain registered :variables: and optional comment metadata.",
-      "Metadata keys: alias, key, dialog, disabled, and the post-save tab action after: closetab or after: returntab (the legacy tab: close and tab: return spellings stay accepted).",
+      "Metadata keys: alias, key, dialog, disabled, and the post-save tab action after: close-tab or after: return-tab (the legacy tab: close and tab: return spellings stay accepted).",
     ],
-    examples: ["Images\n>Work // (alias: Projects) (after: closetab)"],
+    examples: ["Images\n>Work // (alias: Projects) (after: close-tab)"],
   },
   {
     id: "routing",
@@ -37,7 +37,7 @@ export const INTEGRATION_GRAMMARS: readonly IntegrationGrammar[] = [
       "An into: destination ending in / preserves the resolved filename inside that folder; without a trailing slash it replaces the whole filename.",
       "fetch: requires a usable literal http(s) prefix. If its expanded URL is unusable, the selected download plan fails instead of saving the original URL under the rewritten route.",
       "exclude: true replaces into: and is terminal: a matching exclusion prevents the save and consumes the match before later rules.",
-      "after: closetab closes the source tab only after a Save In download starts. Automatic rules cannot carry this action.",
+      "after: close-tab closes the source tab only after a Save In download starts. Automatic rules cannot carry this action.",
       "CSS routing is bounded to 64 css: matchers per rule and 256 across the configuration.",
       "Automatic source rules use context: ^auto$ and require page and source constraints.",
     ],
@@ -46,7 +46,7 @@ export const INTEGRATION_GRAMMARS: readonly IntegrationGrammar[] = [
       "context: ^auto$\npagedomain: ^example\\.com$\nsourcekind: ^image$\ninto: Images/:filename:",
       "context: ^auto$\npagedomain: ^example\\.com$\ncss: article img\ninto: Articles/:filename:",
       "sourceurl: /tracking\\.gif$\nexclude: true",
-      "pageurl: ^https://example\\.com/\nafter: closetab\ninto: Articles/:filename:",
+      "pageurl: ^https://example\\.com/\nafter: close-tab\ninto: Articles/:filename:",
     ],
   },
 ] as const;

@@ -5,17 +5,27 @@
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
     "message": "Funktioniert für Unterordner in Downloads nach einem Download mit Save In ohne „Speichern unter“-Dialog in dieser Browsersitzung. Browser-Downloads, die direkt im Downloads-Ordner gespeichert werden, ändern „Zuletzt verwendet“ nicht. Browser-Downloads müssen dafür nicht im Verlauf von Save In erfasst werden."
   },
-  "historyRetentionLimit": { "message": "Abgeschlossene Einträge behalten" },
+  "historyRetentionLimit": {
+    "message": "Abgeschlossene Einträge behalten"
+  },
   "historyRetentionLimitHelp": {
     "message": "Bei 0 bleiben laufende Speichervorgänge sichtbar, werden aber nach Abschluss entfernt."
   },
-  "historyRetentionConfirmTitle": { "message": "Verlaufslimit verringern?" },
+  "historyRetentionConfirmTitle": {
+    "message": "Verlaufslimit verringern?"
+  },
   "historyRetentionConfirmDescription": {
     "message": "Ältere abgeschlossene Einträge oberhalb des neuen Limits werden dauerhaft gelöscht. Laufende Speichervorgänge bleiben erhalten. Dies kann nicht rückgängig gemacht werden."
   },
-  "historyRetentionKeepLimit": { "message": "Aktuelles Limit beibehalten" },
-  "historyRetentionLowerLimit": { "message": "Limit verringern" },
-  "browserLastUsedNoticeTitle": { "message": "„Zuletzt verwendet“ wurde nicht geändert" },
+  "historyRetentionKeepLimit": {
+    "message": "Aktuelles Limit beibehalten"
+  },
+  "historyRetentionLowerLimit": {
+    "message": "Limit verringern"
+  },
+  "browserLastUsedNoticeTitle": {
+    "message": "„Zuletzt verwendet“ wurde nicht geändert"
+  },
   "browserLastUsedOutsideDownloads": {
     "message": "Dieser Ordner liegt außerhalb von Downloads und kann von Save In nicht wiederverwendet werden."
   },
@@ -528,6 +538,9 @@
   "notificationSuccessTitle": {
     "message": "Gespeichert"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "Ein Element aus einem privaten Fenster wurde gespeichert."
+  },
   "notificationFailureTitle": {
     "message": "$FILENAME$ konnte nicht gespeichert werden.",
     "placeholders": {
@@ -537,20 +550,20 @@
       }
     }
   },
+  "notificationPrivateFailureTitle": {
+    "message": "Ein Element aus einem privaten Fenster konnte nicht gespeichert werden."
+  },
   "notificationUndoSave": {
     "message": "Speichern rückgängig machen"
   },
   "notificationRuleMatchedTitle": {
     "message": "Save In: Passende Regel gefunden"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "Ein Element aus einem privaten Fenster entsprach einer Routing-Regel."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Download konnte nicht weitergeleitet oder umbenannt werden"
-  },
-  "notificationPrivateDetailsHidden": {
-    "message": "Details zum privaten Speichervorgang sind ausgeblendet"
-  },
-  "notificationPrivateFailureTitle": {
-    "message": "Save In: Privater Speichervorgang fehlgeschlagen"
   },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "Keine passende Regel für $URL$ gefunden",
@@ -560,6 +573,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "Für das Element aus einem privaten Fenster wurde keine passende Routing-Regel gefunden."
   },
   "ruleMissingMatcher": {
     "message": "Fügen Sie der Regel mindestens eine Abgleichsbedingung hinzu"
@@ -1149,6 +1165,9 @@
   "notificationLinkPreferred": {
     "message": "Stattdessen wurde das Linkziel heruntergeladen"
   },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "Das Linkziel aus dem privaten Fenster wurde ausgewählt."
+  },
   "o_cPreferLinksFilterEnabled": {
     "message": "Nur auf passenden Seiten"
   },
@@ -1375,7 +1394,7 @@
     "message": "Jeder Matcher einer Regel muss zutreffen."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Jede Regel, die speichert, muss mit einem"
+    "message": "Eine Speicherregel endet mit einem"
   },
   "html_filterClauses": {
     "message": "Filterklauseln"
@@ -3190,7 +3209,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "Die Quellart-Bedingungen passen auf keine der Seitenquellen-Arten; diese Regel kann nie speichern."
+    "message": "Die Quellart-Bedingungen passen auf keine der Seitenquellen-Arten; diese Regel kann nie angewendet werden."
   },
   "ruleReachabilityLinkOnly": {
     "message": "Diese Regel passt nur auf einfache Links, die das automatische Speichern nie übernimmt."
@@ -4443,30 +4462,46 @@
   "html_linkDownloadMatcherDescription": {
     "message": "Entspricht dem vom Link vorgeschlagenen Downloadnamen."
   },
-  "routeDebuggerLinkTitle": { "message": "Linktitel" },
-  "routeDebuggerLinkDownload": { "message": "Link-Downloadname" },
-  "notificationRuleExcludedTitle": { "message": "Save In: Speichern ausgeschlossen" },
-  "notificationRuleExcludedPrivateMessage": {
-    "message": "Eine Routing-Regel hat diesen privaten Speichervorgang ausgeschlossen"
+  "routeDebuggerLinkTitle": {
+    "message": "Linktitel"
+  },
+  "routeDebuggerLinkDownload": {
+    "message": "Link-Downloadname"
   },
   "notificationRuleExcludedMessage": {
-    "message": "Eine Routing-Regel hat $URL$ ausgeschlossen",
-    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+    "message": "$URL$ wurde nicht gespeichert, weil eine Routingregel es ausgeschlossen hat.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/tracker.gif"
+      }
+    }
   },
-  "o_lRoutingExcluded": { "message": "durch Routing-Regel ausgeschlossen" },
-  "routeDebuggerExcluded": {
-    "message": "Eine Regel stimmte überein. Dieser Speichervorgang ist ausgeschlossen, daher werden spätere Regeln nicht ausgewertet."
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "Ein Element aus einem privaten Fenster wurde nicht gespeichert, weil eine Routingregel es ausgeschlossen hat."
   },
-  "routeDebuggerRuleExcluded": { "message": "Speichert übereinstimmende Elemente nicht" },
-  "routeDebuggerSelectedExcluded": { "message": "Ausgeschlossen" },
-  "routeVisualAddExclusionRule": { "message": "Ausschlussregel hinzufügen" },
-  "routeVisualAfterSaveLabel": { "message": "Nach dem Speichern" },
-  "routeVisualCloseSourceTab": { "message": "Quelltab nach dem Speichern schließen" },
-  "routeVisualCloseTabValue": { "message": "Quelltab schließen" },
-  "routeVisualExcludeLabel": { "message": "Übereinstimmende Elemente" },
-  "routeVisualExcludeValue": { "message": "Nicht speichern" },
-  "routeVisualKeepSourceTab": { "message": "Quelltab nach dem Speichern geöffnet lassen" },
-  "html_routingActionClauses": {
-    "message": "Verwenden Sie exclude: true anstelle von into:, um übereinstimmende Speichervorgänge zu stoppen. Fügen Sie einer Speicherregel after: closetab hinzu, um den Quelltab nach Beginn des Speicherns zu schließen; automatische Regeln können keine Tabs schließen."
+  "routeActionExclude": {
+    "message": "Übereinstimmende Elemente nicht speichern"
+  },
+  "routeActionCloseTab": {
+    "message": "Quelltab nach dem Speichern schließen"
+  },
+  "routeActionKeepTab": {
+    "message": "Quelltab nach dem Speichern geöffnet lassen"
+  },
+  "routeActionAfterSave": {
+    "message": "Nach dem Speichern"
+  },
+  "routeActionOutcome": {
+    "message": "Regelergebnis"
+  },
+  "routeActionExcluded": {
+    "message": "Durch Routingregel ausgeschlossen"
+  },
+  "routeActionExcludedSummary": {
+    "message": "Eine Regel stimmt überein. Dieser Speichervorgang ist ausgeschlossen, daher werden spätere Regeln nicht ausgeführt."
+  },
+  "routeActionRuleEnding": {
+    "message": "Eine Ausschlussregel endet mit exclude: true."
   }
 }

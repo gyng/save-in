@@ -5,17 +5,27 @@
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
     "message": "이 브라우저 세션에서 다른 이름으로 저장 대화상자 없이 Save In으로 한 번 저장한 후 다운로드 폴더 안의 하위 폴더에서 작동합니다. 다운로드 폴더에 직접 저장된 브라우저 다운로드는 마지막 사용 위치를 변경하지 않습니다. 브라우저 다운로드를 Save In 기록에 추가하지 않아도 됩니다."
   },
-  "historyRetentionLimit": { "message": "완료된 항목 보관" },
+  "historyRetentionLimit": {
+    "message": "완료된 항목 보관"
+  },
   "historyRetentionLimitHelp": {
     "message": "0이면 진행 중인 저장은 표시되지만 완료되면 제거됩니다."
   },
-  "historyRetentionConfirmTitle": { "message": "기록 한도를 줄이시겠습니까?" },
+  "historyRetentionConfirmTitle": {
+    "message": "기록 한도를 줄이시겠습니까?"
+  },
   "historyRetentionConfirmDescription": {
     "message": "새 한도를 초과하는 오래된 완료 항목은 영구적으로 삭제됩니다. 진행 중인 저장은 유지됩니다. 이 작업은 실행 취소할 수 없습니다."
   },
-  "historyRetentionKeepLimit": { "message": "현재 한도 유지" },
-  "historyRetentionLowerLimit": { "message": "한도 줄이기" },
-  "browserLastUsedNoticeTitle": { "message": "마지막 사용 위치가 변경되지 않았습니다" },
+  "historyRetentionKeepLimit": {
+    "message": "현재 한도 유지"
+  },
+  "historyRetentionLowerLimit": {
+    "message": "한도 줄이기"
+  },
+  "browserLastUsedNoticeTitle": {
+    "message": "마지막 사용 위치가 변경되지 않았습니다"
+  },
   "browserLastUsedOutsideDownloads": {
     "message": "해당 폴더는 다운로드 폴더 밖에 있어 Save In에서 다시 사용할 수 없습니다."
   },
@@ -106,6 +116,9 @@
   "notificationSuccessTitle": {
     "message": "저장됨"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "비공개 브라우징 항목을 저장했습니다."
+  },
   "notificationFailureTitle": {
     "message": "$FILENAME$을(를) 저장하지 못했습니다.",
     "placeholders": {
@@ -115,19 +128,21 @@
       }
     }
   },
+  "notificationPrivateFailureTitle": {
+    "message": "비공개 브라우징 항목을 저장하지 못했습니다."
+  },
   "notificationUndoSave": {
     "message": "저장 취소"
   },
   "notificationRuleMatchedTitle": {
     "message": "Save In: 규칙이 일치함"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "비공개 브라우징 항목이 라우팅 규칙과 일치했습니다."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: 다운로드 경로를 지정하거나 이름을 바꾸지 못했습니다."
   },
-  "notificationPrivateDetailsHidden": {
-    "message": "비공개 저장 세부 정보가 숨겨졌습니다"
-  },
-  "notificationPrivateFailureTitle": { "message": "Save In: 비공개 저장 실패" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "$URL$에 대해 일치하는 규칙을 찾을 수 없습니다.",
     "placeholders": {
@@ -136,6 +151,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "비공개 브라우징 항목과 일치하는 라우팅 규칙이 없습니다."
   },
   "ruleMissingMatcher": {
     "message": "규칙에 일치 조건을 하나 이상 추가하세요"
@@ -725,6 +743,9 @@
   "notificationLinkPreferred": {
     "message": "대신 링크 대상을 다운로드했습니다."
   },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "비공개 브라우징 링크 대상이 선택되었습니다."
+  },
   "o_cPreferLinksFilterEnabled": {
     "message": "일치하는 페이지에서만"
   },
@@ -951,7 +972,7 @@
     "message": "규칙의 모든 매처가 일치해야 합니다."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "저장하는 모든 규칙은 다음으로 끝나야 합니다."
+    "message": "저장 규칙은 다음으로 끝납니다."
   },
   "html_filterClauses": {
     "message": "필터 절"
@@ -3188,7 +3209,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "소스 종류 조건이 어떤 페이지 소스 종류와도 일치하지 않아 이 규칙은 저장할 수 없습니다."
+    "message": "소스 종류 조건이 어떤 페이지 소스 종류와도 일치하지 않아 이 규칙은 적용될 수 없습니다."
   },
   "ruleReachabilityLinkOnly": {
     "message": "이 규칙은 일반 링크에만 일치하며, 자동 저장은 이를 채택하지 않습니다."
@@ -4435,32 +4456,52 @@
   "html_linkDownloadVariableDescription": {
     "message": "페이지에서 제공하는 경우 링크가 제안한 다운로드 이름입니다."
   },
-  "html_linkTitleMatcherDescription": { "message": "클릭한 링크의 title 속성과 일치합니다." },
-  "html_linkDownloadMatcherDescription": { "message": "링크가 제안한 다운로드 이름과 일치합니다." },
-  "routeDebuggerLinkTitle": { "message": "링크 제목" },
-  "routeDebuggerLinkDownload": { "message": "링크 다운로드 이름" },
-  "notificationRuleExcludedTitle": { "message": "Save In: 저장 제외됨" },
-  "notificationRuleExcludedPrivateMessage": {
-    "message": "라우팅 규칙에서 이 비공개 저장을 제외했습니다"
+  "html_linkTitleMatcherDescription": {
+    "message": "클릭한 링크의 title 속성과 일치합니다."
+  },
+  "html_linkDownloadMatcherDescription": {
+    "message": "링크가 제안한 다운로드 이름과 일치합니다."
+  },
+  "routeDebuggerLinkTitle": {
+    "message": "링크 제목"
+  },
+  "routeDebuggerLinkDownload": {
+    "message": "링크 다운로드 이름"
   },
   "notificationRuleExcludedMessage": {
-    "message": "라우팅 규칙에서 $URL$을(를) 제외했습니다.",
-    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+    "message": "라우팅 규칙에서 제외되어 $URL$을(를) 저장하지 않았습니다.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/tracker.gif"
+      }
+    }
   },
-  "o_lRoutingExcluded": { "message": "라우팅 규칙에 의해 제외됨" },
-  "routeDebuggerExcluded": {
-    "message": "규칙이 일치했습니다. 이 저장은 제외되므로 이후 규칙은 평가하지 않습니다."
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "라우팅 규칙에서 제외되어 비공개 브라우징 항목을 저장하지 않았습니다."
   },
-  "routeDebuggerRuleExcluded": { "message": "일치하는 항목을 저장하지 않음" },
-  "routeDebuggerSelectedExcluded": { "message": "제외됨" },
-  "routeVisualAddExclusionRule": { "message": "제외 규칙 추가" },
-  "routeVisualAfterSaveLabel": { "message": "저장 후" },
-  "routeVisualCloseSourceTab": { "message": "저장 후 원본 탭 닫기" },
-  "routeVisualCloseTabValue": { "message": "원본 탭 닫기" },
-  "routeVisualExcludeLabel": { "message": "일치하는 항목" },
-  "routeVisualExcludeValue": { "message": "저장하지 않음" },
-  "routeVisualKeepSourceTab": { "message": "저장 후에도 원본 탭 열어 두기" },
-  "html_routingActionClauses": {
-    "message": "일치하는 저장을 중지하려면 into: 대신 exclude: true를 사용하세요. 저장이 시작된 후 원본 탭을 닫으려면 저장 규칙에 after: closetab을 추가하세요. 자동 규칙은 탭을 닫을 수 없습니다."
+  "routeActionExclude": {
+    "message": "일치하는 항목 저장 안 함"
+  },
+  "routeActionCloseTab": {
+    "message": "저장 후 원본 탭 닫기"
+  },
+  "routeActionKeepTab": {
+    "message": "저장 후 원본 탭 유지"
+  },
+  "routeActionAfterSave": {
+    "message": "저장 후"
+  },
+  "routeActionOutcome": {
+    "message": "규칙 결과"
+  },
+  "routeActionExcluded": {
+    "message": "라우팅 규칙에 의해 제외됨"
+  },
+  "routeActionExcludedSummary": {
+    "message": "규칙이 일치했습니다. 이 저장은 제외되므로 이후 규칙은 실행되지 않습니다."
+  },
+  "routeActionRuleEnding": {
+    "message": "제외 규칙은 exclude: true로 끝납니다."
   }
 }

@@ -5,17 +5,27 @@
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
     "message": "Fonctionne pour les sous-dossiers du dossier Téléchargements après un téléchargement Save In sans boîte de dialogue Enregistrer sous pendant cette session. Les téléchargements du navigateur enregistrés directement dans Téléchargements ne modifient pas « Dernier emplacement ». Il n’est pas nécessaire de les ajouter à l’historique Save In."
   },
-  "historyRetentionLimit": { "message": "Conserver les entrées terminées" },
+  "historyRetentionLimit": {
+    "message": "Conserver les entrées terminées"
+  },
   "historyRetentionLimitHelp": {
     "message": "Avec 0, les enregistrements en cours restent visibles, puis sont supprimés une fois terminés."
   },
-  "historyRetentionConfirmTitle": { "message": "Réduire la limite de l’historique ?" },
+  "historyRetentionConfirmTitle": {
+    "message": "Réduire la limite de l’historique ?"
+  },
   "historyRetentionConfirmDescription": {
     "message": "Les entrées terminées les plus anciennes au-delà de la nouvelle limite seront définitivement supprimées. Les enregistrements en cours sont conservés. Cette action est irréversible."
   },
-  "historyRetentionKeepLimit": { "message": "Conserver la limite actuelle" },
-  "historyRetentionLowerLimit": { "message": "Réduire la limite" },
-  "browserLastUsedNoticeTitle": { "message": "« Dernier emplacement » n’a pas été modifié" },
+  "historyRetentionKeepLimit": {
+    "message": "Conserver la limite actuelle"
+  },
+  "historyRetentionLowerLimit": {
+    "message": "Réduire la limite"
+  },
+  "browserLastUsedNoticeTitle": {
+    "message": "« Dernier emplacement » n’a pas été modifié"
+  },
   "browserLastUsedOutsideDownloads": {
     "message": "Ce dossier se trouve en dehors du dossier Téléchargements, Save In ne peut donc pas le réutiliser."
   },
@@ -528,6 +538,9 @@
   "notificationSuccessTitle": {
     "message": "Enregistré"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "Un élément de navigation privée a été enregistré."
+  },
   "notificationFailureTitle": {
     "message": "Échec de l’enregistrement de $FILENAME$.",
     "placeholders": {
@@ -536,6 +549,9 @@
         "example": "my_filename.jpg"
       }
     }
+  },
+  "notificationPrivateFailureTitle": {
+    "message": "Un élément de navigation privée n’a pas pu être enregistré."
   },
   "notificationUndoSave": {
     "message": "Annuler l’enregistrement"
@@ -555,13 +571,12 @@
   "notificationRuleMatchedTitle": {
     "message": "Save In : règle correspondante trouvée"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "Un élément de navigation privée correspondait à une règle de routage."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In : échec de l’acheminement ou du renommage du téléchargement"
   },
-  "notificationPrivateDetailsHidden": {
-    "message": "Les détails de l’enregistrement privé sont masqués"
-  },
-  "notificationPrivateFailureTitle": { "message": "Save In : échec de l’enregistrement privé" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "Aucune règle correspondante pour $URL$",
     "placeholders": {
@@ -570,6 +585,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "Aucune règle de routage ne correspondait à l’élément de navigation privée."
   },
   "ruleMissingMatcher": {
     "message": "Ajoutez au moins une condition de correspondance à la règle"
@@ -1159,6 +1177,9 @@
   "notificationLinkPreferred": {
     "message": "Cible du lien téléchargée à la place"
   },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "La cible du lien de navigation privée a été sélectionnée."
+  },
   "o_cPreferLinksFilterEnabled": {
     "message": "Uniquement sur les pages correspondantes"
   },
@@ -1385,7 +1406,7 @@
     "message": "Toutes les conditions d’une règle doivent correspondre."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Toute règle qui enregistre doit se terminer par un"
+    "message": "Une règle d’enregistrement se termine par une"
   },
   "html_filterClauses": {
     "message": "Clauses de filtrage"
@@ -3188,7 +3209,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "Les conditions de type de source ne correspondent à aucun type de source de page ; cette règle ne pourra jamais enregistrer."
+    "message": "Les conditions de type de source ne correspondent à aucun type de source de page ; cette règle ne pourra jamais s’appliquer."
   },
   "ruleReachabilityLinkOnly": {
     "message": "Cette règle ne correspond qu’à des liens simples, que l’enregistrement automatique n’adopte jamais."
@@ -4441,32 +4462,46 @@
   "html_linkDownloadMatcherDescription": {
     "message": "Correspond au nom de téléchargement suggéré par le lien."
   },
-  "routeDebuggerLinkTitle": { "message": "Titre du lien" },
-  "routeDebuggerLinkDownload": { "message": "Nom de téléchargement du lien" },
-  "notificationRuleExcludedTitle": { "message": "Save In : enregistrement exclu" },
-  "notificationRuleExcludedPrivateMessage": {
-    "message": "Une règle de routage a exclu cet enregistrement privé"
+  "routeDebuggerLinkTitle": {
+    "message": "Titre du lien"
+  },
+  "routeDebuggerLinkDownload": {
+    "message": "Nom de téléchargement du lien"
   },
   "notificationRuleExcludedMessage": {
-    "message": "Une règle de routage a exclu $URL$",
-    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+    "message": "$URL$ n’a pas été enregistré, car une règle de routage l’a exclu.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/tracker.gif"
+      }
+    }
   },
-  "o_lRoutingExcluded": { "message": "exclu par une règle de routage" },
-  "routeDebuggerExcluded": {
-    "message": "Une règle correspond. Cet enregistrement est exclu, les règles suivantes ne sont donc pas évaluées."
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "Un élément de navigation privée n’a pas été enregistré, car une règle de routage l’a exclu."
   },
-  "routeDebuggerRuleExcluded": { "message": "N’enregistre pas les éléments correspondants" },
-  "routeDebuggerSelectedExcluded": { "message": "Exclu" },
-  "routeVisualAddExclusionRule": { "message": "Ajouter une règle d’exclusion" },
-  "routeVisualAfterSaveLabel": { "message": "Après l’enregistrement" },
-  "routeVisualCloseSourceTab": { "message": "Fermer l’onglet source après l’enregistrement" },
-  "routeVisualCloseTabValue": { "message": "Fermer l’onglet source" },
-  "routeVisualExcludeLabel": { "message": "Éléments correspondants" },
-  "routeVisualExcludeValue": { "message": "Ne pas enregistrer" },
-  "routeVisualKeepSourceTab": {
-    "message": "Laisser l’onglet source ouvert après l’enregistrement"
+  "routeActionExclude": {
+    "message": "Ne pas enregistrer les éléments correspondants"
   },
-  "html_routingActionClauses": {
-    "message": "Utilisez exclude: true au lieu de into: pour arrêter les enregistrements correspondants. Ajoutez after: closetab à une règle d’enregistrement pour fermer son onglet source après le début de l’enregistrement ; les règles automatiques ne peuvent pas fermer les onglets."
+  "routeActionCloseTab": {
+    "message": "Fermer l’onglet source après l’enregistrement"
+  },
+  "routeActionKeepTab": {
+    "message": "Garder l’onglet source après l’enregistrement"
+  },
+  "routeActionAfterSave": {
+    "message": "Après l’enregistrement"
+  },
+  "routeActionOutcome": {
+    "message": "Résultat de la règle"
+  },
+  "routeActionExcluded": {
+    "message": "Exclu par une règle de routage"
+  },
+  "routeActionExcludedSummary": {
+    "message": "Une règle correspond. Cet enregistrement est exclu, les règles suivantes ne sont donc pas exécutées."
+  },
+  "routeActionRuleEnding": {
+    "message": "Une règle d’exclusion se termine par exclude: true."
   }
 }

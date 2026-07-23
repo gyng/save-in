@@ -28,10 +28,12 @@ import {
 } from "../downloads/notification.ts";
 import { makeShortcut, suggestShortcutFilename } from "../downloads/shortcut.ts";
 import { createSourceSidecarRequest } from "../downloads/source-sidecar.ts";
+import { closeRoutingSourceTab } from "./tab-action.ts";
 import { options } from "../config/options-data.ts";
 import { currentTab } from "../platform/current-tab.ts";
 import type { CurrentTab } from "../platform/current-tab.ts";
 import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-types.ts";
+import { isRoutingAccepted } from "../downloads/download-pipeline-state.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { addLogEntry } from "./log.ts";
 import { runBackgroundTask } from "./background-event-task.ts";
@@ -268,8 +270,7 @@ const handleContextMenuClickInternal = async (
   // click state (post-toggle) is authoritative. Await initialization first:
   // a concurrent load must not overwrite the newly persisted in-memory value.
   if (info.menuItemId === MENU_IDS.QUICK_SAVE_TO_DIRECTORY) {
-    await setQuickSaveUseDirectory(Reflect.get(info, "checked") === true);
-    return;
+    return setQuickSaveUseDirectory(Reflect.get(info, "checked") === true);
   }
 
   // Prefer the tab the click happened in: the tracked global can lag
@@ -326,9 +327,10 @@ const handleContextMenuClickInternal = async (
     if (target.notifyLinkPreferred && options.notifyOnLinkPreferred) {
       createExtensionNotification(
         getMessage("notificationLinkPreferred"),
-        privateContext ? getMessage("notificationPrivateDetailsHidden") : url,
+        privateContext ? getMessage("notificationPrivateLinkPreferredMessage") : url,
         undefined,
         EXTENSION_NOTIFICATION_STREAMS.LINK_PREFERRED,
+        { privateContext },
       );
     }
     if (target.badPatternError) {
@@ -337,6 +339,7 @@ const handleContextMenuClickInternal = async (
         target.badPatternError.message,
         undefined,
         EXTENSION_NOTIFICATION_STREAMS.PREFER_LINKS_PATTERN_ERROR,
+        { privateContext },
       );
     }
 
@@ -458,7 +461,7 @@ const handleContextMenuClickInternal = async (
     // routeFailurePrompt, which own the no-match behavior for every save path.
     const state: DownloadPipelineState = {
       path: parsedPath,
-      scratch: menuInfo?.tabAction ? { routeTabActionSuppressed: true } : {},
+      scratch: {},
       info: opts,
     };
 
@@ -475,7 +478,8 @@ const handleContextMenuClickInternal = async (
     // reports a terminal failure to the user
     const result = await launchDownload(state);
 
-    if (result.status === "started" && selectedLocation) {
+    const routingAccepted = isRoutingAccepted(state);
+    if (result.status === "started" && routingAccepted && selectedLocation) {
       if (!isolatedPrivateContext) {
         await setLastUsed(selectedLocation.path, selectedLocation.meta);
         const recentDestinationsChanged = await recordRecentDestination(
@@ -503,17 +507,16 @@ const handleContextMenuClickInternal = async (
       state.scratch.routeTabAction ??
       (options.closeTabOnSave && downloadType === DOWNLOAD_TYPES.PAGE ? "close" : undefined);
     if (
+      routingAccepted &&
       tabAction &&
-      !state.scratch.routeTabActionHandled &&
       result.status === "started" &&
       clickTab &&
       clickTab.id != null
     ) {
-      state.scratch.routeTabActionHandled = true;
       const tabId = clickTab.id;
       try {
         if (tabAction === "close") {
-          await webExtensionApi.tabs.remove(tabId);
+          await closeRoutingSourceTab(clickTab, tabId);
         } else {
           await webExtensionApi.tabs.update(tabId, { active: true });
         }

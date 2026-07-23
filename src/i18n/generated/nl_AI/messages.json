@@ -5,17 +5,27 @@
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
     "message": "Werkt voor submappen binnen Downloads na één Save In-download zonder dialoogvenster Opslaan als in deze browsersessie. Browserdownloads die rechtstreeks in Downloads worden opgeslagen, wijzigen Laatst gebruikt niet. Browserdownloads hoeven niet aan de geschiedenis van Save In te worden toegevoegd."
   },
-  "historyRetentionLimit": { "message": "Voltooide items bewaren" },
+  "historyRetentionLimit": {
+    "message": "Voltooide items bewaren"
+  },
   "historyRetentionLimitHelp": {
     "message": "Bij 0 blijven lopende opslagacties zichtbaar, maar worden ze na voltooiing verwijderd."
   },
-  "historyRetentionConfirmTitle": { "message": "Geschiedenislimiet verlagen?" },
+  "historyRetentionConfirmTitle": {
+    "message": "Geschiedenislimiet verlagen?"
+  },
   "historyRetentionConfirmDescription": {
     "message": "Oudere voltooide items boven de nieuwe limiet worden permanent verwijderd. Lopende opslagacties blijven behouden. Dit kan niet ongedaan worden gemaakt."
   },
-  "historyRetentionKeepLimit": { "message": "Huidige limiet behouden" },
-  "historyRetentionLowerLimit": { "message": "Limiet verlagen" },
-  "browserLastUsedNoticeTitle": { "message": "Laatst gebruikt is niet gewijzigd" },
+  "historyRetentionKeepLimit": {
+    "message": "Huidige limiet behouden"
+  },
+  "historyRetentionLowerLimit": {
+    "message": "Limiet verlagen"
+  },
+  "browserLastUsedNoticeTitle": {
+    "message": "Laatst gebruikt is niet gewijzigd"
+  },
   "browserLastUsedOutsideDownloads": {
     "message": "Die map staat buiten Downloads, dus Save In kan deze niet hergebruiken."
   },
@@ -528,6 +538,9 @@
   "notificationSuccessTitle": {
     "message": "Opgeslagen"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "Een item uit privénavigatie is opgeslagen."
+  },
   "notificationFailureTitle": {
     "message": "Kan $FILENAME$ niet opslaan.",
     "placeholders": {
@@ -537,19 +550,21 @@
       }
     }
   },
+  "notificationPrivateFailureTitle": {
+    "message": "Een item uit privénavigatie kon niet worden opgeslagen."
+  },
   "notificationUndoSave": {
     "message": "Opslaan ongedaan maken"
   },
   "notificationRuleMatchedTitle": {
     "message": "Save In: regel toegepast"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "Een item uit privénavigatie kwam overeen met een routeringsregel."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Kan de download niet routeren of hernoemen"
   },
-  "notificationPrivateDetailsHidden": {
-    "message": "Details van privéopslag zijn verborgen"
-  },
-  "notificationPrivateFailureTitle": { "message": "Save In: privéopslag mislukt" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "Geen overeenkomende regel gevonden voor $URL$",
     "placeholders": {
@@ -558,6 +573,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "Geen routeringsregel kwam overeen met het item uit privénavigatie."
   },
   "ruleMissingMatcher": {
     "message": "Voeg minstens één matchvoorwaarde aan de regel toe"
@@ -1147,6 +1165,9 @@
   "notificationLinkPreferred": {
     "message": "In plaats daarvan het linkdoel gedownload"
   },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "Het linkdoel uit privénavigatie is geselecteerd."
+  },
   "o_cPreferLinksFilterEnabled": {
     "message": "Alleen op overeenkomende pagina's"
   },
@@ -1373,7 +1394,7 @@
     "message": "Elke matcher in een regel moet overeenkomen."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Elke regel die opslaat, moet eindigen met een"
+    "message": "Een opslagregel eindigt met een"
   },
   "html_filterClauses": {
     "message": "Filterclausules"
@@ -3188,7 +3209,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "De bronsoort-voorwaarden komen met geen enkele paginabronsoort overeen; deze regel kan nooit opslaan."
+    "message": "De bronsoort-voorwaarden komen met geen enkele paginabronsoort overeen; deze regel kan nooit worden toegepast."
   },
   "ruleReachabilityLinkOnly": {
     "message": "Deze regel komt alleen overeen met gewone links, die automatisch opslaan nooit overneemt."
@@ -4441,30 +4462,46 @@
   "html_linkDownloadMatcherDescription": {
     "message": "Komt overeen met de downloadnaam die de link voorstelt."
   },
-  "routeDebuggerLinkTitle": { "message": "Linktitel" },
-  "routeDebuggerLinkDownload": { "message": "Downloadnaam van de link" },
-  "notificationRuleExcludedTitle": { "message": "Save In: opslaan uitgesloten" },
-  "notificationRuleExcludedPrivateMessage": {
-    "message": "Een routeringsregel heeft deze privéopslag uitgesloten"
+  "routeDebuggerLinkTitle": {
+    "message": "Linktitel"
+  },
+  "routeDebuggerLinkDownload": {
+    "message": "Downloadnaam van de link"
   },
   "notificationRuleExcludedMessage": {
-    "message": "Een routeringsregel heeft $URL$ uitgesloten",
-    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+    "message": "$URL$ is niet opgeslagen omdat een routeringsregel het heeft uitgesloten.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/tracker.gif"
+      }
+    }
   },
-  "o_lRoutingExcluded": { "message": "uitgesloten door routeringsregel" },
-  "routeDebuggerExcluded": {
-    "message": "Een regel kwam overeen. Deze opslag is uitgesloten, dus latere regels worden niet geëvalueerd."
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "Een item uit een privévenster is niet opgeslagen omdat een routeringsregel het heeft uitgesloten."
   },
-  "routeDebuggerRuleExcluded": { "message": "Slaat overeenkomende items niet op" },
-  "routeDebuggerSelectedExcluded": { "message": "Uitgesloten" },
-  "routeVisualAddExclusionRule": { "message": "Uitsluitingsregel toevoegen" },
-  "routeVisualAfterSaveLabel": { "message": "Na het opslaan" },
-  "routeVisualCloseSourceTab": { "message": "Brontabblad sluiten na het opslaan" },
-  "routeVisualCloseTabValue": { "message": "Brontabblad sluiten" },
-  "routeVisualExcludeLabel": { "message": "Overeenkomende items" },
-  "routeVisualExcludeValue": { "message": "Niet opslaan" },
-  "routeVisualKeepSourceTab": { "message": "Brontabblad openhouden na het opslaan" },
-  "html_routingActionClauses": {
-    "message": "Gebruik exclude: true in plaats van into: om overeenkomende opslagacties te stoppen. Voeg after: closetab toe aan een opslagregel om het brontabblad te sluiten nadat het opslaan is gestart; automatische regels kunnen geen tabbladen sluiten."
+  "routeActionExclude": {
+    "message": "Overeenkomende items niet opslaan"
+  },
+  "routeActionCloseTab": {
+    "message": "Brontabblad sluiten na opslaan"
+  },
+  "routeActionKeepTab": {
+    "message": "Brontabblad openhouden na opslaan"
+  },
+  "routeActionAfterSave": {
+    "message": "Na het opslaan"
+  },
+  "routeActionOutcome": {
+    "message": "Regeluitkomst"
+  },
+  "routeActionExcluded": {
+    "message": "Uitgesloten door routeringsregel"
+  },
+  "routeActionExcludedSummary": {
+    "message": "Een regel kwam overeen. Deze opslag is uitgesloten, dus latere regels worden niet uitgevoerd."
+  },
+  "routeActionRuleEnding": {
+    "message": "Een uitsluitingsregel eindigt met exclude: true."
   }
 }

@@ -624,8 +624,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       history: {
         add: () => "history-id",
         patch: () => Promise.resolve(),
+        patchStrict: () => Promise.resolve(),
         setDownloadId: () => Promise.resolve(),
         setStatus: () => Promise.resolve(),
+        setStatusStrict: () => Promise.resolve(),
         entries: () => Promise.resolve([]),
         anchorStartTime: () => Promise.resolve(),
       },
@@ -785,8 +787,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       history: {
         add: () => "history-id",
         patch: () => Promise.resolve(),
+        patchStrict: () => Promise.resolve(),
         setDownloadId: () => Promise.resolve(),
         setStatus: () => Promise.resolve(),
+        setStatusStrict: () => Promise.resolve(),
         entries: () => Promise.resolve([]),
         anchorStartTime: () => Promise.resolve(),
       },
@@ -808,8 +812,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       history: {
         add: () => "history-id",
         patch: () => Promise.resolve(),
+        patchStrict: () => Promise.resolve(),
         setDownloadId: () => Promise.resolve(),
         setStatus: () => Promise.resolve(),
+        setStatusStrict: () => Promise.resolve(),
         entries: () => Promise.resolve([]),
         anchorStartTime: () => Promise.resolve(),
       },
@@ -1057,7 +1063,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     freshOptions.filenamePatterns = [{}] as any;
     const state = {
       path: { raw: ":filename:", finalize: () => "old.txt", toString: () => "old.txt" },
-      scratch: { pathTemplateRaw: ":filename:" },
+      scratch: { pathTemplateRaw: ":filename:", routeTabAction: "close" },
       info: { url: "https://x/file", filename: "old.txt" },
     } as any;
     freshDownload.downloadRuntime.rememberPendingState(state);
@@ -1077,6 +1083,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     ).toBe(true);
     await vi.waitFor(() => expect(suggest).toHaveBeenCalledWith());
     expect(suggest).toHaveBeenCalledTimes(1);
+    expect(state.scratch.routeTabAction).toBeUndefined();
   });
 
   test("rejects a deferred route when actual-filename resolution rejects", async () => {
@@ -1199,8 +1206,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       history: {
         add: () => "history-id",
         patch: () => Promise.resolve(),
+        patchStrict: () => Promise.resolve(),
         setDownloadId: () => Promise.resolve(),
         setStatus: () => Promise.resolve(),
+        setStatusStrict: () => Promise.resolve(),
         entries: () => Promise.resolve([]),
         anchorStartTime: () => Promise.resolve(),
       },

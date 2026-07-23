@@ -27,7 +27,13 @@ import { createExtensionNotification, EXTENSION_NOTIFICATION_STREAMS } from "./n
 import { isWireDownloadState, type WireDownloadState } from "../shared/message-protocol.ts";
 import { fromWireDownloadState, toWireDownloadState } from "./wire-state.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
-import { historyDisplayUrl } from "../shared/data-url.ts";
+import { truncateDataUrlForDisplay } from "../shared/data-url.ts";
+import { notifyRouteExclusion } from "./route-exclusion-notification.ts";
+import { getTrackedDownload } from "./expected-downloads.ts";
+import { releaseTerminalDownload, runLateRouteCancellation } from "./terminal-download.ts";
+import { isPrivateDownloadState, requireDownloadUrl } from "./download-pipeline-state.ts";
+import { settleRoutingResolution } from "./routing-resolution.ts";
+import { historyRoutingPatch } from "./history-entry.ts";
 
 const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
@@ -78,8 +84,6 @@ export type DeferredRouteRecovery = {
   pathTemplateRaw?: string | undefined;
   routeTemplateRaw?: string | undefined;
   renameTemplate?: RenameTransform | undefined;
-  routeTabAction?: "close" | undefined;
-  routeTabActionSuppressed?: boolean | undefined;
   mimeExtension?: string | undefined;
   historyEntryId?: string | undefined;
 };
@@ -106,8 +110,6 @@ const normalizeDeferredRoute = (value: unknown): DeferredRouteRecovery | null =>
     ...(isRenameTransform(candidate.renameTemplate)
       ? { renameTemplate: candidate.renameTemplate }
       : {}),
-    ...(candidate.routeTabAction === "close" ? { routeTabAction: "close" as const } : {}),
-    ...(candidate.routeTabActionSuppressed === true ? { routeTabActionSuppressed: true } : {}),
     ...(typeof candidate.mimeExtension === "string"
       ? { mimeExtension: candidate.mimeExtension }
       : {}),
@@ -142,8 +144,6 @@ export const createDeferredRouteRecovery = (
   ...(state.scratch.pathTemplateRaw ? { pathTemplateRaw: state.scratch.pathTemplateRaw } : {}),
   ...(state.scratch.routeTemplateRaw ? { routeTemplateRaw: state.scratch.routeTemplateRaw } : {}),
   ...(state.scratch.renameTemplate ? { renameTemplate: state.scratch.renameTemplate } : {}),
-  ...(state.scratch.routeTabAction ? { routeTabAction: state.scratch.routeTabAction } : {}),
-  ...(state.scratch.routeTabActionSuppressed ? { routeTabActionSuppressed: true } : {}),
   ...(state.scratch.mimeExtension ? { mimeExtension: state.scratch.mimeExtension } : {}),
   ...(state.scratch.historyEntryId ? { historyEntryId: state.scratch.historyEntryId } : {}),
 });
@@ -182,8 +182,6 @@ const restoreDeferredRoute = (recovery: DeferredRouteRecovery): DownloadPipeline
       pathTemplateRaw,
       ...(recovery.routeTemplateRaw ? { routeTemplateRaw: recovery.routeTemplateRaw } : {}),
       ...(recovery.renameTemplate ? { renameTemplate: recovery.renameTemplate } : {}),
-      ...(recovery.routeTabAction ? { routeTabAction: recovery.routeTabAction } : {}),
-      ...(recovery.routeTabActionSuppressed ? { routeTabActionSuppressed: true } : {}),
       ...(recovery.mimeExtension ? { mimeExtension: recovery.mimeExtension } : {}),
       ...(recovery.historyEntryId ? { historyEntryId: recovery.historyEntryId } : {}),
     },
@@ -248,6 +246,17 @@ type FilenameDownload = DownloadRuntimeState & {
   finalizeFullPath(state: DownloadPipelineState): string;
 };
 
+const addFilenameLog = (privateContext: boolean, message: string, data: unknown): unknown =>
+  privateContext
+    ? logPort.add(message, data, { privateContext: true })
+    : logPort.add(message, data);
+
+const addFilenameStateLog = (
+  state: Pick<DownloadPipelineState, "info">,
+  message: string,
+  data: unknown,
+): unknown => addFilenameLog(isPrivateDownloadState(state), message, data);
+
 // privateContext is required, not defaulted: it decides whether a new record
 // reaches storage.session, and a default answers that question for a caller
 // that never considered it. mergeDownload keeps an already-proven private
@@ -257,6 +266,20 @@ const rememberFilename = (downloadId: number, filename: string, privateContext: 
     filename,
     privateContext,
   });
+
+const rememberFilenameSafely = (
+  downloadId: number,
+  filename: string,
+  privateContext: boolean,
+): void => {
+  const report = (error: unknown): unknown =>
+    addFilenameLog(privateContext, "final filename record failed", String(error));
+  try {
+    void rememberFilename(downloadId, filename, privateContext).catch(report);
+  } catch (error) {
+    report(error);
+  }
+};
 
 export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload): void => {
   webExtensionApi.downloads?.onChanged?.addListener((delta) => {
@@ -320,7 +343,11 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           );
         }
       })().catch((error) => {
-        logPort.add("browser download routing failed", String(error));
+        addFilenameLog(
+          downloadItem.incognito === true,
+          "browser download routing failed",
+          String(error),
+        );
         suggest();
       });
       return true;
@@ -334,92 +361,120 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         extensionSessionStorage,
         FINAL_FILENAMES_SESSION_KEY,
         (map) => removeFilename(map, downloadItem.url, retryFilename),
-      ).catch((error) => logPort.add("retry filename cleanup failed", String(error)));
+      ).catch((error) =>
+        addFilenameLog(
+          downloadItem.incognito === true,
+          "retry filename cleanup failed",
+          String(error),
+        ),
+      );
       suggest({ filename: retryFilename, conflictAction: options.conflictAction });
       return false;
     }
 
-    const addStateLog = (state: DownloadPipelineState, message: string, data: unknown): unknown =>
-      state.info.currentTab?.incognito === true
-        ? logPort.add(message, data, { privateContext: true })
-        : logPort.add(message, data);
-
-    const applyDeferredRouteTabAction = async (state: DownloadPipelineState): Promise<void> => {
-      const tabId = state.info.currentTab?.id;
-      if (
-        state.scratch.routeTabAction !== "close" ||
-        state.scratch.routeTabActionHandled ||
-        state.scratch.routeTabActionSuppressed ||
-        tabId == null
-      ) {
+    const rejectDeferredRoute = async (state: DownloadPipelineState): Promise<void> => {
+      delete state.scratch.routeTabAction;
+      suggest();
+      const excluded = state.scratch?.routeOutcome === "exclude";
+      const addRouteLog = (message: string, data: unknown): unknown =>
+        addFilenameStateLog(state, message, data);
+      if (typeof downloadItem.id === "number") {
+        const canceled = await runLateRouteCancellation(downloadItem.id, async () => {
+          const accepted = await webExtensionApi.downloads
+            .cancel(downloadItem.id)
+            .then(() => true)
+            .catch((error) => {
+              addRouteLog(
+                excluded
+                  ? "late routing exclusion could not cancel download"
+                  : "late routing rejection could not cancel download",
+                String(error),
+              );
+              return false;
+            });
+          if (!accepted) return false;
+          // Chrome also resolves cancel() for already-terminal or vanished
+          // items. Only its resulting USER_CANCELED state proves routing, not
+          // an earlier completion or network failure, stopped this transfer.
+          let canceledItem: { state?: string | undefined; error?: string | undefined } | undefined;
+          try {
+            [canceledItem] = await webExtensionApi.downloads.search({ id: downloadItem.id });
+          } catch (error) {
+            addRouteLog("late routing cancellation could not be verified", String(error));
+            return false;
+          }
+          if (canceledItem?.state !== "interrupted" || canceledItem.error !== "USER_CANCELED") {
+            addRouteLog("late routing cancellation did not stop download", {
+              state: canceledItem?.state,
+              error: canceledItem?.error,
+            });
+            return false;
+          }
+          const record = await getTrackedDownload(downloadItem.id).catch((error) => {
+            addRouteLog("late routing cancellation lookup failed", String(error));
+            return null;
+          });
+          if (record) {
+            await releaseTerminalDownload(downloadItem.id, record, addRouteLog).catch((error) =>
+              addRouteLog("late routing cancellation cleanup failed", String(error)),
+            );
+          }
+          await historyPort
+            .setStatus(
+              state.scratch?.historyEntryId,
+              excluded ? "RULE_EXCLUDED" : "RULE_NO_MATCH",
+              downloadItem.id,
+            )
+            .catch((error) => addRouteLog("route-miss history update failed", String(error)));
+          return true;
+        });
+        if (!canceled) return;
+      }
+      if (excluded) {
+        notifyRouteExclusion(state);
         return;
       }
-      // Claim the one-shot action before yielding: downloads.download may
-      // resolve while this listener is removing the tab, and its caller reads
-      // the same state object before deciding whether it must act too.
-      state.scratch.routeTabActionHandled = true;
-      try {
-        await webExtensionApi.tabs.remove(tabId);
-      } catch (error) {
-        addStateLog(state, "deferred post-save tab action failed", String(error));
-      }
-    };
-
-    const rejectDeferredRoute = async (state: DownloadPipelineState): Promise<void> => {
-      const excluded = state.scratch.routeOutcome === "exclude";
-      suggest();
-      if (typeof downloadItem.id === "number") {
-        await webExtensionApi.downloads.cancel(downloadItem.id).catch(() => {});
-        await historyPort
-          .setStatus(
-            state.scratch?.historyEntryId,
-            excluded ? "RULE_EXCLUDED" : "RULE_NO_MATCH",
-            downloadItem.id,
-          )
-          .catch((error) =>
-            addStateLog(
-              state,
-              excluded
-                ? "route-exclusion history update failed"
-                : "route-miss history update failed",
-              String(error),
-            ),
-          );
-      }
-      if (excluded && options.notifyOnRuleMatch) {
-        createExtensionNotification(
-          getMessage("notificationRuleExcludedTitle"),
-          state.info.currentTab?.incognito === true
-            ? getMessage("notificationRuleExcludedPrivateMessage")
-            : getMessage("notificationRuleExcludedMessage", [
-                historyDisplayUrl(state.info.url) ?? "",
-              ]),
-          false,
-          EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
-        );
-      } else if (!excluded && options.notifyOnFailure) {
+      if (options.notifyOnFailure) {
         createExtensionNotification(
           getMessage("notificationRuleMatchFailedExclusiveTitle"),
-          state.info.currentTab?.incognito === true
-            ? getMessage("notificationPrivateDetailsHidden")
+          isPrivateDownloadState(state)
+            ? getMessage("notificationPrivateRuleMatchFailedMessage")
             : getMessage("notificationRuleMatchFailedExclusiveMessage", [
-                historyDisplayUrl(state.info.url) ?? "",
+                truncateDataUrlForDisplay(requireDownloadUrl(state)),
               ]),
           true,
           EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
+          { privateContext: isPrivateDownloadState(state) },
         );
       }
     };
 
-    const rememberResolvedFilename = (state: DownloadPipelineState, filename: string): void => {
+    const patchResolvedHistory = async (
+      state: DownloadPipelineState,
+      filename: string,
+    ): Promise<void> => {
+      const historyEntryId = state.scratch?.historyEntryId;
+      if (typeof historyEntryId !== "string") return;
+      await historyPort
+        .patch(historyEntryId, historyRoutingPatch(state, filename))
+        .catch((error) =>
+          addFilenameStateLog(state, "final filename history update failed", String(error)),
+        );
+    };
+
+    const rememberResolvedFilename = async (
+      state: DownloadPipelineState,
+      filename: string,
+    ): Promise<void> => {
       if (typeof downloadItem.id === "number") {
         Download.finalFilenamesByDownloadId.set(downloadItem.id, filename);
-        void rememberFilename(downloadItem.id, filename, state.info.currentTab?.incognito === true);
+        rememberFilenameSafely(
+          downloadItem.id,
+          filename,
+          state.info.currentTab?.incognito === true,
+        );
       }
-      const historyEntryId = state.scratch?.historyEntryId;
-      if (typeof historyEntryId === "string") {
-        void historyPort.patch(historyEntryId, { finalFullPath: filename });
-      }
+      await patchResolvedHistory(state, filename);
     };
 
     const pendingState = pendingQueue?.shift();
@@ -444,6 +499,16 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
 
         if (recovery && deferredUrl) {
           const recoveredState = restoreDeferredRoute(recovery);
+          const recoveredDownloadUrl = downloadItem.finalUrl || downloadItem.url;
+          if (!recoveredState.info.url && recoveredDownloadUrl) {
+            recoveredState.info.url = recoveredDownloadUrl;
+          }
+          if (downloadItem.incognito && recoveredState.info.currentTab?.incognito !== true) {
+            recoveredState.info.currentTab = {
+              ...recoveredState.info.currentTab,
+              incognito: true,
+            };
+          }
           recoveredState.info.resolvedFilename = downloadItem.filename
             ? proposedFilename(downloadItem.filename)
             : undefined;
@@ -472,12 +537,10 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
             await Download.resolveRenameTransform(recoveredState);
             recoveredState.scratch.deferredRouteRequirement = false;
             const filename = Download.finalizeFullPath(recoveredState);
-            rememberResolvedFilename(recoveredState, filename);
-            const tabAction = applyDeferredRouteTabAction(recoveredState);
+            await rememberResolvedFilename(recoveredState, filename);
             suggest({ filename, conflictAction: options.conflictAction });
-            await tabAction;
           } catch (error) {
-            addStateLog(recoveredState, "deferred route recovery failed", String(error));
+            addFilenameStateLog(recoveredState, "deferred route recovery failed", String(error));
             await rejectDeferredRoute(recoveredState);
           } finally {
             await Promise.all([
@@ -497,7 +560,11 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
                 (stored) => removeDeferredRoute(stored, deferredUrl, recovery.id),
               ),
             ]).catch((error) =>
-              addStateLog(recoveredState, "deferred route recovery cleanup failed", String(error)),
+              addFilenameStateLog(
+                recoveredState,
+                "deferred route recovery cleanup failed",
+                String(error),
+              ),
             );
           }
           return;
@@ -536,7 +603,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           // downloadItem.incognito is then the only evidence that a new record
           // is private, so it — not a public default — decides whether that
           // record is admitted to storage.session.
-          void rememberFilename(downloadItem.id, recovered, downloadItem.incognito === true);
+          rememberFilenameSafely(downloadItem.id, recovered, downloadItem.incognito === true);
         }
         await updateSession<FinalFilenameMap>(
           sessionWriteState,
@@ -546,11 +613,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         );
         suggest({ filename: recovered, conflictAction: options.conflictAction });
       })().catch((error) => {
-        if (downloadItem.incognito) {
-          logPort.add("filename recovery failed", String(error), { privateContext: true });
-        } else {
-          logPort.add("filename recovery failed", String(error));
-        }
+        addFilenameLog(downloadItem.incognito === true, "filename recovery failed", String(error));
         suggest();
       });
       return true;
@@ -593,6 +656,10 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           pendingState.routeIsFolder = ROUTES_TO_FOLDER_REGEX.test(routeMatches);
           pendingState.route = await applyVariables(new Path(routeMatches), pendingState.info);
         }
+        if (pendingState.scratch?.routeOutcome === "exclude") {
+          await rejectDeferredRoute(pendingState);
+          return;
+        }
         if (pendingState.scratch?.deferredRouteRequirement && !routeMatches) {
           await rejectDeferredRoute(pendingState);
           return;
@@ -602,32 +669,42 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         await Download.resolveRenameTransform(pendingState);
         pendingState.scratch.deferredRouteRequirement = false;
         const filename = Download.finalizeFullPath(pendingState);
-        rememberResolvedFilename(pendingState, filename);
-        const tabAction = applyDeferredRouteTabAction(pendingState);
+        await rememberResolvedFilename(pendingState, filename);
         suggest({ filename, conflictAction: options.conflictAction });
-        await tabAction;
-      })().catch((error) => {
-        addStateLog(pendingState, "filename resolution failed", String(error));
-        if (pendingState.scratch?.deferredRouteRequirement) void rejectDeferredRoute(pendingState);
-        else suggest();
-      });
+      })()
+        .catch(async (error) => {
+          // A failed re-evaluation cannot prove which rule won. Preserve the
+          // download fallback, but never run an ambiguously selected mutation.
+          delete pendingState.scratch.routeTabAction;
+          addFilenameStateLog(pendingState, "filename resolution failed", String(error));
+          if (pendingState.scratch?.deferredRouteRequirement) {
+            await rejectDeferredRoute(pendingState);
+          } else suggest();
+        })
+        .finally(() => settleRoutingResolution(pendingState));
       return true;
     }
 
     const filename = Download.finalizeFullPath(pendingState);
     if (typeof downloadItem.id === "number") {
       Download.finalFilenamesByDownloadId.set(downloadItem.id, filename);
-      void rememberFilename(
+      rememberFilenameSafely(
         downloadItem.id,
         filename,
         pendingState.info.currentTab?.incognito === true,
       );
     }
-    const historyEntryId = pendingState.scratch?.historyEntryId;
-    if (typeof historyEntryId === "string") {
-      void historyPort.patch(historyEntryId, { finalFullPath: filename });
+    const historyPatch = patchResolvedHistory(pendingState, filename);
+    if (pendingState.scratch.deferredRoutingResolution) {
+      void historyPatch.finally(() => {
+        suggest({ filename, conflictAction: options.conflictAction });
+        settleRoutingResolution(pendingState);
+      });
+      return true;
     }
+    void historyPatch;
     suggest({ filename, conflictAction: options.conflictAction });
+    settleRoutingResolution(pendingState);
     return false;
   });
 };

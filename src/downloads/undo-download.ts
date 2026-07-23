@@ -160,6 +160,27 @@ export const undoBrowserDownload = async (
   return { undone: true, fileMissing };
 };
 
+// History Move needs the browser's download record to remain as durable proof
+// after the file is removed: if the subsequent strict History write fails, a
+// later event or worker can retry and observe `exists: false`. Ordinary Undo
+// uses undoBrowserDownload above and erases immediately.
+export const removeVerifiedDownloadFile = async (
+  downloadId: number,
+  expected: ExpectedDownloadIdentity = {},
+): Promise<boolean> => {
+  const item = await findVerifiedDownload(downloadId, expected);
+  if (!item) return false;
+  if (item.exists === false) return true;
+  try {
+    await webExtensionApi.downloads.removeFile(downloadId);
+    return true;
+  } catch {
+    // A concurrent removal is success only when the browser can prove the file
+    // is now absent. A rejection by itself is not identity or filesystem proof.
+    return (await findVerifiedDownload(downloadId, expected))?.exists === false;
+  }
+};
+
 // The "mark undone only after the undo actually succeeded" pairing must stay
 // identical between the History message handler and the notification button;
 // downloads/ cannot import background/history directly (import-cycle rule),

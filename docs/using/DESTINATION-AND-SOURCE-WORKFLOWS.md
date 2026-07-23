@@ -21,13 +21,13 @@ Removing the metadata returns the destination to normal direct saving. Aliases,
 comments, nesting, and variables can be used on the same destination line.
 
 A destination can also act on its source tab after the browser accepts a save
-started from it: `(after: closetab)` closes the tab, and `(after: returntab)`
+started from it: `(after: close-tab)` closes the tab, and `(after: return-tab)`
 re-activates it. The earlier `(tab: close)` and `(tab: return)` spellings keep
-working. The same `after: closetab` action is available per rule in the routing
+working. The same `after: close-tab` action is available per rule in the routing
 grammar.
 
 ```text
-Read later // (after: closetab)
+Read later // (after: close-tab)
 ```
 
 ## Last used
@@ -138,6 +138,8 @@ The attributes are not available to automatic Page Sources saves.
 
 Private activity is excluded from Save In History by default. Enabling
 **Remember private browsing activity** records it with a visible private marker.
+Save In's notifications still report private save outcomes and routing decisions,
+but do not show filenames, paths, URLs, sizes, or media types from private activity.
 
 ## Source-link sidecars
 

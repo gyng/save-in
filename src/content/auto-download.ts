@@ -83,12 +83,25 @@ const LIVE_SCAN_DEBOUNCE_MS = 200;
 const LIVE_SCAN_MAX_WAIT_MS = 1000;
 const LIVE_SCAN_ROOT_LIMIT = 64;
 const AUTO_EXCLUSION_CACHE_LIMIT = 1024;
+const MUTABLE_AUTOMATIC_MATCHERS = new Set(["css", "mediatype", "pagetitle", "sourcekind"]);
+
+const hasMutableAutomaticEvidence = (rule: readonly { name: string }[]): boolean =>
+  rule.some((clause) => MUTABLE_AUTOMATIC_MATCHERS.has(clause.name));
 
 export const setupAutoDownloadDiscovery = (
   options: AutoDownloadDiscoveryOptions,
 ): AutoDownloadDiscovery => {
   const parsed = parseRulesCollecting(options.rules);
   const automaticRules = parsed.rules.filter(isAutomaticRuleClauses);
+  const cacheableExclusionRules = new Set<(typeof automaticRules)[number]>();
+  let stableRulePrefix = true;
+  for (const rule of automaticRules) {
+    // DOM/title/kind evidence can change without the URL changing. A stable
+    // exclusion is cacheable only when every higher-priority rule is stable
+    // too; otherwise the cache could hide a newly matching earlier route.
+    if (hasMutableAutomaticEvidence(rule)) stableRulePrefix = false;
+    if (stableRulePrefix) cacheableExclusionRules.add(rule);
+  }
   const cssSelectors = cssSelectorsForRules(automaticRules);
   const dedup = options.dedup ?? createAutoDownloadDedup();
   const seen = dedup.seen;
@@ -276,22 +289,27 @@ export const setupAutoDownloadDiscovery = (
       );
       let selected: AutomaticRoutingCandidate | undefined;
       let excludedByRule = false;
+      let cacheExclusion = false;
       for (const rule of automaticRules) {
         for (const candidate of candidatesForUrl) {
           const match = matchAutomaticRoutingRule([rule], candidate);
           if (!match) continue;
-          if (match.outcome === "exclude") excludedByRule = true;
-          else selected = candidate;
+          if (match.outcome === "exclude") {
+            excludedByRule = true;
+            cacheExclusion = cacheableExclusionRules.has(rule);
+          } else selected = candidate;
           break;
         }
         if (selected || excludedByRule) break;
       }
       if (excludedByRule) {
-        if (excluded.size >= AUTO_EXCLUSION_CACHE_LIMIT) {
-          const oldest = excluded.values().next().value;
-          if (oldest !== undefined) excluded.delete(oldest);
+        // Keep the first bounded working set instead of replacing one entry
+        // on every overflow. FIFO eviction makes a stable page just over the
+        // limit miss every entry on every live rescan; refusing overflow keeps
+        // memory bounded and limits repeat matching to the uncached tail.
+        if (cacheExclusion && excluded.size < AUTO_EXCLUSION_CACHE_LIMIT) {
+          excluded.add(seenKey);
         }
-        excluded.add(seenKey);
         continue;
       }
       if (!selected) continue;

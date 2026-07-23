@@ -261,6 +261,9 @@ describe("history row flatteners", () => {
     expect(statusLabel("pending")).toBe("Saving…");
     expect(statusLabel("failed")).toBe("Failed");
     expect(statusLabel("NETWORK_FAILED")).toBe("Network failed");
+    expect(statusLabel("RULE_EXCLUDED", (key) => `Translated<${key}>`)).toBe(
+      "Translated<routeActionExcluded>",
+    );
     expect(statusLabel("OTHER_THING")).toBe("other thing");
     expect(
       statusLabel("USER_CANCELED", (key) => (key === "historyStatusCanceled" ? "Stopped" : "")),
@@ -272,17 +275,20 @@ describe("history row flatteners", () => {
     expect(statusClass("undone")).toBe("status-undone");
     expect(statusLabel("moved")).toBe("Moved");
     expect(statusClass("moved")).toBe("status-moved");
+    expect(statusClass("RULE_EXCLUDED")).toBe("status-excluded");
   });
 
-  test("undone and moved rows filter as deliberate actions, not as failures", () => {
+  test("undone, moved, and excluded rows filter as deliberate outcomes, not as failures", () => {
     const entries = [
       { id: "a", status: "undone", timestamp: "2024-01-01T00:00:00Z" },
       { id: "m", status: "moved", timestamp: "2024-01-01T00:00:00Z" },
+      { id: "x", status: "RULE_EXCLUDED", timestamp: "2024-01-01T00:00:00Z" },
       { id: "b", status: "SERVER_FORBIDDEN", timestamp: "2024-01-01T00:00:00Z" },
     ];
     expect(paginateHistory(entries, { statusFilter: "failed" }).matchCount).toBe(1);
     expect(paginateHistory(entries, { statusFilter: "undone" }).matchCount).toBe(1);
     expect(paginateHistory(entries, { statusFilter: "moved" }).matchCount).toBe(1);
+    expect(paginateHistory(entries, { statusFilter: "RULE_EXCLUDED" }).matchCount).toBe(1);
   });
 
   test("row flattens an entry to its table fields", () => {

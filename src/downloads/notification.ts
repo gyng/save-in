@@ -7,6 +7,7 @@ import { runEventTask } from "../shared/event-task.ts";
 import {
   cancelExpectedDownload,
   expectDownload,
+  getTrackedDownload,
   resetExpectedDownloads,
 } from "./expected-downloads.ts";
 import {
@@ -24,6 +25,8 @@ import {
   onNotificationClicked,
 } from "./notification-events.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
+import { isPrivateDownloadRecord } from "./download-state.ts";
+import type { PrivateWriteOptions } from "../shared/persistence-context.ts";
 
 type NotificationButtonEvent = {
   addListener(listener: (notificationId: string, buttonIndex: number) => void): void;
@@ -48,6 +51,26 @@ export { EXTENSION_NOTIFICATION_STREAMS };
 
 const logPort = downloadPorts.log;
 
+const reportDownloadEventFailure = async (
+  label: string,
+  downloadId: number | undefined,
+  error: unknown,
+  privateContextHint = false,
+  requireTrackedRecord = false,
+): Promise<unknown> => {
+  const record =
+    typeof downloadId === "number" && Number.isSafeInteger(downloadId)
+      ? await getTrackedDownload(downloadId)
+      : undefined;
+  // A numeric notification can outlive an isolated private record across an
+  // MV3 restart. Without a record there is no honest public/private answer, so
+  // the click failure must not create a potentially private diagnostic.
+  if (requireTrackedRecord && !record && !privateContextHint) return undefined;
+  return privateContextHint || isPrivateDownloadRecord(record ?? {})
+    ? logPort.add(label, String(error), { privateContext: true })
+    : logPort.add(label, String(error));
+};
+
 // Chrome's notifications API can reject SVG iconUrl values with "Unable to
 // download all specified images". Use the shipped raster app icon for the
 // native notification surface; status remains explicit in the title and the
@@ -64,17 +87,23 @@ export const createExtensionNotification = (
   message?: string | null,
   error?: unknown,
   stream: ExtensionNotificationStream = "general",
+  writeOptions: PrivateWriteOptions = {},
 ) => {
   // WebExtension notifications use their caller-supplied ID as the stable
   // replacement key (the equivalent of a Service Worker notification tag).
   // Keep streams distinct while coalescing bursts before they reach the OS.
   const id = `save-in-not-${stream}`;
-  queueExtensionNotification(id, {
-    type: "basic",
-    title: title || getMessage("extensionName"),
-    iconUrl: error ? ERROR_ICON_URL : INFO_ICON_URL,
-    message: message || getMessage("genericUnknownError"),
-  });
+  queueExtensionNotification(
+    id,
+    {
+      type: "basic",
+      title: title || getMessage("extensionName"),
+      iconUrl: error ? ERROR_ICON_URL : INFO_ICON_URL,
+      message: message || getMessage("genericUnknownError"),
+    },
+    undefined,
+    writeOptions,
+  );
 };
 
 export const reportExternalDownloadRejection = (senderId: string): Promise<void> =>
@@ -90,19 +119,25 @@ export const reportExternalDownloadRejection = (senderId: string): Promise<void>
 // rejecting after the fetch fallback is exhausted) — cases onDownloadChanged
 // never sees. Gated on notifyOnFailure so it stays consistent with the
 // post-creation failure notification.
-export const reportDownloadFailure = (name: string, message?: string, privateContext = false) => {
+export const reportDownloadFailure = (
+  name: string,
+  message?: string,
+  context: { privateContext?: boolean } = {},
+) => {
   if (!(options && options.notifyOnFailure)) {
     return;
   }
+  const privateContext = context.privateContext === true;
   createExtensionNotification(
     privateContext
       ? getMessage("notificationPrivateFailureTitle")
       : getMessage("notificationFailureTitle", [name || ""]),
     privateContext
-      ? getMessage("notificationPrivateDetailsHidden")
+      ? getMessage("genericUnknownError")
       : message || getMessage("genericUnknownError"),
     true,
     EXTENSION_NOTIFICATION_STREAMS.DOWNLOAD_FAILURE,
+    context,
   );
 };
 
@@ -124,13 +159,19 @@ export const registerNotifier = () => {
     webExtensionApi.downloads.onCreated.addListener((item) =>
       runEventTask(
         () => onDownloadCreated(item),
-        (error) => logPort.add("download created event failed", String(error)),
+        (error) =>
+          reportDownloadEventFailure(
+            "download created event failed",
+            item?.id,
+            error,
+            item?.incognito === true,
+          ),
       ),
     );
     webExtensionApi.downloads.onChanged.addListener((delta) =>
       runEventTask(
         () => onDownloadChanged(delta),
-        (error) => logPort.add("download changed event failed", String(error)),
+        (error) => reportDownloadEventFailure("download changed event failed", delta?.id, error),
       ),
     );
   }
@@ -138,7 +179,14 @@ export const registerNotifier = () => {
     webExtensionApi.notifications.onClicked.addListener((notificationId) =>
       runEventTask(
         () => onNotificationClicked(notificationId),
-        (error) => logPort.add("notification click event failed", String(error)),
+        (error) =>
+          reportDownloadEventFailure(
+            "notification click event failed",
+            Number(notificationId),
+            error,
+            false,
+            true,
+          ),
       ),
     );
   }
@@ -154,7 +202,14 @@ export const registerNotifier = () => {
     onButtonClicked.addListener((notificationId, buttonIndex) =>
       runEventTask(
         () => onNotificationButtonClicked(notificationId, buttonIndex),
-        (error) => logPort.add("notification button event failed", String(error)),
+        (error) =>
+          reportDownloadEventFailure(
+            "notification button event failed",
+            Number(notificationId),
+            error,
+            false,
+            true,
+          ),
       ),
     );
   }

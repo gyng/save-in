@@ -14,7 +14,7 @@ import {
   runLegacyProfileRoutingScenario,
   runRenameRoutingScenario,
   runRoutingScenario,
-  runRoutingTabActionScenario,
+  runRoutingActionsScenario,
   runShortcutScenario,
   runSymlinkDestinationScenario,
   runTabStripScenario,
@@ -102,10 +102,6 @@ export const registerSharedBrowserCases = (adapters) => {
     await runContextMenuScenario({ control, waitForDownloads });
   });
 
-  test("a matched routing action closes its source tab after saving", async () => {
-    await runRoutingTabActionScenario({ control, waitForDownloads });
-  });
-
   test("interactive link attributes route through the exact content frame", async () => {
     await runLinkMetadataRoutingScenario({ control, evaluatePage });
   });
@@ -130,6 +126,14 @@ export const registerSharedBrowserCases = (adapters) => {
     });
     const completed = requireValue(downloads[0], "Routed download was not captured");
     expect(fs.readFileSync(completed.filename, "utf8")).toBe(routingContent);
+  });
+
+  test("routing exclusions and post-save tab actions respect browser lifecycle", async () => {
+    await runRoutingActionsScenario({
+      control,
+      waitForDownloads,
+      filename: `routing-actions-${browserLabel}`,
+    });
   });
 
   test("CSS routes automatic and manual Page Sources by their originating element", async () => {

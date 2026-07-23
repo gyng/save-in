@@ -32,8 +32,6 @@ export type DownloadScratch = {
   fetchTemplateRaw?: string | undefined;
   routeOutcome?: "exclude" | undefined;
   routeTabAction?: "close" | undefined;
-  routeTabActionHandled?: boolean | undefined;
-  routeTabActionSuppressed?: boolean | undefined;
   // Capture-substituted rename transform of the matched rule (variables still
   // unexpanded), and the same transform with its replacement expanded against
   // this download — the value finalizeFullPath applies synchronously.
@@ -42,6 +40,7 @@ export type DownloadScratch = {
   historyEntryId?: string | null | undefined;
   browserFilenameResolution?: boolean | undefined;
   deferredRouteRequirement?: boolean | undefined;
+  deferredRoutingResolution?: true | undefined;
   sourceSidecar?: SourceSidecarRequest | undefined;
 };
 

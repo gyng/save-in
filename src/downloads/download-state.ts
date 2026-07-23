@@ -1,4 +1,4 @@
-import { getSession, updateSession } from "../shared/session-state.ts";
+import { getSession, updateSession, updateSessionStrict } from "../shared/session-state.ts";
 import type { SessionWriteState } from "../shared/session-state.ts";
 import type { StorageReader, StorageWriter } from "../shared/storage-types.ts";
 import { DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
@@ -54,6 +54,14 @@ export type DownloadRecord = {
 
 type PersistedDownloadRecord = DownloadRecord;
 export type DownloadRecordUpdate = Partial<DownloadRecord>;
+
+// A pending History Move still owns a future destructive action even when its
+// replacement's terminal event already cleared adoption. Treat that intent as
+// active until completion or abandonment so neither cap can erase recovery.
+const requiresDownloadRecordRetention = (record: DownloadRecord): boolean =>
+  record.adopted === true ||
+  record.observedBrowserDownload === true ||
+  Boolean(record.pendingHistoryMove);
 
 export const isPrivateDownloadRecord = (record: Partial<DownloadRecord>): boolean =>
   record.privateContext === true;
@@ -179,10 +187,8 @@ const storedDownloadEntries = (value: unknown): Array<[number, PersistedDownload
       return record ? [[Number(id), record]] : [];
     },
   );
-  const active = entries.filter(([, record]) => record.adopted || record.observedBrowserDownload);
-  const inactive = entries.filter(
-    ([, record]) => !record.adopted && !record.observedBrowserDownload,
-  );
+  const active = entries.filter(([, record]) => requiresDownloadRecordRetention(record));
+  const inactive = entries.filter(([, record]) => !requiresDownloadRecordRetention(record));
   // Partitioning decides what survives, sorting decides what "oldest" means.
   // The memory cap reads Map insertion order and the stored cap reads object
   // keys, which the engine always gives back in numeric order for these ids —
@@ -204,16 +210,17 @@ export const hydrateDownloads = (state: DownloadsState, storage: StorageReader |
 };
 
 const capDownloads = (records: Record<string, PersistedDownloadRecord>) => {
-  const inactiveKeys = Object.keys(records).filter(
-    (key) => !records[key]?.adopted && !records[key]?.observedBrowserDownload,
-  );
+  const inactiveKeys = Object.entries(records)
+    .filter(([, record]) => !requiresDownloadRecordRetention(record))
+    .map(([key]) => key);
   inactiveKeys
     .slice(0, Math.max(0, inactiveKeys.length - MAX_INACTIVE_RECORDS))
     .forEach((key) => delete records[key]);
   return records;
 };
 
-export const mergeDownload = (
+const mergeDownloadUsing = (
+  persist: typeof updateSession,
   state: DownloadsState,
   sessionWrites: SessionWriteState,
   storage: StorageWriter | undefined,
@@ -242,12 +249,12 @@ export const mergeDownload = (
     shouldPersistActivity(true) ||
     typeof merged.historyEntryId === "string";
   const inactiveIds = [...state.records]
-    .filter(([, record]) => !record.adopted && !record.observedBrowserDownload)
+    .filter(([, record]) => !requiresDownloadRecordRetention(record))
     .map(([id]) => id);
   inactiveIds
     .slice(0, Math.max(0, inactiveIds.length - MAX_INACTIVE_RECORDS))
     .forEach((id) => state.records.delete(id));
-  return updateSession<unknown>(sessionWrites, storage, DOWNLOADS_SESSION_KEY, (stored) => {
+  return persist<unknown>(sessionWrites, storage, DOWNLOADS_SESSION_KEY, (stored) => {
     const records = normalizeDownloadRecords(stored);
     const existingPrivateActivity = records[downloadId]?.privateContext === true;
     if (!admitsPrivateActivity && !existingPrivateActivity) delete records[downloadId];
@@ -262,6 +269,22 @@ export const mergeDownload = (
     return preserveDownloadStorageShape(stored, records);
   });
 };
+
+export const mergeDownload = (
+  state: DownloadsState,
+  sessionWrites: SessionWriteState,
+  storage: StorageWriter | undefined,
+  downloadId: number,
+  partial: DownloadRecordUpdate,
+) => mergeDownloadUsing(updateSession, state, sessionWrites, storage, downloadId, partial);
+
+export const mergeDownloadStrict = (
+  state: DownloadsState,
+  sessionWrites: SessionWriteState,
+  storage: StorageWriter | undefined,
+  downloadId: number,
+  partial: DownloadRecordUpdate,
+) => mergeDownloadUsing(updateSessionStrict, state, sessionWrites, storage, downloadId, partial);
 
 export const removeDownload = (
   state: DownloadsState,

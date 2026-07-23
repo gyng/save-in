@@ -65,7 +65,7 @@ describe("config API", () => {
     expect(vocabularyResponse.mock.calls[0]![0]!.body).toMatchObject({
       matchers: expect.any(Array),
       variables: [":date:", ":year:"],
-      routingActions: ["exclude: true", "after: closetab"],
+      routingActions: ["exclude: true", "after: close-tab"],
       automaticMatchers: expect.arrayContaining(["pagedomain", "sourcekind", "mediatype"]),
       automaticContext: "auto",
       sourceKinds: expect.arrayContaining(["image", "document", "link"]),
@@ -85,7 +85,7 @@ describe("config API", () => {
       ebnf: expect.stringContaining("routing-document"),
       semantics: expect.arrayContaining([
         expect.stringContaining("exclude: true"),
-        expect.stringContaining("after: closetab"),
+        expect.stringContaining("after: close-tab"),
       ]),
       examples: expect.arrayContaining([expect.stringContaining("context: ^auto$")]),
     });

@@ -323,6 +323,18 @@ into: e2e/private-auto/:filename:`,
       `Boolean(document.querySelector("#save-in-source-panel")?.shadowRoot)`,
       { description: "private content script" },
     );
+    const privateRuleActions = await evaluatePrivatePage(
+      privatePage.target,
+      `(() => {
+        const panel = document.querySelector("#save-in-source-panel")?.shadowRoot;
+        return panel
+          ? [...panel.querySelectorAll(".action-menu button")].filter(
+              (button) => button.textContent?.trim() === "Create automatic rule",
+            ).length
+          : -1;
+      })()`,
+    );
+    expect(privateRuleActions).toBe(0);
     const beforeOptIn = (await control.downloads.search()).filter(
       (item) => item.url === `http://127.0.0.1:${port}/${initialName}`,
     );
@@ -776,6 +788,81 @@ export const runRoutingScenario = async ({ control, waitForDownloads, content })
 };
 
 /**
+ * Proves both routing actions against real browser ownership: a terminal
+ * exclusion starts no download, and after: close-tab waits until a tab-strip save is
+ * accepted before closing its source tab.
+ *
+ * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
+ *   filename: string,
+ * }} adapters
+ */
+export const runRoutingActionsScenario = async ({ control, waitForDownloads, filename }) => {
+  const previousRules = await control.storage.local.get("filenamePatterns");
+  const previous = {
+    shortcutTab: await control.options.get("shortcutTab"),
+    shortcutType: await control.options.get("shortcutType"),
+    closeTabOnSave: await control.options.get("closeTabOnSave"),
+  };
+  const excludedName = `excluded-${filename}.txt`;
+  let server;
+  let tabId;
+  try {
+    await control.options.set({
+      filenamePatterns: `filename: ^${excludedName}$\nexclude: true\n\nfilename: .*\ninto: e2e/fallback/:filename:`,
+    });
+    const excluded = await control.background.startDownload({
+      content: "must not download",
+      suggestedFilename: excludedName,
+      pageUrl: "https://example.com/",
+    });
+    expect(excluded).toEqual({ status: "skipped" });
+    expect(
+      (await control.downloads.search({})).some((row) => row.filename.includes(excludedName)),
+    ).toBe(false);
+
+    server = http.createServer((_req, res) => {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(`<!doctype html><title>${filename}</title>`);
+    });
+    const port = await listenLocal(server);
+    const url = `http://127.0.0.1:${port}/routing-actions/${filename}`;
+    const created = await control.tabs.create({ url });
+    if (created.id === undefined) throw new Error("Routing-action fixture tab has no ID");
+    const tab = await control.tabs.wait({ id: created.id });
+    tabId = tab.id;
+    if (tab.id === undefined || tab.index === undefined || tab.windowId === undefined) {
+      throw new Error("Routing-action fixture tab is incomplete");
+    }
+    await control.options.set({
+      shortcutTab: true,
+      shortcutType: "HTML_REDIRECT",
+      closeTabOnSave: false,
+      filenamePatterns: `pageurl: /routing-actions/\nafter: close-tab\ninto: e2e/routing-actions/:filename:`,
+    });
+    await control.background.clickTabMenu({
+      info: { menuItemId: "save-in-SI-selected-tab" },
+      tab: { ...tab, id: tab.id, index: tab.index, windowId: tab.windowId },
+    });
+    const downloads = await waitForDownloads(filename);
+    expect(downloads.some((row) => row.state === "complete")).toBe(true);
+    expect((await control.tabs.query({})).some((candidate) => candidate.id === tab.id)).toBe(false);
+    tabId = undefined;
+  } finally {
+    await control.options.set(previous);
+    if (Object.hasOwn(previousRules, "filenamePatterns")) {
+      await control.storage.local.set(previousRules);
+    } else {
+      await control.storage.local.remove("filenamePatterns");
+    }
+    await control.runtime.reset();
+    if (tabId !== undefined) await control.tabs.remove(tabId).catch(() => {});
+    if (server) await closeLocal(server);
+  }
+};
+
+/**
  * Proves a rename: clause edits the final filename component of a real save:
  * the into: template expands first, then the transform rewrites the matched
  * text before the browser download starts.
@@ -988,71 +1075,6 @@ export const runContextMenuScenario = async ({ control, waitForDownloads }) => {
   expect(repeated.state).toBe("complete");
   expect(repeated.filename).toMatch(/e2e[\\/]context-menu[\\/]last-used-smoke\.selection\.txt$/);
   expect(fs.readFileSync(repeated.filename, "utf8")).toBe("last used content");
-};
-
-/**
- * Verifies that a page-scoped routing action reaches the real tabs API only
- * after the corresponding context-menu save is accepted.
- *
- * @param {{
- *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
- *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
- * }} adapters
- */
-export const runRoutingTabActionScenario = async ({ control, waitForDownloads }) => {
-  const filename = "route-tab-action.txt";
-  const server = http.createServer((req, res) => {
-    res.writeHead(200, {
-      "Content-Type": req.url === `/${filename}` ? "text/plain" : "text/html",
-    });
-    res.end(
-      req.url === `/${filename}` ? "routing tab action" : "<!doctype html><title>Source</title>",
-    );
-  });
-  const port = await listenLocal(server);
-  const pageUrl = `http://127.0.0.1:${port}/source`;
-  const fileUrl = `http://127.0.0.1:${port}/${filename}`;
-  const optionKeys = ["paths", "filenamePatterns"];
-  const previous = await control.storage.local.get(optionKeys);
-  const missing = optionKeys.filter((key) => !Object.hasOwn(previous, key));
-  let tabId;
-
-  try {
-    await control.options.set({
-      paths: "e2e/route-tab-action",
-      filenamePatterns: `pageurl: ^${pageUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$
-after: closetab
-into: routed/`,
-    });
-    const created = await control.tabs.create({ url: pageUrl, active: true });
-    if (created.id === undefined) throw new Error("Routing-action fixture tab has no ID");
-    const tab = await control.tabs.wait({ id: created.id });
-    if (tab.id === undefined) throw new Error("Routing-action fixture tab is incomplete");
-    tabId = tab.id;
-
-    await control.background.clickContextMenu({
-      info: { menuItemId: "save-in-0", linkUrl: fileUrl, pageUrl },
-      tab: { id: tab.id, title: "Source", url: pageUrl },
-    });
-
-    const downloads = await waitForDownloads(filename);
-    const complete = requireValue(
-      downloads.find((row) => row.state === "complete"),
-      "Routing-action download did not complete",
-    );
-    expect(fs.readFileSync(complete.filename, "utf8")).toBe("routing tab action");
-    expect((await control.tabs.query()).some((candidate) => candidate.id === tab.id)).toBe(false);
-    tabId = undefined;
-  } finally {
-    try {
-      await control.storage.local.set(previous);
-      if (missing.length) await control.storage.local.remove(missing);
-      if (tabId !== undefined) await control.tabs.remove(tabId).catch(() => {});
-      await control.runtime.reset();
-    } finally {
-      await closeLocal(server);
-    }
-  }
 };
 
 /**

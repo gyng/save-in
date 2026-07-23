@@ -66,8 +66,10 @@ const loadNotification = async () => {
     history: {
       add: (...a: unknown[]) => SaveHistory.addHistoryEntry(...a),
       patch: (...a: unknown[]) => SaveHistory.patchHistoryEntry(...a),
+      patchStrict: (...a: unknown[]) => SaveHistory.patchHistoryEntryStrict(...a),
       setDownloadId: (...a: unknown[]) => SaveHistory.setHistoryDownloadId(...a),
       setStatus: (...a: unknown[]) => SaveHistory.setHistoryStatus(...a),
+      setStatusStrict: (...a: unknown[]) => SaveHistory.setHistoryStatusStrict(...a),
       entries: (...args) => SaveHistory.getHistoryEntries(...args),
       anchorStartTime: (...a: unknown[]) => SaveHistory.anchorHistoryDownloadStartTime(...a),
     },

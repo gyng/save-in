@@ -1051,9 +1051,9 @@ describe("buildTree", () => {
   });
 
   test("reads the canonical (after: …) spelling and keeps the shipped (tab: …) alias", () => {
-    const close = menu.buildTree(["dogs // (after: closetab)"]).items[0]!;
-    const back = menu.buildTree(["dogs // (after: returntab)"]).items[0]!;
-    const both = menu.buildTree(["dogs // (after: returntab) (tab: close)"]).items[0]!;
+    const close = menu.buildTree(["dogs // (after: close-tab)"]).items[0]!;
+    const back = menu.buildTree(["dogs // (after: return-tab)"]).items[0]!;
+    const both = menu.buildTree(["dogs // (after: return-tab) (tab: close)"]).items[0]!;
     const unknown = menu.buildTree(["dogs // (after: nonsense)"]).items[0]!;
     const unknownWithLegacy = menu.buildTree(["dogs // (after: nonsense) (tab: close)"]).items[0]!;
 

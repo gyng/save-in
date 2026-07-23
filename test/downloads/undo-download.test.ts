@@ -4,6 +4,7 @@
 import {
   backfillDownloadStartTime,
   matchesDownloadIdentity,
+  removeVerifiedDownloadFile,
   searchDownloadStartTime,
   undoBrowserDownload,
   undoDownloadAndMark,
@@ -303,6 +304,42 @@ describe("undoBrowserDownload", () => {
       fileMissing: true,
     });
     expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+  });
+});
+
+describe("removeVerifiedDownloadFile", () => {
+  test("refuses an unverified browser record", async () => {
+    seedSearch([]);
+
+    await expect(removeVerifiedDownloadFile(3, { filename: "photo.jpg" })).resolves.toBe(false);
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+  });
+
+  test("accepts the browser's existing missing-file evidence", async () => {
+    seedSearch([{ id: 3, filename: "/downloads/photo.jpg", exists: false }]);
+
+    await expect(removeVerifiedDownloadFile(3, { filename: "photo.jpg" })).resolves.toBe(true);
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+  });
+
+  test("removes a verified file without erasing its recovery record", async () => {
+    seedSearch([{ id: 3, filename: "/downloads/photo.jpg", exists: true }]);
+
+    await expect(removeVerifiedDownloadFile(3, { filename: "photo.jpg" })).resolves.toBe(true);
+    expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(3);
+    expect(global.browser.downloads.erase).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    [false, true],
+    [true, false],
+  ])("verifies the post-rejection file state (exists: %s)", async (exists, expected) => {
+    vi.mocked(global.browser.downloads.search)
+      .mockResolvedValueOnce([{ id: 3, filename: "/downloads/photo.jpg", exists: true } as never])
+      .mockResolvedValue([{ id: 3, filename: "/downloads/photo.jpg", exists } as never]);
+    vi.mocked(global.browser.downloads.removeFile).mockRejectedValue(new Error("host race"));
+
+    await expect(removeVerifiedDownloadFile(3, { filename: "photo.jpg" })).resolves.toBe(expected);
   });
 });
 

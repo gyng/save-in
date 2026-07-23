@@ -84,7 +84,7 @@ describe("applySuggestion", () => {
 
   test.each([
     ["excl", "exclude", "exclude: true"],
-    ["after", "after", "after: closetab"],
+    ["after", "after", "after: close-tab"],
   ])("completes the fixed %s action value", (typed, chosen, expected) => {
     const result = suggestFor(typed, [matcherStrategy(["exclude", "after"])]);
 

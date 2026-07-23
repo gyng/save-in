@@ -89,6 +89,31 @@ describe("renameAndDownload: shared :sha256: fetch reuse", () => {
     );
   });
 
+  test("contains a preparation-row History refresh failure", async () => {
+    vi.mocked(SaveHistory.patchHistoryEntry).mockImplementation((_id, fields) =>
+      Object.hasOwn(fields, "mechanism")
+        ? Promise.resolve()
+        : Promise.reject(new Error("history unavailable")),
+    );
+    vi.spyOn(Variable, "applyVariables").mockImplementationOnce(async (path, info) => {
+      await info?.onContentFetchStart?.("refresh-request");
+      return path as any;
+    });
+    const state = makeState();
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({
+      status: "started",
+      downloadId: 101,
+    });
+
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "history preparation update failed",
+        "Error: history unavailable",
+      ),
+    );
+  });
+
   test("reuses the already-fetched download URL instead of fetching the file again", async () => {
     setCurrentBrowser("CHROME");
     const state = makeState({

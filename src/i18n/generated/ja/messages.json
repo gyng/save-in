@@ -5,17 +5,27 @@
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
     "message": "このブラウザーセッションで「名前を付けて保存」ダイアログを使わずに Save In で一度保存した後、ダウンロードフォルダー内のサブフォルダーで動作します。ダウンロードフォルダーに直接保存されたブラウザーのダウンロードでは、前回使用した場所は更新されません。ブラウザーのダウンロードを Save In 履歴に記録する必要はありません。"
   },
-  "historyRetentionLimit": { "message": "完了した項目を保持" },
+  "historyRetentionLimit": {
+    "message": "完了した項目を保持"
+  },
   "historyRetentionLimitHelp": {
     "message": "0 の場合、保存中は表示され、完了すると削除されます。"
   },
-  "historyRetentionConfirmTitle": { "message": "履歴の上限を減らしますか？" },
+  "historyRetentionConfirmTitle": {
+    "message": "履歴の上限を減らしますか？"
+  },
   "historyRetentionConfirmDescription": {
     "message": "新しい上限を超える古い完了済み項目は完全に削除されます。進行中の保存は保持されます。この操作は元に戻せません。"
   },
-  "historyRetentionKeepLimit": { "message": "現在の上限を維持" },
-  "historyRetentionLowerLimit": { "message": "上限を減らす" },
-  "browserLastUsedNoticeTitle": { "message": "前回使用した場所は変更されませんでした" },
+  "historyRetentionKeepLimit": {
+    "message": "現在の上限を維持"
+  },
+  "historyRetentionLowerLimit": {
+    "message": "上限を減らす"
+  },
+  "browserLastUsedNoticeTitle": {
+    "message": "前回使用した場所は変更されませんでした"
+  },
   "browserLastUsedOutsideDownloads": {
     "message": "そのフォルダーはダウンロードの外にあるため、Save In では再利用できません。"
   },
@@ -106,6 +116,9 @@
   "notificationSuccessTitle": {
     "message": "保存されました"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "プライベートブラウジングの項目を保存しました。"
+  },
   "notificationFailureTitle": {
     "message": "$FILENAME$ を保存できませんでした。",
     "placeholders": {
@@ -115,19 +128,21 @@
       }
     }
   },
+  "notificationPrivateFailureTitle": {
+    "message": "プライベートブラウジングの項目を保存できませんでした。"
+  },
   "notificationUndoSave": {
     "message": "保存を取り消す"
   },
   "notificationRuleMatchedTitle": {
     "message": "Save In: ルールが一致しました"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "プライベートブラウジングの項目がルーティングルールに一致しました。"
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: ダウンロードのルーティングまたは名前変更に失敗しました"
   },
-  "notificationPrivateDetailsHidden": {
-    "message": "プライベート保存の詳細は非表示です"
-  },
-  "notificationPrivateFailureTitle": { "message": "Save In: プライベート保存に失敗しました" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "$URL$ に一致するルールが見つかりませんでした",
     "placeholders": {
@@ -136,6 +151,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "プライベートブラウジングの項目に一致するルーティングルールはありませんでした。"
   },
   "ruleMissingMatcher": {
     "message": "ルールに一致条件を 1 つ以上追加してください"
@@ -725,6 +743,9 @@
   "notificationLinkPreferred": {
     "message": "代わりにリンクターゲットをダウンロードしました"
   },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "プライベートブラウジングのリンク先が選択されました。"
+  },
   "o_cPreferLinksFilterEnabled": {
     "message": "一致するページのみ"
   },
@@ -951,7 +972,7 @@
     "message": "ルール内のすべてのマッチャーが一致する必要があります。"
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "保存を行うルールは次の句で終える必要があります"
+    "message": "保存ルールの末尾には次を指定します"
   },
   "html_filterClauses": {
     "message": "フィルタ句"
@@ -3188,7 +3209,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "ソース種別の条件がどのページソース種別にも一致しないため、このルールが保存することはありません。"
+    "message": "ソース種別の条件がどのページソース種別にも一致しないため、このルールは適用されません。"
   },
   "ruleReachabilityLinkOnly": {
     "message": "このルールは通常のリンクのみに一致しますが、自動保存がそれを採用することはありません。"
@@ -4441,30 +4462,46 @@
   "html_linkDownloadMatcherDescription": {
     "message": "リンクに指定されたダウンロード名に一致します。"
   },
-  "routeDebuggerLinkTitle": { "message": "リンクのタイトル" },
-  "routeDebuggerLinkDownload": { "message": "リンクのダウンロード名" },
-  "notificationRuleExcludedTitle": { "message": "Save In: 保存対象外" },
-  "notificationRuleExcludedPrivateMessage": {
-    "message": "ルーティングルールにより、このプライベート保存は除外されました"
+  "routeDebuggerLinkTitle": {
+    "message": "リンクのタイトル"
+  },
+  "routeDebuggerLinkDownload": {
+    "message": "リンクのダウンロード名"
   },
   "notificationRuleExcludedMessage": {
-    "message": "ルーティングルールにより $URL$ は保存対象外になりました",
-    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+    "message": "ルーティングルールで除外されたため、$URL$ は保存されませんでした。",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/tracker.gif"
+      }
+    }
   },
-  "o_lRoutingExcluded": { "message": "ルーティングルールにより保存対象外" },
-  "routeDebuggerExcluded": {
-    "message": "ルールが一致しました。この保存は対象外のため、後続のルールは評価されません。"
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "プライベートブラウジングの項目は、ルーティングルールで除外されたため保存されませんでした。"
   },
-  "routeDebuggerRuleExcluded": { "message": "一致する項目を保存しません" },
-  "routeDebuggerSelectedExcluded": { "message": "対象外" },
-  "routeVisualAddExclusionRule": { "message": "除外ルールを追加" },
-  "routeVisualAfterSaveLabel": { "message": "保存後" },
-  "routeVisualCloseSourceTab": { "message": "保存後に元のタブを閉じる" },
-  "routeVisualCloseTabValue": { "message": "元のタブを閉じる" },
-  "routeVisualExcludeLabel": { "message": "一致する項目" },
-  "routeVisualExcludeValue": { "message": "保存しない" },
-  "routeVisualKeepSourceTab": { "message": "保存後も元のタブを開いたままにする" },
-  "html_routingActionClauses": {
-    "message": "一致する保存を停止するには、into: の代わりに exclude: true を使用します。保存の開始後に元のタブを閉じるには、保存ルールに after: closetab を追加します。自動ルールではタブを閉じられません。"
+  "routeActionExclude": {
+    "message": "一致する項目を保存しない"
+  },
+  "routeActionCloseTab": {
+    "message": "保存後に元のタブを閉じる"
+  },
+  "routeActionKeepTab": {
+    "message": "保存後も元のタブを開いておく"
+  },
+  "routeActionAfterSave": {
+    "message": "保存後"
+  },
+  "routeActionOutcome": {
+    "message": "ルールの結果"
+  },
+  "routeActionExcluded": {
+    "message": "ルーティングルールにより除外"
+  },
+  "routeActionExcludedSummary": {
+    "message": "ルールが一致しました。この保存は除外されるため、後続のルールは実行されません。"
+  },
+  "routeActionRuleEnding": {
+    "message": "除外ルールの末尾には exclude: true を指定します。"
   }
 }

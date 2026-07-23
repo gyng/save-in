@@ -13,7 +13,6 @@ import {
   type SourceFragment,
   type SourceSpan,
 } from "../shared/syntax-parser.ts";
-import { isRoutingActionName } from "./action-values.ts";
 export const ROUTING_RULE_GRAMMAR = String.raw`
 routing-document = { blank-line | comment-line | rule } ;
 rule             = clause-line, { comment-line | clause-line } ;
@@ -27,7 +26,7 @@ fetch-clause     = "fetch:", [ " " ], http-template ;
 rename-clause    = "rename", [ "/", regex-flags ], ":", [ " " ], regex,
                    " -> ", template ;
 action-clause    = "exclude:", [ " " ], "true"
-                 | "after:", [ " " ], "closetab" ;
+                 | "after:", [ " " ], "close-tab" ;
 disabled-clause  = "disabled:", [ " " ], ( "true" | "false" ) ;
 regex-flags      = non-whitespace, { non-whitespace } ;
 comment-line     = optional-whitespace, "//", { character } ;
@@ -194,7 +193,7 @@ const clauseKind = (name: string): RoutingClauseNode["clauseKind"] =>
       ? "fetch"
       : name === "rename"
         ? "rename"
-        : isRoutingActionName(name)
+        : name === "exclude" || name === "after"
           ? "action"
           : name === "capture" || name === "capturegroups"
             ? "capture"

@@ -82,6 +82,11 @@ export const retryViaFetch = async (
   // yield no Referer here and stay barred.
   if (record.allowOriginalUrlFallback === false && !retryReferer) return false;
   const privateContext = isPrivateDownloadRecord(record);
+  const addRetryLog = (message: string, error: unknown): void => {
+    if (privateContext) {
+      services.log.add(message, String(error), { privateContext: true });
+    } else services.log.add(message, String(error));
+  };
   // A retained History id proves the original private save was admitted while
   // the opt-in was enabled. Preserve that save's restart-safe retry even if the
   // user has since disabled admission for new private activity.
@@ -180,7 +185,9 @@ export const retryViaFetch = async (
       // await chain so a fast replacement's completion still finds the record
       // persisted by rememberStartedDownload below. A different-id bind
       // without a time clears the dead original's stale anchor.
-      void downloadPorts.history.setDownloadId(record.historyEntryId, newId).catch(() => {});
+      void downloadPorts.history
+        .setDownloadId(record.historyEntryId, newId)
+        .catch((error) => addRetryLog("retry history binding failed", error));
       backfillDownloadStartTime(
         record.historyEntryId,
         newId,
@@ -207,6 +214,17 @@ export const retryViaFetch = async (
     return true;
   } catch (error) {
     if (expected) services.notifier.cancelExpectedDownload(expected);
+    if (newId != null) {
+      // The replacement is a one-shot mutation and the browser already
+      // accepted it. A recovery write failure cannot safely be reported as a
+      // failed retry: the caller could offer another download while this one
+      // is live.
+      if (controller.signal.aborted) {
+        await webExtensionApi.downloads.cancel(newId).catch(() => {});
+      }
+      addRetryLog("accepted retry recovery record failed", error);
+      return true;
+    }
     if (blobUrl?.startsWith("blob:") && newId == null && !offscreenRequestId) {
       URL.revokeObjectURL(blobUrl);
     }
@@ -214,9 +232,7 @@ export const retryViaFetch = async (
       await OffscreenClient.release(offscreenRequestId).catch(() => {});
     }
     if (controller.signal.aborted) return true;
-    if (privateContext) {
-      services.log.add("fallback fetch failed", String(error), { privateContext: true });
-    } else services.log.add("fallback fetch failed", String(error));
+    addRetryLog("fallback fetch failed", error);
     return false;
   } finally {
     if (record.historyEntryId) finishActiveTransfer(record.historyEntryId, controller);
@@ -258,6 +274,11 @@ export const retryViaFetch = async (
       }
     }
     if (releasePrivateDownloadGuard) cleanup.push(releasePrivateDownloadGuard());
-    await Promise.all(cleanup);
+    const cleanupResults = await Promise.allSettled(cleanup);
+    for (const result of cleanupResults) {
+      if (result.status === "rejected") {
+        addRetryLog("retry session cleanup failed", result.reason);
+      }
+    }
   }
 };

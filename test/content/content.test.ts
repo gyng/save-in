@@ -1228,6 +1228,37 @@ describe("content.js initialisation", () => {
     },
   );
 
+  test("does not offer automatic-rule creation in private browsing", async () => {
+    const extensionDescriptor = Object.getOwnPropertyDescriptor(global.chrome, "extension");
+    Object.defineProperty(global.chrome, "extension", {
+      configurable: true,
+      value: { inIncognitoContext: true },
+    });
+    try {
+      document.body.innerHTML = '<img src="https://cdn.test/cat.jpg">';
+      await importContentWithOptions({ sourcePanelEnabled: true, sourcePanelBackgrounds: false });
+      const runtimeListener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock
+        .calls[0]![0] as (message: any) => void;
+      runtimeListener({ type: "SET_SOURCE_PANEL", body: { open: true } });
+      await Promise.resolve();
+
+      const actions = [
+        ...document
+          .getElementById("save-in-source-panel")!
+          .shadowRoot!.querySelectorAll<HTMLButtonElement>(".action-menu button"),
+      ];
+      expect(actions.some(({ textContent }) => textContent === "Create automatic rule")).toBe(
+        false,
+      );
+    } finally {
+      if (extensionDescriptor) {
+        Object.defineProperty(global.chrome, "extension", extensionDescriptor);
+      } else {
+        Reflect.deleteProperty(global.chrome, "extension");
+      }
+    }
+  });
+
   test("closes Page Sources in response to explicit background state", async () => {
     await importContentWithOptions({ sourcePanelEnabled: true, sourcePanelBackgrounds: false });
     const runtimeListener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock

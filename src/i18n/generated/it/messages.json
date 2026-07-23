@@ -5,16 +5,24 @@
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
     "message": "Funziona con le sottocartelle della cartella Download dopo un download di Save In senza finestra Salva con nome nella sessione corrente. I download del browser salvati direttamente nella cartella Download non modificano «Ultima destinazione usata». Non è necessario aggiungerli alla cronologia di Save In."
   },
-  "historyRetentionLimit": { "message": "Conserva le voci completate" },
+  "historyRetentionLimit": {
+    "message": "Conserva le voci completate"
+  },
   "historyRetentionLimitHelp": {
     "message": "0 mantiene visibili i salvataggi in corso, ma li rimuove al termine."
   },
-  "historyRetentionConfirmTitle": { "message": "Ridurre il limite della cronologia?" },
+  "historyRetentionConfirmTitle": {
+    "message": "Ridurre il limite della cronologia?"
+  },
   "historyRetentionConfirmDescription": {
     "message": "Le voci completate meno recenti oltre il nuovo limite verranno eliminate definitivamente. I salvataggi in corso vengono conservati. L’operazione non può essere annullata."
   },
-  "historyRetentionKeepLimit": { "message": "Mantieni il limite attuale" },
-  "historyRetentionLowerLimit": { "message": "Riduci il limite" },
+  "historyRetentionKeepLimit": {
+    "message": "Mantieni il limite attuale"
+  },
+  "historyRetentionLowerLimit": {
+    "message": "Riduci il limite"
+  },
   "browserLastUsedNoticeTitle": {
     "message": "«Ultima destinazione usata» non è stata modificata"
   },
@@ -84,6 +92,9 @@
   "notificationSuccessTitle": {
     "message": "Salvato"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "È stato salvato un elemento di navigazione privata."
+  },
   "notificationFailureTitle": {
     "message": "Impossibile salvare $FILENAME$.",
     "placeholders": {
@@ -92,6 +103,9 @@
         "example": "my_filename.jpg"
       }
     }
+  },
+  "notificationPrivateFailureTitle": {
+    "message": "Non è stato possibile salvare un elemento di navigazione privata."
   },
   "notificationUndoSave": {
     "message": "Annulla salvataggio"
@@ -111,13 +125,12 @@
   "notificationRuleMatchedTitle": {
     "message": "Save In: regola corrispondente"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "Un elemento di navigazione privata corrispondeva a una regola di instradamento."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: impossibile instradare o rinominare il download"
   },
-  "notificationPrivateDetailsHidden": {
-    "message": "I dettagli del salvataggio privato sono nascosti"
-  },
-  "notificationPrivateFailureTitle": { "message": "Save In: salvataggio privato non riuscito" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "Nessuna regola corrispondente trovata per $URL$",
     "placeholders": {
@@ -126,6 +139,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "Nessuna regola di instradamento corrispondeva all’elemento di navigazione privata."
   },
   "ruleMissingMatcher": {
     "message": "Aggiungi almeno una condizione di corrispondenza alla regola"
@@ -1039,6 +1055,9 @@
   "notificationLinkPreferred": {
     "message": "È stata scaricata invece la destinazione del collegamento"
   },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "È stata selezionata la destinazione del collegamento di navigazione privata."
+  },
   "o_cPreferLinksFilterEnabled": {
     "message": "Solo sulle pagine corrispondenti"
   },
@@ -1334,7 +1353,7 @@
     "message": "Tutti i criteri di una regola devono corrispondere."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Ogni regola che salva deve terminare con un"
+    "message": "Una regola di salvataggio termina con una"
   },
   "html_filterClauses": {
     "message": "Clausole di filtro"
@@ -3190,7 +3209,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "Le condizioni sul tipo di fonte non corrispondono ad alcun tipo di fonte della pagina; questa regola non potrà mai salvare."
+    "message": "Le condizioni sul tipo di fonte non corrispondono ad alcun tipo di fonte della pagina; questa regola non potrà mai essere applicata."
   },
   "ruleReachabilityLinkOnly": {
     "message": "Questa regola corrisponde solo a link semplici, che il salvataggio automatico non adotta mai."
@@ -4443,32 +4462,46 @@
   "html_linkDownloadMatcherDescription": {
     "message": "Corrisponde al nome di download suggerito dal collegamento."
   },
-  "routeDebuggerLinkTitle": { "message": "Titolo del collegamento" },
-  "routeDebuggerLinkDownload": { "message": "Nome di download del collegamento" },
-  "notificationRuleExcludedTitle": { "message": "Save In: salvataggio escluso" },
-  "notificationRuleExcludedPrivateMessage": {
-    "message": "Una regola di instradamento ha escluso questo salvataggio privato"
+  "routeDebuggerLinkTitle": {
+    "message": "Titolo del collegamento"
+  },
+  "routeDebuggerLinkDownload": {
+    "message": "Nome di download del collegamento"
   },
   "notificationRuleExcludedMessage": {
-    "message": "Una regola di instradamento ha escluso $URL$",
-    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+    "message": "$URL$ non è stato salvato perché una regola di instradamento lo ha escluso.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/tracker.gif"
+      }
+    }
   },
-  "o_lRoutingExcluded": { "message": "escluso da una regola di instradamento" },
-  "routeDebuggerExcluded": {
-    "message": "Una regola corrisponde. Questo salvataggio è escluso, quindi le regole successive non vengono valutate."
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "Un elemento di navigazione privata non è stato salvato perché una regola di instradamento lo ha escluso."
   },
-  "routeDebuggerRuleExcluded": { "message": "Non salva gli elementi corrispondenti" },
-  "routeDebuggerSelectedExcluded": { "message": "Escluso" },
-  "routeVisualAddExclusionRule": { "message": "Aggiungi regola di esclusione" },
-  "routeVisualAfterSaveLabel": { "message": "Dopo il salvataggio" },
-  "routeVisualCloseSourceTab": { "message": "Chiudi la scheda di origine dopo il salvataggio" },
-  "routeVisualCloseTabValue": { "message": "Chiudi la scheda di origine" },
-  "routeVisualExcludeLabel": { "message": "Elementi corrispondenti" },
-  "routeVisualExcludeValue": { "message": "Non salvare" },
-  "routeVisualKeepSourceTab": {
-    "message": "Mantieni aperta la scheda di origine dopo il salvataggio"
+  "routeActionExclude": {
+    "message": "Non salvare gli elementi corrispondenti"
   },
-  "html_routingActionClauses": {
-    "message": "Usa exclude: true invece di into: per interrompere i salvataggi corrispondenti. Aggiungi after: closetab a una regola di salvataggio per chiudere la scheda di origine dopo l’avvio del salvataggio; le regole automatiche non possono chiudere le schede."
+  "routeActionCloseTab": {
+    "message": "Chiudi la scheda di origine dopo il salvataggio"
+  },
+  "routeActionKeepTab": {
+    "message": "Mantieni la scheda di origine dopo il salvataggio"
+  },
+  "routeActionAfterSave": {
+    "message": "Dopo il salvataggio"
+  },
+  "routeActionOutcome": {
+    "message": "Risultato della regola"
+  },
+  "routeActionExcluded": {
+    "message": "Escluso da una regola di instradamento"
+  },
+  "routeActionExcludedSummary": {
+    "message": "Una regola corrisponde. Questo salvataggio è escluso, quindi le regole successive non vengono eseguite."
+  },
+  "routeActionRuleEnding": {
+    "message": "Una regola di esclusione termina con exclude: true."
   }
 }

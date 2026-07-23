@@ -5,17 +5,27 @@
   "o_cBrowserDownloadsUpdateLastUsedHelp": {
     "message": "Funciona con subcarpetas dentro de Descargas después de una descarga de Save In sin diálogo Guardar como en esta sesión. Las descargas del navegador que se guardan directamente en Descargas no cambian Última ubicación. No es necesario añadir las descargas del navegador al historial de Save In."
   },
-  "historyRetentionLimit": { "message": "Conservar entradas completadas" },
+  "historyRetentionLimit": {
+    "message": "Conservar entradas completadas"
+  },
   "historyRetentionLimitHelp": {
     "message": "Con 0, los guardados en curso permanecen visibles, pero se eliminan al terminar."
   },
-  "historyRetentionConfirmTitle": { "message": "¿Reducir el límite del historial?" },
+  "historyRetentionConfirmTitle": {
+    "message": "¿Reducir el límite del historial?"
+  },
   "historyRetentionConfirmDescription": {
     "message": "Las entradas finalizadas más antiguas que superen el nuevo límite se eliminarán de forma permanente. Los guardados en curso se conservan. Esta acción no se puede deshacer."
   },
-  "historyRetentionKeepLimit": { "message": "Mantener el límite actual" },
-  "historyRetentionLowerLimit": { "message": "Reducir el límite" },
-  "browserLastUsedNoticeTitle": { "message": "La última ubicación no cambió" },
+  "historyRetentionKeepLimit": {
+    "message": "Mantener el límite actual"
+  },
+  "historyRetentionLowerLimit": {
+    "message": "Reducir el límite"
+  },
+  "browserLastUsedNoticeTitle": {
+    "message": "La última ubicación no cambió"
+  },
   "browserLastUsedOutsideDownloads": {
     "message": "Esa carpeta está fuera de Descargas, por lo que Save In no puede reutilizarla."
   },
@@ -528,6 +538,9 @@
   "notificationSuccessTitle": {
     "message": "Guardado"
   },
+  "notificationPrivateSuccessMessage": {
+    "message": "Se guardó un elemento de navegación privada."
+  },
   "notificationFailureTitle": {
     "message": "No se pudo guardar $FILENAME$.",
     "placeholders": {
@@ -537,19 +550,21 @@
       }
     }
   },
+  "notificationPrivateFailureTitle": {
+    "message": "No se pudo guardar un elemento de navegación privada."
+  },
   "notificationUndoSave": {
     "message": "Deshacer guardado"
   },
   "notificationRuleMatchedTitle": {
     "message": "Save In: regla aplicada"
   },
+  "notificationPrivateRuleMatchedMessage": {
+    "message": "Un elemento de navegación privada coincidió con una regla de enrutamiento."
+  },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: No se pudo enrutar o cambiar el nombre de la descarga"
   },
-  "notificationPrivateDetailsHidden": {
-    "message": "Los detalles del guardado privado están ocultos"
-  },
-  "notificationPrivateFailureTitle": { "message": "Save In: Error al guardar en privado" },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "No se encontró ninguna regla coincidente para $URL$",
     "placeholders": {
@@ -558,6 +573,9 @@
         "example": "www.google.jpg"
       }
     }
+  },
+  "notificationPrivateRuleMatchFailedMessage": {
+    "message": "Ninguna regla de enrutamiento coincidió con el elemento de navegación privada."
   },
   "ruleMissingMatcher": {
     "message": "Añada al menos una condición de coincidencia a la regla"
@@ -1147,6 +1165,9 @@
   "notificationLinkPreferred": {
     "message": "Se descargó el destino del enlace"
   },
+  "notificationPrivateLinkPreferredMessage": {
+    "message": "Se seleccionó el destino del enlace de navegación privada."
+  },
   "o_cPreferLinksFilterEnabled": {
     "message": "Solo en páginas coincidentes"
   },
@@ -1373,7 +1394,7 @@
     "message": "Todos los comparadores de una regla deben coincidir."
   },
   "html_everyRuleMustEndWithAn": {
-    "message": "Toda regla que guarde debe terminar con una"
+    "message": "Una regla de guardado termina con un"
   },
   "html_filterClauses": {
     "message": "Cláusulas de filtro"
@@ -3188,7 +3209,7 @@
     }
   },
   "ruleReachabilityNoKinds": {
-    "message": "Las condiciones de tipo de fuente no coinciden con ningún tipo de fuente de página; esta regla nunca podrá guardar."
+    "message": "Las condiciones de tipo de fuente no coinciden con ningún tipo de fuente de página; esta regla nunca podrá aplicarse."
   },
   "ruleReachabilityLinkOnly": {
     "message": "Esta regla solo coincide con enlaces simples, que el guardado automático nunca adopta."
@@ -4441,34 +4462,46 @@
   "html_linkDownloadMatcherDescription": {
     "message": "Coincide con el nombre de descarga sugerido por el enlace."
   },
-  "routeDebuggerLinkTitle": { "message": "Título del enlace" },
-  "routeDebuggerLinkDownload": { "message": "Nombre de descarga del enlace" },
-  "notificationRuleExcludedTitle": { "message": "Save In: guardado excluido" },
-  "notificationRuleExcludedPrivateMessage": {
-    "message": "Una regla de enrutamiento excluyó este guardado privado"
+  "routeDebuggerLinkTitle": {
+    "message": "Título del enlace"
+  },
+  "routeDebuggerLinkDownload": {
+    "message": "Nombre de descarga del enlace"
   },
   "notificationRuleExcludedMessage": {
-    "message": "Una regla de enrutamiento excluyó $URL$",
-    "placeholders": { "url": { "content": "$1", "example": "https://example.com/tracker.gif" } }
+    "message": "$URL$ no se guardó porque una regla de enrutamiento lo excluyó.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/tracker.gif"
+      }
+    }
   },
-  "o_lRoutingExcluded": { "message": "excluido por una regla de enrutamiento" },
-  "routeDebuggerExcluded": {
-    "message": "Una regla coincidió. Este guardado está excluido, por lo que no se evalúan las reglas posteriores."
+  "notificationPrivateRuleExcludedMessage": {
+    "message": "No se guardó un elemento de navegación privada porque una regla de enrutamiento lo excluyó."
   },
-  "routeDebuggerRuleExcluded": { "message": "No guarda los elementos coincidentes" },
-  "routeDebuggerSelectedExcluded": { "message": "Excluido" },
-  "routeVisualAddExclusionRule": { "message": "Añadir regla de exclusión" },
-  "routeVisualAfterSaveLabel": { "message": "Después de guardar" },
-  "routeVisualCloseSourceTab": {
+  "routeActionExclude": {
+    "message": "No guardar los elementos coincidentes"
+  },
+  "routeActionCloseTab": {
     "message": "Cerrar la pestaña de origen después de guardar"
   },
-  "routeVisualCloseTabValue": { "message": "Cerrar la pestaña de origen" },
-  "routeVisualExcludeLabel": { "message": "Elementos coincidentes" },
-  "routeVisualExcludeValue": { "message": "No guardar" },
-  "routeVisualKeepSourceTab": {
-    "message": "Mantener abierta la pestaña de origen después de guardar"
+  "routeActionKeepTab": {
+    "message": "Mantener la pestaña de origen después de guardar"
   },
-  "html_routingActionClauses": {
-    "message": "Usa exclude: true en lugar de into: para detener los guardados coincidentes. Añade after: closetab a una regla de guardado para cerrar su pestaña de origen después de iniciar el guardado; las reglas automáticas no pueden cerrar pestañas."
+  "routeActionAfterSave": {
+    "message": "Después de guardar"
+  },
+  "routeActionOutcome": {
+    "message": "Resultado de la regla"
+  },
+  "routeActionExcluded": {
+    "message": "Excluido por una regla de enrutamiento"
+  },
+  "routeActionExcludedSummary": {
+    "message": "Una regla coincidió. Este guardado está excluido, por lo que las reglas posteriores no se ejecutan."
+  },
+  "routeActionRuleEnding": {
+    "message": "Una regla de exclusión termina con exclude: true."
   }
 }
