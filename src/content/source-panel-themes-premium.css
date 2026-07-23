@@ -20,7 +20,8 @@
   --theme-link: #4fc3ff;
   --theme-on-accent: #1a0010;
   --font-stack:
-    "Comic Sans MS", "Comic Sans", "Chalkboard SE", "Segoe Print", "Bradley Hand", cursive;
+    "Comic Sans MS", "Comic Sans", "Chalkboard SE", "Segoe Print", "Bradley Hand",
+    "Times New Roman", "DejaVu Serif", serif;
   --radius: 0px;
 }
 

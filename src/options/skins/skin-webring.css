@@ -6,12 +6,15 @@
    check while staying a single self-contained stylesheet. */
 
 :root[data-theme="webring"] {
-  /* A casual/comic look from OS-bundled fonts only, falling back to the generic
-     cursive family — no downloaded or bundled font. font-family is locked to the
-     two font tokens by check-css, so the theme re-points the token rather than
-     styling headings individually. */
+  /* Comic where the OS ships it (Windows/macOS), else a serif — Times was the
+     literal 1996 browser default, and unlike cursive it maps to a distinct
+     installed face on font-poor systems (e.g. WSLg's DejaVu Serif) instead of
+     the default sans. All OS-bundled; no downloaded or bundled font.
+     font-family is locked to the two font tokens by check-css, so the theme
+     re-points the token rather than styling headings individually. */
   --font-stack:
-    "Comic Sans MS", "Comic Sans", "Chalkboard SE", "Segoe Print", "Bradley Hand", cursive;
+    "Comic Sans MS", "Comic Sans", "Chalkboard SE", "Segoe Print", "Bradley Hand",
+    "Times New Roman", "DejaVu Serif", serif;
   --radius: 0px;
   --radius-dialog: 0px;
 }
