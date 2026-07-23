@@ -330,12 +330,39 @@ const setupClickToSave = (
   };
   let startLongPressInputTracking = stopLongPressInputTracking;
   let longPressKeyCodes: readonly number[] = [];
+  // A long page task can hold a physically short click's mouseup queued past
+  // the hold threshold. Completion therefore never fires in the same task as
+  // threshold expiry: the wait is split so the last millisecond runs as its
+  // own task, giving that queued release a turn to cancel first. The follow-up
+  // timer must be cleared alongside the threshold timer.
+  const longPressFollowUps = new Map<number, number>();
   const longPress = shortcutOptions.some(({ gesture }) => gesture === CLICK_GESTURES.LONG_LEFT)
     ? createLongPressTracker<LongPressCandidate>(
         options.contentClickToSaveLongPressMs ?? CONTENT_LONG_PRESS_DEFAULT_MS,
         {
-          set: (callback, delayMs) => window.setTimeout(callback, delayMs),
-          clear: (timer) => window.clearTimeout(timer),
+          set: (callback, delayMs) => {
+            const timer = window.setTimeout(
+              () => {
+                longPressFollowUps.set(
+                  timer,
+                  window.setTimeout(() => {
+                    longPressFollowUps.delete(timer);
+                    callback();
+                  }, 1),
+                );
+              },
+              Math.max(0, delayMs - 1),
+            );
+            return timer;
+          },
+          clear: (timer) => {
+            window.clearTimeout(timer);
+            const followUp = longPressFollowUps.get(timer);
+            if (followUp !== undefined) {
+              window.clearTimeout(followUp);
+              longPressFollowUps.delete(timer);
+            }
+          },
         },
         ({ binding, source, linkMetadata }) => {
           longPressKeyCodes = [];

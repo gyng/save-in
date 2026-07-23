@@ -2323,6 +2323,55 @@ describe("setupClickToSave", () => {
     remove();
   });
 
+  test("long-left completion yields once so a release queued behind jank still cancels", async () => {
+    vi.useFakeTimers();
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        contentClickToSaveLongPressMs: 500,
+        links: true,
+      },
+      acceptTestInput,
+    );
+    document.body.innerHTML = '<img id="held" src="http://x.test/preview.png">';
+    const image = document.getElementById("held");
+
+    image?.dispatchEvent(
+      new MouseEvent("mousedown", {
+        button: 0,
+        buttons: 1,
+        clientX: 20,
+        clientY: 30,
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+
+    // A long page task can delay a physically short click's mouseup until
+    // after the threshold expires. Service only the threshold timer, then
+    // deliver the queued release: the deferred completion must lose.
+    await vi.advanceTimersToNextTimerAsync();
+    expect(downloadsSent()).toHaveLength(0);
+    image?.dispatchEvent(new MouseEvent("mouseup", { button: 0, bubbles: true }));
+    await vi.runAllTimersAsync();
+    expect(downloadsSent()).toHaveLength(0);
+
+    const shortClick = new MouseEvent("click", {
+      button: 0,
+      detail: 1,
+      bubbles: true,
+      cancelable: true,
+    });
+    vi.spyOn(shortClick, "preventDefault");
+    image?.dispatchEvent(shortClick);
+    expect(shortClick.preventDefault).not.toHaveBeenCalled();
+    remove();
+  });
+
   test("double-left takes precedence over a compatible pending long-left gesture", async () => {
     vi.useFakeTimers();
     const remove = ClickToSave.setupClickToSave(
