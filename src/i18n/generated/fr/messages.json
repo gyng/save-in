@@ -4409,7 +4409,7 @@
     "message": "Le premier clic est toujours transmis à la page. Une image associée à un lien peut s’ouvrir ou mener à une autre page avant le second clic."
   },
   "o_lClickToSaveLongClickHelp": {
-    "message": "Les clics brefs restent normaux. Gardez le pointeur immobile jusqu’au début de l’enregistrement ; tout mouvement annule le geste. Après l’enregistrement, le clic au relâchement est bloqué afin que les liens ne s’ouvrent pas. Le geste nécessite une souris ; l'appui tactile ne le déclenche pas."
+    "message": "Les clics brefs restent normaux. Gardez le pointeur immobile jusqu’au début de l’enregistrement ; tout mouvement annule le geste. Après l’enregistrement, le clic au relâchement est bloqué afin que les liens ne s’ouvrent pas. Le geste nécessite une souris ; l’appui tactile ne le déclenche pas."
   },
   "o_lClickToSaveLongPressDuration": {
     "message": "Durée du clic prolongé"
