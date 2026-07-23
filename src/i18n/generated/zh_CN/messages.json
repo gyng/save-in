@@ -4453,6 +4453,6 @@
   "routeVisualExcludeValue": { "message": "不保存" },
   "routeVisualKeepSourceTab": { "message": "保存后保持来源标签页打开" },
   "html_routingActionClauses": {
-    "message": "使用 exclude: true 代替 into: 可停止匹配的保存。在保存规则中添加 tab: close，可在保存开始后关闭来源标签页；自动规则不能关闭标签页。"
+    "message": "使用 exclude: true 代替 into: 可停止匹配的保存。在保存规则中添加 after: closetab，可在保存开始后关闭来源标签页；自动规则不能关闭标签页。"
   }
 }

@@ -4467,6 +4467,6 @@
   "routeVisualExcludeValue": { "message": "Nicht speichern" },
   "routeVisualKeepSourceTab": { "message": "Quelltab nach dem Speichern geöffnet lassen" },
   "html_routingActionClauses": {
-    "message": "Verwenden Sie exclude: true anstelle von into:, um übereinstimmende Speichervorgänge zu stoppen. Fügen Sie einer Speicherregel tab: close hinzu, um den Quelltab nach Beginn des Speicherns zu schließen; automatische Regeln können keine Tabs schließen."
+    "message": "Verwenden Sie exclude: true anstelle von into:, um übereinstimmende Speichervorgänge zu stoppen. Fügen Sie einer Speicherregel after: closetab hinzu, um den Quelltab nach Beginn des Speicherns zu schließen; automatische Regeln können keine Tabs schließen."
   }
 }

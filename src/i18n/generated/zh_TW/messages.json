@@ -4455,6 +4455,6 @@
   "routeVisualExcludeValue": { "message": "不儲存" },
   "routeVisualKeepSourceTab": { "message": "儲存後保持來源分頁開啟" },
   "html_routingActionClauses": {
-    "message": "使用 exclude: true 取代 into: 可停止相符的儲存。在儲存規則中加入 tab: close，可在儲存開始後關閉來源分頁；自動規則不能關閉分頁。"
+    "message": "使用 exclude: true 取代 into: 可停止相符的儲存。在儲存規則中加入 after: closetab，可在儲存開始後關閉來源分頁；自動規則不能關閉分頁。"
   }
 }

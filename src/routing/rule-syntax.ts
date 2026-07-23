@@ -27,7 +27,7 @@ fetch-clause     = "fetch:", [ " " ], http-template ;
 rename-clause    = "rename", [ "/", regex-flags ], ":", [ " " ], regex,
                    " -> ", template ;
 action-clause    = "exclude:", [ " " ], "true"
-                 | "tab:", [ " " ], "close" ;
+                 | "after:", [ " " ], "closetab" ;
 disabled-clause  = "disabled:", [ " " ], ( "true" | "false" ) ;
 regex-flags      = non-whitespace, { non-whitespace } ;
 comment-line     = optional-whitespace, "//", { character } ;

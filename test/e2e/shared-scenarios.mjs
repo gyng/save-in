@@ -1021,7 +1021,7 @@ export const runRoutingTabActionScenario = async ({ control, waitForDownloads })
     await control.options.set({
       paths: "e2e/route-tab-action",
       filenamePatterns: `pageurl: ^${pageUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$
-tab: close
+after: closetab
 into: routed/`,
     });
     const created = await control.tabs.create({ url: pageUrl, active: true });

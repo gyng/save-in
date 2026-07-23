@@ -40,7 +40,7 @@ An automatic exclusion rule uses `exclude: true` instead of `into:`. It must
 keep the same explicit automatic context, page matcher, and source matcher as
 an automatic save rule. A matching exclusion is terminal: that source is not
 saved, later rules are ignored for it, and it does not consume the page's save
-limit. Automatic rules cannot use `tab: close` because discovery is unattended
+limit. Automatic rules cannot use `after: closetab` because discovery is unattended
 and may match many sources from one page.
 
 An automatic rule may also carry a `fetch:` clause. When the rule matches, Save

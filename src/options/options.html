@@ -891,8 +891,8 @@ Save In syntax:
 - To reuse regex groups in new rules, add capturegroups: followed by the matcher name, then use :$1:, :$2:, and so on in into:. capture: is only for compatibility with legacy flattened indexes.
 - Add an optional fetch: clause with a literal http:// or https:// URL template to download from that address instead of the matched source; into: still sets the destination. It may reuse :$1:, :$2:, and other routing variables except :mime:, :contenttype:, :mimeext:, :sha256:, :sha256full:, :finalurl:, and :redirecturl:. The save fails if expansion does not produce a usable HTTP(S) URL. A rule may contain at most one fetch: clause.
 - Add an optional rename: clause written as "find -> replacement" to edit the final filename: find is a regular expression (add flags after the name, for example rename/gi:), and replacement is literal text where routing variables and :$1: expand. An empty replacement deletes matches; folders are never affected. Rules that need a content hash are skipped for ordinary browser downloads already in flight. A rule may contain at most one rename: clause.
-- Use exclude: true instead of into: to stop a matching save before later rules. Exclusion rules must have at least one matcher and cannot contain output, capture, or tab action clauses.
-- Add tab: close to a non-automatic save rule to close its source tab only after the browser accepts the download.
+- Use exclude: true instead of into: to stop a matching save before later rules. Exclusion rules must have at least one matcher and cannot contain output, capture, or after action clauses.
+- Add after: closetab to a non-automatic save rule to close its source tab only after the browser accepts the download.
 - Add disabled: true to a valid rule to keep it without running it. Disabled rules are still validated.
 - Lines beginning with // are comments. Never use absolute paths, parent path components, or unsupported clause names.
 
@@ -3782,7 +3782,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               <tr>
                 <td>
                   <code class="click-to-copy" data-copy-value="exclude: true">exclude:</code>
-                  <code class="click-to-copy" data-copy-value="tab: close">tab:</code>
+                  <code class="click-to-copy" data-copy-value="after: closetab">after:</code>
                 </td>
                 <td>
                   <code>true</code>

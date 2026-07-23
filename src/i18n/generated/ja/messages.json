@@ -4465,6 +4465,6 @@
   "routeVisualExcludeValue": { "message": "保存しない" },
   "routeVisualKeepSourceTab": { "message": "保存後も元のタブを開いたままにする" },
   "html_routingActionClauses": {
-    "message": "一致する保存を停止するには、into: の代わりに exclude: true を使用します。保存の開始後に元のタブを閉じるには、保存ルールに tab: close を追加します。自動ルールではタブを閉じられません。"
+    "message": "一致する保存を停止するには、into: の代わりに exclude: true を使用します。保存の開始後に元のタブを閉じるには、保存ルールに after: closetab を追加します。自動ルールではタブを閉じられません。"
   }
 }

@@ -293,7 +293,7 @@ export const addRoutingClause = (
   // Output and action clauses follow matchers. fetch:, rename:, and tab: stay
   // next to into:, while a new matcher also stays before a terminal exclude:.
   const name = clause.name.trim().toLowerCase();
-  const anchorsToDestination = name === "fetch" || name === "rename" || name === "tab";
+  const anchorsToDestination = name === "fetch" || name === "rename" || name === "after";
   const before = unit.rule.clauses.find((candidate) =>
     anchorsToDestination
       ? candidate.clauseKind === "destination"
@@ -380,15 +380,15 @@ export const setRoutingRuleTabAction = (
   enabled: boolean,
 ): string => {
   const { unit } = editableRule(source, ruleIndex);
-  const action = unit.rule.clauses.find((clause) => clause.name === "tab");
+  const action = unit.rule.clauses.find((clause) => clause.name === "after");
   if (enabled) {
     return action
       ? updateRoutingClause(source, ruleIndex, unit.rule.clauses.indexOf(action), {
-          value: ROUTING_ACTION_VALUES.tab,
+          value: ROUTING_ACTION_VALUES.after,
         })
       : addRoutingClause(source, ruleIndex, {
-          name: "tab",
-          value: ROUTING_ACTION_VALUES.tab,
+          name: "after",
+          value: ROUTING_ACTION_VALUES.after,
         });
   }
   return action

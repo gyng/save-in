@@ -136,8 +136,8 @@ export type ExcludeClause = {
   type: typeof RULE_TYPES.ACTION;
 };
 export type TabActionClause = {
-  name: "tab";
-  value: (typeof ROUTING_ACTION_VALUES)["tab"];
+  name: "after";
+  value: (typeof ROUTING_ACTION_VALUES)["after"];
   type: typeof RULE_TYPES.ACTION;
 };
 export type RoutingActionClause = ExcludeClause | TabActionClause;

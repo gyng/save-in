@@ -4465,6 +4465,6 @@
   "routeVisualExcludeValue": { "message": "Niet opslaan" },
   "routeVisualKeepSourceTab": { "message": "Brontabblad openhouden na het opslaan" },
   "html_routingActionClauses": {
-    "message": "Gebruik exclude: true in plaats van into: om overeenkomende opslagacties te stoppen. Voeg tab: close toe aan een opslagregel om het brontabblad te sluiten nadat het opslaan is gestart; automatische regels kunnen geen tabbladen sluiten."
+    "message": "Gebruik exclude: true in plaats van into: om overeenkomende opslagacties te stoppen. Voeg after: closetab toe aan een opslagregel om het brontabblad te sluiten nadat het opslaan is gestart; automatische regels kunnen geen tabbladen sluiten."
   }
 }

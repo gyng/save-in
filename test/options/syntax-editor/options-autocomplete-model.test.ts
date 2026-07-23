@@ -84,9 +84,9 @@ describe("applySuggestion", () => {
 
   test.each([
     ["excl", "exclude", "exclude: true"],
-    ["tab", "tab", "tab: close"],
+    ["after", "after", "after: closetab"],
   ])("completes the fixed %s action value", (typed, chosen, expected) => {
-    const result = suggestFor(typed, [matcherStrategy(["exclude", "tab"])]);
+    const result = suggestFor(typed, [matcherStrategy(["exclude", "after"])]);
 
     expect(applySuggestion(typed, typed.length, result!, chosen)).toEqual({
       value: expected,

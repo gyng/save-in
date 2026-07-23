@@ -194,7 +194,7 @@ describe("routing visual editor model", () => {
 
   test("adds and removes the close-tab action before the destination", () => {
     const withAction = setRoutingRuleTabAction("filename: jpg\ninto: images", 0, true);
-    expect(withAction).toBe("filename: jpg\ntab: close\ninto: images");
+    expect(withAction).toBe("filename: jpg\nafter: closetab\ninto: images");
     expect(setRoutingRuleTabAction(withAction, 0, false)).toBe("filename: jpg\ninto: images");
   });
 

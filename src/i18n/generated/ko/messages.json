@@ -4461,6 +4461,6 @@
   "routeVisualExcludeValue": { "message": "저장하지 않음" },
   "routeVisualKeepSourceTab": { "message": "저장 후에도 원본 탭 열어 두기" },
   "html_routingActionClauses": {
-    "message": "일치하는 저장을 중지하려면 into: 대신 exclude: true를 사용하세요. 저장이 시작된 후 원본 탭을 닫으려면 저장 규칙에 tab: close를 추가하세요. 자동 규칙은 탭을 닫을 수 없습니다."
+    "message": "일치하는 저장을 중지하려면 into: 대신 exclude: true를 사용하세요. 저장이 시작된 후 원본 탭을 닫으려면 저장 규칙에 after: closetab를 추가하세요. 자동 규칙은 탭을 닫을 수 없습니다."
   }
 }

@@ -4465,6 +4465,6 @@
   "routeVisualExcludeValue": { "message": "Não salvar" },
   "routeVisualKeepSourceTab": { "message": "Manter a guia de origem aberta após salvar" },
   "html_routingActionClauses": {
-    "message": "Use exclude: true em vez de into: para interromper salvamentos correspondentes. Adicione tab: close a uma regra de salvamento para fechar a guia de origem após o início do salvamento; regras automáticas não podem fechar guias."
+    "message": "Use exclude: true em vez de into: para interromper salvamentos correspondentes. Adicione after: closetab a uma regra de salvamento para fechar a guia de origem após o início do salvamento; regras automáticas não podem fechar guias."
   }
 }

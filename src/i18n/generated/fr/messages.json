@@ -4467,6 +4467,6 @@
     "message": "Laisser l’onglet source ouvert après l’enregistrement"
   },
   "html_routingActionClauses": {
-    "message": "Utilisez exclude: true au lieu de into: pour arrêter les enregistrements correspondants. Ajoutez tab: close à une règle d’enregistrement pour fermer son onglet source après le début de l’enregistrement ; les règles automatiques ne peuvent pas fermer les onglets."
+    "message": "Utilisez exclude: true au lieu de into: pour arrêter les enregistrements correspondants. Ajoutez after: closetab à une règle d’enregistrement pour fermer son onglet source après le début de l’enregistrement ; les règles automatiques ne peuvent pas fermer les onglets."
   }
 }

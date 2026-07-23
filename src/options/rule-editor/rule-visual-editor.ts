@@ -443,7 +443,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           ? localize("routeVisualExcludeValue", "Do not save")
           : localize("routeVisualCloseTabValue", "Close source tab");
       row.append(actionValue);
-      if (clause.name === "tab") {
+      if (clause.name === "after") {
         const remove = button(
           "×",
           "delete-clause",
@@ -761,7 +761,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       (clause) => clause.kind === "action" && clause.name === "exclude",
     );
     const closeTab = rule.clauses.some(
-      (clause) => clause.kind === "action" && clause.name === "tab",
+      (clause) => clause.kind === "action" && clause.name === "after",
     );
     actionsMenu.append(up, down, duplicate);
     if (!automatic && !exclusion) {

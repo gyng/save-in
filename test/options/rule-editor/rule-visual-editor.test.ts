@@ -560,13 +560,13 @@ describe("routing visual editor", () => {
     expect(element<HTMLTextAreaElement>("#filenamePatterns").value).toContain("exclude: true");
 
     element<HTMLTextAreaElement>("#filenamePatterns").value =
-      "filename: document\\.pdf$\ntab: later\ninto: documents/";
+      "filename: document\\.pdf$\nafter: later\ninto: documents/";
     element<HTMLTextAreaElement>("#filenamePatterns").dispatchEvent(
       new InputEvent("input", { bubbles: true }),
     );
     await vi.waitFor(() => {
       const action = element<HTMLInputElement>(".rule-clause-action .rule-clause-value");
-      expect(action.placeholder).toBe("close");
+      expect(action.placeholder).toBe("closetab");
       expect(action.getAttribute("aria-label")).toBe("After saving");
     });
   });
@@ -577,7 +577,7 @@ describe("routing visual editor", () => {
     element<HTMLButtonElement>('[data-rule-action="toggle-close-tab"]').click();
 
     const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
-    expect(textarea.value).toBe("filename/i: \\.jpg$\ntab: close\ninto: images/:filename:");
+    expect(textarea.value).toBe("filename/i: \\.jpg$\nafter: closetab\ninto: images/:filename:");
     expect(element<HTMLElement>(".rule-clause-action-value").textContent).toBe("Close source tab");
 
     element<HTMLButtonElement>('[data-rule-action="toggle-close-tab"]').click();

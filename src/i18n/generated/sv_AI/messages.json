@@ -4465,6 +4465,6 @@
   "routeVisualExcludeValue": { "message": "Spara inte" },
   "routeVisualKeepSourceTab": { "message": "Håll källfliken öppen efter sparandet" },
   "html_routingActionClauses": {
-    "message": "Använd exclude: true i stället för into: för att stoppa matchande sparanden. Lägg till tab: close i en sparregel för att stänga källfliken efter att sparandet har startat; automatiska regler kan inte stänga flikar."
+    "message": "Använd exclude: true i stället för into: för att stoppa matchande sparanden. Lägg till after: closetab i en sparregel för att stänga källfliken efter att sparandet har startat; automatiska regler kan inte stänga flikar."
   }
 }

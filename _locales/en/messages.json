@@ -5763,11 +5763,11 @@
   },
   "routeVisualCloseSourceTab": {
     "message": "Close source tab after saving",
-    "description": "Rule action that adds tab: close in the visual routing editor. Used in src/options/rule-editor/rule-visual-editor.ts."
+    "description": "Rule action that adds after: closetab in the visual routing editor. Used in src/options/rule-editor/rule-visual-editor.ts."
   },
   "routeVisualCloseTabValue": {
     "message": "Close source tab",
-    "description": "Outcome of a tab: close routing action, shown in the visual editor and route debugger. Used in src/options/rule-editor/rule-visual-editor.ts and src/options/route-debugger/route-debugger.ts."
+    "description": "Outcome of an after: closetab routing action, shown in the visual editor and route debugger. Used in src/options/rule-editor/rule-visual-editor.ts and src/options/route-debugger/route-debugger.ts."
   },
   "routeVisualExcludeLabel": {
     "message": "Matching items",
@@ -5779,10 +5779,10 @@
   },
   "routeVisualKeepSourceTab": {
     "message": "Keep source tab after saving",
-    "description": "Rule action that removes tab: close in the visual routing editor. Used in src/options/rule-editor/rule-visual-editor.ts."
+    "description": "Rule action that removes after: closetab in the visual routing editor. Used in src/options/rule-editor/rule-visual-editor.ts."
   },
   "html_routingActionClauses": {
-    "message": "Use exclude: true instead of into: to stop matching saves. Add tab: close to a save rule to close its source tab after the save starts; automatic rules cannot close tabs.",
-    "description": "Routing guide summary of the two action clauses. Keep the literal exclude: true, into:, and tab: close tokens. Used in src/options/options.html."
+    "message": "Use exclude: true instead of into: to stop matching saves. Add after: closetab to a save rule to close its source tab after the save starts; automatic rules cannot close tabs.",
+    "description": "Routing guide summary of the two action clauses. Keep the literal exclude: true, into:, and after: closetab tokens. Used in src/options/options.html."
   }
 }

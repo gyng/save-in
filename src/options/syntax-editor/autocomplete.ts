@@ -473,7 +473,7 @@ export const setupRoutingAutocomplete = (keywords: RoutingKeywords) => {
     "capture",
     "capturegroups",
     "exclude",
-    "tab",
+    "after",
   ]);
   const options: AutocompleteOptions = keywords.variableValues
     ? { variableValues: keywords.variableValues }

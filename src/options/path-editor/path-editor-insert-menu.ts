@@ -49,7 +49,7 @@ export const setupPathInsertMenu = (
       "fetch",
       "rename",
       "exclude",
-      "tab",
+      "after",
       "capture",
       "capturegroups",
       ...matchers,

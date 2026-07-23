@@ -242,7 +242,7 @@ describe("syntax editor model", () => {
 
   test("completes fixed routing actions with their only valid values", () => {
     const vocabulary = {
-      matchers: ["exclude", "filename", "tab"],
+      matchers: ["after", "exclude", "filename"],
       variables: [],
     };
 
@@ -253,12 +253,12 @@ describe("syntax editor model", () => {
       suffix: ": ",
       suggestionSuffixes: { exclude: ": true" },
     });
-    expect(completeRoutingSyntax("tab", 3, vocabulary)).toEqual({
+    expect(completeRoutingSyntax("after", 5, vocabulary)).toEqual({
       start: 0,
-      end: 3,
-      suggestions: ["tab"],
+      end: 5,
+      suggestions: ["after"],
       suffix: ": ",
-      suggestionSuffixes: { tab: ": close" },
+      suggestionSuffixes: { after: ": closetab" },
     });
   });
 

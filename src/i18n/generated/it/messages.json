@@ -4469,6 +4469,6 @@
     "message": "Mantieni aperta la scheda di origine dopo il salvataggio"
   },
   "html_routingActionClauses": {
-    "message": "Usa exclude: true invece di into: per interrompere i salvataggi corrispondenti. Aggiungi tab: close a una regola di salvataggio per chiudere la scheda di origine dopo l’avvio del salvataggio; le regole automatiche non possono chiudere le schede."
+    "message": "Usa exclude: true invece di into: per interrompere i salvataggi corrispondenti. Aggiungi after: closetab a una regola di salvataggio per chiudere la scheda di origine dopo l’avvio del salvataggio; le regole automatiche non possono chiudere le schede."
   }
 }

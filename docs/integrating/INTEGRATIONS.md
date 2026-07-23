@@ -144,13 +144,13 @@ still preventing later Save In routing rules from adopting it. Automatic
 exclusions retain the normal explicit context, page, and source requirements
 and do not consume the per-page save limit.
 
-A save rule may carry `tab: close`. Once that rule wins and the browser accepts
+A save rule may carry `after: closetab`. Once that rule wins and the browser accepts
 the Save In download, the extension closes the source tab. The action does not
 run for a skipped or failed save, and an explicit per-menu-item tab action takes
-precedence. Automatic rules reject `tab: close`; ordinary browser downloads do
+precedence. Automatic rules reject `after: closetab`; ordinary browser downloads do
 not expose a source tab for this action.
 
-External `DOWNLOAD` requests never execute `tab: close`; allowing another
+External `DOWNLOAD` requests never execute `after: closetab`; allowing another
 extension grants it download access, not authority to close browser tabs.
 
 Check for the `vocabulary`, `grammar`, and `automatic_routing_validation` capabilities before using these additive API v1 features. Older callers can ignore the new capability and response fields.

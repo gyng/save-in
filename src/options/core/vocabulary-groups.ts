@@ -97,7 +97,7 @@ const CLAUSE_ORDER = [
   "fetch",
   "rename",
   "exclude",
-  "tab",
+  "after",
   "capture",
   "capturegroups",
   "context",
@@ -138,7 +138,7 @@ export const clauseGroup = (clause: string): ClauseGroup => {
   const name = clauseName(clause);
   // Keep terminal and post-save actions beside the output clauses they alter
   // so the reference menu does not split one rule decision across headings.
-  if (["into", "fetch", "rename", "exclude", "tab"].includes(name)) return "Output";
+  if (["into", "fetch", "rename", "exclude", "after"].includes(name)) return "Output";
   if (name === "capture" || name === "capturegroups") return "Capture setup";
   if (
     /^(context|gesture|menuindex|comment|directory|linktext|linktitle|linkdownload|selectiontext|css)$/.test(

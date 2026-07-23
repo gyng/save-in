@@ -4469,6 +4469,6 @@
     "message": "Mantener abierta la pestaña de origen después de guardar"
   },
   "html_routingActionClauses": {
-    "message": "Usa exclude: true en lugar de into: para detener los guardados coincidentes. Añade tab: close a una regla de guardado para cerrar su pestaña de origen después de iniciar el guardado; las reglas automáticas no pueden cerrar pestañas."
+    "message": "Usa exclude: true en lugar de into: para detener los guardados coincidentes. Añade after: closetab a una regla de guardado para cerrar su pestaña de origen después de iniciar el guardado; las reglas automáticas no pueden cerrar pestañas."
   }
 }

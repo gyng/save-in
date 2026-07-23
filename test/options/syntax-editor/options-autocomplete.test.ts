@@ -341,11 +341,11 @@ describe("setupRoutingAutocomplete wiring", () => {
     textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
     expect(textarea.value).toBe("exclude: true");
 
-    textarea.value = "tab";
+    textarea.value = "after";
     textarea.setSelectionRange(textarea.value.length, textarea.value.length);
     textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
     textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
-    expect(textarea.value).toBe("tab: close");
+    expect(textarea.value).toBe("after: closetab");
 
     textarea.value = "fileext: pdf\ninto: :f";
     textarea.setSelectionRange(textarea.value.length, textarea.value.length);
@@ -367,7 +367,7 @@ describe("setupRoutingAutocomplete wiring", () => {
       "fetch",
       "rename",
       "exclude",
-      "tab",
+      "after",
       "capture",
       "capturegroups",
       "filename",
