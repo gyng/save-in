@@ -1,7 +1,7 @@
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { getMessage } from "../../platform/localization.ts";
 
-import { splitLines } from "../../shared/util.ts";
+import { splitLines, withUrl } from "../../shared/util.ts";
 import { MESSAGE_TYPES, DOWNLOAD_TYPES } from "../../shared/constants.ts";
 import { applyVariables, transformers } from "../../routing/variable.ts";
 import { ROUTING_ACTION_VALUES } from "../../routing/action-values.ts";
@@ -453,6 +453,10 @@ export const handleDownloadMessage = (
       fail(API_ERRORS.INVALID_URL, "URL must be http(s), ftp, data or blob");
       return;
     }
+    // Chrome reports downloadItem.url in WHATWG-canonical form and the
+    // pipeline correlates pending saves by exact string, so a caller's
+    // non-canonical spelling must not become the correlation key.
+    url = withUrl(url, (parsed) => parsed.href, url);
 
     // The external DOWNLOAD API may omit info
     const info = requestBody.info || {};

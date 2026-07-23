@@ -31,6 +31,14 @@ export const isUsableFetchRewrite = (value: string): boolean =>
   !RESTRUCTURES_AUTHORITY.test(value) &&
   withUrl(value, (url) => url.protocol === "https:" || url.protocol === "http:", false);
 
+// Chrome reports downloadItem.url in WHATWG-canonical form, and the filename
+// listener correlates pending saves by exact string. Handing the parsed href
+// forward (spaces percent-encoded, host lowercased, default port dropped)
+// keeps the key the pipeline stores identical to the one the browser echoes;
+// a verbatim expansion with a space would otherwise never settle its save.
+export const canonicalFetchRewrite = (value: string): string | null =>
+  isUsableFetchRewrite(value) ? withUrl(value, (url) => url.href, null) : null;
+
 // Validate the parts that are knowable before captures and variables expand.
 // A numeric placeholder remains valid in a host, port, path, query, or fragment.
 export const isUsableFetchTemplate = (value: string): boolean =>

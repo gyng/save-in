@@ -699,7 +699,7 @@
   },
   "o_lHistoryBrowser": {
     "message": "Browser",
-    "description": "History type facet and route debugger context label for a browser-initiated download. Used in src/options/options.html and src/options/history/history-row.ts."
+    "description": "History source facet and route debugger context label for a browser-initiated download. Used in src/options/options.html and src/options/history/history-row.ts."
   },
   "o_lHistorySaved": {
     "message": "Saved",
@@ -2385,7 +2385,7 @@
   },
   "html_tab": {
     "message": "Tab",
-    "description": "Text in the options page, also the route debugger's label for the tab-strip save context. Used in src/options/options.html."
+    "description": "History type label and route debugger context label for a tab-strip save. Used in src/options/options.html and src/options/history/history-messages.ts."
   },
   "html_video": {
     "message": "Video",

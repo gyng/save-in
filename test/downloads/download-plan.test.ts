@@ -455,6 +455,22 @@ describe("fetch rewrite", () => {
     expect(Download.downloadRuntime.pendingStates.get("https://mirror.example/orig.png")).toEqual([
       state,
     ]);
+  });
+
+  test("keys the pending state by the rewrite's canonical URL form", async () => {
+    // Chrome reports downloadItem.url canonically; a verbatim key containing
+    // a space would never be found by the filename listener, leaving the
+    // armed routing wait unsettled.
+    setCurrentBrowser("CHROME");
+    fetchMatch("routed", "HTTPS://Mirror.example:443/my photo.png");
+    const state = makeState({ info: { url: "https://cdn.example/small.png" } });
+
+    await Download.resolveDownloadPlan(state);
+
+    expect(state.info.url).toBe("https://mirror.example/my%20photo.png");
+    expect(
+      Download.downloadRuntime.pendingStates.get("https://mirror.example/my%20photo.png"),
+    ).toEqual([state]);
     // The persisted templates ride the deferred-route machinery so a late
     // filename resolution re-expands this rule instead of re-matching.
     expect(state.scratch.deferredRouteRequirement).toBe(true);

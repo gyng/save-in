@@ -7,7 +7,7 @@ import {
   matchRulesDetailed,
   type RuleMatch,
 } from "../routing/router.ts";
-import { expandFetchUrl, isUsableFetchRewrite } from "../routing/fetch-url.ts";
+import { canonicalFetchRewrite, expandFetchUrl } from "../routing/fetch-url.ts";
 import { Path, ROUTES_TO_FOLDER_REGEX } from "../routing/path.ts";
 import { applyVariables, mimeToExtension, resolveMime } from "../routing/variable.ts";
 import { options } from "../config/options-data.ts";
@@ -213,9 +213,10 @@ export const resolveDownloadPlan = async (
   if (routeMatches !== null && fetchTemplate !== null) {
     state.scratch.fetchTemplateRaw = fetchTemplate;
     const rewrittenUrl = await expandFetchUrl(fetchTemplate, state.info);
-    if (isUsableFetchRewrite(rewrittenUrl)) {
-      if (rewrittenUrl !== requireDownloadUrl(state)) {
-        await applyFetchRewrite(state, rewrittenUrl);
+    const canonicalRewrite = canonicalFetchRewrite(rewrittenUrl);
+    if (canonicalRewrite !== null) {
+      if (canonicalRewrite !== requireDownloadUrl(state)) {
+        await applyFetchRewrite(state, canonicalRewrite);
         await resolveDispositionFilename(state);
       }
     } else {

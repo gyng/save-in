@@ -129,6 +129,17 @@ describe("directory-line grammar", () => {
       key: "w",
     });
   });
+
+  test("scans hostile metadata nesting without recursing on input depth", () => {
+    // External VALIDATE parses caller-supplied paths, so a deeply nested but
+    // balanced value must not be able to overflow the parser's stack.
+    const nested = "(".repeat(60_000) + ")".repeat(60_000);
+    const deep = parsePathLineAst(`x // (a:${nested})`).ast;
+    expect(deep.metadata).toEqual([expect.objectContaining({ key: "a", value: nested })]);
+
+    // An unclosed group still backtracks out of the entry entirely.
+    expect(parsePathLineAst("x // (a:(((unclosed)").ast.metadata).toEqual([]);
+  });
 });
 
 describe("routing-rule grammar", () => {

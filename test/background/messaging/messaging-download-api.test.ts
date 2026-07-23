@@ -61,6 +61,21 @@ describe("handleDownloadMessage", () => {
     });
   });
 
+  test("canonicalizes a caller's URL spelling before it becomes the correlation key", async () => {
+    const sendResponse = vi.fn();
+    expect(onMessage(request({ url: "HTTPS://Example.com:443/x y.pdf" }), {}, sendResponse)).toBe(
+      true,
+    );
+
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
+    expect(state.info.url).toBe("https://example.com/x%20y.pdf");
+    await waitForCall(sendResponse);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://example.com/x%20y.pdf" },
+    });
+  });
+
   test("downloads with defaults when no previous download state exists", async () => {
     const sendResponse = vi.fn();
     expect(onMessage(request(), {}, sendResponse)).toBe(true);

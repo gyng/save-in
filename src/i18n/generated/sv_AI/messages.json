@@ -45,7 +45,7 @@
     "message": "Nedladdningar från en webbplatssektion"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Dirigerar nedladdningar som hör till en sid-URL-sektion till en egen mapp"
+    "message": "Routar nedladdningar som hör till en sid-URL-sektion till en egen mapp"
   },
   "html_matchesTheMimeContentType": {
     "message": "Matchar fastställt MIME Content-Type. Save In kan begära serverhuvuden."
@@ -195,7 +195,7 @@
     "message": "En webbplats, en mapp"
   },
   "ruleTemplateOneSiteDescription": {
-    "message": "Dirigerar en vald webbplats till en egen mapp"
+    "message": "Routar en vald webbplats till en egen mapp"
   },
   "ruleTemplatePerSourceSiteName": {
     "message": "En mapp per källwebbplats"
@@ -680,7 +680,7 @@
     "message": "Registrerar matchande nedladdningar i Save In-historiken utan att ta över dem. Save In försöker inte ladda ner dem igen och visar inga uppmaningar eller aviseringar för dem."
   },
   "o_cRouteBrowserDownloads": {
-    "message": "Dirigera webbläsarnedladdningar med routningsregler"
+    "message": "Routa webbläsarnedladdningar med routningsregler"
   },
   "o_cRouteBrowserDownloadsHelp": {
     "message": "När de stöds kan matchande regler byta namn på webbläsarnedladdningar eller placera dem i undermappar. Lägg till dem under Rutningsregler › + Lägg till regel. Omatchade nedladdningar är oförändrade."

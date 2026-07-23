@@ -1,14 +1,11 @@
 import {
   applySourceEdits,
-  choice,
   defineGrammar,
   end as endOfInput,
-  lazy,
   literal,
   located,
   map,
   parseSyntax,
-  repeat,
   sequence,
   sourceFragment,
   sourceSpan,
@@ -106,20 +103,33 @@ const directoryLineParser = defineGrammar(
   ),
 );
 
-const metadataValueParser: SyntaxParser<string> = lazy(() =>
-  map(
-    repeat(
-      choice(
-        token(/[^()]+/, "metadata text"),
-        map(
-          sequence(literal("("), metadataValueParser, literal(")")),
-          ([open, value, close]) => `${open}${value}${close}`,
-        ),
-      ),
-    ),
-    (parts) => parts.join(""),
-  ),
-);
+// Scanned iteratively: metadata values reach this parser from external
+// VALIDATE callers, so recursion depth must not track input nesting. The
+// value extends through text and balanced "(...)" groups and stops before a
+// top-level ")" or an unclosed "(", matching the combinator backtracking the
+// recursive grammar had.
+const metadataValueParser: SyntaxParser<string> = (state) => {
+  let depth = 0;
+  let offset = state.offset;
+  let lastBalanced = state.offset;
+  while (offset < state.limit) {
+    const char = state.source[offset];
+    if (char === ")") {
+      if (depth === 0) break;
+      depth -= 1;
+    } else if (char === "(") {
+      depth += 1;
+    }
+    offset += 1;
+    if (depth === 0) lastBalanced = offset;
+  }
+  return {
+    ok: true,
+    value: state.source.slice(state.offset, lastBalanced),
+    offset: lastBalanced,
+    span: sourceSpan(state.source, state.offset, lastBalanced),
+  };
+};
 
 const metadataParser = defineGrammar(
   map(
