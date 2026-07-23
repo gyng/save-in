@@ -1,0 +1,63 @@
+/* Bliss — Frutiger Aero: a sky-and-bubbles gradient, glossy pill buttons,
+   glassy translucent panels, big rounded corners, and soft drop shadows. Every
+   color resolves from the theme tokens or is mixed from the `white` keyword, so
+   the skin hardcodes no hex; the bubble tile is a %23-encoded data URI. This is
+   the decorative half — the color roles live in style-themes.css. */
+
+:root[data-theme="bliss"] {
+  --radius: 12px;
+  --radius-dialog: 20px;
+}
+
+/* A sky gradient with soft floating bubbles fixed to the viewport. */
+:root[data-theme="bliss"] body {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E %3Ccircle cx='55' cy='80' r='34' fill='%23ffffff' opacity='0.22'/%3E %3Ccircle cx='230' cy='190' r='52' fill='%23bfe8fb' opacity='0.30'/%3E %3Ccircle cx='160' cy='55' r='18' fill='%23ffffff' opacity='0.28'/%3E %3Ccircle cx='255' cy='70' r='12' fill='%23ffffff' opacity='0.35'/%3E %3Ccircle cx='95' cy='235' r='24' fill='%23d6f3c9' opacity='0.28'/%3E %3Ccircle cx='30' cy='180' r='9' fill='%23ffffff' opacity='0.4'/%3E %3Ccircle cx='185' cy='250' r='11' fill='%23ffffff' opacity='0.32'/%3E %3C/svg%3E"),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--theme-accent) 22%, white),
+      var(--theme-page) 55%,
+      white
+    );
+  background-repeat: repeat, no-repeat;
+  background-attachment: fixed, fixed;
+  background-size:
+    300px 300px,
+    cover;
+}
+
+/* Glassy translucent panels: a soft blur, a rounded frame, and a top highlight. */
+:root[data-theme="bliss"]
+  :is(fieldset, .advanced-integration-section, .menu-popover, .rule-editor-card) {
+  background: color-mix(in srgb, white 62%, transparent);
+  backdrop-filter: blur(8px) saturate(1.3);
+  border-radius: var(--radius);
+  box-shadow:
+    0 6px 18px color-mix(in srgb, var(--theme-accent) 22%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 80%, transparent);
+}
+
+/* Glossy pill buttons: a light sheen up top over the accent. */
+:root[data-theme="bliss"] button {
+  border-radius: 999px;
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, white 55%, transparent),
+    transparent 48%,
+    color-mix(in srgb, var(--theme-accent-active) 22%, transparent)
+  );
+  box-shadow:
+    0 2px 6px color-mix(in srgb, var(--theme-accent) 30%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 85%, transparent);
+}
+
+/* Rounded inputs with an inset well. */
+:root[data-theme="bliss"] :is(input, select, textarea) {
+  border-radius: var(--radius);
+  box-shadow: inset 0 1px 3px color-mix(in srgb, var(--theme-control-border) 30%, transparent);
+}
+
+/* A crisp light edge under headings, the era's glossy readability trick. */
+:root[data-theme="bliss"] :is(h1, h2, h3) {
+  text-shadow: 0 1px 0 color-mix(in srgb, white 90%, transparent);
+}

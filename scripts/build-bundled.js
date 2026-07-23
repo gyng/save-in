@@ -41,6 +41,7 @@ const optionStyleFiles = [
   "style.css",
   "skins/skin-webring.css",
   "skins/skin-phosphor.css",
+  "skins/skin-bliss.css",
   "styles/style-accessibility.css",
   "dialogs/style-about.css",
   "core/style-advanced.css",

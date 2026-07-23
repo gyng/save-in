@@ -318,6 +318,7 @@ const intentionallySharedEnglishKeys = new Set([
   "extensionName",
   "historyColumnUrl",
   "o_lGithub",
+  "o_lUiThemeBliss",
   "o_lUiThemeCatppuccin",
   "o_lUiThemeWebring",
   "o_lUiThemeDracula",

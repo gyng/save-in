@@ -126,6 +126,7 @@
     #45d0ff 80% 100%
   );
   --theme-swatch-phosphor: linear-gradient(90deg, #000d02 0 58%, #3bff7a 58% 100%);
+  --theme-swatch-bliss: linear-gradient(135deg, #7fd0f5 0 40%, #d6f3c9 40% 70%, #17a3e0 70% 100%);
 
   /* Semantic roles shared by every options/reference component. */
   --color-accent: var(--blue60);

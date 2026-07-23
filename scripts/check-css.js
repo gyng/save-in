@@ -287,7 +287,7 @@ const styleLayers = [
   ],
   ["welcome", []],
   ["reference", []],
-  ["skins", ["skins/skin-webring.css", "skins/skin-phosphor.css"]],
+  ["skins", ["skins/skin-webring.css", "skins/skin-phosphor.css", "skins/skin-bliss.css"]],
   ["utilities", ["styles/style-accessibility.css", "styles/style-utilities.css"]],
 ];
 const styleEntry = fs.readFileSync(styleEntryPath, "utf8");

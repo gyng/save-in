@@ -25,7 +25,8 @@
     [data-theme="blue-house"],
     [data-theme="gilded-mosaic"],
     [data-theme="webring"],
-    [data-theme="phosphor"]
+    [data-theme="phosphor"],
+    [data-theme="bliss"]
   )
 ) {
   color-scheme: var(--theme-color-scheme);

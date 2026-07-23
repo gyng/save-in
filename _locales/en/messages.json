@@ -3567,6 +3567,10 @@
     "message": "Phosphor",
     "description": "Immersive theme evoking a monochrome CRT terminal (green monospace, scanlines, blinking cursor). Named for the phosphor glow of a cathode-ray tube; keep untranslated. Used in src/options/options.html."
   },
+  "o_lUiThemeBliss": {
+    "message": "Bliss",
+    "description": "Immersive theme evoking late-2000s glossy 'Frutiger Aero' design (sky gradient, bubbles, glass panels, glossy buttons). Named for the serene mood; keep untranslated. Used in src/options/options.html."
+  },
   "o_lUiThemeHighContrastDark": {
     "message": "High contrast dark",
     "description": "Dark high-contrast interface theme. Used in src/options/options.html."

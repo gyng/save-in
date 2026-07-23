@@ -32,7 +32,8 @@
   [data-theme="blue-house"],
   [data-theme="gilded-mosaic"],
   [data-theme="webring"],
-  [data-theme="phosphor"]
+  [data-theme="phosphor"],
+  [data-theme="bliss"]
 ) {
   color-scheme: var(--theme-color-scheme);
   --color-accent: var(--theme-accent);
@@ -147,4 +148,21 @@
   --theme-on-accent: #001505;
   --theme-icon-filter: brightness(0) saturate(100%) invert(88%) sepia(73%) saturate(650%)
     hue-rotate(74deg);
+}
+
+:root[data-theme="bliss"] {
+  --theme-color-scheme: only light;
+  --theme-page: #d5eefb;
+  --theme-raised: #f2fbff;
+  --theme-input: #ffffff;
+  --theme-text: #0f3a52;
+  --theme-muted: #2f6d88;
+  --theme-border: #a7dcf0;
+  --theme-control-border: #2f8fb5;
+  --theme-accent: #17a3e0;
+  --theme-accent-active: #0f8fca;
+  --theme-focus: #0f7fb8;
+  --theme-link: #0a6fa8;
+  --theme-on-accent: #04283a;
+  --theme-icon-filter: none;
 }

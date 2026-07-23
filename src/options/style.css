@@ -45,5 +45,6 @@
 @import url("history/style-history-responsive.css") layer(history);
 @import url("skins/skin-webring.css") layer(skins);
 @import url("skins/skin-phosphor.css") layer(skins);
+@import url("skins/skin-bliss.css") layer(skins);
 @import url("styles/style-accessibility.css") layer(utilities);
 @import url("styles/style-utilities.css") layer(utilities);

@@ -33,3 +33,17 @@
   --theme-link: #4dffd0;
   --theme-on-accent: #001505;
 }
+
+:host([data-theme="bliss"]) {
+  --theme-color-scheme: only light;
+  --theme-page: #d5eefb;
+  --theme-raised: #f2fbff;
+  --theme-text: #0f3a52;
+  --theme-muted: #2f6d88;
+  --theme-border: #a7dcf0;
+  --theme-control-border: #2f8fb5;
+  --theme-accent: #17a3e0;
+  --theme-focus: #0f7fb8;
+  --theme-link: #0a6fa8;
+  --theme-on-accent: #04283a;
+}
