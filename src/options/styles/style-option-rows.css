@@ -145,11 +145,11 @@ fieldset.inline-option-group > .caption-line {
   inline-size: 100%;
 }
 
+/* One trigger per row: the primary binding, each added binding, the long-press
+   timing, and the action buttons each own a grid row instead of wrapping
+   inline around each other. */
 fieldset.click-to-save-controls {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  align-items: baseline;
+  display: grid;
   gap: var(--space-2);
   inline-size: 100%;
   max-inline-size: 100%;

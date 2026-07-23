@@ -10,29 +10,9 @@
   margin: 0;
 }
 
-fieldset.click-to-save-controls {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  align-items: start;
-  gap: var(--space-3);
-  max-inline-size: 20rem;
-}
-
-.click-to-save-controls > label {
-  display: grid;
-  gap: var(--space-1);
-  inline-size: 100%;
-  min-inline-size: 0;
-  margin: 0;
-}
-
 .click-to-save-controls > legend {
   inline-size: 100%;
   margin-block-end: var(--space-1);
-}
-
-.click-to-save-controls > button {
-  justify-self: start;
 }
 
 .click-to-save-controls select {
@@ -65,23 +45,64 @@ fieldset.click-to-save-controls {
   inline-size: 100%;
 }
 
+/* Trigger rows mirror the Page Sources shortcut fields exactly
+   (.source-shortcut-fields in style-source-settings.css) so the two shortcut
+   configurators read as one control system; a binding row only adds the auto
+   column for its remove button. Keep the metrics in lockstep. */
+.click-to-save-row,
 .click-to-save-binding {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
-  align-items: end;
-  gap: var(--space-2);
+  grid-template-columns: repeat(3, minmax(7rem, 12rem));
+  gap: var(--space-3);
   inline-size: 100%;
+}
+
+.click-to-save-binding {
+  grid-template-columns: repeat(3, minmax(7rem, 12rem)) auto;
+  align-items: end;
   padding-block-start: var(--space-2);
   border-block-start: 1px solid var(--color-border);
 }
 
+.click-to-save-row > label,
 .click-to-save-binding > label {
   display: grid;
   gap: var(--space-1);
   min-inline-size: 0;
+  margin: 0;
+}
+
+.click-to-save-row select,
+.click-to-save-binding select {
+  inline-size: 100%;
+  max-inline-size: none;
+  min-block-size: var(--control-height);
+  margin: 0;
+}
+
+.click-to-save-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  inline-size: 100%;
+  margin-block-start: var(--space-3);
+}
+
+#clickToSaveStatus:not(:empty) {
+  flex-basis: 100%;
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+
+.click-to-save-binding > button {
+  white-space: nowrap;
+  align-self: end;
+  block-size: var(--control-height);
 }
 
 @container options-panel (max-width: 42rem) {
+  .click-to-save-row,
   .click-to-save-binding {
     grid-template-columns: minmax(0, 1fr);
   }

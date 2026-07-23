@@ -1568,9 +1568,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             </div>
           </div>
 
-          <fieldset
-            class="option-group inline-option-group source-shortcut-controls click-to-save-controls"
-          >
+          <fieldset class="option-group click-to-save-controls">
             <legend class="option-group-heading">__MSG_html_clickToSaveShortcut__</legend>
             <input
               type="hidden"
@@ -1588,44 +1586,60 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               value="LEFT_CLICK"
               aria-label="__MSG_o_lClickToSaveButton__"
             />
-            <label>
-              <span class="shortcut-control-label">__MSG_html_primaryModifier__</span>
-              <select id="clickToSaveModifier" data-runtime-control="true">
-                <option value="">__MSG_html_none__</option>
-                <option value="Alt" selected>__MSG_html_altOption__</option>
-                <option value="Ctrl">__MSG_html_ctrl__</option>
-                <option value="Shift">__MSG_html_shift__</option>
-                <option value="Meta">__MSG_html_commandWindowsKey__</option>
-              </select>
-            </label>
-            <label>
-              <span class="shortcut-control-label">__MSG_html_secondModifier__</span>
-              <select id="clickToSaveModifier2" data-runtime-control="true">
-                <option value="">__MSG_html_none__</option>
-                <option value="Shift">__MSG_html_shift__</option>
-                <option value="Alt">__MSG_html_altOption__</option>
-                <option value="Ctrl">__MSG_html_ctrl__</option>
-                <option value="Meta">__MSG_html_commandWindowsKey__</option>
-              </select>
-            </label>
-            <label>
-              <span class="shortcut-control-label">__MSG_o_lClickToSaveButton__</span>
-              <select id="clickToSaveButton" data-runtime-control="true">
-                <option value="left-click">__MSG_o_cKeyboardShortcutModifierLeftClick__</option>
-                <option value="middle-click">__MSG_o_cKeyboardShortcutModifierMiddleClick__</option>
-                <option value="right-click">__MSG_o_cKeyboardShortcutModifierRightClick__</option>
-                <option value="back-click">__MSG_o_cKeyboardShortcutModifierBackClick__</option>
-                <option value="forward-click">
-                  __MSG_o_cKeyboardShortcutModifierForwardClick__
-                </option>
-                <option value="double-left-click">
-                  __MSG_o_cKeyboardShortcutModifierDoubleLeftClick__
-                </option>
-                <option value="long-left-click">
-                  __MSG_o_cKeyboardShortcutModifierLongLeftClick__
-                </option>
-              </select>
-            </label>
+            <div class="click-to-save-row">
+              <label>
+                <span class="shortcut-control-label">__MSG_html_primaryModifier__</span>
+                <select
+                  id="clickToSaveModifier"
+                  data-runtime-control="true"
+                  aria-describedby="clickToSaveStatus"
+                >
+                  <option value="">__MSG_html_none__</option>
+                  <option value="Alt" selected>__MSG_html_altOption__</option>
+                  <option value="Ctrl">__MSG_html_ctrl__</option>
+                  <option value="Shift">__MSG_html_shift__</option>
+                  <option value="Meta">__MSG_html_commandWindowsKey__</option>
+                </select>
+              </label>
+              <label>
+                <span class="shortcut-control-label">__MSG_html_secondModifier__</span>
+                <select
+                  id="clickToSaveModifier2"
+                  data-runtime-control="true"
+                  aria-describedby="clickToSaveStatus"
+                >
+                  <option value="">__MSG_html_none__</option>
+                  <option value="Shift">__MSG_html_shift__</option>
+                  <option value="Alt">__MSG_html_altOption__</option>
+                  <option value="Ctrl">__MSG_html_ctrl__</option>
+                  <option value="Meta">__MSG_html_commandWindowsKey__</option>
+                </select>
+              </label>
+              <label>
+                <span class="shortcut-control-label">__MSG_o_lClickToSaveButton__</span>
+                <select
+                  id="clickToSaveButton"
+                  data-runtime-control="true"
+                  aria-describedby="clickToSaveStatus"
+                >
+                  <option value="left-click">__MSG_o_cKeyboardShortcutModifierLeftClick__</option>
+                  <option value="middle-click">
+                    __MSG_o_cKeyboardShortcutModifierMiddleClick__
+                  </option>
+                  <option value="right-click">__MSG_o_cKeyboardShortcutModifierRightClick__</option>
+                  <option value="back-click">__MSG_o_cKeyboardShortcutModifierBackClick__</option>
+                  <option value="forward-click">
+                    __MSG_o_cKeyboardShortcutModifierForwardClick__
+                  </option>
+                  <option value="double-left-click">
+                    __MSG_o_cKeyboardShortcutModifierDoubleLeftClick__
+                  </option>
+                  <option value="long-left-click">
+                    __MSG_o_cKeyboardShortcutModifierLongLeftClick__
+                  </option>
+                </select>
+              </label>
+            </div>
             <div id="clickToSaveAdditionalBindings" class="click-to-save-additional"></div>
             <div id="clickToSaveLongPressTiming" class="click-to-save-timing" hidden>
               <label for="contentClickToSaveLongPressMs"
@@ -1648,12 +1662,14 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 >__MSG_o_lClickToSaveLongPressDurationHelp__</span
               >
             </div>
-            <button type="button" id="clickToSaveAdd">__MSG_o_bAddClickToSaveBinding__</button>
-            <button type="button" class="button-primary" id="clickToSaveApply">
-              __MSG_o_bApply__
-            </button>
-            <button type="button" id="clickToSaveReset">__MSG_o_cRestoreDefaults__</button>
-            <span id="clickToSaveStatus" class="feedback" role="status" aria-live="polite"></span>
+            <div class="click-to-save-actions">
+              <button type="button" id="clickToSaveAdd">__MSG_o_bAddClickToSaveBinding__</button>
+              <button type="button" class="button-primary" id="clickToSaveApply">
+                __MSG_o_bApplyClickGestures__
+              </button>
+              <button type="button" id="clickToSaveReset">__MSG_o_cRestoreDefaults__</button>
+              <span id="clickToSaveStatus" class="feedback" role="status" aria-live="polite"></span>
+            </div>
             <div class="caption caption-line">__MSG_o_cKeyboardShortcutModifierHelp__</div>
             <div
               id="click-to-save-warning"

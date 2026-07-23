@@ -4503,5 +4503,32 @@
   },
   "routeActionRuleEnding": {
     "message": "除外ルールの末尾には exclude: true を指定します。"
+  },
+  "o_bApplyClickGestures": {
+    "message": "操作を適用"
+  },
+  "o_lClickGesturesUpdated": {
+    "message": "クリック操作を更新しました。"
+  },
+  "o_lClickGesturesReset": {
+    "message": "クリック操作を既定に戻しました。"
+  },
+  "o_lClickGestureGroup": {
+    "message": "クリック操作 $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "o_lRemoveClickGestureNumbered": {
+    "message": "クリック操作 $NUMBER$ を削除",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   }
 }

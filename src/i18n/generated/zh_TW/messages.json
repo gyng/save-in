@@ -4503,5 +4503,32 @@
   },
   "routeActionRuleEnding": {
     "message": "排除規則須以 exclude: true 結尾。"
+  },
+  "o_bApplyClickGestures": {
+    "message": "套用手勢"
+  },
+  "o_lClickGesturesUpdated": {
+    "message": "點選手勢已更新。"
+  },
+  "o_lClickGesturesReset": {
+    "message": "點選手勢已還原為預設值。"
+  },
+  "o_lClickGestureGroup": {
+    "message": "點選手勢 $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "o_lRemoveClickGestureNumbered": {
+    "message": "移除點選手勢 $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   }
 }

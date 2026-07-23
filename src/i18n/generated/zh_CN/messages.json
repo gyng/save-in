@@ -4503,5 +4503,32 @@
   },
   "routeActionRuleEnding": {
     "message": "排除规则须以 exclude: true 结尾。"
+  },
+  "o_bApplyClickGestures": {
+    "message": "应用手势"
+  },
+  "o_lClickGesturesUpdated": {
+    "message": "点击手势已更新。"
+  },
+  "o_lClickGesturesReset": {
+    "message": "点击手势已恢复为默认值。"
+  },
+  "o_lClickGestureGroup": {
+    "message": "点击手势 $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "o_lRemoveClickGestureNumbered": {
+    "message": "移除点击手势 $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   }
 }

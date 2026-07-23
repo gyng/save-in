@@ -4503,5 +4503,32 @@
   },
   "routeActionRuleEnding": {
     "message": "Een uitsluitingsregel eindigt met exclude: true."
+  },
+  "o_bApplyClickGestures": {
+    "message": "Gebaren toepassen"
+  },
+  "o_lClickGesturesUpdated": {
+    "message": "Klikgebaren bijgewerkt."
+  },
+  "o_lClickGesturesReset": {
+    "message": "Klikgebaren hersteld naar de standaard."
+  },
+  "o_lClickGestureGroup": {
+    "message": "Klikgebaar $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "o_lRemoveClickGestureNumbered": {
+    "message": "Klikgebaar $NUMBER$ verwijderen",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   }
 }

@@ -134,11 +134,20 @@ export const setupShortcutOptions = () => {
     [CLICK_GESTURES.DOUBLE_LEFT]: "o_cKeyboardShortcutModifierDoubleLeftClick",
     [CLICK_GESTURES.LONG_LEFT]: "o_cKeyboardShortcutModifierLongLeftClick",
   };
-  const modifierOptions = [
+  // Added rows must list options in the same order as the static row and the
+  // Page Sources shortcut group: the second modifier leads with Shift there.
+  const primaryModifierOptions = [
     ["", "html_none"],
     ["Alt", "html_altOption"],
     ["Ctrl", "html_ctrl"],
     ["Shift", "html_shift"],
+    ["Meta", "html_commandWindowsKey"],
+  ] as const;
+  const secondModifierOptions = [
+    ["", "html_none"],
+    ["Shift", "html_shift"],
+    ["Alt", "html_altOption"],
+    ["Ctrl", "html_ctrl"],
     ["Meta", "html_commandWindowsKey"],
   ] as const;
   const allControls = (): BindingControls[] =>
@@ -266,15 +275,36 @@ export const setupShortcutOptions = () => {
     label.append(caption, select);
     return { label, select };
   };
+  // Every added row repeats the same three control labels, so assistive tech
+  // needs the row itself to carry the distinguishing context. The primary
+  // controls are gesture 1; added rows count from 2 and renumber on removal.
+  const renumberBindingRows = (): void => {
+    extraControls.forEach((controls, index) => {
+      const number = index + 2;
+      controls.row?.setAttribute(
+        "aria-label",
+        getMessage("o_lClickGestureGroup", String(number)) || `Click gesture ${number}`,
+      );
+      controls.remove?.setAttribute(
+        "aria-label",
+        getMessage("o_lRemoveClickGestureNumbered", String(number)) ||
+          `Remove click gesture ${number}`,
+      );
+    });
+  };
   const addBindingRow = (binding: ClickToSaveBinding): void => {
     if (!additional) return;
     const row = document.createElement("div");
     row.className = "click-to-save-binding";
-    const first = labeledSelect("html_primaryModifier", modifierOptions);
-    const second = labeledSelect("html_secondModifier", modifierOptions);
+    row.setAttribute("role", "group");
+    const first = labeledSelect("html_primaryModifier", primaryModifierOptions);
+    const second = labeledSelect("html_secondModifier", secondModifierOptions);
     const gesture = labeledSelect(
       "o_lClickToSaveButton",
       Object.values(CLICK_GESTURES).map((value) => [value, gestureLabelKeys[value]] as const),
+    );
+    [first.select, second.select, gesture.select].forEach((select) =>
+      select.setAttribute("aria-describedby", "clickToSaveStatus"),
     );
     const remove = document.createElement("button");
     remove.type = "button";
@@ -295,11 +325,13 @@ export const setupShortcutOptions = () => {
       const index = extraControls.indexOf(controls);
       if (index >= 0) extraControls.splice(index, 1);
       row.remove();
+      renumberBindingRows();
       syncClickControls();
     });
     row.append(first.label, second.label, gesture.label, remove);
     additional.append(row);
     extraControls.push(controls);
+    renumberBindingRows();
   };
   const clearAdditional = (): void => {
     extraControls.splice(0);
@@ -355,7 +387,8 @@ export const setupShortcutOptions = () => {
     storedButton.dispatchEvent(new Event("change", { bubbles: true }));
     baselineSerialized = serialized;
     syncClickControls();
-    if (status) status.textContent = getMessage("o_lShortcutUpdated") || "Shortcut updated.";
+    if (status)
+      status.textContent = getMessage("o_lClickGesturesUpdated") || "Click gestures updated.";
   };
   apply?.addEventListener("click", applyGesture);
   add?.addEventListener("click", () => {
@@ -370,7 +403,9 @@ export const setupShortcutOptions = () => {
     writeCombo(primaryControls, "Alt");
     primaryControls.gesture.value = CLICK_GESTURES.LEFT;
     applyGesture();
-    if (status) status.textContent = getMessage("o_lShortcutReset") || "Shortcut reset.";
+    if (status)
+      status.textContent =
+        getMessage("o_lClickGesturesReset") || "Click gestures restored to the default.";
   });
   showClickCombo();
 

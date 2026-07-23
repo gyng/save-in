@@ -4503,5 +4503,32 @@
   },
   "routeActionRuleEnding": {
     "message": "En uteslutningsregel slutar med exclude: true."
+  },
+  "o_bApplyClickGestures": {
+    "message": "Tillämpa gester"
+  },
+  "o_lClickGesturesUpdated": {
+    "message": "Klickgesterna har uppdaterats."
+  },
+  "o_lClickGesturesReset": {
+    "message": "Klickgesterna har återställts till standard."
+  },
+  "o_lClickGestureGroup": {
+    "message": "Klickgest $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "o_lRemoveClickGestureNumbered": {
+    "message": "Ta bort klickgest $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   }
 }

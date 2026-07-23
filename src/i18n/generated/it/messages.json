@@ -4503,5 +4503,32 @@
   },
   "routeActionRuleEnding": {
     "message": "Una regola di esclusione termina con exclude: true."
+  },
+  "o_bApplyClickGestures": {
+    "message": "Applica gesti"
+  },
+  "o_lClickGesturesUpdated": {
+    "message": "Gesti di clic aggiornati."
+  },
+  "o_lClickGesturesReset": {
+    "message": "Gesti di clic ripristinati al valore predefinito."
+  },
+  "o_lClickGestureGroup": {
+    "message": "Gesto di clic $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "o_lRemoveClickGestureNumbered": {
+    "message": "Rimuovi il gesto di clic $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   }
 }

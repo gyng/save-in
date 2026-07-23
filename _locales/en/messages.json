@@ -5776,5 +5776,37 @@
   "ruleDestinationMustBeRelative": {
     "message": "Destination must be relative and cannot contain .. path components",
     "description": "Validation error for an absolute routing destination or one containing parent-directory components. Keep the literal .. token. Used in src/routing/rule-parser.ts."
+  },
+  "o_bApplyClickGestures": {
+    "message": "Apply gestures",
+    "description": "Button that applies the staged click-to-save gesture bindings, parallel to the Page Sources Apply shortcut button. Used in src/options/options.html."
+  },
+  "o_lClickGesturesUpdated": {
+    "message": "Click gestures updated.",
+    "description": "Status after the click-to-save gesture bindings are applied. Used in src/options/core/shortcut-options.ts."
+  },
+  "o_lClickGesturesReset": {
+    "message": "Click gestures restored to the default.",
+    "description": "Status after the click-to-save gesture bindings are restored to the default binding. Used in src/options/core/shortcut-options.ts."
+  },
+  "o_lClickGestureGroup": {
+    "message": "Click gesture $NUMBER$",
+    "description": "Accessible group label for one added click-to-save gesture row, numbered from 2. Used in src/options/core/shortcut-options.ts.",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "o_lRemoveClickGestureNumbered": {
+    "message": "Remove click gesture $NUMBER$",
+    "description": "Accessible name for the remove button of one numbered click-to-save gesture row; the visible text stays the unnumbered remove label. Used in src/options/core/shortcut-options.ts.",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   }
 }

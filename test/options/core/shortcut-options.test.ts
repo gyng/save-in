@@ -137,11 +137,11 @@ describe("shortcut option controller", () => {
     expect(document.querySelector<HTMLInputElement>("#contentClickToSaveCombo")!.value).toBe(
       "Ctrl+Shift",
     );
-    expect(status.textContent).toBe("Shortcut updated.");
+    expect(status.textContent).toBe("Click gestures updated.");
 
     document.querySelector<HTMLButtonElement>("#clickToSaveReset")!.click();
     expect(document.querySelector<HTMLInputElement>("#contentClickToSaveCombo")!.value).toBe("Alt");
-    expect(status.textContent).toBe("Shortcut reset.");
+    expect(status.textContent).toBe("Click gestures restored to the default.");
   });
 
   test("shows the unsafe left-click warning only for an enabled modifier-free gesture", () => {
@@ -226,6 +226,68 @@ describe("shortcut option controller", () => {
         document.querySelector<HTMLInputElement>("#contentClickToSaveBindings")!.value,
       ),
     ).toEqual([{ gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Alt" }]);
+  });
+
+  test("numbers added gesture rows for assistive tech and matches modifier order", () => {
+    vi.mocked(browser.i18n.getMessage).mockReturnValue("");
+    document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>
+      <input id="contentClickToSaveBindings" value="">
+      <input id="contentClickToSaveCombo" value="Alt">
+      <input id="contentClickToSaveButton" value="LEFT_CLICK">
+      <select id="clickToSaveModifier"><option></option><option value="Alt">Alt</option></select>
+      <select id="clickToSaveModifier2"><option></option></select>
+      <select id="clickToSaveButton">
+        <option value="left-click">Left</option><option value="middle-click">Middle</option>
+        <option value="right-click">Right</option>
+      </select>
+      <div id="clickToSaveAdditionalBindings"></div>
+      <button id="clickToSaveAdd"></button><button id="clickToSaveApply"></button>
+      <button id="clickToSaveReset"></button><span id="clickToSaveStatus"></span>
+      <div id="click-to-save-warning" hidden></div>`;
+    setupShortcutOptions();
+
+    const add = document.querySelector<HTMLButtonElement>("#clickToSaveAdd")!;
+    add.click();
+    add.click();
+    const rows = [...document.querySelectorAll<HTMLElement>(".click-to-save-binding")];
+    expect(rows).toHaveLength(2);
+    // The primary controls are gesture 1; added rows count from 2 and carry
+    // the context every repeated per-row label lacks.
+    expect(rows.map((row) => row.getAttribute("role"))).toEqual(["group", "group"]);
+    expect(rows.map((row) => row.getAttribute("aria-label"))).toEqual([
+      "Click gesture 2",
+      "Click gesture 3",
+    ]);
+    expect(rows.map((row) => row.querySelector("button")?.getAttribute("aria-label"))).toEqual([
+      "Remove click gesture 2",
+      "Remove click gesture 3",
+    ]);
+    // Added rows list modifiers in the static row's order: the second
+    // modifier leads with Shift, like the Page Sources shortcut group.
+    const selects = rows[0]!.querySelectorAll("select");
+    expect([...selects[0]!.options].map((option) => option.value)).toEqual([
+      "",
+      "Alt",
+      "Ctrl",
+      "Shift",
+      "Meta",
+    ]);
+    expect([...selects[1]!.options].map((option) => option.value)).toEqual([
+      "",
+      "Shift",
+      "Alt",
+      "Ctrl",
+      "Meta",
+    ]);
+    expect(selects[2]!.getAttribute("aria-describedby")).toBe("clickToSaveStatus");
+
+    rows[0]!.querySelector("button")!.click();
+    // The remaining row renumbers so its accessible context stays truthful.
+    const remaining = document.querySelector<HTMLElement>(".click-to-save-binding")!;
+    expect(remaining.getAttribute("aria-label")).toBe("Click gesture 2");
+    expect(remaining.querySelector("button")?.getAttribute("aria-label")).toBe(
+      "Remove click gesture 2",
+    );
   });
 
   test("allows long-left beside double-left and reveals its duration control", () => {

@@ -4503,5 +4503,32 @@
   },
   "routeActionRuleEnding": {
     "message": "제외 규칙은 exclude: true로 끝납니다."
+  },
+  "o_bApplyClickGestures": {
+    "message": "제스처 적용"
+  },
+  "o_lClickGesturesUpdated": {
+    "message": "클릭 제스처가 업데이트되었습니다."
+  },
+  "o_lClickGesturesReset": {
+    "message": "클릭 제스처가 기본값으로 복원되었습니다."
+  },
+  "o_lClickGestureGroup": {
+    "message": "클릭 제스처 $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "o_lRemoveClickGestureNumbered": {
+    "message": "클릭 제스처 $NUMBER$ 제거",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   }
 }
