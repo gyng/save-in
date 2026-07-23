@@ -74,6 +74,20 @@ describe("syntax parser combinators", () => {
     );
   });
 
+  test("repeat propagates a partially-consuming iteration failure", () => {
+    // An alternative that consumed input before failing is committed: repeat
+    // must surface that failure instead of quietly ending the repetition, or
+    // a grammar like ( "(", value, ")" ) would swallow its unclosed group.
+    const group = sequence(literal("("), literal("x"), literal(")"));
+    expect(parseSyntax(repeat(choice(literal("a"), group)), "a(x)a(x")).toEqual(
+      expect.objectContaining({
+        ok: false,
+        offset: 7,
+        diagnostic: expect.objectContaining({ expected: '")"' }),
+      }),
+    );
+  });
+
   test("handles empty alternatives and zero-width repetition safely", () => {
     expect(parseSyntax(choice(), "value")).toEqual(
       expect.objectContaining({
