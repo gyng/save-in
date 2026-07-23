@@ -10,15 +10,31 @@
   --radius-dialog: 0px;
 }
 
-/* Faint horizontal scanlines drawn from the phosphor accent, fixed to the
-   viewport so they read as a tube rather than scrolling with the content. */
+/* Scanlines plus a soft screen vignette, both fixed to the viewport so they
+   read as a curved tube rather than scrolling with the content. */
 :root[data-theme="phosphor"] body {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--theme-accent) 7%, transparent) 0 1px,
-    transparent 1px 3px
-  );
-  background-attachment: fixed;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--theme-accent) 12%, transparent) 0 1px,
+      transparent 1px 3px
+    ),
+    radial-gradient(
+      130% 130% at 50% 50%,
+      transparent 58%,
+      color-mix(in srgb, black 55%, transparent)
+    );
+  background-attachment: fixed, fixed;
+}
+
+/* A faint phosphor bloom on every glyph — the always-slightly-out-of-focus CRT. */
+:root[data-theme="phosphor"] body {
+  text-shadow: 0 0 1px color-mix(in srgb, var(--theme-accent) 55%, transparent);
+}
+
+/* Controls glow from within, like lit segments. */
+:root[data-theme="phosphor"] :is(input, select, textarea, button) {
+  box-shadow: 0 0 7px color-mix(in srgb, var(--theme-accent) 28%, transparent);
 }
 
 /* Glowing, upper-cased titles — the readout look. */

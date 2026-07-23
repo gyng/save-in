@@ -9,46 +9,77 @@
   --radius-dialog: 20px;
 }
 
-/* A sky gradient with soft floating bubbles fixed to the viewport. */
+/* Aqua pinstripes over a sky gradient with soft floating bubbles, all fixed to
+   the viewport. The fine horizontal pinstripe is the Mac OS X (2001) signature. */
 :root[data-theme="bliss"] body {
   background-image:
+    repeating-linear-gradient(
+      to bottom,
+      color-mix(in srgb, white 11%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E %3Ccircle cx='55' cy='80' r='34' fill='%23ffffff' opacity='0.22'/%3E %3Ccircle cx='230' cy='190' r='52' fill='%23bfe8fb' opacity='0.30'/%3E %3Ccircle cx='160' cy='55' r='18' fill='%23ffffff' opacity='0.28'/%3E %3Ccircle cx='255' cy='70' r='12' fill='%23ffffff' opacity='0.35'/%3E %3Ccircle cx='95' cy='235' r='24' fill='%23d6f3c9' opacity='0.28'/%3E %3Ccircle cx='30' cy='180' r='9' fill='%23ffffff' opacity='0.4'/%3E %3Ccircle cx='185' cy='250' r='11' fill='%23ffffff' opacity='0.32'/%3E %3C/svg%3E"),
     linear-gradient(
       to bottom,
-      color-mix(in srgb, var(--theme-accent) 22%, white),
-      var(--theme-page) 55%,
+      color-mix(in srgb, var(--theme-accent) 50%, white),
+      var(--theme-page) 46%,
       white
     );
-  background-repeat: repeat, no-repeat;
-  background-attachment: fixed, fixed;
+  background-repeat: repeat, repeat, no-repeat;
+  background-attachment: fixed, fixed, fixed;
   background-size:
+    auto,
     300px 300px,
     cover;
 }
 
-/* Glassy translucent panels: a soft blur, a rounded frame, and a top highlight. */
+/* Glassy translucent panels: a frosted blur, a bright white rim, a top sheen,
+   and a soft drop — the era's signature "pane of wet glass". */
 :root[data-theme="bliss"]
   :is(fieldset, .advanced-integration-section, .menu-popover, .rule-editor-card) {
-  background: color-mix(in srgb, white 62%, transparent);
-  backdrop-filter: blur(8px) saturate(1.3);
-  border-radius: var(--radius);
-  box-shadow:
-    0 6px 18px color-mix(in srgb, var(--theme-accent) 22%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 80%, transparent);
-}
-
-/* Glossy pill buttons: a light sheen up top over the accent. */
-:root[data-theme="bliss"] button {
-  border-radius: 999px;
+  background-color: color-mix(in srgb, white 52%, transparent);
   background-image: linear-gradient(
     to bottom,
     color-mix(in srgb, white 55%, transparent),
-    transparent 48%,
-    color-mix(in srgb, var(--theme-accent-active) 22%, transparent)
+    transparent 42%
+  );
+  backdrop-filter: blur(14px) saturate(1.6);
+  border: 1px solid color-mix(in srgb, white 75%, transparent);
+  border-radius: var(--radius);
+  box-shadow:
+    0 10px 28px color-mix(in srgb, var(--theme-accent) 30%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 96%, transparent);
+}
+
+/* Aqua "gel" pill buttons: a bright glassy dome over the top half, a hard
+   reflective split near the midline, a saturated lower lozenge, a faint floor
+   reflection at the very bottom, and an outer glow. Pure Aqua candy. */
+:root[data-theme="bliss"] button {
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 62%, white);
+  color: var(--theme-text);
+  background-color: color-mix(in srgb, var(--theme-accent) 34%, white);
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, white 97%, transparent),
+    color-mix(in srgb, white 58%, transparent) 47%,
+    color-mix(in srgb, var(--theme-accent) 24%, transparent) 51%,
+    color-mix(in srgb, var(--theme-accent) 52%, transparent) 88%,
+    color-mix(in srgb, white 34%, transparent)
   );
   box-shadow:
-    0 2px 6px color-mix(in srgb, var(--theme-accent) 30%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 85%, transparent);
+    0 4px 13px color-mix(in srgb, var(--theme-accent) 46%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 99%, transparent),
+    inset 0 -8px 12px color-mix(in srgb, var(--theme-accent) 26%, transparent);
+}
+
+/* A glassy top sheen inside inputs, too. */
+:root[data-theme="bliss"] :is(input, select) {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, white 70%, transparent),
+    transparent 45%
+  );
 }
 
 /* Rounded inputs with an inset well. */
