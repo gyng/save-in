@@ -221,15 +221,17 @@ export const setupShortcutOptions = () => {
     const bindings = selectedBindings();
     controls.forEach((current) => {
       [...current.gesture.options].forEach((option) => {
-        if (!isClickGesture(option.value) || option.value === current.gesture.value) {
-          option.disabled = false;
-          return;
-        }
-        const optionGesture = option.value;
-        option.disabled = controls.some(
-          (other) =>
-            other !== current && gestureConflicts(optionGesture, readBinding(other).gesture),
-        );
+        const value = option.value;
+        const next =
+          isClickGesture(value) &&
+          value !== current.gesture.value &&
+          controls.some(
+            (other) => other !== current && gestureConflicts(value, readBinding(other).gesture),
+          );
+        // Only touch the option when its state actually flips: a redundant
+        // write to a select whose native popup happens to be open repaints
+        // (and can dismiss) it for no reason.
+        if (option.disabled !== next) option.disabled = next;
       });
     });
     const enabled = clickToSave?.checked === true;
