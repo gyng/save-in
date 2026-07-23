@@ -20,6 +20,8 @@
 }
 
 :root[data-theme="webring"] body {
+  /* biome-ignore lint/complexity/noImportantStyles: beats Chrome's unlayered extension-page UA body font, which outranks every cascade layer, so the theme font reaches the content; scoped to this premium theme */
+  font-family: var(--font-stack) !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E %3Ccircle cx='12' cy='16' r='1.3' fill='%23ffffff'/%3E %3Ccircle cx='58' cy='30' r='1' fill='%23c0e0ff'/%3E %3Ccircle cx='34' cy='64' r='1.5' fill='%23ffe600'/%3E %3Ccircle cx='76' cy='72' r='1' fill='%23ffffff'/%3E %3Ccircle cx='48' cy='10' r='0.8' fill='%23ff8fe0'/%3E %3Ccircle cx='84' cy='44' r='1.2' fill='%239fffe0'/%3E %3Cpath d='M22 42 l1 3 3 1 -3 1 -1 3 -1 -3 -3 -1 3 -1z' fill='%23ffe600'/%3E %3Cpath d='M66 54 l0.8 2.4 2.4 0.8 -2.4 0.8 -0.8 2.4 -0.8 -2.4 -2.4 -0.8 2.4 -0.8z' fill='%23ffffff'/%3E %3C/svg%3E");
   background-attachment: fixed;
 }

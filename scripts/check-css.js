@@ -362,8 +362,12 @@ for (const file of styles) {
       allowed: /^(?:var\(--text-(?:xs|sm|base|lg|xl|2xl)\)|inherit)$/,
     },
     {
+      // The optional !important is for one declaration only: body must override
+      // the unlayered user-agent font Chrome injects on extension pages, which
+      // outranks every cascade layer. The value stays restricted to the two
+      // font tokens or inherit.
       property: "font-family",
-      allowed: /^(?:var\(--font-(?:stack|mono)\)|inherit)$/,
+      allowed: /^(?:var\(--font-(?:stack|mono)\)|inherit)(?:\s*!important)?$/,
     },
     {
       property: "font-weight",

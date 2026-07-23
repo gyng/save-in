@@ -12,6 +12,8 @@
 /* Aqua pinstripes over a sky gradient with soft floating bubbles, all fixed to
    the viewport. The fine horizontal pinstripe is the Mac OS X (2001) signature. */
 :root[data-theme="bliss"] body {
+  /* biome-ignore lint/complexity/noImportantStyles: beats Chrome's unlayered extension-page UA body font, which outranks every cascade layer, so the app font reaches the content; scoped to this premium theme */
+  font-family: var(--font-stack) !important;
   background-image:
     repeating-linear-gradient(
       to bottom,

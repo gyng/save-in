@@ -15,6 +15,8 @@
 /* Scanlines plus a soft screen vignette, both fixed to the viewport so they
    read as a curved tube rather than scrolling with the content. */
 :root[data-theme="phosphor"] body {
+  /* biome-ignore lint/complexity/noImportantStyles: beats Chrome's unlayered extension-page UA body font, which outranks every cascade layer, so the monospace reaches the content; scoped to this premium theme */
+  font-family: var(--font-stack) !important;
   background-image:
     repeating-linear-gradient(
       to bottom,
