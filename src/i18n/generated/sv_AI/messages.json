@@ -665,7 +665,7 @@
     "message": "Fråga också var filen ska sparas när:"
   },
   "o_sDynamicDownloads": {
-    "message": "Rutningsregler"
+    "message": "Routningsregler"
   },
   "o_sBrowserDownloads": {
     "message": "Webbläsarroutning"
@@ -683,7 +683,7 @@
     "message": "Routa webbläsarnedladdningar med routningsregler"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "När de stöds kan matchande regler byta namn på webbläsarnedladdningar eller placera dem i undermappar. Lägg till dem under Rutningsregler › + Lägg till regel. Omatchade nedladdningar är oförändrade."
+    "message": "När de stöds kan matchande regler byta namn på webbläsarnedladdningar eller placera dem i undermappar. Lägg till dem under Routningsregler › + Lägg till regel. Omatchade nedladdningar är oförändrade."
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Omdirigera matchande webbläsarnedladdningar"

@@ -78,7 +78,7 @@ const response = await browser.runtime.sendMessage(SAVE_IN_ID, {
 
 An explicit `url` takes precedence if both fields are present. For `target: "activeTab"`, Save In prefers the originating tab when the message came from a tab; otherwise it queries the active tab in the last-focused browser window. Check for the `active_tab` capability returned by `PING` before using this target.
 
-Accepted URL schemes are `http`, `https`, `ftp`, `data`, and `blob`. A successful response acknowledges a well-formed request from an authorized caller, not a completed — or even started — save: routing may still exclude the item or skip it as unmatched, and download failures surface asynchronously in History/notifications.
+Accepted URL schemes are `http`, `https`, `ftp`, `data`, and `blob`. The `url` echoed in the response is the WHATWG-canonical form of the requested URL, which may differ from the caller's spelling — correlate requests yourself rather than string-comparing the echo. A successful response acknowledges a well-formed request from an authorized caller, not a completed — or even started — save: routing may still exclude the item or skip it as unmatched, and download failures surface asynchronously in History/notifications.
 
 `linkText`, `linkTitle`, and `linkDownload` are independent optional routing
 inputs. The latter two correspond to an HTML anchor's `title` and `download`

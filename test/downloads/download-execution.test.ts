@@ -356,6 +356,9 @@ describe("renameAndDownload: browserDownload", () => {
 
     expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101);
     expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED", 101);
+    // The canceled download may never fire its filename event; a state left
+    // queued would consume the next same-URL save's event instead.
+    expect(Download.downloadRuntime.pendingStates.has(state.info.url as string)).toBe(false);
   });
 
   test("contains a History failure after canceling an accepted download", async () => {

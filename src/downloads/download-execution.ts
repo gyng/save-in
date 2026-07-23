@@ -372,8 +372,13 @@ export const executeBrowserDownload = async (
     // prepareRoutingResolution self-gates on scratch.deferredRoutingResolution.
     // A blob/fetch acquisition's filename event re-evaluates a persisted
     // template just like a direct download's, so every acquisition kind must
-    // arm the wait before downloads.download can race that event.
-    prepareRoutingResolution(state);
+    // arm the wait before downloads.download can race that event — except a
+    // data: acquisition: only blob echo-back is measured (download-retry.ts),
+    // and an unmatched armed wait blocks the pipeline, so the unmeasured key
+    // class degrades to the unarmed race instead (same rationale as
+    // persistFilenameKey above).
+    if (isDataUrl(acquired.url)) discardRoutingResolution(state);
+    else prepareRoutingResolution(state);
     const downloadId = await webExtensionApi.downloads.download(downloadOptions);
     cancelExpectedDownload(expected);
     if (acquired.ownedObjectUrl) {
@@ -423,6 +428,10 @@ export const executeBrowserDownload = async (
     }
     if (signal?.aborted) {
       await webExtensionApi.downloads.cancel(downloadId).catch(() => {});
+      // A canceled download may never fire its filename event; a state left
+      // queued would consume the NEXT same-URL save's event and strand that
+      // save's armed wait behind a suggestion meant for this one.
+      downloadRuntime.forgetPendingState(state);
       await historyPort
         .setStatus(historyEntryId, "USER_CANCELED", downloadId)
         .catch((error) =>

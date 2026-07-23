@@ -10,7 +10,7 @@ import type {
   RoutingRule,
 } from "./rule-types.ts";
 import { routingPorts } from "./ports.ts";
-import { expandFetchUrl, isUsableFetchRewrite } from "./fetch-url.ts";
+import { canonicalFetchRewrite, expandFetchUrl } from "./fetch-url.ts";
 import { deriveUrlFilenames } from "./filename.ts";
 import { applyVariables } from "./variable.ts";
 import { applyRenameTransform, expandRenameTransform, type RenameTransform } from "./rename.ts";
@@ -181,10 +181,10 @@ export const traceRules = async (
     ? await expandFetchUrl(selectedFetchTemplate, traceInfo)
     : null;
   // Mirror the pipeline exactly: an unusable expansion drops the rewrite, and
-  // a usable one retargets both the URL and the URL-derived names before the
-  // destination expands (applyFetchRewrite does the same for real downloads).
-  const rewrittenUrl =
-    expandedFetchUrl !== null && isUsableFetchRewrite(expandedFetchUrl) ? expandedFetchUrl : null;
+  // a usable one retargets both the URL and the URL-derived names — in the
+  // pipeline's canonical spelling — before the destination expands
+  // (applyFetchRewrite does the same for real downloads).
+  const rewrittenUrl = expandedFetchUrl !== null ? canonicalFetchRewrite(expandedFetchUrl) : null;
   const fetchRewriteFailed = selectedFetchTemplate !== null && rewrittenUrl === null;
   let destinationInfo = traceInfo;
   if (rewrittenUrl) {
