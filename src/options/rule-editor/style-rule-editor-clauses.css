@@ -116,6 +116,9 @@
 
 .rule-clause-flag {
   grid-column: 4;
+  /* Drop the global `p, label` bottom margin: it offsets the flag from the
+     row's centered value input and delete button. */
+  margin: 0;
   display: inline-flex;
   align-items: center;
   gap: 2px;
