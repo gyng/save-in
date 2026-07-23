@@ -25,7 +25,7 @@ import {
 import { isWireDownloadState, type WireDownloadState } from "../shared/message-protocol.ts";
 import { fromWireDownloadState, toWireDownloadState } from "./wire-state.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
-import { notifyExclusiveRouteMiss, notifyRouteExclusion } from "./route-exclusion-notification.ts";
+import { notifyExclusiveRouteMiss, notifyRouteExclusion } from "./route-outcome-notification.ts";
 import { getTrackedDownload } from "./expected-downloads.ts";
 import { releaseTerminalDownload, runLateRouteCancellation } from "./terminal-download.ts";
 import { isPrivateDownloadState } from "./download-pipeline-state.ts";

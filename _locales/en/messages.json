@@ -121,7 +121,7 @@
   },
   "notificationRuleExcludedMessage": {
     "message": "$URL$ was not saved because a routing rule excluded it.",
-    "description": "Notification body after an interactive save matches a terminal exclude: true routing rule, including a Chrome final-filename match. Used in src/downloads/route-exclusion-notification.ts.",
+    "description": "Notification body after an interactive save matches a terminal exclude: true routing rule, including a Chrome final-filename match. Used in src/downloads/route-outcome-notification.ts.",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -131,7 +131,7 @@
   },
   "notificationPrivateRuleExcludedMessage": {
     "message": "A private browsing item was not saved because a routing rule excluded it.",
-    "description": "Privacy-preserving notification body after an interactive private save matches a terminal exclude: true routing rule, including a Chrome final-filename match. Do not identify the item. Used in src/downloads/route-exclusion-notification.ts."
+    "description": "Privacy-preserving notification body after an interactive private save matches a terminal exclude: true routing rule, including a Chrome final-filename match. Do not identify the item. Used in src/downloads/route-outcome-notification.ts."
   },
   "routeActionExclude": {
     "message": "Do not save matching items",
@@ -167,11 +167,11 @@
   },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Failed to route or rename download",
-    "description": "Notification title for no rule matches when in exclusive mode. Used in src/downloads/route-exclusion-notification.ts."
+    "description": "Notification title for no rule matches when in exclusive mode. Used in src/downloads/route-outcome-notification.ts."
   },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "No matching rule found for $URL$",
-    "description": "Notification message for no rule matches when in exclusive mode. Used in src/downloads/route-exclusion-notification.ts.",
+    "description": "Notification message for no rule matches when in exclusive mode. Used in src/downloads/route-outcome-notification.ts.",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -181,7 +181,7 @@
   },
   "notificationPrivateRuleMatchFailedMessage": {
     "message": "No routing rule matched the private browsing item.",
-    "description": "Non-identifying notification body when an interactive private save requires a routing rule but none matches. It must not include the filename, path, or URL. Used in src/downloads/route-exclusion-notification.ts."
+    "description": "Non-identifying notification body when an interactive private save requires a routing rule but none matches. It must not include the filename, path, or URL. Used in src/downloads/route-outcome-notification.ts."
   },
   "ruleMissingMatcher": {
     "message": "Add at least one match condition to the rule",

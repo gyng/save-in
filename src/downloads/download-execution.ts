@@ -66,7 +66,7 @@ import {
   updateActiveTransfer,
 } from "./active-transfers.ts";
 import { deliverSaveWebhook } from "./webhook-delivery.ts";
-import { notifyExclusiveRouteMiss, notifyRouteExclusion } from "./route-exclusion-notification.ts";
+import { notifyExclusiveRouteMiss, notifyRouteExclusion } from "./route-outcome-notification.ts";
 import {
   discardRoutingResolution,
   prepareRoutingResolution,
