@@ -171,6 +171,37 @@ describe("click gesture model", () => {
     expect(suppressor.consume(1)).toBe(false);
   });
 
+  test("idle reports armed-and-awaiting states until the one-shot resolves", () => {
+    const scheduled = new Map<number, () => void>();
+    let nextTimer = 0;
+    const suppressor = createLongClickReleaseSuppressor(5000, {
+      set: (callback, delay) => {
+        expect(delay).toBe(5000);
+        nextTimer += 1;
+        scheduled.set(nextTimer, callback);
+        return nextTimer;
+      },
+      clear: (timer) => scheduled.delete(timer),
+    });
+
+    expect(suppressor.idle()).toBe(true);
+    suppressor.arm();
+    expect(suppressor.idle()).toBe(false);
+    suppressor.release();
+    expect(suppressor.idle()).toBe(false);
+    expect(suppressor.consume(1)).toBe(true);
+    expect(suppressor.idle()).toBe(true);
+
+    suppressor.arm();
+    suppressor.release();
+    scheduled.get(2)?.();
+    expect(suppressor.idle()).toBe(true);
+
+    suppressor.arm();
+    suppressor.clear();
+    expect(suppressor.idle()).toBe(true);
+  });
+
   test("a stale release-expiry callback cannot clear a newer hold", () => {
     const scheduled: Array<() => void> = [];
     const suppressor = createLongClickReleaseSuppressor(5000, {

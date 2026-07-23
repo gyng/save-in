@@ -118,6 +118,11 @@ export const createLongClickReleaseSuppressor = (
       clear();
       return true;
     },
+    // A completed hold stays armed until its release click is consumed or the
+    // grace window expires; owners must not tear down while that is pending.
+    idle(): boolean {
+      return !armed;
+    },
     clear,
   };
 };

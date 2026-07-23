@@ -714,39 +714,36 @@ const pageLongReleaseSuppression = createLongClickReleaseSuppressor(LONG_CLICK_S
   clear: (timer) => window.clearTimeout(timer),
 });
 let pageLongReleaseListenersInstalled = false;
+const pageLongReleaseMousedown = (event: MouseEvent): void => {
+  if (event.isTrusted && event.button === 0) pageLongReleaseSuppression.clear();
+};
+const pageLongReleaseMouseup = (event: MouseEvent): void => {
+  if (event.isTrusted && event.button === 0) pageLongReleaseSuppression.release();
+};
+const pageLongReleaseClick = (event: MouseEvent): void => {
+  if (!event.isTrusted || event.button !== 0 || !pageLongReleaseSuppression.consume(event.detail))
+    return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+};
 const ensurePageLongReleaseListeners = (): void => {
   if (pageLongReleaseListenersInstalled) return;
   pageLongReleaseListenersInstalled = true;
   // These low-frequency listeners own release suppression across click-to-save
   // remounts. High-frequency movement tracking remains transient per hold.
-  window.addEventListener(
-    "mousedown",
-    (event) => {
-      if (event.isTrusted && event.button === 0) pageLongReleaseSuppression.clear();
-    },
-    { capture: true },
-  );
-  window.addEventListener(
-    "mouseup",
-    (event) => {
-      if (event.isTrusted && event.button === 0) pageLongReleaseSuppression.release();
-    },
-    { capture: true },
-  );
-  window.addEventListener(
-    "click",
-    (event) => {
-      if (
-        !event.isTrusted ||
-        event.button !== 0 ||
-        !pageLongReleaseSuppression.consume(event.detail)
-      )
-        return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-    },
-    { capture: true },
-  );
+  window.addEventListener("mousedown", pageLongReleaseMousedown, { capture: true });
+  window.addEventListener("mouseup", pageLongReleaseMouseup, { capture: true });
+  window.addEventListener("click", pageLongReleaseClick, { capture: true });
+};
+const removePageLongReleaseListeners = (): void => {
+  // A completed hold may still be awaiting the release click it must consume;
+  // keep the listeners until that one-shot state resolves so a rebind cannot
+  // let the click through. A skipped removal retries on the next rebind.
+  if (!pageLongReleaseListenersInstalled || !pageLongReleaseSuppression.idle()) return;
+  pageLongReleaseListenersInstalled = false;
+  window.removeEventListener("mousedown", pageLongReleaseMousedown, { capture: true });
+  window.removeEventListener("mouseup", pageLongReleaseMouseup, { capture: true });
+  window.removeEventListener("click", pageLongReleaseClick, { capture: true });
 };
 let removeClickToSave: (() => void) | null = null;
 let removeAutoDownload: (() => void) | null = null;
@@ -867,8 +864,9 @@ const applyOptions = (next: ContentOptions) => {
   if (clickOptionsChanged) {
     removeClickToSave?.();
     removeClickToSave = null;
+    let hasLongPress = false;
     if (currentOptions.contentClickToSave) {
-      const hasLongPress = resolveClickToSaveBindings(
+      hasLongPress = resolveClickToSaveBindings(
         currentOptions.contentClickToSaveBindings,
         currentOptions.contentClickToSaveCombo,
         currentOptions.contentClickToSaveButton,
@@ -881,6 +879,7 @@ const applyOptions = (next: ContentOptions) => {
         pageLongReleaseSuppression,
       );
     }
+    if (!hasLongPress) removePageLongReleaseListeners();
   }
   announceSourcePanelReady();
 };

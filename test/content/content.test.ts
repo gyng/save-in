@@ -1400,6 +1400,78 @@ describe("content.js initialisation", () => {
     expect(stopImmediatePropagation).toHaveBeenCalledOnce();
   });
 
+  test("removes the page-owned long-release listeners only once the release resolves", async () => {
+    vi.useFakeTimers();
+    const addEventListener = vi.spyOn(window, "addEventListener");
+    const removeEventListener = vi.spyOn(window, "removeEventListener");
+    await importContentWithOptions({
+      contentClickToSave: true,
+      contentClickToSaveBindings: serializeClickToSaveBindings([
+        { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
+      ]),
+    });
+    const pageOwnedListeners = (eventType: string) =>
+      addEventListener.mock.calls.filter(
+        ([type, , options]) =>
+          type === eventType && !(options as AddEventListenerOptions | undefined)?.signal,
+      );
+    const pageOwnedRemovals = (eventType: string) => {
+      const added = pageOwnedListeners(eventType)[0]?.[1];
+      return removeEventListener.mock.calls.filter(
+        ([type, listener]) => type === eventType && listener === added,
+      );
+    };
+    expect(pageOwnedListeners("mousedown")).toHaveLength(1);
+
+    // Complete a hold so its one-shot release state is pending, then unbind:
+    // removal must wait, or the armed release click would reach the page.
+    document.body.innerHTML = '<img id="long-release" src="http://x.test/held.png">';
+    const image = document.getElementById("long-release");
+    const featureMousedown = addEventListener.mock.calls.findLast(
+      ([type, , options]) =>
+        type === "mousedown" && Boolean((options as AddEventListenerOptions | undefined)?.signal),
+    )?.[1] as EventListener | undefined;
+    featureMousedown?.({
+      isTrusted: true,
+      button: 0,
+      buttons: 1,
+      target: image,
+      clientX: 0,
+      clientY: 0,
+      composedPath: () => [image],
+      preventDefault: vi.fn(),
+      stopImmediatePropagation: vi.fn(),
+    } as unknown as MouseEvent);
+    await vi.advanceTimersByTimeAsync(500);
+    const pageMouseup = pageOwnedListeners("mouseup")[0]?.[1] as EventListener | undefined;
+    pageMouseup?.({ isTrusted: true, button: 0 } as MouseEvent);
+    pushContentOptions({ contentClickToSaveBindings: "" });
+    expect(pageOwnedRemovals("mousedown")).toHaveLength(0);
+
+    // Consuming the release click resolves the one-shot; the next rebind
+    // without a long binding removes all three page-owned listeners.
+    const pageClick = pageOwnedListeners("click")[0]?.[1] as EventListener | undefined;
+    pageClick?.({
+      isTrusted: true,
+      button: 0,
+      detail: 1,
+      preventDefault: vi.fn(),
+      stopImmediatePropagation: vi.fn(),
+    } as unknown as MouseEvent);
+    pushContentOptions({ contentClickToSaveCombo: 90 });
+    expect(pageOwnedRemovals("mousedown")).toHaveLength(1);
+    expect(pageOwnedRemovals("mouseup")).toHaveLength(1);
+    expect(pageOwnedRemovals("click")).toHaveLength(1);
+
+    // Rebinding the long gesture reinstalls the page-owned listeners.
+    pushContentOptions({
+      contentClickToSaveBindings: serializeClickToSaveBindings([
+        { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
+      ]),
+    });
+    expect(pageOwnedListeners("mousedown")).toHaveLength(2);
+  });
+
   test("remounts click-to-save when the versioned gesture bindings change", async () => {
     const addEventListener = vi.spyOn(window, "addEventListener");
     await importContentWithOptions({
