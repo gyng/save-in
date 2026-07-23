@@ -2300,6 +2300,12 @@
   "o_lUiThemeGroupSaveIn": {
     "message": "Su misura"
   },
+  "o_lUiThemeGroupPremium": {
+    "message": "Premium"
+  },
+  "o_lUiThemeWebring": {
+    "message": "Webring"
+  },
   "o_lUiThemeHighContrastDark": {
     "message": "Scuro a contrasto elevato"
   },

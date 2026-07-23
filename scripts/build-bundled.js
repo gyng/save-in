@@ -39,6 +39,7 @@ const bundleFiles = [
 const optionStyleFiles = [
   "reference/reference.css",
   "style.css",
+  "skins/skin-webring.css",
   "styles/style-accessibility.css",
   "dialogs/style-about.css",
   "core/style-advanced.css",

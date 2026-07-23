@@ -2502,6 +2502,12 @@
   "o_lUiThemeGroupSaveIn": {
     "message": "맞춤형"
   },
+  "o_lUiThemeGroupPremium": {
+    "message": "프리미엄"
+  },
+  "o_lUiThemeWebring": {
+    "message": "Webring"
+  },
   "o_lUiThemeHighContrastDark": {
     "message": "고대비 어둡게"
   },

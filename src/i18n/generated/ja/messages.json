@@ -2502,6 +2502,12 @@
   "o_lUiThemeGroupSaveIn": {
     "message": "オーダーメイド"
   },
+  "o_lUiThemeGroupPremium": {
+    "message": "プレミアム"
+  },
+  "o_lUiThemeWebring": {
+    "message": "Webring"
+  },
   "o_lUiThemeHighContrastDark": {
     "message": "ハイコントラスト（ダーク）"
   },

@@ -30,7 +30,8 @@
   [data-theme="ember"],
   [data-theme="primary-grid"],
   [data-theme="blue-house"],
-  [data-theme="gilded-mosaic"]
+  [data-theme="gilded-mosaic"],
+  [data-theme="webring"]
 ) {
   color-scheme: var(--theme-color-scheme);
   --color-accent: var(--theme-accent);
@@ -106,5 +107,25 @@
   --theme-focus: #00e5ff;
   --theme-link: #fff176;
   --theme-on-accent: #000000;
+  --theme-icon-filter: brightness(0) invert(1);
+}
+
+/* Premium "wild" themes: their color roles live here (validated like every
+   other theme); the structural/decorative half lives in the skins layer
+   (src/options/skins/), which only reads these tokens. See docs/contributing/UI.md. */
+:root[data-theme="webring"] {
+  --theme-color-scheme: only dark;
+  --theme-page: #05010f;
+  --theme-raised: #1a1140;
+  --theme-input: #0d0826;
+  --theme-text: #f5f5c0;
+  --theme-muted: #c0e0ff;
+  --theme-border: #ff40ff;
+  --theme-control-border: #45d0ff;
+  --theme-accent: #ff2f92;
+  --theme-accent-active: #ff6fb3;
+  --theme-focus: #ffe600;
+  --theme-link: #4fc3ff;
+  --theme-on-accent: #1a0010;
   --theme-icon-filter: brightness(0) invert(1);
 }

@@ -2502,6 +2502,12 @@
   "o_lUiThemeGroupSaveIn": {
     "message": "客製化"
   },
+  "o_lUiThemeGroupPremium": {
+    "message": "高級"
+  },
+  "o_lUiThemeWebring": {
+    "message": "Webring"
+  },
   "o_lUiThemeHighContrastDark": {
     "message": "高對比深色"
   },

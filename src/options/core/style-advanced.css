@@ -248,6 +248,10 @@
   --theme-swatch: var(--theme-swatch-gilded-mosaic);
 }
 
+.theme-swatch[data-theme-swatch="webring"] {
+  --theme-swatch: var(--theme-swatch-webring);
+}
+
 .advanced-option-help {
   max-inline-size: 68ch;
   margin-block-start: var(--space-1);

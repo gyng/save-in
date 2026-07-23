@@ -118,6 +118,13 @@
     #f0648c 73% 100%
   );
   --theme-swatch-gilded-mosaic: linear-gradient(90deg, #191610 0 58%, #d3a72f 58% 100%);
+  --theme-swatch-webring: linear-gradient(
+    90deg,
+    #05010f 0 40%,
+    #ff2f92 40% 60%,
+    #ffe600 60% 80%,
+    #45d0ff 80% 100%
+  );
 
   /* Semantic roles shared by every options/reference component. */
   --color-accent: var(--blue60);

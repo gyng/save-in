@@ -2551,6 +2551,12 @@
   "o_lUiThemeGroupSaveIn": {
     "message": "Sur mesure"
   },
+  "o_lUiThemeGroupPremium": {
+    "message": "Premium"
+  },
+  "o_lUiThemeWebring": {
+    "message": "Webring"
+  },
   "o_lUiThemeHighContrastDark": {
     "message": "Sombre à contraste élevé"
   },

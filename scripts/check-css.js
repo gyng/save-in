@@ -286,6 +286,7 @@ const styleLayers = [
   ],
   ["welcome", []],
   ["reference", []],
+  ["skins", ["skins/skin-webring.css"]],
   ["utilities", ["styles/style-accessibility.css", "styles/style-utilities.css"]],
 ];
 const styleEntry = fs.readFileSync(styleEntryPath, "utf8");

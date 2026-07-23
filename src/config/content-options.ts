@@ -38,6 +38,7 @@ const UI_THEMES = [
   "primary-grid",
   "blue-house",
   "gilded-mosaic",
+  "webring",
 ] as const;
 export type UiTheme = (typeof UI_THEMES)[number];
 const isUiTheme = (value: unknown): value is UiTheme => isStringMember(UI_THEMES, value);

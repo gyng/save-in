@@ -1,4 +1,4 @@
-@layer tokens, base, shell, components, layout, editors, advanced, history, welcome, reference, utilities;
+@layer tokens, base, shell, components, layout, editors, advanced, history, welcome, reference, skins, utilities;
 @import url("styles/style-tokens.css") layer(tokens);
 @import url("styles/style-themes.css") layer(tokens);
 @import url("styles/style-theme-palettes.css") layer(tokens);
@@ -43,5 +43,6 @@
 @import url("history/style-history.css") layer(history);
 @import url("history/style-history-metadata.css") layer(history);
 @import url("history/style-history-responsive.css") layer(history);
+@import url("skins/skin-webring.css") layer(skins);
 @import url("styles/style-accessibility.css") layer(utilities);
 @import url("styles/style-utilities.css") layer(utilities);

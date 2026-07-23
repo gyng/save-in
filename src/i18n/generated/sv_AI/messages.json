@@ -2502,6 +2502,12 @@
   "o_lUiThemeGroupSaveIn": {
     "message": "Skräddarsytt"
   },
+  "o_lUiThemeGroupPremium": {
+    "message": "Premium"
+  },
+  "o_lUiThemeWebring": {
+    "message": "Webring"
+  },
   "o_lUiThemeHighContrastDark": {
     "message": "Hög kontrast – mörkt"
   },

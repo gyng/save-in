@@ -3555,6 +3555,14 @@
     "message": "Bespoke",
     "description": "Theme picker group containing original and art-inspired color themes. Used in src/options/options.html."
   },
+  "o_lUiThemeGroupPremium": {
+    "message": "Premium",
+    "description": "Theme picker group containing elaborate, immersive themes that restyle fonts, textures, and controls beyond color. Deadpan label. Used in src/options/options.html."
+  },
+  "o_lUiThemeWebring": {
+    "message": "Webring",
+    "description": "Immersive theme evoking a 1990s Web 1.0 personal homepage (starfield, Comic Sans, rainbow rules). Proper noun; keep untranslated. Used in src/options/options.html."
+  },
   "o_lUiThemeHighContrastDark": {
     "message": "High contrast dark",
     "description": "Dark high-contrast interface theme. Used in src/options/options.html."
