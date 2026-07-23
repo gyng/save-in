@@ -4409,7 +4409,7 @@
     "message": "O primeiro clique ainda é enviado à página. Uma imagem com link pode ser aberta ou levar a outra página antes do segundo clique."
   },
   "o_lClickToSaveLongClickHelp": {
-    "message": "Cliques breves continuam normais. Mantenha o ponteiro parado até o salvamento começar; mover cancela o gesto. Após salvar, o clique ao soltar é bloqueado para que os links não sejam abertos."
+    "message": "Cliques breves continuam normais. Mantenha o ponteiro parado até o salvamento começar; mover cancela o gesto. Após salvar, o clique ao soltar é bloqueado para que os links não sejam abertos. O gesto exige um mouse; a entrada por toque não o aciona."
   },
   "o_lClickToSaveLongPressDuration": {
     "message": "Duração do clique prolongado"

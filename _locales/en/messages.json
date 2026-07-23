@@ -1508,7 +1508,7 @@
     "description": "Warning shown when double-left-click saving is configured. Used in src/options/options.html."
   },
   "o_lClickToSaveLongClickHelp": {
-    "message": "Short clicks remain normal. Hold still until the save starts; moving cancels the gesture. After saving, the release click is blocked so links do not open.",
+    "message": "Short clicks remain normal. Hold still until the save starts; moving cancels the gesture. After saving, the release click is blocked so links do not open. The gesture needs a mouse; touch input does not trigger it.",
     "description": "Behavior guidance shown when long-left-click saving is configured. Used in src/options/options.html."
   },
   "o_lClickToSaveLongPressDuration": {
@@ -5751,7 +5751,7 @@
   },
   "routeDebuggerSelectedExcluded": {
     "message": "Excluded",
-    "description": "Badge on the terminal exclusion rule selected by the route debugger. Used in src/options/route-debugger/route-debugger.ts."
+    "description": "Badge on the terminal exclusion rule selected by the route debugger, and the History status label for saves an exclusion rule stopped. Must read correctly in both places. Used in src/options/route-debugger/route-debugger.ts and src/options/history/history-model.ts."
   },
   "routeVisualAddExclusionRule": {
     "message": "Add exclusion rule",

@@ -4409,7 +4409,7 @@
     "message": "El primer clic se envía igualmente a la página. Una imagen con enlace puede abrirse o llevarle a otra página antes del segundo clic."
   },
   "o_lClickToSaveLongClickHelp": {
-    "message": "Los clics breves funcionan con normalidad. Mantenga el puntero quieto hasta que se inicie el guardado; moverlo cancela el gesto. Después de guardar, se bloquea el clic al soltar para que no se abran los enlaces."
+    "message": "Los clics breves funcionan con normalidad. Mantenga el puntero quieto hasta que se inicie el guardado; moverlo cancela el gesto. Después de guardar, se bloquea el clic al soltar para que no se abran los enlaces. El gesto requiere un ratón; la entrada táctil no lo activa."
   },
   "o_lClickToSaveLongPressDuration": {
     "message": "Duración del clic prolongado"

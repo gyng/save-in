@@ -4409,7 +4409,7 @@
     "message": "Det första klicket skickas fortfarande till sidan. En länkad bild kan öppnas eller leda till en annan sida före det andra klicket."
   },
   "o_lClickToSaveLongClickHelp": {
-    "message": "Korta klick fungerar som vanligt. Håll pekaren stilla tills sparandet börjar; rörelse avbryter gesten. Efter sparandet blockeras klicket när knappen släpps så att länkar inte öppnas."
+    "message": "Korta klick fungerar som vanligt. Håll pekaren stilla tills sparandet börjar; rörelse avbryter gesten. Efter sparandet blockeras klicket när knappen släpps så att länkar inte öppnas. Gesten kräver en mus; pekskärmsinmatning utlöser den inte."
   },
   "o_lClickToSaveLongPressDuration": {
     "message": "Varaktighet för långt klick"

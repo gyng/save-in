@@ -4409,7 +4409,7 @@
     "message": "De eerste klik wordt nog steeds aan de pagina doorgegeven. Een afbeelding met een koppeling kan vóór de tweede klik worden geopend of u naar een andere pagina brengen."
   },
   "o_lClickToSaveLongClickHelp": {
-    "message": "Korte klikken werken normaal. Houd de aanwijzer stil totdat het opslaan begint; bewegen annuleert het gebaar. Na het opslaan wordt de klik bij loslaten geblokkeerd, zodat koppelingen niet worden geopend."
+    "message": "Korte klikken werken normaal. Houd de aanwijzer stil totdat het opslaan begint; bewegen annuleert het gebaar. Na het opslaan wordt de klik bij loslaten geblokkeerd, zodat koppelingen niet worden geopend. Het gebaar vereist een muis; aanraakinvoer activeert het niet."
   },
   "o_lClickToSaveLongPressDuration": {
     "message": "Duur van lang klikken"

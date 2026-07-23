@@ -4411,7 +4411,7 @@
     "message": "Der erste Klick wird weiterhin an die Seite weitergegeben. Ein verlinktes Bild kann sich öffnen oder zu einer anderen Seite führen, bevor der zweite Klick erfolgt."
   },
   "o_lClickToSaveLongClickHelp": {
-    "message": "Kurze Klicks funktionieren wie gewohnt. Halten Sie die Maus ruhig, bis das Speichern beginnt; eine Bewegung bricht die Geste ab. Nach dem Speichern wird der Klick beim Loslassen blockiert, damit Links nicht geöffnet werden."
+    "message": "Kurze Klicks funktionieren wie gewohnt. Halten Sie die Maus ruhig, bis das Speichern beginnt; eine Bewegung bricht die Geste ab. Nach dem Speichern wird der Klick beim Loslassen blockiert, damit Links nicht geöffnet werden. Die Geste erfordert eine Maus; Toucheingaben lösen sie nicht aus."
   },
   "o_lClickToSaveLongPressDuration": {
     "message": "Dauer des langen Klicks"

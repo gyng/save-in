@@ -4411,7 +4411,7 @@
     "message": "Il primo clic viene comunque trasmesso alla pagina. Un’immagine con un collegamento può aprirsi o portare a un’altra pagina prima del secondo clic."
   },
   "o_lClickToSaveLongClickHelp": {
-    "message": "I clic brevi restano normali. Tieni fermo il puntatore finché inizia il salvataggio; il movimento annulla il gesto. Dopo il salvataggio, il clic al rilascio viene bloccato per impedire l’apertura dei collegamenti."
+    "message": "I clic brevi restano normali. Tieni fermo il puntatore finché inizia il salvataggio; il movimento annulla il gesto. Dopo il salvataggio, il clic al rilascio viene bloccato per impedire l’apertura dei collegamenti. Il gesto richiede un mouse; il tocco non lo attiva."
   },
   "o_lClickToSaveLongPressDuration": {
     "message": "Durata del clic prolungato"

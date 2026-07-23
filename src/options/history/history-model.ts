@@ -221,7 +221,8 @@ export const statusClass = (status: string): string => {
   if (status === "pending") {
     return "status-pending";
   }
-  // Deliberate user actions, not errors: distinct from the failure styling
+  // Deliberate outcomes — user actions and rule exclusions — not errors:
+  // distinct from the failure styling
   if (status === "undone" || status === "moved" || status === "RULE_EXCLUDED") {
     return status === "moved" ? "status-moved" : "status-undone";
   }
