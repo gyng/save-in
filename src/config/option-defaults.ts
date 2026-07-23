@@ -27,7 +27,7 @@ export const OPTION_DEFAULTS = {
   notifyOnLinkPreferred: true,
   promptAssistantEnabled: false,
   page: true,
-  paths: ". // (alias: Downloads)\nImages\nVideos\nAudio\nDocuments",
+  paths: ". // (alias: Downloads)\nImages\nDocuments",
   prompt: false,
   promptIfNoExtension: false,
   promptOnFailure: true,
