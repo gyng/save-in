@@ -38,9 +38,6 @@ export const syncReferenceVocabulary = (
     required.add("capture:");
     required.add("fetch:");
     required.add("rename:");
-    // The combined actions row keys on its first code, exclude: — without this
-    // the runtime sync deletes the only row teaching the action clauses.
-    required.add("exclude:");
   }
 
   rows.forEach((row) => {

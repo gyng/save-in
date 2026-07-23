@@ -598,6 +598,30 @@ describe("handleDownloadMessage", () => {
     expect(global.browser.tabs.remove).not.toHaveBeenCalled();
   });
 
+  test("an external activeTab request owns the tab it named for the route action", async () => {
+    vi.mocked(global.browser.tabs.remove).mockClear();
+    vi.mocked(global.browser.tabs.get).mockResolvedValueOnce({
+      id: 9,
+      url: "https://x/",
+    } as browser.tabs.Tab);
+    vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
+      state.scratch.routeTabAction = "close";
+      return { status: "started", downloadId: 7 };
+    });
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessageExternal(
+        request({ url: undefined, target: "activeTab" }),
+        { id: "trusted-extension", tab: { id: 9, url: "https://x/" } },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+
+    await vi.waitFor(() => expect(global.browser.tabs.remove).toHaveBeenCalledWith(9));
+  });
+
   test("external downloads wait for cold-start initialization", async () => {
     let finish!: () => void;
     backgroundRuntime.ready = new Promise<void>((resolve) => {

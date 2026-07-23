@@ -163,8 +163,11 @@ run for a skipped or failed save, and an explicit per-menu-item tab action takes
 precedence. Automatic rules reject `after: close-tab`; ordinary browser downloads do
 not expose a source tab for this action.
 
-External `DOWNLOAD` requests never execute `after: close-tab`; allowing another
-extension grants it download access, not authority to close browser tabs.
+An external explicit-URL `DOWNLOAD` request never executes `after: close-tab`:
+allowing another extension grants it download access, not authority over the
+caller's ambient tab. A `target: "activeTab"` request is the exception — it
+explicitly names the tab it owns for the action, so a matching `after:
+close-tab` rule may close that tab.
 
 Check for the `vocabulary`, `grammar`, and `automatic_routing_validation` capabilities before using these additive API v1 features. Older callers can ignore the new capability and response fields.
 

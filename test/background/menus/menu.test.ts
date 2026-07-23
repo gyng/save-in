@@ -1043,10 +1043,17 @@ describe("buildTree", () => {
   test("carries an opt-in post-save tab action from metadata", () => {
     const close = menu.buildTree(["dogs // (tab: close)"]).items[0]!;
     const back = menu.buildTree(["dogs // (tab: return)"]).items[0]!;
+    const focus = menu.buildTree(["dogs // (tab: focus)"]).items[0]!;
+    const activate = menu.buildTree(["dogs // (tab: activate)"]).items[0]!;
+    const unknown = menu.buildTree(["dogs // (tab: nonsense)"]).items[0]!;
     const plain = menu.buildTree(["dogs"]).items[0]!;
 
     expect("tabAction" in close && close.tabAction).toBe("close");
     expect("tabAction" in back && back.tabAction).toBe("return");
+    // Shipped synonym spellings stay accepted forever: stored menus carry them.
+    expect("tabAction" in focus && focus.tabAction).toBe("return");
+    expect("tabAction" in activate && activate.tabAction).toBe("return");
+    expect(Object.hasOwn(unknown, "tabAction")).toBe(false);
     expect(Object.hasOwn(plain, "tabAction")).toBe(false);
   });
 

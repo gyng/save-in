@@ -113,7 +113,7 @@
   },
   "notificationRuleMatchedTitle": {
     "message": "Save In: Rule matched",
-    "description": "Notification title for a rule match. Used in src/downloads/download.ts."
+    "description": "Notification title for a rule match. Used in src/downloads/download-execution.ts."
   },
   "notificationPrivateRuleMatchedMessage": {
     "message": "A private browsing item matched a routing rule.",
@@ -167,11 +167,11 @@
   },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Failed to route or rename download",
-    "description": "Notification title for no rule matches when in exclusive mode. Used in src/downloads/download.ts."
+    "description": "Notification title for no rule matches when in exclusive mode. Used in src/downloads/download-execution.ts and src/downloads/filename-listener.ts."
   },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "No matching rule found for $URL$",
-    "description": "Notification title for no rule matches when in exclusive mode. Used in src/downloads/download.ts.",
+    "description": "Notification message for no rule matches when in exclusive mode. Used in src/downloads/download-execution.ts and src/downloads/filename-listener.ts.",
     "placeholders": {
       "url": {
         "content": "$1",

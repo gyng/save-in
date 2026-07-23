@@ -38,8 +38,9 @@ into: documents/:filename:
 
 `after: close-tab` closes the source tab only after the browser accepts the download.
 It does nothing when planning, fetching, or `downloads.download()` fails. A
-folder menu item's `(tab: close)` or `(tab: return)` setting is more specific
-and wins over the routing action; the routing action in turn wins over the
+folder menu item's `(after: close-tab)` or `(after: return-tab)` setting — the
+legacy `(tab: close)` and `(tab: return)` spellings stay accepted — is more
+specific and wins over the routing action; the routing action in turn wins over the
 global **Close each tab after saving it** setting. Save In resolves that order
 once, so overlapping close settings never issue duplicate tab operations.
 

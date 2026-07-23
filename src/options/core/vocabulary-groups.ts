@@ -98,8 +98,6 @@ const CLAUSE_ORDER = [
   "after",
   "fetch",
   "rename",
-  "exclude",
-  "after",
   "capture",
   "capturegroups",
   "context",
