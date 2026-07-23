@@ -645,15 +645,23 @@ test("options can select a generated locale and return to the browser default", 
             Promise.resolve({
               selected: document.querySelector("#uiLocale")?.value,
               marker: globalThis.__saveInE2eLocaleMarker ?? null,
+              ready: !document.documentElement.classList.contains("localization-pending"),
             }),
           ]).then(([stored, page]) => JSON.stringify({ stored: stored.uiLocale, ...page }))`,
           objectOf({
             stored: decodeString,
             selected: optional(decodeString),
             marker: nullable(decodeString),
+            ready: decodeBoolean,
           }),
         );
-        return state.stored === locale && state.selected === locale && state.marker !== marker
+        // ready gates on the reloaded page finishing initialization: the next
+        // selectLocale dispatches input, and a dispatch before the language
+        // selector attaches its listener would be silently lost.
+        return state.stored === locale &&
+          state.selected === locale &&
+          state.marker !== marker &&
+          state.ready
           ? true
           : null;
       },
@@ -661,6 +669,13 @@ test("options can select a generated locale and return to the browser default", 
     );
   };
 
+  // The same lost-dispatch hazard applies to the first selection when an
+  // earlier test's interaction left this page still initializing.
+  await waitForPageCondition(
+    evalOptions,
+    `!document.documentElement.classList.contains("localization-pending")`,
+    { description: "options page initialized before locale selection" },
+  );
   await selectLocale("de", "generated locale selection reload");
   await selectLocale("en", "explicit English selection reload");
   await selectLocale("", "browser-default locale restore");
