@@ -134,6 +134,10 @@
   border: 1px solid var(--color-control-border);
   border-radius: var(--radius-sm);
   background: var(--theme-swatch);
+  /* Paint the gradient exactly inside the border, not out under it: the
+     default border-box clip leaves the fill misaligned against the rounded
+     1px frame on the right/rounded corners. */
+  background-clip: padding-box;
 }
 
 .theme-swatch[data-theme-swatch="system"] {
