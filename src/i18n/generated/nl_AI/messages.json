@@ -4478,7 +4478,7 @@
     }
   },
   "notificationPrivateRuleExcludedMessage": {
-    "message": "Een item uit een privévenster is niet opgeslagen omdat een routeringsregel het heeft uitgesloten."
+    "message": "Een item uit privénavigatie is niet opgeslagen omdat een routeringsregel het heeft uitgesloten."
   },
   "routeActionExclude": {
     "message": "Overeenkomende items niet opslaan"

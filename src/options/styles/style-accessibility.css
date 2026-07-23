@@ -80,6 +80,7 @@
     .menu-preview-row.is-preview-selected,
     .path-editor-row.is-preview-selected,
     .rule-editor-card.is-debug-selected,
+    .rule-clause-row.is-active,
     .route-debugger-rule.is-selected
   ) {
     color: HighlightText;

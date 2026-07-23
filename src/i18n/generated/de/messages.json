@@ -4469,7 +4469,7 @@
     "message": "Link-Downloadname"
   },
   "notificationRuleExcludedMessage": {
-    "message": "$URL$ wurde nicht gespeichert, weil eine Routingregel es ausgeschlossen hat.",
+    "message": "$URL$ wurde nicht gespeichert, weil eine Routing-Regel sie ausgeschlossen hat.",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -4478,7 +4478,7 @@
     }
   },
   "notificationPrivateRuleExcludedMessage": {
-    "message": "Ein Element aus einem privaten Fenster wurde nicht gespeichert, weil eine Routingregel es ausgeschlossen hat."
+    "message": "Ein Element aus einem privaten Fenster wurde nicht gespeichert, weil eine Routing-Regel es ausgeschlossen hat."
   },
   "routeActionExclude": {
     "message": "Übereinstimmende Elemente nicht speichern"
@@ -4496,7 +4496,7 @@
     "message": "Regelergebnis"
   },
   "routeActionExcluded": {
-    "message": "Durch Routingregel ausgeschlossen"
+    "message": "Durch Routing-Regel ausgeschlossen"
   },
   "routeActionExcludedSummary": {
     "message": "Eine Regel stimmt überein. Dieser Speichervorgang ist ausgeschlossen, daher werden spätere Regeln nicht ausgeführt."

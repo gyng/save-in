@@ -945,12 +945,16 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       .forEach((item) => item.classList.remove("is-active"));
     const activeClause = card.querySelector<HTMLElement>(`.rule-clause-row[data-line="${line}"]`);
     activeClause?.classList.add("is-active");
-    const focusScope = activeClause ?? card.querySelector<HTMLElement>(".rule-editor-card-body");
-    focusScope
-      ?.querySelector<HTMLElement>(
-        "select:not([disabled]), input:not([disabled]), textarea:not([disabled]), button:not([disabled])",
-      )
-      ?.focus({ preventScroll: true });
+    // A fixed action row (an exclusion outcome) carries no control, so fall
+    // back to the card body — the jump must land keyboard focus somewhere.
+    const focusableControls =
+      "select:not([disabled]), input:not([disabled]), textarea:not([disabled]), button:not([disabled])";
+    const control =
+      activeClause?.querySelector<HTMLElement>(focusableControls) ??
+      card
+        .querySelector<HTMLElement>(".rule-editor-card-body")
+        ?.querySelector<HTMLElement>(focusableControls);
+    control?.focus({ preventScroll: true });
     card.scrollIntoView?.({ block: "nearest", behavior: preferredScrollBehavior() });
   });
 

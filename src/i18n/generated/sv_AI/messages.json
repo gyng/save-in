@@ -560,10 +560,10 @@
     "message": "Save In: Regel matchad"
   },
   "notificationPrivateRuleMatchedMessage": {
-    "message": "Ett objekt från privat surfning matchade en dirigeringsregel."
+    "message": "Ett objekt från privat surfning matchade en routningsregel."
   },
   "notificationRuleMatchFailedExclusiveTitle": {
-    "message": "Save In: Det gick inte att dirigera eller byta namn på nedladdningen"
+    "message": "Save In: Det gick inte att routa eller byta namn på nedladdningen"
   },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "Ingen matchande regel hittades för $URL$",
@@ -575,7 +575,7 @@
     }
   },
   "notificationPrivateRuleMatchFailedMessage": {
-    "message": "Ingen dirigeringsregel matchade objektet från privat surfning."
+    "message": "Ingen routningsregel matchade objektet från privat surfning."
   },
   "ruleMissingMatcher": {
     "message": "Lägg till minst ett matchningsvillkor i regeln"
@@ -599,7 +599,7 @@
     "message": "Byter namn på varje träff till samma namn. Avsluta med / för en mapp, eller med :filename: för att behålla nedladdningens namn"
   },
   "ruleExtraInto": {
-    "message": "En regel kan bara innehålla en i:-sats"
+    "message": "En regel kan bara innehålla en into:-sats"
   },
   "ruleUnknownMatcher": {
     "message": "Okänd matchare"
@@ -4229,7 +4229,7 @@
     "message": "Regelassistent på enheten"
   },
   "promptAssistantIntro": {
-    "message": "Beskriv var filer ska sparas och få en dirigeringsregel att granska."
+    "message": "Beskriv var filer ska sparas och få en routningsregel att granska."
   },
   "html_theAssistantNeedsTheBrowsersBuiltIn": {
     "message": "Assistenten kräver den inbyggda"
@@ -4250,7 +4250,7 @@
     "message": "Status"
   },
   "promptAssistantPromptLabel": {
-    "message": "Beskriv en dirigeringsregel"
+    "message": "Beskriv en routningsregel"
   },
   "promptAssistantPromptPlaceholder": {
     "message": "Spara PNG-filer från example.com i Images/example"

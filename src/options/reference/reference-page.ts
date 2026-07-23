@@ -290,6 +290,15 @@ export const setupReferencePage = (
     }
   };
 
+  const upgradeCopyTokens = () => {
+    root.querySelectorAll<HTMLElement>(".click-to-copy").forEach((token) => {
+      token.tabIndex = 0;
+      token.setAttribute("role", "button");
+      const value = copyValueFor(token).trim() || "value";
+      token.setAttribute("aria-label", localize("referenceCopyValue", value) || `Copy ${value}`);
+    });
+  };
+
   void loadRuntimeVocabulary().then((vocabulary) => {
     if (!vocabulary) return;
     const terms =
@@ -297,17 +306,15 @@ export const setupReferencePage = (
     syncReferenceVocabulary(referenceRoot, kind, terms);
     groupReferenceRows(referenceRoot, kind);
     enhanceReferenceTables(root, localize);
+    // The sync can add rows for vocabulary the static table lacks; their
+    // tokens must be keyboard-operable buttons like the static ones.
+    upgradeCopyTokens();
     updateFilter();
   });
   search?.addEventListener("input", updateFilter);
   updateFilter();
 
-  root.querySelectorAll<HTMLElement>(".click-to-copy").forEach((token) => {
-    token.tabIndex = 0;
-    token.setAttribute("role", "button");
-    const value = copyValueFor(token).trim() || "value";
-    token.setAttribute("aria-label", localize("referenceCopyValue", value) || `Copy ${value}`);
-  });
+  upgradeCopyTokens();
 
   const activate = async (target: EventTarget | null) => {
     const token = target instanceof Element ? target.closest<HTMLElement>(".click-to-copy") : null;

@@ -4469,7 +4469,7 @@
     "message": "Nom de téléchargement du lien"
   },
   "notificationRuleExcludedMessage": {
-    "message": "$URL$ n’a pas été enregistré, car une règle de routage l’a exclu.",
+    "message": "$URL$ n’a pas été enregistrée, car une règle de routage l’a exclue.",
     "placeholders": {
       "url": {
         "content": "$1",
