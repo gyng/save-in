@@ -16,7 +16,11 @@ beforeEach(() => {
       <option class="shortcut-extension-only" value="FREEDESKTOP">Freedesktop .desktop</option>
       <option class="shortcut-extension-only" value="MAC">macOS .url</option>
     </select>
-    <div class="shortcut-extension-unavailable">Not available on Firefox</div>`;
+    <div class="shortcut-extension-unavailable">Not available on Firefox</div>
+    <dl>
+      <dt class="chrome-only" id="offscreen-dt">Offscreen</dt>
+      <dd class="chrome-only" id="offscreen-dd">Chrome-only download conversion.</dd>
+    </dl>`;
 });
 
 afterEach(() => {
@@ -83,4 +87,25 @@ test("Chrome offers every shortcut format and no explanation", () => {
     expect(option.disabled).toBe(false);
   }
   expect(unavailableNote().hidden).toBe(true);
+});
+
+const offscreenRows = () => [
+  document.querySelector<HTMLElement>("#offscreen-dt")!,
+  document.querySelector<HTMLElement>("#offscreen-dd")!,
+];
+
+test("Firefox hides the Chrome-only offscreen permission rationale", () => {
+  setCurrentBrowser(BROWSERS.FIREFOX);
+
+  applyBrowserCapabilityUi();
+
+  for (const row of offscreenRows()) expect(row.hidden).toBe(true);
+});
+
+test("Chrome keeps the offscreen permission rationale visible", () => {
+  setCurrentBrowser(BROWSERS.CHROME);
+
+  applyBrowserCapabilityUi();
+
+  for (const row of offscreenRows()) expect(row.hidden).toBe(false);
 });

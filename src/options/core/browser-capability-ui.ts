@@ -53,6 +53,13 @@ export const applyBrowserCapabilityUi = (): void => {
         el.disabled = true;
       });
   }
+  if (CURRENT_BROWSER === BROWSERS.FIREFOX) {
+    // Chrome-only surfaces (e.g. the offscreen-document permission rationale)
+    // describe behavior Firefox never runs; hide them where they do not apply.
+    document.querySelectorAll<HTMLElement>(".chrome-only").forEach((el) => {
+      el.hidden = true;
+    });
+  }
 
   updateTabContextControls(WEB_EXTENSION_CAPABILITIES.tabContextMenus);
 };
