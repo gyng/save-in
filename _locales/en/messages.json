@@ -91,7 +91,7 @@
   },
   "notificationPrivateFailureTitle": {
     "message": "A private browsing item could not be saved.",
-    "description": "Non-identifying notification title for a failed private browsing download. It must not include the filename, path, or URL. Used in src/downloads/notification-events.ts."
+    "description": "Non-identifying notification title for a failed private browsing download. It must not include the filename, path, or URL. Used in src/downloads/notification-events.ts and src/downloads/notification.ts."
   },
   "notificationUndoSave": {
     "message": "Undo save",
@@ -135,11 +135,11 @@
   },
   "routeActionExclude": {
     "message": "Do not save matching items",
-    "description": "Action label for adding or displaying an exclude: true routing rule. Used in src/options/options.html, src/options/rule-editor/rule-visual-editor.ts, and src/options/route-debugger/route-debugger.ts."
+    "description": "Action label for adding or displaying an exclude: true routing rule. Used in src/options/options.html, src/options/rule-editor/rule-visual-editor.ts, src/options/route-debugger/route-debugger.ts, and src/options/clauselist.html."
   },
   "routeActionCloseTab": {
     "message": "Close source tab after saving",
-    "description": "Action label for adding or displaying after: close-tab on a routing rule. The close happens only after the browser accepts the save. Used in src/options/options.html, src/options/rule-editor/rule-visual-editor.ts, and src/options/route-debugger/route-debugger.ts."
+    "description": "Action label for adding or displaying after: close-tab on a routing rule. The close happens only after the browser accepts the save. Used in src/options/options.html, src/options/rule-editor/rule-visual-editor.ts, src/options/route-debugger/route-debugger.ts, and src/options/clauselist.html."
   },
   "routeActionKeepTab": {
     "message": "Keep source tab after saving",
@@ -163,7 +163,7 @@
   },
   "routeActionRuleEnding": {
     "message": "An exclusion rule ends with exclude: true.",
-    "description": "Routing guide text explaining the two terminal rule outcomes. Keep the literal clause names. Used in src/options/options.html."
+    "description": "Routing guide text explaining the two terminal rule outcomes. Keep the literal clause names. Used in src/options/options.html and src/options/clauselist.html."
   },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Failed to route or rename download",

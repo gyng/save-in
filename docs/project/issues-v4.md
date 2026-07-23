@@ -786,9 +786,9 @@ Wombat2018's follow-up asked for two more things and gyng accepted both —
   starts, resolving a v3 TODO that closed on a timer regardless of outcome.
   Credited in the changelog as of this pass.
 - *"define at which **pages** the tab should be closed"* — **implemented after
-  this audit.** A routing rule can add `tab: close`; page matchers scope the
-  action, and Save In closes the source tab only after the browser accepts the
-  download. Automatic rules reject the action because one unattended page scan
+  this audit.** A routing rule can add `after: close-tab`; page matchers scope
+  the action, and Save In closes the source tab only after the browser accepts
+  the download. Automatic rules reject the action because one unattended page scan
   can start many saves.
 
 So: both the original and Wombat2018's page-scoped follow-up are implemented;
