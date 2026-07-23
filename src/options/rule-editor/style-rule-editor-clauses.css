@@ -92,7 +92,12 @@
   background: color-mix(in srgb, var(--syntax-variable) 3%, transparent);
 }
 
-.rule-clause-capture [data-rule-action="delete-clause"] {
+/* Pin the delete button to the last column so the buttons form one clean
+   vertical line: without this, a row with no ignore-case flag lets its delete
+   button auto-place into the empty flag column (4), leaving the buttons ragged
+   and a flag row's "x" out of line with the others. The flag itself is pinned
+   to column 4 in its own rule below. */
+.rule-clause-row [data-rule-action="delete-clause"] {
   grid-column: 5;
 }
 
@@ -110,6 +115,7 @@
 }
 
 .rule-clause-flag {
+  grid-column: 4;
   display: inline-flex;
   align-items: center;
   gap: 2px;
