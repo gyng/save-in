@@ -47,6 +47,19 @@ export const parseTabAction = (value: string | undefined): TabAction | undefined
   }
 };
 
+// Canonical spelling shared with the routing grammar's after: clause. The
+// shipped (tab: …) key stays accepted forever: stored menus already carry it.
+const parseAfterAction = (value: string | undefined): TabAction | undefined => {
+  switch (value?.trim().toLowerCase()) {
+    case "closetab":
+      return "close";
+    case "returntab":
+      return "return";
+    default:
+      return undefined;
+  }
+};
+
 export type MenuTreeItem =
   | { kind: "separator"; sourceIndex: number; id: string; parentId: string }
   | {
@@ -206,6 +219,9 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
     if (effectiveDepth === 0) pathsNestingStack = [id];
     else pathsNestingStack[effectiveDepth] = id;
     pathsNestingStack = pathsNestingStack.slice(0, effectiveDepth + 1);
+    // The canonical (after: …) key wins over the legacy (tab: …) spelling when
+    // an entry carries both, so migrating a line never changes its behavior.
+    const tabAction = parseAfterAction(meta.after) ?? parseTabAction(meta.tab);
     items.push({
       kind: "path",
       sourceIndex: index,
@@ -214,7 +230,7 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
       number,
       accessKeyOverride: meta.key,
       ...(meta.dialog?.toLowerCase() === "true" ? { prompt: true } : {}),
-      ...(parseTabAction(meta.tab) ? { tabAction: parseTabAction(meta.tab) } : {}),
+      ...(tabAction ? { tabAction } : {}),
       parsedDir,
       comment: `${index}${comment.replaceAll("-", "_")}`,
       menuIndex: menuItemCounter.join("."),

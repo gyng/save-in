@@ -1050,6 +1050,19 @@ describe("buildTree", () => {
     expect(Object.hasOwn(plain, "tabAction")).toBe(false);
   });
 
+  test("reads the canonical (after: …) spelling and keeps the shipped (tab: …) alias", () => {
+    const close = menu.buildTree(["dogs // (after: closetab)"]).items[0]!;
+    const back = menu.buildTree(["dogs // (after: returntab)"]).items[0]!;
+    const both = menu.buildTree(["dogs // (after: returntab) (tab: close)"]).items[0]!;
+    const unknown = menu.buildTree(["dogs // (after: nonsense)"]).items[0]!;
+
+    expect("tabAction" in close && close.tabAction).toBe("close");
+    expect("tabAction" in back && back.tabAction).toBe("return");
+    // The canonical key wins, so migrating a line never changes its behavior.
+    expect("tabAction" in both && both.tabAction).toBe("return");
+    expect(Object.hasOwn(unknown, "tabAction")).toBe(false);
+  });
+
   test("numbers items per depth for menuIndex routing", () => {
     const { items } = menu.buildTree(["a", ">b", ">>c", ">d", "e"]);
 
