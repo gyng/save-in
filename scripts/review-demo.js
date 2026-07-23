@@ -1,11 +1,13 @@
 // @ts-check
 
 // Review harness: launches an isolated Chrome with the extension loaded,
-// seeds a showcase configuration (nested menus, aliases, separators, the
-// new :variables:, a routing rule), and opens the options page plus a
-// local demo page with media/links/text to right-click. Run with
-// `npm run review`. Chrome normally uses a throwaway profile; the terminal
-// prompt-support toggle relaunches it with the provisioned Gemini Nano profile.
+// seeds the default configuration (the shipped default folder menu) so review
+// starts from the real first-run experience, and opens the options page plus a
+// local demo page with media/links/text to right-click. Press [s] to swap in
+// the showcase configuration (nested menus, aliases, separators, :variables:,
+// a routing rule) on demand. Run with `npm run review`. Chrome normally uses a
+// throwaway profile; the terminal prompt-support toggle relaunches it with the
+// provisioned Gemini Nano profile.
 
 const http = require("http");
 const fs = require("fs");
@@ -152,6 +154,14 @@ const SHOWCASE_CONFIG = {
   sourcePanelResourceHints: true,
   sourcePanelLinks: true,
 };
+
+// The default review config: the same feature toggles so the demo page stays
+// fully exercisable, but the shipped default folder menu instead of the
+// showcase's nested/aliased/:variable: paths. Press [s] in review to swap in
+// SHOWCASE_CONFIG. Keep DEFAULT_PATHS in sync with OPTION_DEFAULTS.paths in
+// src/config/option-defaults.ts.
+const DEFAULT_PATHS = ". // (alias: Downloads)\nImages\nDocuments";
+const DEFAULT_CONFIG = { ...SHOWCASE_CONFIG, paths: DEFAULT_PATHS };
 
 /** @param {string} label @param {string} color */
 const svg = (label, color) =>
@@ -451,11 +461,19 @@ const TERMINAL_FOCUS_IN = "\u001B[I";
 const TERMINAL_FOCUS_OUT = "\u001B[O";
 
 /**
- * @param {{enableHotReload: () => void, openFirefox: () => void, reload: () => void, setTerminalFocused: (focused: boolean) => void, stop: () => void, togglePromptSupport: () => void}} actions
+ * @param {{enableHotReload: () => void, loadShowcase: () => void, openFirefox: () => void, reload: () => void, setTerminalFocused: (focused: boolean) => void, stop: () => void, togglePromptSupport: () => void}} actions
  * @returns {(input: string) => void}
  */
 const createReviewKeyHandler =
-  ({ enableHotReload, openFirefox, reload, setTerminalFocused, stop, togglePromptSupport }) =>
+  ({
+    enableHotReload,
+    loadShowcase,
+    openFirefox,
+    reload,
+    setTerminalFocused,
+    stop,
+    togglePromptSupport,
+  }) =>
   (input) => {
     let keys = input;
     if (keys.includes(TERMINAL_FOCUS_OUT)) {
@@ -485,11 +503,14 @@ const createReviewKeyHandler =
       if (key.toLowerCase() === "p") {
         togglePromptSupport();
       }
+      if (key.toLowerCase() === "s") {
+        loadShowcase();
+      }
     }
   };
 
 /**
- * @param {{enableHotReload: () => void, openFirefox: () => void, reload: () => void, setTerminalFocused: (focused: boolean) => void, stop: () => void, togglePromptSupport: () => void}} actions
+ * @param {{enableHotReload: () => void, loadShowcase: () => void, openFirefox: () => void, reload: () => void, setTerminalFocused: (focused: boolean) => void, stop: () => void, togglePromptSupport: () => void}} actions
  * @returns {(() => void) | undefined}
  */
 const installReviewControls = (actions) => {
@@ -594,7 +615,7 @@ const launchFirefoxReview = async (demoPort) => {
   try {
     await browser.evaluateInTab(
       "src/options/options.html",
-      `browser.storage.local.set(${JSON.stringify(SHOWCASE_CONFIG)})
+      `browser.storage.local.set(${JSON.stringify(DEFAULT_CONFIG)})
         .then(() => browser.runtime.sendMessage({ type: "OPTIONS_LOADED" }))
         .then(() => "seeded")`,
     );
@@ -662,7 +683,7 @@ const launchChromeReview = async (demoPort, promptSupport) => {
     await cdp.evalInTarget(
       port,
       optionsTarget,
-      `chrome.storage.local.set(${JSON.stringify(SHOWCASE_CONFIG)})
+      `chrome.storage.local.set(${JSON.stringify(DEFAULT_CONFIG)})
         .then(() => chrome.runtime.sendMessage({ type: "OPTIONS_LOADED" }))
         .then(() => "seeded")`,
     );
@@ -835,6 +856,41 @@ const main = async () => {
       })();
     };
 
+    const loadShowcase = () => {
+      const session = browser;
+      if (!session) {
+        reviewLog("Chrome is not running.");
+        return;
+      }
+      const finishReviewWork = beginReviewWork();
+      void (async () => {
+        try {
+          reviewLog(
+            "\nLoading the showcase profile (nested menus, aliases, :variables:, PDF routing rule)...",
+          );
+          // Match by path substring, not the extension id, so it survives an
+          // extension reload that mints a new id.
+          const optionsTarget = "src/options/options.html";
+          await cdp.evalInTarget(
+            session.port,
+            optionsTarget,
+            `chrome.storage.local.set(${JSON.stringify(SHOWCASE_CONFIG)})
+              .then(() => chrome.runtime.sendMessage({ type: "OPTIONS_LOADED" }))
+              .then(() => "seeded")`,
+          );
+          await cdp.evalInTarget(session.port, optionsTarget, "location.reload()");
+          await cdp.reloadTargets(session.port, `127.0.0.1:${demoPort}`);
+          reviewLog("Showcase profile loaded. Press [r] to reload back to the default folders.");
+        } catch (error) {
+          reviewError(
+            `Loading the showcase failed: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        } finally {
+          finishReviewWork();
+        }
+      })();
+    };
+
     const togglePromptSupport = () => {
       desiredPromptSupport = !desiredPromptSupport;
       if (switchingChrome) {
@@ -921,6 +977,7 @@ const main = async () => {
           "\nHot reload enabled. Watching source, icons, locales, manifest, and bundle config.",
         );
       },
+      loadShowcase,
       openFirefox,
       reload: requestReload,
       setTerminalFocused: setReviewTerminalFocused,
@@ -942,7 +999,7 @@ Two tabs are open:
   2. Demo page — follow the numbered checklist on the page (nested menus,
      aliases, :variables:, PDF routing rule, alt+click, selection/page save).
 
-${installedControls ? "Press [p] to toggle Prompt support, [f] to open Firefox, [h] to enable hot reload, [r] to reload Chrome, or Ctrl+C to exit." : "Close the Chrome window to exit."}`);
+${installedControls ? "Press [s] to load the showcase profile (nested menus, aliases, :variables:, routing rule), [p] to toggle Prompt support, [f] to open Firefox, [h] to enable hot reload, [r] to reload Chrome, or Ctrl+C to exit." : "Close the Chrome window to exit."}`);
 
     setReviewTerminalTitle(false);
     await reviewExit;

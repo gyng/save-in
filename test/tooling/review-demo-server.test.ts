@@ -6,6 +6,7 @@ const { createReviewKeyHandler, promptRuntimeSettings } =
   require("../../scripts/review-demo.js") as {
     createReviewKeyHandler: (actions: {
       enableHotReload: () => void;
+      loadShowcase: () => void;
       openFirefox: () => void;
       reload: () => void;
       setTerminalFocused: (focused: boolean) => void;
@@ -54,8 +55,10 @@ describe("review demo server", () => {
     const setTerminalFocused = vi.fn();
     const stop = vi.fn();
     const togglePromptSupport = vi.fn();
+    const loadShowcase = vi.fn();
     const handleKey = createReviewKeyHandler({
       enableHotReload,
+      loadShowcase,
       openFirefox,
       reload,
       setTerminalFocused,
@@ -79,8 +82,10 @@ describe("review demo server", () => {
     const setTerminalFocused = vi.fn();
     const stop = vi.fn();
     const togglePromptSupport = vi.fn();
+    const loadShowcase = vi.fn();
     const handleKey = createReviewKeyHandler({
       enableHotReload,
+      loadShowcase,
       openFirefox,
       reload,
       setTerminalFocused,
@@ -104,8 +109,10 @@ describe("review demo server", () => {
     const setTerminalFocused = vi.fn();
     const stop = vi.fn();
     const togglePromptSupport = vi.fn();
+    const loadShowcase = vi.fn();
     const handleKey = createReviewKeyHandler({
       enableHotReload,
+      loadShowcase,
       openFirefox,
       reload,
       setTerminalFocused,
@@ -124,8 +131,10 @@ describe("review demo server", () => {
 
   test("toggles Prompt support on p or P", () => {
     const togglePromptSupport = vi.fn();
+    const loadShowcase = vi.fn();
     const handleKey = createReviewKeyHandler({
       enableHotReload: vi.fn(),
+      loadShowcase,
       openFirefox: vi.fn(),
       reload: vi.fn(),
       setTerminalFocused: vi.fn(),
@@ -138,6 +147,25 @@ describe("review demo server", () => {
     expect(togglePromptSupport).toHaveBeenCalledTimes(2);
   });
 
+  test("loads the showcase on s or S", () => {
+    const loadShowcase = vi.fn();
+    const togglePromptSupport = vi.fn();
+    const handleKey = createReviewKeyHandler({
+      enableHotReload: vi.fn(),
+      loadShowcase,
+      openFirefox: vi.fn(),
+      reload: vi.fn(),
+      setTerminalFocused: vi.fn(),
+      stop: vi.fn(),
+      togglePromptSupport,
+    });
+
+    handleKey("sxS");
+
+    expect(loadShowcase).toHaveBeenCalledTimes(2);
+    expect(togglePromptSupport).not.toHaveBeenCalled();
+  });
+
   test("tracks terminal focus and treats keyboard input as active", () => {
     const enableHotReload = vi.fn();
     const openFirefox = vi.fn();
@@ -145,8 +173,10 @@ describe("review demo server", () => {
     const setTerminalFocused = vi.fn();
     const stop = vi.fn();
     const togglePromptSupport = vi.fn();
+    const loadShowcase = vi.fn();
     const handleKey = createReviewKeyHandler({
       enableHotReload,
+      loadShowcase,
       openFirefox,
       reload,
       setTerminalFocused,
@@ -173,8 +203,10 @@ describe("review demo server", () => {
     const setTerminalFocused = vi.fn();
     const stop = vi.fn();
     const togglePromptSupport = vi.fn();
+    const loadShowcase = vi.fn();
     const handleKey = createReviewKeyHandler({
       enableHotReload,
+      loadShowcase,
       openFirefox,
       reload,
       setTerminalFocused,
