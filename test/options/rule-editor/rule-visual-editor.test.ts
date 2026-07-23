@@ -529,6 +529,21 @@ describe("routing visual editor", () => {
     expect(menu.open).toBe(false);
   });
 
+  test("a valid action row shares the click-to-highlight behavior of other rows", () => {
+    element<HTMLTextAreaElement>("#filenamePatterns").value =
+      "filename: tracker\\.gif$\nexclude: true";
+
+    setupRuleVisualEditor({ matchers: ["filename"] });
+
+    const actionRow = element<HTMLElement>(".rule-clause-action");
+    actionRow.click();
+    expect(actionRow.classList).toContain("is-active");
+    const matcherRow = element<HTMLElement>(".rule-clause-row");
+    matcherRow.click();
+    expect(actionRow.classList).not.toContain("is-active");
+    expect(matcherRow.classList).toContain("is-active");
+  });
+
   test("shows an invalid action value instead of presenting it as enabled", async () => {
     element<HTMLTextAreaElement>("#filenamePatterns").value =
       "filename: tracker\\.gif$\nexclude: false";

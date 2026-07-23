@@ -369,6 +369,15 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     return input;
   };
 
+  const activateRowOnClick = (row: HTMLElement): void => {
+    row.addEventListener("click", () => {
+      cards
+        .querySelectorAll(".rule-clause-row.is-active")
+        .forEach((item) => item.classList.remove("is-active"));
+      row.classList.add("is-active");
+    });
+  };
+
   const createClauseRow = (
     rule: VisualRoutingRule,
     clause: VisualRoutingRule["clauses"][number],
@@ -445,6 +454,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
         );
         row.append(remove);
       }
+      activateRowOnClick(row);
       return row;
     }
 
@@ -574,12 +584,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       );
       row.append(remove);
     }
-    row.addEventListener("click", () => {
-      cards
-        .querySelectorAll(".rule-clause-row.is-active")
-        .forEach((item) => item.classList.remove("is-active"));
-      row.classList.add("is-active");
-    });
+    activateRowOnClick(row);
     return row;
   };
 
