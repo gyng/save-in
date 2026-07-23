@@ -1,0 +1,35 @@
+/* Page Sources drawer parity for the Premium themes. These mirror only the
+   color roles of the options-page themes (their decorative skins are
+   options-only); the values must match the Options blocks in
+   src/options/styles/style-themes.css exactly, which scripts/check-css.js
+   enforces. Split out of source-panel-themes.css to keep each file under the
+   400-line ownership cap. The theme names still live in that file's
+   :host(:is(...)) mapping selector. */
+
+:host([data-theme="webring"]) {
+  --theme-color-scheme: only dark;
+  --theme-page: #05010f;
+  --theme-raised: #1a1140;
+  --theme-text: #f5f5c0;
+  --theme-muted: #c0e0ff;
+  --theme-border: #ff40ff;
+  --theme-control-border: #45d0ff;
+  --theme-accent: #ff2f92;
+  --theme-focus: #ffe600;
+  --theme-link: #4fc3ff;
+  --theme-on-accent: #1a0010;
+}
+
+:host([data-theme="phosphor"]) {
+  --theme-color-scheme: only dark;
+  --theme-page: #000d02;
+  --theme-raised: #04160a;
+  --theme-text: #3bff7a;
+  --theme-muted: #2bc65e;
+  --theme-border: #17773a;
+  --theme-control-border: #33c968;
+  --theme-accent: #3bff7a;
+  --theme-focus: #c6ff5c;
+  --theme-link: #4dffd0;
+  --theme-on-accent: #001505;
+}

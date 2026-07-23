@@ -1,0 +1,59 @@
+/* Phosphor — a monochrome CRT terminal: monospace everything, faint green
+   scanlines, a phosphor glow on titles, boxed controls, and a blinking block
+   cursor. Decoration only; colors resolve from the theme tokens in
+   style-themes.css, and the scanlines are mixed from those tokens so the file
+   never hardcodes a color. */
+
+:root[data-theme="phosphor"] {
+  --font-stack: var(--font-mono);
+  --radius: 0px;
+  --radius-dialog: 0px;
+}
+
+/* Faint horizontal scanlines drawn from the phosphor accent, fixed to the
+   viewport so they read as a tube rather than scrolling with the content. */
+:root[data-theme="phosphor"] body {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--theme-accent) 7%, transparent) 0 1px,
+    transparent 1px 3px
+  );
+  background-attachment: fixed;
+}
+
+/* Glowing, upper-cased titles — the readout look. */
+:root[data-theme="phosphor"]
+  :is(h1, h2, h3, legend, .theme-choice-group-title, .option-group-heading) {
+  color: var(--theme-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--theme-accent) 70%, transparent);
+}
+
+:root[data-theme="phosphor"] button {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* A blinking block cursor trailing the section title; steady when motion is
+   reduced. Longhands keep the literal duration out of the animation shorthand
+   that check-css reserves for tokenized durations. */
+:root[data-theme="phosphor"] #advanced-appearance-heading::after {
+  content: " ▊";
+  color: var(--theme-accent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-theme="phosphor"] #advanced-appearance-heading::after {
+    animation-name: phosphor-blink;
+    animation-duration: 1.1s;
+    animation-timing-function: steps(1, jump-none);
+    animation-iteration-count: infinite;
+  }
+}
+
+@keyframes phosphor-blink {
+  50% {
+    opacity: 0;
+  }
+}

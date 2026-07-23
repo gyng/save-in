@@ -30,6 +30,7 @@ import { wirePanelViewportLock } from "./source-panel-viewport-lock.ts";
 import { buildPanelUpdate } from "./source-panel-update.ts";
 import SOURCE_PANEL_TOKENS_CSS from "./source-panel-tokens.css";
 import SOURCE_PANEL_THEMES_CSS from "./source-panel-themes.css";
+import SOURCE_PANEL_THEMES_PREMIUM_CSS from "./source-panel-themes-premium.css";
 import SOURCE_PANEL_CSS from "./source-panel.css";
 import SOURCE_PANEL_CONTROLS_CSS from "./source-panel-controls.css";
 import SOURCE_PANEL_PREVIEW_CSS from "./source-panel-preview.css";
@@ -98,6 +99,7 @@ export const toggleSourcePanel = (
   style.textContent = [
     SOURCE_PANEL_TOKENS_CSS,
     SOURCE_PANEL_THEMES_CSS,
+    SOURCE_PANEL_THEMES_PREMIUM_CSS,
     SOURCE_PANEL_CSS,
     SOURCE_PANEL_CONTROLS_CSS,
     SOURCE_PANEL_RESULTS_CSS,

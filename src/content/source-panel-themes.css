@@ -24,7 +24,8 @@
     [data-theme="primary-grid"],
     [data-theme="blue-house"],
     [data-theme="gilded-mosaic"],
-    [data-theme="webring"]
+    [data-theme="webring"],
+    [data-theme="phosphor"]
   )
 ) {
   color-scheme: var(--theme-color-scheme);
@@ -379,19 +380,6 @@
   --theme-on-accent: #211a08;
 }
 
-/* The Page Sources drawer mirrors only the color roles of the premium themes;
-   their decorative skins are options-page only. Values must match the Options
-   block in style-themes.css exactly (enforced by scripts/check-css.js). */
-:host([data-theme="webring"]) {
-  --theme-color-scheme: only dark;
-  --theme-page: #05010f;
-  --theme-raised: #1a1140;
-  --theme-text: #f5f5c0;
-  --theme-muted: #c0e0ff;
-  --theme-border: #ff40ff;
-  --theme-control-border: #45d0ff;
-  --theme-accent: #ff2f92;
-  --theme-focus: #ffe600;
-  --theme-link: #4fc3ff;
-  --theme-on-accent: #1a0010;
-}
+/* Premium-theme drawer parity lives in source-panel-themes-premium.css to keep
+   this file under the 400-line ownership cap; their names stay in the
+   :host(:is(...)) mapping selector above. */

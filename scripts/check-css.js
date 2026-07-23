@@ -43,6 +43,7 @@ const sourcePanelPath = path.join(root, "src", "content", "source-panel.ts");
 const sourcePanelStylePaths = [
   "source-panel-tokens.css",
   "source-panel-themes.css",
+  "source-panel-themes-premium.css",
   "source-panel.css",
   "source-panel-controls.css",
   "source-panel-results.css",
@@ -286,7 +287,7 @@ const styleLayers = [
   ],
   ["welcome", []],
   ["reference", []],
-  ["skins", ["skins/skin-webring.css"]],
+  ["skins", ["skins/skin-webring.css", "skins/skin-phosphor.css"]],
   ["utilities", ["styles/style-accessibility.css", "styles/style-utilities.css"]],
 ];
 const styleEntry = fs.readFileSync(styleEntryPath, "utf8");
@@ -983,7 +984,10 @@ sourcePanelStyles.forEach((source, index) => {
     const lineStart = source.lastIndexOf("\n", match.index) + 1;
     const lineEnd = source.indexOf("\n", match.index);
     const lineSource = source.slice(lineStart, lineEnd < 0 ? undefined : lineEnd);
-    if (index <= 1 && /--[\w-]+\s*:/.test(lineSource)) continue;
+    // Indices 0-2 are the token-declaration files (tokens, themes, and the
+    // premium theme split); raw colors are allowed inside their custom-property
+    // declarations, as for the options-side token files.
+    if (index <= 2 && /--[\w-]+\s*:/.test(lineSource)) continue;
     const line = source.slice(0, match.index).split("\n").length;
     violations.push(
       `${path.relative(root, sourcePanelStylePaths[index] || "")}:${line} uses a raw component color`,
@@ -1031,10 +1035,9 @@ for (const role of sharedSemanticRoles) {
   }
 }
 
-const sourcePanelThemeStyle = fs.readFileSync(
-  path.join(root, "src", "content", "source-panel-themes.css"),
-  "utf8",
-);
+const sourcePanelThemeStyle = ["source-panel-themes.css", "source-panel-themes-premium.css"]
+  .map((file) => fs.readFileSync(path.join(root, "src", "content", file), "utf8"))
+  .join("\n");
 const optionThemes = themeBlocks(
   `${themeStyle}\n${themePaletteStyle}`,
   /:root\[data-theme="([^"]+)"\]\s*\{([^}]*)\}/g,
@@ -1190,6 +1193,7 @@ const sourcePanel = fs.readFileSync(sourcePanelPath, "utf8");
 for (const file of [
   "source-panel-tokens.css",
   "source-panel-themes.css",
+  "source-panel-themes-premium.css",
   "source-panel.css",
   "source-panel-controls.css",
   "source-panel-results.css",

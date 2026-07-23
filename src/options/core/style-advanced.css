@@ -252,6 +252,10 @@
   --theme-swatch: var(--theme-swatch-webring);
 }
 
+.theme-swatch[data-theme-swatch="phosphor"] {
+  --theme-swatch: var(--theme-swatch-phosphor);
+}
+
 .advanced-option-help {
   max-inline-size: 68ch;
   margin-block-start: var(--space-1);

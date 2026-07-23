@@ -326,6 +326,7 @@ const intentionallySharedEnglishKeys = new Set([
   "o_lUiThemeNebula",
   "o_lUiThemeNord",
   "o_lUiThemeOneDark",
+  "o_lUiThemePhosphor",
   "o_lUiThemeTokyoNight",
   "pathTextEmptyExample",
   "routeDebuggerSha256",

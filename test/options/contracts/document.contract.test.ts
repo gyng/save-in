@@ -242,9 +242,10 @@ test("preserves backward-compatible option defaults", () => {
     "blue-house",
     "gilded-mosaic",
     "webring",
+    "phosphor",
   ]);
   expect(document.querySelectorAll(".theme-choice-group")).toHaveLength(5);
-  expect(document.querySelectorAll(".theme-swatch")).toHaveLength(28);
+  expect(document.querySelectorAll(".theme-swatch")).toHaveLength(29);
   expect(
     [...document.querySelectorAll<HTMLOptionElement>("#shortcutType option")].map(
       ({ value }) => value,

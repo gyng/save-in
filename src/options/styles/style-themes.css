@@ -31,7 +31,8 @@
   [data-theme="primary-grid"],
   [data-theme="blue-house"],
   [data-theme="gilded-mosaic"],
-  [data-theme="webring"]
+  [data-theme="webring"],
+  [data-theme="phosphor"]
 ) {
   color-scheme: var(--theme-color-scheme);
   --color-accent: var(--theme-accent);
@@ -128,4 +129,22 @@
   --theme-link: #4fc3ff;
   --theme-on-accent: #1a0010;
   --theme-icon-filter: brightness(0) invert(1);
+}
+
+:root[data-theme="phosphor"] {
+  --theme-color-scheme: only dark;
+  --theme-page: #000d02;
+  --theme-raised: #04160a;
+  --theme-input: #021107;
+  --theme-text: #3bff7a;
+  --theme-muted: #2bc65e;
+  --theme-border: #17773a;
+  --theme-control-border: #33c968;
+  --theme-accent: #3bff7a;
+  --theme-accent-active: #7dffab;
+  --theme-focus: #c6ff5c;
+  --theme-link: #4dffd0;
+  --theme-on-accent: #001505;
+  --theme-icon-filter: brightness(0) saturate(100%) invert(88%) sepia(73%) saturate(650%)
+    hue-rotate(74deg);
 }

@@ -2508,6 +2508,9 @@
   "o_lUiThemeWebring": {
     "message": "Webring"
   },
+  "o_lUiThemePhosphor": {
+    "message": "Phosphor"
+  },
   "o_lUiThemeHighContrastDark": {
     "message": "Hoog contrast – donker"
   },

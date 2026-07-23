@@ -3563,6 +3563,10 @@
     "message": "Webring",
     "description": "Immersive theme evoking a 1990s Web 1.0 personal homepage (starfield, Comic Sans, rainbow rules). Proper noun; keep untranslated. Used in src/options/options.html."
   },
+  "o_lUiThemePhosphor": {
+    "message": "Phosphor",
+    "description": "Immersive theme evoking a monochrome CRT terminal (green monospace, scanlines, blinking cursor). Named for the phosphor glow of a cathode-ray tube; keep untranslated. Used in src/options/options.html."
+  },
   "o_lUiThemeHighContrastDark": {
     "message": "High contrast dark",
     "description": "Dark high-contrast interface theme. Used in src/options/options.html."
