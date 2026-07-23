@@ -1055,12 +1055,15 @@ describe("buildTree", () => {
     const back = menu.buildTree(["dogs // (after: returntab)"]).items[0]!;
     const both = menu.buildTree(["dogs // (after: returntab) (tab: close)"]).items[0]!;
     const unknown = menu.buildTree(["dogs // (after: nonsense)"]).items[0]!;
+    const unknownWithLegacy = menu.buildTree(["dogs // (after: nonsense) (tab: close)"]).items[0]!;
 
     expect("tabAction" in close && close.tabAction).toBe("close");
     expect("tabAction" in back && back.tabAction).toBe("return");
     // The canonical key wins, so migrating a line never changes its behavior.
     expect("tabAction" in both && both.tabAction).toBe("return");
     expect(Object.hasOwn(unknown, "tabAction")).toBe(false);
+    // An unknown canonical value is treated as absent, so the legacy key acts.
+    expect("tabAction" in unknownWithLegacy && unknownWithLegacy.tabAction).toBe("close");
   });
 
   test("numbers items per depth for menuIndex routing", () => {

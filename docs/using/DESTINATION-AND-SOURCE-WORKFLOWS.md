@@ -20,6 +20,16 @@ Work // (dialog: true)
 Removing the metadata returns the destination to normal direct saving. Aliases,
 comments, nesting, and variables can be used on the same destination line.
 
+A destination can also act on its source tab after the browser accepts a save
+started from it: `(after: closetab)` closes the tab, and `(after: returntab)`
+re-activates it. The earlier `(tab: close)` and `(tab: return)` spellings keep
+working. The same `after: closetab` action is available per rule in the routing
+grammar.
+
+```text
+Read later // (after: closetab)
+```
+
 ## Last used
 
 **Last used** repeats the most recently selected explicit destination. Regular

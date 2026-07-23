@@ -290,7 +290,7 @@ export const addRoutingClause = (
   clause: NewRoutingClause,
 ): string => {
   const { unit } = editableRule(source, ruleIndex);
-  // Output and action clauses follow matchers. fetch:, rename:, and tab: stay
+  // Output and action clauses follow matchers. fetch:, rename:, and after: stay
   // next to into:, while a new matcher also stays before a terminal exclude:.
   const name = clause.name.trim().toLowerCase();
   const anchorsToDestination = name === "fetch" || name === "rename" || name === "after";

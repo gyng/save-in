@@ -30,7 +30,8 @@ export type ParsedPath = {
 };
 // A per-menu-item, opt-in post-save action on the tab the save came from:
 // "close" removes it, "return" re-activates it. Never a default — only an item
-// whose (tab: …) metadata requests it acts, so an ordinary save never disturbs
+// whose (after: …) or legacy (tab: …) metadata requests it acts, so an
+// ordinary save never disturbs
 // the source tab.
 export type TabAction = "close" | "return";
 

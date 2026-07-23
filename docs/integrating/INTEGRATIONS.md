@@ -137,7 +137,7 @@ A rule may also carry one `rename:` clause written as `find -> replacement`, spl
 
 An exclusion rule uses `exclude: true` instead of `into:` and must contain at
 least one matcher. It cannot contain `capture:`, `capturegroups:`, `fetch:`,
-`rename:`, `tab:`, or `into:`. A matching exclusion is terminal: Save In does
+`rename:`, `after:`, or `into:`. A matching exclusion is terminal: Save In does
 not start the requested save and does not evaluate later rules. In ordinary
 browser-download routing it leaves the browser-owned download unchanged while
 still preventing later Save In routing rules from adopting it. Automatic

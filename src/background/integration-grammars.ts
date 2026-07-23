@@ -17,8 +17,9 @@ export const INTEGRATION_GRAMMARS: readonly IntegrationGrammar[] = [
     semantics: [
       "Each non-empty line is a menu item; leading > characters set its nesting depth.",
       "A path may contain registered :variables: and optional comment metadata.",
+      "Metadata keys: alias, key, dialog, disabled, and the post-save tab action after: closetab or after: returntab (the legacy tab: close and tab: return spellings stay accepted).",
     ],
-    examples: ["Images\n>Work // (icon: briefcase)"],
+    examples: ["Images\n>Work // (alias: Projects) (after: closetab)"],
   },
   {
     id: "routing",
