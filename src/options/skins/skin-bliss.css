@@ -94,3 +94,13 @@
 :root[data-theme="bliss"] :is(h1, h2, h3) {
   text-shadow: 0 1px 0 color-mix(in srgb, white 90%, transparent);
 }
+
+/* Forced colors: drop the sky gradient, bubbles, and gloss so the high-contrast
+   Canvas shows through; the opaque body gradient would otherwise wash out text. */
+@media (forced-colors: active) {
+  :root[data-theme="bliss"] body,
+  :root[data-theme="bliss"] button,
+  :root[data-theme="bliss"] :is(input, select) {
+    background-image: none;
+  }
+}

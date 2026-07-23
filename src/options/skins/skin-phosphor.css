@@ -77,3 +77,11 @@
     opacity: 0;
   }
 }
+
+/* Forced colors: drop the scanlines and vignette so the high-contrast Canvas
+   shows through with full text contrast. */
+@media (forced-colors: active) {
+  :root[data-theme="phosphor"] body {
+    background-image: none;
+  }
+}

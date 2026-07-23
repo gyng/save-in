@@ -309,6 +309,27 @@ for (const file of styleLayers.flatMap(([, files]) => files)) {
   }
 }
 
+// A theme skin that paints a decorative background-image must neutralize it in
+// forced-colors mode: the UA forces background-color to Canvas but leaves
+// background-image alone, so an unguarded fill (worst case an opaque gradient)
+// paints over the high-contrast surface and can bury forced text. Only the
+// skins layer decorates, so it — unlike the color-only themes — needs this.
+const skinLayerFiles = (styleLayers.find(([layer]) => layer === "skins")?.[1] ?? []).map((file) =>
+  path.join(optionsRoot, file),
+);
+for (const file of skinLayerFiles) {
+  const source = fs.readFileSync(file, "utf8");
+  const paintsBackgroundImage = source
+    .replace(/@media\s*\(forced-colors:\s*active\)\s*\{[\s\S]*?\n\}/g, "")
+    .includes("background-image:");
+  if (paintsBackgroundImage && !source.includes("@media (forced-colors: active)")) {
+    violations.push(
+      `${path.relative(root, file)} paints a decorative background-image but has no ` +
+        "@media (forced-colors: active) guard to drop it",
+    );
+  }
+}
+
 /** @type {Array<[string, string, string]>} */
 const pageStyleLayers = [
   ["style-welcome.css", "welcome-dialog.css", "welcome"],

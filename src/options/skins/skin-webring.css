@@ -96,3 +96,31 @@
     opacity: 0;
   }
 }
+
+/* The starfield slowly drifts, like the scrolling-space GIFs of the era. One
+   full 90px tile over the loop so it wraps seamlessly; steady when motion is
+   reduced. Longhands keep the literal duration out of the animation shorthand
+   that check-css reserves for tokenized durations. */
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-theme="webring"] body {
+    animation-name: webring-drift;
+    animation-duration: 90s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+}
+
+@keyframes webring-drift {
+  to {
+    background-position: 90px 90px;
+  }
+}
+
+/* Forced colors: drop the decorative fills so the high-contrast Canvas shows
+   through and text keeps its system contrast. */
+@media (forced-colors: active) {
+  :root[data-theme="webring"] body,
+  :root[data-theme="webring"] hr {
+    background-image: none;
+  }
+}

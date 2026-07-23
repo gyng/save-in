@@ -81,3 +81,13 @@
     transparent 30%
   );
 }
+
+/* Forced colors: drop the drawer's decorative panel fills so the high-contrast
+   Canvas shows through. */
+@media (forced-colors: active) {
+  :host([data-theme="webring"]) .panel,
+  :host([data-theme="phosphor"]) .panel,
+  :host([data-theme="bliss"]) .panel {
+    background-image: none;
+  }
+}
