@@ -6,10 +6,12 @@
    check while staying a single self-contained stylesheet. */
 
 :root[data-theme="webring"] {
-  /* The whole UI in Comic Sans — the single most recognizable signature of the
-     era. font-family is locked to the two font tokens by check-css, so the
-     theme re-points the token rather than styling headings individually. */
-  --font-stack: "Comic Sans MS", "Comic Sans", "Chalkboard SE", "Comic Neue", cursive;
+  /* A casual/comic look from OS-bundled fonts only, falling back to the generic
+     cursive family — no downloaded or bundled font. font-family is locked to the
+     two font tokens by check-css, so the theme re-points the token rather than
+     styling headings individually. */
+  --font-stack:
+    "Comic Sans MS", "Comic Sans", "Chalkboard SE", "Segoe Print", "Bradley Hand", cursive;
   --radius: 0px;
   --radius-dialog: 0px;
 }

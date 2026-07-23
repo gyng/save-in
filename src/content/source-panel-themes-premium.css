@@ -1,10 +1,11 @@
-/* Page Sources drawer parity for the Premium themes. These mirror only the
-   color roles of the options-page themes (their decorative skins are
-   options-only); the values must match the Options blocks in
-   src/options/styles/style-themes.css exactly, which scripts/check-css.js
-   enforces. Split out of source-panel-themes.css to keep each file under the
-   400-line ownership cap. The theme names still live in that file's
-   :host(:is(...)) mapping selector. */
+/* Page Sources drawer parity for the Premium themes. The :host blocks mirror
+   the options themes' color roles (values must match the Options blocks in
+   src/options/styles/style-themes.css exactly — scripts/check-css.js enforces
+   it) and additionally re-point the font and corner radius so the drawer reads
+   as the same skin. The panel gets a light signature decoration below; heavier
+   full-page effects stay on the options page since this drawer floats over
+   arbitrary sites. Split from source-panel-themes.css for the 400-line cap; the
+   theme names live in that file's :host(:is(...)) mapping selector. */
 
 :host([data-theme="webring"]) {
   --theme-color-scheme: only dark;
@@ -18,6 +19,9 @@
   --theme-focus: #ffe600;
   --theme-link: #4fc3ff;
   --theme-on-accent: #1a0010;
+  --font-stack:
+    "Comic Sans MS", "Comic Sans", "Chalkboard SE", "Segoe Print", "Bradley Hand", cursive;
+  --radius: 0px;
 }
 
 :host([data-theme="phosphor"]) {
@@ -32,6 +36,8 @@
   --theme-focus: #c6ff5c;
   --theme-link: #4dffd0;
   --theme-on-accent: #001505;
+  --font-stack: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", "Liberation Mono", monospace;
+  --radius: 0px;
 }
 
 :host([data-theme="bliss"]) {
@@ -46,4 +52,31 @@
   --theme-focus: #0f7fb8;
   --theme-link: #0a6fa8;
   --theme-on-accent: #04283a;
+  --radius: 12px;
+}
+
+/* Webring: a starfield over the panel surface. */
+:host([data-theme="webring"]) .panel {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E %3Ccircle cx='12' cy='16' r='1.3' fill='%23ffffff'/%3E %3Ccircle cx='58' cy='30' r='1' fill='%23c0e0ff'/%3E %3Ccircle cx='34' cy='64' r='1.5' fill='%23ffe600'/%3E %3Ccircle cx='76' cy='72' r='1' fill='%23ffffff'/%3E %3Ccircle cx='48' cy='10' r='0.8' fill='%23ff8fe0'/%3E %3C/svg%3E");
+}
+
+/* Phosphor: scanlines over the panel and a faint bloom that inherits onto its
+   text. Kept on .panel, not a second :host block, so the schema map keeps the
+   theme's single color-role block. */
+:host([data-theme="phosphor"]) .panel {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--theme-accent) 10%, transparent) 0 1px,
+    transparent 1px 3px
+  );
+  text-shadow: 0 0 1px color-mix(in srgb, var(--theme-accent) 55%, transparent);
+}
+
+/* Bliss: a soft glassy sheen down the top of the panel. */
+:host([data-theme="bliss"]) .panel {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, white 40%, transparent),
+    transparent 30%
+  );
 }

@@ -5,7 +5,9 @@
    never hardcodes a color. */
 
 :root[data-theme="phosphor"] {
-  --font-stack: var(--font-mono);
+  /* An explicit system monospace stack, ending in the generic monospace family
+     — no bundled or downloaded font. */
+  --font-stack: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", "Liberation Mono", monospace;
   --radius: 0px;
   --radius-dialog: 0px;
 }

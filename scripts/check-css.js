@@ -1074,13 +1074,17 @@ const optionThemeRoles = [
   "--theme-accent-active",
   "--theme-icon-filter",
 ];
+// Structural roles a theme MAY declare but need not: the Premium drawer themes
+// re-point the font and corner radius so the Page Sources panel matches their
+// options skin. Allowed on either surface, required on neither.
+const optionalThemeRoles = ["--font-stack", "--radius"];
 /** @type {Array<[string, Map<string, Map<string, string>>, string[], string[]]>} */
 const themeSchemas = [
   ["Options", optionThemes, customOptionThemeNames, optionThemeRoles],
   ["Page Sources", sourcePanelThemes, sourcePanelThemeNames, sharedThemeRoles],
 ];
 for (const [surface, themes, names, requiredRoles] of themeSchemas) {
-  const allowedRoles = new Set(requiredRoles);
+  const allowedRoles = new Set([...requiredRoles, ...optionalThemeRoles]);
   for (const theme of names) {
     const properties = themes.get(theme);
     if (!properties) continue;
