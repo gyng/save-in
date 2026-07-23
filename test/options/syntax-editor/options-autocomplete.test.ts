@@ -362,7 +362,17 @@ describe("setupRoutingAutocomplete wiring", () => {
     expect(textarea.getAttribute("aria-expanded")).toBe("true");
     expect(
       [...dropdown.querySelectorAll(".autocomplete-option-label")].map((item) => item.textContent),
-    ).toEqual(["into", "exclude", "after", "fetch", "filename", "fileext"]);
+    ).toEqual([
+      "into",
+      "exclude",
+      "after",
+      "fetch",
+      "rename",
+      "capture",
+      "capturegroups",
+      "filename",
+      "fileext",
+    ]);
   });
 
   test("attaches directory completion to the paths textarea", () => {

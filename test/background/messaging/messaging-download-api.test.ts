@@ -582,6 +582,33 @@ describe("handleDownloadMessage", () => {
     });
   });
 
+  test("holds the source-tab action while routing is still undecided", async () => {
+    vi.mocked(global.browser.tabs.remove).mockClear();
+    vi.mocked(global.browser.tabs.get).mockResolvedValueOnce({
+      id: 9,
+      url: "https://x/",
+    } as browser.tabs.Tab);
+    vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
+      state.scratch.routeTabAction = "close";
+      // A still-set requirement means Chrome's filename pass has not accepted
+      // the route; the close must not run on this undecided state.
+      state.scratch.deferredRouteRequirement = true;
+      return { status: "started", downloadId: 7 };
+    });
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessage(
+        request(),
+        { id: global.browser.runtime.id, url: "https://x/", tab: { id: 9, url: "https://x/" } },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+  });
+
   test("does not let an external download execute a source-tab action", async () => {
     vi.mocked(global.browser.tabs.remove).mockClear();
     vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {

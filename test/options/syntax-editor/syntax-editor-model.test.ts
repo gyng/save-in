@@ -294,6 +294,26 @@ describe("syntax editor model", () => {
       "fileext",
       "filename",
     ]);
+    // The production vocabulary arrives clause-augmented (into, fetch, rename,
+    // capture aliases, actions, css); none of those are capture targets.
+    const augmented = {
+      ...vocabulary,
+      matchers: [
+        ...vocabulary.matchers,
+        "into",
+        "fetch",
+        "rename",
+        "capture",
+        "capturegroups",
+        "exclude",
+        "after",
+        "css",
+      ],
+    };
+    expect(completeRoutingSyntax("capture:", 8, augmented, true)?.suggestions).toEqual([
+      "fileext",
+      "filename",
+    ]);
     expect(completeRoutingSyntax("capture: nope", 13, vocabulary)).toBeNull();
     expect(completeRoutingSyntax("capture: fileext, fil", 21, vocabulary)?.suggestions).toEqual([
       "fileext",

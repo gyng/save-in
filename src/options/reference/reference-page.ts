@@ -201,7 +201,7 @@ export const enhanceReferenceTables = (root: ParentNode, localize: GetMessage = 
       table.appendChild(tbody);
     }
     const dataRows = rows.filter((row) => !row.classList.contains("reference-group-row"));
-    if (table.closest("#help-clause-list, #reference-clauses")) {
+    if (table.closest("#help-clause-list")) {
       dataRows.forEach((row) => {
         row.cells[1]
           ?.querySelectorAll("code")

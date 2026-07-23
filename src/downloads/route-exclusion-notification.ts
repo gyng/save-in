@@ -32,3 +32,20 @@ export const notifyRouteExclusion = (state: DownloadPipelineState): void => {
     { privateContext: isPrivateDownloadState(state) },
   );
 };
+
+// The exclusive-routing miss shares the same two surfaces (plan-time skip and
+// Chrome's late filename recheck); callers own their differing guards, this
+// owns the one notification so the copies cannot drift.
+export const notifyExclusiveRouteMiss = (state: DownloadPipelineState): void => {
+  createExtensionNotification(
+    getMessage("notificationRuleMatchFailedExclusiveTitle"),
+    isPrivateDownloadState(state)
+      ? getMessage("notificationPrivateRuleMatchFailedMessage")
+      : getMessage("notificationRuleMatchFailedExclusiveMessage", [
+          truncateDataUrlForDisplay(requireDownloadUrl(state)),
+        ]),
+    true,
+    EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
+    { privateContext: isPrivateDownloadState(state) },
+  );
+};

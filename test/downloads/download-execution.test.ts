@@ -2491,6 +2491,55 @@ describe("launchDownload (fire-and-forget with a user-facing failure)", () => {
 });
 
 describe("terminal browserDownload failure surfaces to the user", () => {
+  test("keeps the armed routing wait across the fetch fallback", async () => {
+    setCurrentBrowser("CHROME");
+    let resolveFallbackDownload!: (downloadId: number) => void;
+    const download = vi
+      .fn()
+      .mockImplementationOnce(() => Promise.reject(new Error("denied")))
+      .mockImplementationOnce(
+        () =>
+          new Promise<number>((resolve) => {
+            resolveFallbackDownload = resolve;
+          }),
+      );
+    (global.browser.downloads as any).download = download;
+    const state = makeState({
+      path: new Path.Path("."),
+      scratch: { routeTemplateRaw: "automatic/:filename:" },
+      info: { url: "https://cdn.example/file.pdf" },
+    });
+
+    let settled = false;
+    const launch = Download.renameAndDownload(state).finally(() => {
+      settled = true;
+    });
+    await vi.waitFor(() => expect(download).toHaveBeenCalledTimes(2));
+    resolveFallbackDownload(202);
+    await vi.waitFor(() =>
+      expect(SaveHistory.setHistoryDownloadId).toHaveBeenCalledWith("h-test", 202),
+    );
+    await Promise.resolve();
+    await Promise.resolve();
+    // The fallback's own filename event has not fired yet, so the persisted
+    // template is still undecided and the save must not report post-start
+    // effects — the first attempt's discarded wait must have been re-armed.
+    expect(settled).toBe(false);
+
+    const [fallbackOptions] = download.mock.calls[1]!;
+    const suggest = vi.fn();
+    capturedListener(
+      {
+        id: 202,
+        byExtensionId: global.browser.runtime.id,
+        url: (fallbackOptions as { url: string }).url,
+        filename: "file.pdf",
+      },
+      suggest,
+    );
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 202 });
+  });
+
   test("reports a failure when downloads.download rejects and the fallback is off", async () => {
     setCurrentBrowser("CHROME");
     options.fallbackFetch = false;

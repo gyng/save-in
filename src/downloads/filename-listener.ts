@@ -22,16 +22,13 @@ import {
   DEFERRED_ROUTES_SESSION_KEY,
   FINAL_FILENAMES_SESSION_KEY,
 } from "../shared/storage-keys.ts";
-import { getMessage } from "../platform/localization.ts";
-import { createExtensionNotification, EXTENSION_NOTIFICATION_STREAMS } from "./notification.ts";
 import { isWireDownloadState, type WireDownloadState } from "../shared/message-protocol.ts";
 import { fromWireDownloadState, toWireDownloadState } from "./wire-state.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
-import { truncateDataUrlForDisplay } from "../shared/data-url.ts";
-import { notifyRouteExclusion } from "./route-exclusion-notification.ts";
+import { notifyExclusiveRouteMiss, notifyRouteExclusion } from "./route-exclusion-notification.ts";
 import { getTrackedDownload } from "./expected-downloads.ts";
 import { releaseTerminalDownload, runLateRouteCancellation } from "./terminal-download.ts";
-import { isPrivateDownloadState, requireDownloadUrl } from "./download-pipeline-state.ts";
+import { isPrivateDownloadState } from "./download-pipeline-state.ts";
 import { settleRoutingResolution } from "./routing-resolution.ts";
 import { historyRoutingPatch } from "./history-entry.ts";
 
@@ -435,17 +432,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         return;
       }
       if (options.notifyOnFailure) {
-        createExtensionNotification(
-          getMessage("notificationRuleMatchFailedExclusiveTitle"),
-          isPrivateDownloadState(state)
-            ? getMessage("notificationPrivateRuleMatchFailedMessage")
-            : getMessage("notificationRuleMatchFailedExclusiveMessage", [
-                truncateDataUrlForDisplay(requireDownloadUrl(state)),
-              ]),
-          true,
-          EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
-          { privateContext: isPrivateDownloadState(state) },
-        );
+        notifyExclusiveRouteMiss(state);
       }
     };
 

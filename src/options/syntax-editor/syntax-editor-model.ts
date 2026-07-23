@@ -618,7 +618,17 @@ export const completeRoutingSyntax = (
       source,
       caret,
       node.valueSpan.start.offset,
-      vocabulary.matchers.filter((name) => name !== "into" && !name.startsWith("capture")),
+      // The vocabulary arrives clause-augmented; only regex matcher clauses
+      // are valid capture targets, so drop output, action, and css entries.
+      vocabulary.matchers.filter(
+        (name) =>
+          name !== "into" &&
+          name !== "fetch" &&
+          name !== "rename" &&
+          name !== "css" &&
+          !name.startsWith("capture") &&
+          routingActionValue(name) === undefined,
+      ),
       explicit,
     );
   }

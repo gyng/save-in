@@ -165,9 +165,11 @@ not expose a source tab for this action.
 
 An external explicit-URL `DOWNLOAD` request never executes `after: close-tab`:
 allowing another extension grants it download access, not authority over the
-caller's ambient tab. A `target: "activeTab"` request is the exception — it
-explicitly names the tab it owns for the action, so a matching `after:
-close-tab` rule may close that tab.
+caller's ambient tab. A `target: "activeTab"` request is the exception — the
+saved tab is the caller's own sender tab or, for a background-context caller,
+the user's active tab resolved when the request arrives, and a matching
+`after: close-tab` rule may close it. The close still verifies the tab's URL
+is the one that was saved before acting.
 
 Check for the `vocabulary`, `grammar`, and `automatic_routing_validation` capabilities before using these additive API v1 features. Older callers can ignore the new capability and response fields.
 

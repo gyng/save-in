@@ -66,7 +66,7 @@ import {
   updateActiveTransfer,
 } from "./active-transfers.ts";
 import { deliverSaveWebhook } from "./webhook-delivery.ts";
-import { notifyRouteExclusion } from "./route-exclusion-notification.ts";
+import { notifyExclusiveRouteMiss, notifyRouteExclusion } from "./route-exclusion-notification.ts";
 import {
   discardRoutingResolution,
   prepareRoutingResolution,
@@ -431,6 +431,10 @@ export const executeBrowserDownload = async (
     }
     return { status: "started", downloadId };
   } catch (e) {
+    // Void the failed attempt's armed wait — its filename event will never
+    // fire — but remember the flag: the fallback recursion below must re-arm,
+    // or its own filename event races the post-start effects again.
+    const rearmRoutingResolution = state.scratch.deferredRoutingResolution === true;
     discardRoutingResolution(state);
     cancelExpectedDownload(expected);
     await releaseAcquiredDownload(acquired);
@@ -446,6 +450,7 @@ export const executeBrowserDownload = async (
       options.fallbackFetch !== false
     ) {
       const fallback = await acquireFetchedUrl(requireDownloadUrl(state), privateContext, signal);
+      if (rearmRoutingResolution) state.scratch.deferredRoutingResolution = true;
       return await executeBrowserDownload(plan, fallback, signal);
     } else {
       downloadRuntime.forgetPendingState(state);
@@ -589,17 +594,7 @@ export const renameAndDownload = async (
     if (excluded) {
       notifyRouteExclusion(state);
     } else if ((state.needRouteMatch || options.routeSkipUnmatched) && options.notifyOnFailure) {
-      createExtensionNotification(
-        getMessage("notificationRuleMatchFailedExclusiveTitle"),
-        isPrivateDownloadState(state)
-          ? getMessage("notificationPrivateRuleMatchFailedMessage")
-          : getMessage("notificationRuleMatchFailedExclusiveMessage", [
-              truncateDataUrlForDisplay(requireDownloadUrl(state)),
-            ]),
-        true,
-        EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
-        { privateContext: isPrivateDownloadState(state) },
-      );
+      notifyExclusiveRouteMiss(state);
     }
     return { status: "skipped" };
   }

@@ -384,12 +384,6 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     const row = document.createElement("div");
     row.className = `visual-editor-row rule-clause-row rule-clause-${clause.kind}`;
     row.dataset.line = String(clause.line);
-    row.addEventListener("click", () => {
-      cards
-        .querySelectorAll(".rule-clause-row.is-active")
-        .forEach((item) => item.classList.remove("is-active"));
-      row.classList.add("is-active");
-    });
 
     const marker = document.createElement("span");
     marker.className = "rule-clause-marker";
