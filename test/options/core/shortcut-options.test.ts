@@ -146,6 +146,7 @@ describe("shortcut option controller", () => {
 
   test("shows the unsafe left-click warning only for an enabled modifier-free gesture", () => {
     document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>
+      <fieldset class="click-to-save-controls">
       <input id="contentClickToSaveBindings" value="">
       <input id="contentClickToSaveCombo" value="">
       <input id="contentClickToSaveButton" value="LEFT_CLICK">
@@ -153,14 +154,19 @@ describe("shortcut option controller", () => {
       <select id="clickToSaveModifier2"><option></option></select>
       <select id="clickToSaveButton"><option value="left-click">Left</option><option value="right-click">Right</option></select>
       <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>
-      <div id="click-to-save-warning" hidden></div>`;
+      <div id="click-to-save-warning" hidden></div></fieldset>`;
     setupShortcutOptions();
     const enabled = document.querySelector<HTMLInputElement>("#contentClickToSave")!;
     const warning = document.querySelector<HTMLElement>("#click-to-save-warning")!;
+    const fieldset = document.querySelector<HTMLElement>(".click-to-save-controls")!;
     expect(warning.hidden).toBe(false);
+    // The group's dimming rides a controller-owned class, not a
+    // CSS :has(select:disabled) that would flicker native select popups.
+    expect(fieldset.classList.contains("is-controls-disabled")).toBe(false);
     enabled.checked = false;
     change(enabled);
     expect(warning.hidden).toBe(true);
+    expect(fieldset.classList.contains("is-controls-disabled")).toBe(true);
     const button = document.querySelector<HTMLSelectElement>("#clickToSaveButton")!;
     button.value = "right-click";
     change(button);

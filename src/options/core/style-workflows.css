@@ -112,7 +112,7 @@
   }
 }
 
-.click-to-save-controls:has(> label select:disabled) > :is(legend, label) {
+.click-to-save-controls.is-controls-disabled :is(legend, .shortcut-control-label) {
   color: var(--disabled-control-color);
 }
 

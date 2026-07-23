@@ -113,6 +113,7 @@ export const setupShortcutOptions = () => {
   const longDuration = document.querySelector<HTMLInputElement>("#contentClickToSaveLongPressMs");
   const additional = document.querySelector<HTMLElement>("#clickToSaveAdditionalBindings");
   const add = document.querySelector<HTMLButtonElement>("#clickToSaveAdd");
+  const controlsFieldset = document.querySelector<HTMLElement>(".click-to-save-controls");
   type BindingControls = {
     row: HTMLElement | null;
     modifier: HTMLSelectElement;
@@ -238,6 +239,11 @@ export const setupShortcutOptions = () => {
       current.gesture.disabled = !enabled;
       if (current.remove) current.remove.disabled = !enabled;
     });
+    // Dim the group via a class the controller owns, not a CSS
+    // :has(select:disabled): a :has() keyed on control state re-invalidates
+    // the subtree as a native select popup gains and loses focus, which makes
+    // the popup flicker and can leave it open on an outside click.
+    controlsFieldset?.classList.toggle("is-controls-disabled", !enabled);
     // A conflicting selection is normally unreachable (conflicting options are
     // disabled above), but this handler must never die on one: surface the
     // conflict and keep Apply disabled instead of throwing.
