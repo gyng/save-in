@@ -71,6 +71,13 @@
   border-block-start: 0;
 }
 
+/* The Firefox-only unavailable note is a long line; left in the label column
+   its max-content stretched that column and shoved the select far to the
+   right. Span it across every column so it wraps on its own row instead. */
+.shortcut-format-control .shortcut-extension-unavailable {
+  grid-column: 1 / -1;
+}
+
 #shortcut-format-preview {
   color: var(--color-text-muted);
 }
