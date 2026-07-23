@@ -369,7 +369,10 @@ export const executeBrowserDownload = async (
     if (headers) downloadOptions.headers = headers;
     Object.assign(downloadOptions, await resolveFirefoxDownloadContext(state.info.currentTab));
     throwIfAborted(signal);
-    if (browserFilenameResolution) prepareRoutingResolution(state);
+    // prepareRoutingResolution self-gates on scratch.deferredRoutingResolution,
+    // so this also arms blob/fetch acquisitions whose filename event still
+    // re-evaluates a persisted template — not only direct http downloads.
+    prepareRoutingResolution(state);
     const downloadId = await webExtensionApi.downloads.download(downloadOptions);
     cancelExpectedDownload(expected);
     if (acquired.ownedObjectUrl) {

@@ -5,6 +5,7 @@ import { splitLines } from "../../shared/util.ts";
 import { MESSAGE_TYPES, DOWNLOAD_TYPES } from "../../shared/constants.ts";
 import { applyVariables, transformers } from "../../routing/variable.ts";
 import { ROUTING_ACTION_VALUES } from "../../routing/action-values.ts";
+import { isRoutingAccepted } from "../../downloads/download-pipeline-state.ts";
 import { Path } from "../../routing/path.ts";
 import { OptionsManagement } from "../../config/option.ts";
 import { options } from "../../config/options-data.ts";
@@ -538,6 +539,7 @@ export const handleDownloadMessage = (
         body: { status: MESSAGE_TYPES.OK, version, url },
       });
       if (
+        isRoutingAccepted(clickState) &&
         result.status === "started" &&
         clickState.scratch.routeTabAction === "close" &&
         postSaveActionTab?.id != null

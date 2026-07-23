@@ -257,10 +257,12 @@ export const resolveDownloadPlan = async (
     WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
     isHttpDownloadUrl(downloadUrl);
   delete state.scratch.deferredRoutingResolution;
-  // A server filename can reselect the route after downloads.download()
-  // resolves. Post-start side effects must wait for that browser event.
+  // A server filename — or the late pass re-expanding a persisted template —
+  // can reselect or reject the route after downloads.download() resolves.
+  // Post-start side effects must wait for that browser event in both cases,
+  // or isRoutingAccepted races the listener's deferredRouteRequirement clear.
   if (
-    usesResolvedFilename &&
+    (usesResolvedFilename || persistAutomaticRoute) &&
     WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
     isHttpDownloadUrl(downloadUrl)
   ) {

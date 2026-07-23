@@ -20,6 +20,7 @@ import {
   setCurrentBrowser,
   Variable,
 } from "./download-flow.fixture.ts";
+import { settleRoutingResolution } from "../../src/downloads/routing-resolution.ts";
 
 describe("getFilenameFromContentDisposition", () => {
   test("returns null for non-string input", () => {
@@ -200,12 +201,18 @@ describe("templates the late filename pass cannot re-derive", () => {
   // predicates, which skip content-hash rules: without the raw template it
   // would lose this rule's route and report the download as unmatched.
   test("persists a :sha256: destination template the re-match would drop", async () => {
+    setCurrentBrowser("CHROME");
     planMatch({ destination: "hashes/:sha256:/:filename:" });
     const state = makeState({ info: { url: "https://cdn.example/cat.jpg", filename: "cat.jpg" } });
 
     await Download.resolveDownloadPlan(state);
 
     expect(state.scratch.routeTemplateRaw).toBe("hashes/:sha256:/:filename:");
+    // The late pass re-expands this template and may still reject the route,
+    // so post-start side effects must be armed to wait for that event even
+    // though no rule reads the browser-resolved filename.
+    expect(state.scratch.deferredRouteRequirement).toBe(true);
+    expect(state.scratch.deferredRoutingResolution).toBe(true);
   });
 
   test("persists the template when only the rename replacement needs a hash", async () => {
@@ -750,7 +757,12 @@ describe("renameAndDownload: folder-only route (§8.1)", () => {
       },
     });
 
-    await Download.renameAndDownload(state);
+    const launch = Download.renameAndDownload(state);
+    await vi.waitFor(() => expect(global.browser.downloads.download).toHaveBeenCalled());
+    // The armed wait belongs to Chrome's filename listener, which this plan
+    // test does not exercise; settle it the way that event would.
+    settleRoutingResolution(state);
+    await launch;
 
     expect(router.matchRules).not.toHaveBeenCalled();
     expect(state.path).toMatchObject({ raw: "." });

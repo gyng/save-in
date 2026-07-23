@@ -3,6 +3,8 @@ import type { CurrentTab } from "../platform/current-tab.ts";
 
 // A tab id survives navigation. Routing actions name the source page, so do
 // not close unrelated content that replaced it while a save was preparing.
+// When the browser withheld the source URL (no host access on that page),
+// the id from the user's own gesture is still authoritative — act on it.
 export const closeRoutingSourceTab = async (
   sourceTab: CurrentTab,
   tabId: number,

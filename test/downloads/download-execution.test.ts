@@ -784,7 +784,19 @@ describe("renameAndDownload: notification triggers", () => {
       scratch: { routeTemplateRaw: "automatic/" },
     });
 
-    await Download.renameAndDownload(state);
+    const launch = Download.renameAndDownload(state);
+    await vi.waitFor(() => expect(global.browser.downloads.download).toHaveBeenCalled());
+    const suggest = vi.fn();
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "file.png",
+      },
+      suggest,
+    );
+    await launch;
 
     expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
   });
@@ -1831,7 +1843,8 @@ describe("onDeterminingFilename listener: sync path", () => {
       },
     });
 
-    await Download.renameAndDownload(state);
+    const launch = Download.renameAndDownload(state);
+    await vi.waitFor(() => expect(global.browser.downloads.download).toHaveBeenCalled());
     const suggest = vi.fn();
     expect(
       capturedListener(
@@ -1850,6 +1863,7 @@ describe("onDeterminingFilename listener: sync path", () => {
         expect.objectContaining({ filename: "automatic/server-name.pdf" }),
       ),
     );
+    await launch;
     expect(router.matchRules).not.toHaveBeenCalled();
   });
 
@@ -1985,6 +1999,7 @@ describe("onDeterminingFilename listener: sync path", () => {
     const launch = Download.renameAndDownload(state);
     await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toBeDefined());
     Download.downloadRuntime.pendingStates.clear();
+    discardRoutingResolution(state);
 
     const suggest = vi.fn();
     capturedListener(
