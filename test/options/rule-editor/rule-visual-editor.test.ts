@@ -556,6 +556,24 @@ describe("routing visual editor", () => {
     expect(document.querySelector(".rule-clause-action")).toBeNull();
   });
 
+  test("converts a rule to an exclusion and back from the rule menu", () => {
+    setupRuleVisualEditor({ matchers: ["filename"] });
+    const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
+
+    element<HTMLButtonElement>('[data-rule-action="toggle-exclude"]').click();
+    expect(textarea.value).toBe("filename/i: \\.jpg$\nexclude: true");
+    expect(element<HTMLElement>(".rule-clause-action-value").textContent).toBe(
+      "Do not save matching items",
+    );
+    // While excluded, the close-tab toggle is gone (exclude forbids after:).
+    expect(document.querySelector('[data-rule-action="toggle-close-tab"]')).toBeNull();
+
+    element<HTMLButtonElement>('[data-rule-action="toggle-exclude"]').click();
+    expect(textarea.value).toBe("filename/i: \\.jpg$\ninto: :filename:");
+    expect(document.querySelector(".rule-clause-action")).toBeNull();
+    expect(document.querySelector('[data-rule-action="toggle-close-tab"]')).not.toBeNull();
+  });
+
   test("closes add and rule menus when clicking outside or pressing Escape", () => {
     setupRuleVisualEditor({ matchers: ["filename"] });
     const addMenu = element<HTMLDetailsElement>(".rule-add-menu");

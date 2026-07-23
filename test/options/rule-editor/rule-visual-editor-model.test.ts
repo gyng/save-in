@@ -10,6 +10,7 @@ import {
   parseVisualRoutingRules,
   setRoutingRuleEnabled,
   setRoutingRuleName,
+  setRoutingRuleExcluded,
   setRoutingRulePostSaveAction,
   updateRoutingClause,
 } from "../../../src/options/rule-editor/rule-visual-editor-model.ts";
@@ -199,6 +200,52 @@ describe("routing visual editor model", () => {
     expect(setRoutingRulePostSaveAction(withAction, 0, false)).toBe("filename: jpg\ninto: images");
     expect(setRoutingRulePostSaveAction("filename: jpg\ninto: images", 0, false)).toBe(
       "filename: jpg\ninto: images",
+    );
+  });
+
+  test("converts a rule to an exclusion, stripping the incompatible clauses", () => {
+    // Exclude cannot combine with a destination, tab action, or output clauses,
+    // so converting must remove into:, after:, capturegroups:, fetch:, rename:
+    // while keeping the matchers.
+    const saving = [
+      "filename: jpg",
+      "capturegroups: filename",
+      "after: close-tab",
+      "fetch: https://x/:$1:",
+      "rename: a -> b",
+      "into: images/:filename:",
+    ].join("\n");
+    expect(setRoutingRuleExcluded(saving, 0, true)).toBe("filename: jpg\nexclude: true");
+    // Already excluded is a no-op.
+    expect(setRoutingRuleExcluded("filename: jpg\nexclude: true", 0, true)).toBe(
+      "filename: jpg\nexclude: true",
+    );
+  });
+
+  test("converts an exclusion back to a saving rule with the default destination", () => {
+    expect(setRoutingRuleExcluded("filename: jpg\nexclude: true", 0, false)).toBe(
+      "filename: jpg\ninto: :filename:",
+    );
+    // A rule that already saves is left unchanged.
+    expect(setRoutingRuleExcluded("filename: jpg\ninto: images", 0, false)).toBe(
+      "filename: jpg\ninto: images",
+    );
+  });
+
+  test("keeps an automatic context when converting to an exclusion", () => {
+    const automatic = [
+      "context: ^auto$",
+      "pageurl: ^https://example\\.com/",
+      "sourcekind: ^image$",
+      "into: automatic/:pagedomain:/",
+    ].join("\n");
+    expect(setRoutingRuleExcluded(automatic, 0, true)).toBe(
+      [
+        "context: ^auto$",
+        "pageurl: ^https://example\\.com/",
+        "sourcekind: ^image$",
+        "exclude: true",
+      ].join("\n"),
     );
   });
 

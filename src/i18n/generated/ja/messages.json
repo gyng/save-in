@@ -4530,5 +4530,11 @@
         "example": "2"
       }
     }
+  },
+  "routeActionMakeExclusion": {
+    "message": "一致する項目を除外"
+  },
+  "routeActionMakeSaving": {
+    "message": "代わりにフォルダーに保存"
   }
 }

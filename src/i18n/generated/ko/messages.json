@@ -4530,5 +4530,11 @@
         "example": "2"
       }
     }
+  },
+  "routeActionMakeExclusion": {
+    "message": "일치하는 항목 제외"
+  },
+  "routeActionMakeSaving": {
+    "message": "대신 폴더에 저장"
   }
 }

@@ -4530,5 +4530,11 @@
         "example": "2"
       }
     }
+  },
+  "routeActionMakeExclusion": {
+    "message": "Uteslut matchande objekt"
+  },
+  "routeActionMakeSaving": {
+    "message": "Spara i en mapp i stället"
   }
 }

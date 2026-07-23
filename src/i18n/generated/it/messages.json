@@ -4530,5 +4530,11 @@
         "example": "2"
       }
     }
+  },
+  "routeActionMakeExclusion": {
+    "message": "Escludi gli elementi corrispondenti"
+  },
+  "routeActionMakeSaving": {
+    "message": "Salva invece in una cartella"
   }
 }

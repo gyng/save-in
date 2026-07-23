@@ -5808,5 +5808,13 @@
         "example": "2"
       }
     }
+  },
+  "routeActionMakeExclusion": {
+    "message": "Exclude matching items",
+    "description": "Rule actions menu item that converts a saving rule into an exclusion (exclude: true), removing its destination. Used in src/options/rule-editor/rule-visual-editor.ts."
+  },
+  "routeActionMakeSaving": {
+    "message": "Save to a folder instead",
+    "description": "Rule actions menu item that converts an exclusion rule back into a saving rule with a destination. Used in src/options/rule-editor/rule-visual-editor.ts."
   }
 }

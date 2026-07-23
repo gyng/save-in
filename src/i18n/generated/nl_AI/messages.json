@@ -4530,5 +4530,11 @@
         "example": "2"
       }
     }
+  },
+  "routeActionMakeExclusion": {
+    "message": "Overeenkomende items uitsluiten"
+  },
+  "routeActionMakeSaving": {
+    "message": "In plaats daarvan in een map opslaan"
   }
 }

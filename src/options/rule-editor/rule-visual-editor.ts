@@ -16,6 +16,7 @@ import {
   parseVisualRoutingRules,
   setRoutingRuleEnabled,
   setRoutingRuleName,
+  setRoutingRuleExcluded,
   setRoutingRulePostSaveAction,
   updateRoutingClause,
   type VisualRoutingRule,
@@ -753,6 +754,21 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       (clause) => clause.kind === "action" && clause.name === "after",
     );
     actionsMenu.append(up, down, duplicate);
+    // Exclusions are valid for both ordinary and automatic rules, so the
+    // convert toggle is offered on every editable rule; it strips a
+    // destination and the incompatible output/tab-action clauses.
+    const excludeToggle = button(
+      exclusion
+        ? localize("routeActionMakeSaving", "Save to a folder instead")
+        : localize("routeActionMakeExclusion", "Exclude matching items"),
+      "toggle-exclude",
+    );
+    excludeToggle.disabled = !rule.editable;
+    excludeToggle.addEventListener("click", () => {
+      commit(setRoutingRuleExcluded(textarea.value, rule.index, !exclusion));
+      closeActions();
+    });
+    actionsMenu.append(excludeToggle);
     if (!automatic && !exclusion) {
       const postSaveAction = button(
         closeTab

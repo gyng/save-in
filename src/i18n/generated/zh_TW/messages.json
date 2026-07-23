@@ -4530,5 +4530,11 @@
         "example": "2"
       }
     }
+  },
+  "routeActionMakeExclusion": {
+    "message": "排除相符的項目"
+  },
+  "routeActionMakeSaving": {
+    "message": "改為儲存到資料夾"
   }
 }

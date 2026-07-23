@@ -4530,5 +4530,11 @@
         "example": "2"
       }
     }
+  },
+  "routeActionMakeExclusion": {
+    "message": "排除匹配的项目"
+  },
+  "routeActionMakeSaving": {
+    "message": "改为保存到文件夹"
   }
 }

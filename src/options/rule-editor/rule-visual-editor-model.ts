@@ -408,6 +408,49 @@ export const setRoutingRulePostSaveAction = (
     : source;
 };
 
+// Clauses the parser forbids alongside `exclude: true`: a destination, a
+// post-save tab action, and the capture/fetch/rename output clauses. Converting
+// a rule to an exclusion strips them; converting back restores a destination.
+const isExcludeIncompatible = (clause: RoutingClauseNode): boolean =>
+  clause.clauseKind === "destination" ||
+  clause.clauseKind === "capture" ||
+  clause.clauseKind === "fetch" ||
+  clause.clauseKind === "rename" ||
+  (clause.clauseKind === "action" && clause.name === "after");
+
+export const setRoutingRuleExcluded = (
+  source: string,
+  ruleIndex: number,
+  excluded: boolean,
+): string => {
+  let next = source;
+  if (excluded) {
+    // Delete incompatible clauses one at a time, re-parsing between each so the
+    // shifting offsets stay valid, then add the terminal exclude clause.
+    for (;;) {
+      const { unit } = editableRule(next, ruleIndex);
+      const index = unit.rule.clauses.findIndex(isExcludeIncompatible);
+      if (index < 0) break;
+      next = deleteRoutingClause(next, ruleIndex, index);
+    }
+    const { unit } = editableRule(next, ruleIndex);
+    if (unit.rule.clauses.some((clause) => clause.name === "exclude")) return next;
+    return addRoutingClause(next, ruleIndex, {
+      name: "exclude",
+      value: ROUTING_ACTION_VALUES.exclude,
+    });
+  }
+  const { unit } = editableRule(next, ruleIndex);
+  const exclude = unit.rule.clauses.find((clause) => clause.name === "exclude");
+  if (exclude) {
+    next = deleteRoutingClause(next, ruleIndex, unit.rule.clauses.indexOf(exclude));
+  }
+  const { unit: restored } = editableRule(next, ruleIndex);
+  if (restored.rule.clauses.some((clause) => clause.clauseKind === "destination")) return next;
+  // Match the default a new saving rule uses so a converted rule reads the same.
+  return addRoutingClause(next, ruleIndex, { name: "into", value: ":filename:" });
+};
+
 export const duplicateRoutingRule = (source: string, ruleIndex: number): string => {
   const { unit } = editableRule(source, ruleIndex);
   const newline = newlineFor(source);

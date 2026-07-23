@@ -4530,5 +4530,11 @@
         "example": "2"
       }
     }
+  },
+  "routeActionMakeExclusion": {
+    "message": "Excluir los elementos coincidentes"
+  },
+  "routeActionMakeSaving": {
+    "message": "Guardar en una carpeta en su lugar"
   }
 }
