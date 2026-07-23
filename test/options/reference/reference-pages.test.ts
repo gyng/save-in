@@ -96,7 +96,7 @@ describe("reference controller", () => {
     document.body.innerHTML = `
       <span class="reference-copy-status" role="status"></span>
       <table><tbody><tr><th>
-        <code class="click-to-copy" data-copy-value="tab: close">tab:</code>
+        <code class="click-to-copy" data-copy-value="after: closetab">after:</code>
       </th><td>Close the source tab</td></tr></tbody></table>`;
     const copy = vi.fn(async () => undefined);
     setupReferencePage(document, copy, referenceMessage);
@@ -104,9 +104,11 @@ describe("reference controller", () => {
     const token = document.querySelector<HTMLElement>(".click-to-copy")!;
     token.click();
 
-    await vi.waitFor(() => expect(copy).toHaveBeenCalledWith("tab: close"));
-    expect(token.getAttribute("aria-label")).toBe("Copy tab: close");
-    expect(document.querySelector(".reference-copy-status")?.textContent).toBe("Copied tab: close");
+    await vi.waitFor(() => expect(copy).toHaveBeenCalledWith("after: closetab"));
+    expect(token.getAttribute("aria-label")).toBe("Copy after: closetab");
+    expect(document.querySelector(".reference-copy-status")?.textContent).toBe(
+      "Copied after: closetab",
+    );
   });
 
   test("syncs rows to the runtime vocabulary and adds fallbacks for new terms", () => {
@@ -127,6 +129,18 @@ describe("reference controller", () => {
       "<table><tbody><tr><td><code>into:</code></td><td>Existing matcher</td></tr></tbody></table>";
     syncReferenceVocabulary(document, "clauses", ["newmatcher:"], getMessage);
     expect(document.body.textContent).toContain("Localized runtime rule matcher");
+  });
+
+  test("keeps the combined actions row through a clauses vocabulary sync", () => {
+    document.body.innerHTML = `
+      <table><tbody>
+        <tr><td><code>filename:</code></td><td>Existing matcher</td></tr>
+        <tr><td><code>exclude:</code><code>after:</code></td><td>Actions</td></tr>
+      </tbody></table>`;
+    syncReferenceVocabulary(document, "clauses", ["filename:"], () => "");
+    const tokens = [...document.querySelectorAll("tbody tr code")].map((node) => node.textContent);
+    expect(tokens).toContain("exclude:");
+    expect(tokens).toContain("after:");
   });
 
   test("handles empty references and falls back runtime descriptions", () => {
