@@ -167,11 +167,11 @@
   },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Failed to route or rename download",
-    "description": "Notification title for no rule matches when in exclusive mode. Used in src/downloads/download-execution.ts and src/downloads/filename-listener.ts."
+    "description": "Notification title for no rule matches when in exclusive mode. Used in src/downloads/route-exclusion-notification.ts."
   },
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "No matching rule found for $URL$",
-    "description": "Notification message for no rule matches when in exclusive mode. Used in src/downloads/download-execution.ts and src/downloads/filename-listener.ts.",
+    "description": "Notification message for no rule matches when in exclusive mode. Used in src/downloads/route-exclusion-notification.ts.",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -181,7 +181,7 @@
   },
   "notificationPrivateRuleMatchFailedMessage": {
     "message": "No routing rule matched the private browsing item.",
-    "description": "Non-identifying notification body when an interactive private save requires a routing rule but none matches. It must not include the filename, path, or URL. Used in src/downloads/download-execution.ts and src/downloads/filename-listener.ts."
+    "description": "Non-identifying notification body when an interactive private save requires a routing rule but none matches. It must not include the filename, path, or URL. Used in src/downloads/route-exclusion-notification.ts."
   },
   "ruleMissingMatcher": {
     "message": "Add at least one match condition to the rule",

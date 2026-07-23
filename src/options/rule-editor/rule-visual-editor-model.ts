@@ -1,3 +1,4 @@
+import { ROUTING_ACTION_VALUES, routingActionValue } from "../../routing/action-values.ts";
 import {
   parseRoutingRuleAst,
   type RoutingClauseNode,
@@ -140,8 +141,7 @@ const supportsActionValues = (clauses: RoutingClauseNode[]): boolean =>
   clauses.every(
     (clause) =>
       clause.clauseKind !== "action" ||
-      (clause.name === "exclude" && clause.value.trim().toLowerCase() === "true") ||
-      (clause.name === "after" && clause.value.trim().toLowerCase() === "close-tab"),
+      clause.value.trim().toLowerCase() === routingActionValue(clause.name),
   );
 
 export const parseVisualRoutingRules = (source: string): VisualRoutingDocument => {
@@ -386,7 +386,7 @@ export const addExclusionRoutingRule = (source: string): string => {
         : source.endsWith(newline)
           ? newline
           : `${newline}${newline}`;
-  return `${source}${separator}filename: .*${newline}exclude: true${newline}`;
+  return `${source}${separator}filename: .*${newline}exclude: ${ROUTING_ACTION_VALUES.exclude}${newline}`;
 };
 
 export const setRoutingRulePostSaveAction = (
@@ -399,9 +399,9 @@ export const setRoutingRulePostSaveAction = (
   if (enabled) {
     return action
       ? updateRoutingClause(source, ruleIndex, unit.rule.clauses.indexOf(action), {
-          value: "close-tab",
+          value: ROUTING_ACTION_VALUES.after,
         })
-      : addRoutingClause(source, ruleIndex, { name: "after", value: "close-tab" });
+      : addRoutingClause(source, ruleIndex, { name: "after", value: ROUTING_ACTION_VALUES.after });
   }
   return action
     ? deleteRoutingClause(source, ruleIndex, unit.rule.clauses.indexOf(action))

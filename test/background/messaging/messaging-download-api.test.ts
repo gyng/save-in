@@ -154,6 +154,9 @@ describe("handleDownloadMessage", () => {
       ),
     ).toBe(true);
     await waitForCall(sendResponse);
+    // The navigation refusal happens after the awaited tabs.get; drain the
+    // remaining microtasks so a wrongly-executed close would be visible.
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(global.browser.tabs.remove).not.toHaveBeenCalled();
   });
@@ -605,6 +608,9 @@ describe("handleDownloadMessage", () => {
       ),
     ).toBe(true);
     await waitForCall(sendResponse);
+    // The response lands before the handler's close block runs; drain the
+    // remaining microtasks so a wrongly-executed close would be visible.
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(global.browser.tabs.remove).not.toHaveBeenCalled();
   });
@@ -621,6 +627,7 @@ describe("handleDownloadMessage", () => {
       onMessageExternal(request(), { id: "trusted-extension", tab: { id: 9 } }, sendResponse),
     ).toBe(true);
     await waitForCall(sendResponse);
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(global.browser.tabs.remove).not.toHaveBeenCalled();
   });
