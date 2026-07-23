@@ -671,7 +671,7 @@
     "message": "Webbläsarroutning"
   },
   "o_lBrowserDownloadsHelp": {
-    "message": "Spåra eller dirigera eventuellt nedladdningar som startats av webbsidor eller webbläsaren. Nedladdningar som startas av Save In eller annat tillägg är uteslutna."
+    "message": "Spåra eller routa eventuellt nedladdningar som startats av webbsidor eller webbläsaren. Nedladdningar som startas av Save In eller annat tillägg är uteslutna."
   },
   "o_cTrackBrowserDownloads": {
     "message": "Lägg till webbläsarnedladdningar i Save In-historiken"
@@ -1817,7 +1817,7 @@
     "message": "Lagring"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "De senaste felen lagras på den här enheten tills webbläsarsessionen avslutas. Utförlig loggning skriver även information om dirigering och nedladdningar till webbläsarens utvecklarkonsol och förblir aktiverad tills du stänger av den. Privat aktivitet undantas om inte Kom ihåg aktivitet under privat surfning är aktiverat."
+    "message": "De senaste felen lagras på den här enheten tills webbläsarsessionen avslutas. Utförlig loggning skriver även information om routning och nedladdningar till webbläsarens utvecklarkonsol och förblir aktiverad tills du stänger av den. Privat aktivitet undantas om inte Kom ihåg aktivitet under privat surfning är aktiverat."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "För att ansluta: öppna den här sidan i en webbläsare som stöder WebMCP, håll den öppen och peka din webbläsaragent på den här fliken. Fråga det i klartext — t.ex. ”Sortera mina nedladdningar i mappar efter webbplats och datum, numrera varje fil och meddela mig bara när en misslyckas.”"
@@ -1973,7 +1973,7 @@
     "message": "Menystruktur"
   },
   "html_onlyUsableWhenRoutingAndRewritingFilenames": {
-    "message": "Endast tillgängligt när du dirigerar eller byter namn på filer"
+    "message": "Endast tillgängligt när du routar eller byter namn på filer"
   },
   "html_routingAndFilenamesOnly": {
     "message": "Endast routning och filnamn"
@@ -3829,7 +3829,7 @@
     }
   },
   "diagnosticsConfigurationIssueCount": {
-    "message": "$PATHS$ sökväg · $ROUTING$ dirigering",
+    "message": "$PATHS$ sökväg · $ROUTING$ routning",
     "placeholders": {
       "paths": {
         "content": "$1",

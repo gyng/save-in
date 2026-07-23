@@ -700,6 +700,27 @@ describe("routing visual editor", () => {
     );
   });
 
+  test("a jump to a control-less action clause still lands keyboard focus in the card", () => {
+    setupRuleVisualEditor({ matchers: ["filename"] });
+    element<HTMLButtonElement>("#rules-mode-visual").click();
+    const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
+    textarea.value = "filename: ^thumb-\nexclude: true";
+    document.dispatchEvent(new Event("options-restored"));
+
+    document.dispatchEvent(
+      new CustomEvent("route-debugger-source-selected", { detail: { ruleIndex: 0, line: 2 } }),
+    );
+    const activeRow = element<HTMLElement>('.rule-clause-row.is-active[data-line="2"]');
+    expect(activeRow.querySelector("input, select, textarea, button")).toBeNull();
+    const card = element<HTMLElement>(".rule-editor-card.is-debug-selected");
+    expect(document.activeElement).toBe(
+      card.querySelector<HTMLElement>(
+        ".rule-editor-card-body input, .rule-editor-card-body select, .rule-editor-card-body textarea, .rule-editor-card-body button",
+      ),
+    );
+    expect(document.activeElement).not.toBe(document.body);
+  });
+
   test("edits matcher, capture, destination, and card controls", () => {
     element<HTMLTextAreaElement>("#filenamePatterns").value = [
       "// Documents",

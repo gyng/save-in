@@ -50,10 +50,28 @@ const matcherTokens = [...matcherBlock.matchAll(/^\s{2}([a-z][a-z0-9]*):/gm)].ma
 );
 if (!matcherTokens.length) throw new Error("Could not read matcher names");
 
+const actionValuesSource = read("src/routing/action-values.ts");
+const actionValuesBlock = actionValuesSource.match(
+  /export const ROUTING_ACTION_VALUES = \{(?<body>[\s\S]*?)\n\} as const;/,
+)?.groups?.body;
+if (!actionValuesBlock) throw new Error("Could not find ROUTING_ACTION_VALUES");
+const actionCopyValues = [...actionValuesBlock.matchAll(/^\s*([a-z]+):\s*"([^"]+)",?$/gm)].map(
+  (match) => `data-copy-value="${match[1]}: ${match[2]}"`,
+);
+if (!actionCopyValues.length) throw new Error("Could not read ROUTING_ACTION_VALUES members");
+
 const missing = [
   ...variableTokens
     .filter((token) => !variableReference.includes(token))
     .map((token) => `src/options/options.html: missing runtime variable ${token}`),
+  // The action rows' copyable values must stay the parser's exact canon: a
+  // reconciliation once dropped them and no test could see the shipped markup.
+  ...actionCopyValues
+    .filter((attr) => !variableReference.includes(attr))
+    .map((attr) => `src/options/options.html: action row missing ${attr}`),
+  ...actionCopyValues
+    .filter((attr) => !matcherReference.includes(attr))
+    .map((attr) => `src/options/clauselist.html: action row missing ${attr}`),
   ...(variableReference.includes("capturegroups:")
     ? []
     : ["src/options/options.html: missing capturegroups variable"]),
