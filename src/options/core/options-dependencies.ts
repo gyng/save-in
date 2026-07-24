@@ -67,6 +67,7 @@ export const setupOptionDependencies = () => {
         "sourcePanelBackgrounds",
         "sourcePanelResourceHints",
         "sourcePanelLinks",
+        "sourcePanelScriptMedia",
         "sourcePanelShortcutModifier",
         "sourcePanelShortcutModifier2",
         "sourcePanelShortcutKey",

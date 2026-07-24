@@ -392,6 +392,7 @@ const listenerOwners = new Set([
   "src/offscreen/offscreen.ts",
   "src/options/core/options.ts",
   "src/options/ui/permissions-banner.ts",
+  "src/options/ui/script-media-permission.ts",
   "src/options/rule-editor/source-rule-draft-intake.ts",
 ]);
 for (const file of files) {

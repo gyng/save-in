@@ -763,6 +763,12 @@
   "o_cSourcePanelLinks": {
     "message": "Links, verknüpfte Medien und PDF-Dokumente einbeziehen"
   },
+  "o_cSourcePanelScriptMedia": {
+    "message": "Von Skripten geladene Medien erkennen (benötigt Netzwerkzugriff)"
+  },
+  "o_lSourcePanelScriptMediaHelp": {
+    "message": "Überwacht Netzwerkanfragen, um Medien zu erfassen, die Seitenskripte laden – auch aus Workern und Frames – etwa HLS/DASH-Streams. Beim Aktivieren wird eine optionale Netzwerkzugriffsberechtigung angefragt."
+  },
   "o_lSourcePanelDiscovery": {
     "message": "Quellen und Vorschauen"
   },

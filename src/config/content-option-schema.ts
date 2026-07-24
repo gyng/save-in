@@ -90,6 +90,11 @@ export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
     default: CONTENT_OPTION_DEFAULTS.sourcePanelResourceHints,
   },
   { name: "sourcePanelLinks", type: "BOOL", default: CONTENT_OPTION_DEFAULTS.sourcePanelLinks },
+  {
+    name: "sourcePanelScriptMedia",
+    type: "BOOL",
+    default: CONTENT_OPTION_DEFAULTS.sourcePanelScriptMedia,
+  },
   { name: "preferLinks", type: "BOOL", default: CONTENT_OPTION_DEFAULTS.preferLinks },
   {
     name: "preferLinksFilterEnabled",

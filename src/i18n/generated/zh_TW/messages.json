@@ -341,6 +341,12 @@
   "o_cSourcePanelLinks": {
     "message": "包含連結、連結指向的媒體與 PDF 文件"
   },
+  "o_cSourcePanelScriptMedia": {
+    "message": "偵測指令碼載入的媒體（需要網路存取權限）"
+  },
+  "o_lSourcePanelScriptMediaHelp": {
+    "message": "監視網路請求，以擷取頁面指令碼載入的媒體（包括來自 worker 和框架的內容），例如 HLS/DASH 串流。啟用時會要求選用的網路存取權限。"
+  },
   "o_lSourcePanelDiscovery": {
     "message": "來源和預覽"
   },

@@ -23,6 +23,7 @@ import {
 } from "../options/core/options.ts";
 import "../options/ui/dismissible-details.ts";
 import { setupPermissionsBanner } from "../options/ui/permissions-banner.ts";
+import { setupScriptMediaPermission } from "../options/ui/script-media-permission.ts";
 import "../options/ui/click-to-copy.ts";
 import "../options/syntax-editor/autocomplete.ts";
 import { setupPathEditor } from "../options/path-editor/path-editor.ts";
@@ -102,6 +103,10 @@ document.addEventListener(
       setupLanguageSelector();
       void setupWelcomeDialog(undefined, undefined, applyWelcomePreset);
       await optionsReady;
+      // After the stored values populate the form (and autosave is wired), so
+      // the toggle reflects the real state and a self-heal can persist through
+      // the normal autosave path.
+      void setupScriptMediaPermission();
       // Registration follows the stored switch, so it waits for the options to
       // be in the page: reading the checkbox before then would find every
       // browser opted out.

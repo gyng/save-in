@@ -341,6 +341,12 @@
   "o_cSourcePanelLinks": {
     "message": "包括链接、链接指向的媒体和 PDF 文档"
   },
+  "o_cSourcePanelScriptMedia": {
+    "message": "检测脚本加载的媒体（需要网络访问权限）"
+  },
+  "o_lSourcePanelScriptMediaHelp": {
+    "message": "监视网络请求，以捕获页面脚本加载的媒体（包括来自 worker 和框架的内容），例如 HLS/DASH 流。启用时会请求可选的网络访问权限。"
+  },
   "o_lSourcePanelDiscovery": {
     "message": "来源和预览"
   },

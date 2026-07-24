@@ -653,6 +653,14 @@
     "message": "Include links, linked media, and PDF documents",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
+  "o_cSourcePanelScriptMedia": {
+    "message": "Detect media loaded by scripts (needs network access)",
+    "description": "Option control label for the opt-in webRequest source detector. Used in src/options/options.html."
+  },
+  "o_lSourcePanelScriptMediaHelp": {
+    "message": "Watches network requests to catch media that page scripts load — including from workers and frames — such as HLS/DASH streams. Turning this on asks for an optional network-access permission.",
+    "description": "Help text under the script-media detection option, explaining it needs the optional webRequest permission. Used in src/options/options.html."
+  },
   "o_lSourcePanelDiscovery": {
     "message": "Results and previews",
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."

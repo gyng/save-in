@@ -93,6 +93,7 @@ export type ResolvedContentOptions = {
   sourcePanelPreviews: boolean;
   sourcePanelResourceHints: boolean;
   sourcePanelLinks: boolean;
+  sourcePanelScriptMedia: boolean;
   uiLocale: "" | SelectableLocale;
   uiTheme: UiTheme;
   contentClickToSaveBindings: string;
@@ -129,6 +130,9 @@ export const CONTENT_OPTION_DEFAULTS: ResolvedContentOptions = {
   sourcePanelPreviews: true,
   sourcePanelResourceHints: true,
   sourcePanelLinks: true,
+  // Off by default: it needs the optional webRequest permission and observes
+  // network traffic, so it stays opt-in and cannot alter the default posture.
+  sourcePanelScriptMedia: false,
   uiLocale: "",
   uiTheme: "system",
   // Empty means "synthesize the legacy combo/button pair". This sentinel is
@@ -221,6 +225,7 @@ const CONTENT_OPTION_NORMALIZERS: ContentOptionNormalizers = {
   sourcePanelPreviews: booleanOption(CONTENT_OPTION_DEFAULTS.sourcePanelPreviews),
   sourcePanelResourceHints: booleanOption(CONTENT_OPTION_DEFAULTS.sourcePanelResourceHints),
   sourcePanelLinks: booleanOption(CONTENT_OPTION_DEFAULTS.sourcePanelLinks),
+  sourcePanelScriptMedia: booleanOption(CONTENT_OPTION_DEFAULTS.sourcePanelScriptMedia),
   uiLocale: (stored) => (isSelectableLocale(stored) ? stored : CONTENT_OPTION_DEFAULTS.uiLocale),
   uiTheme: normalizeUiTheme,
   contentClickToSaveBindings: (stored) =>

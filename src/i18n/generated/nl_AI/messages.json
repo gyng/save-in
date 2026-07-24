@@ -763,6 +763,12 @@
   "o_cSourcePanelLinks": {
     "message": "Links, gekoppelde media en PDF-documenten opnemen"
   },
+  "o_cSourcePanelScriptMedia": {
+    "message": "Media die door scripts worden geladen detecteren (netwerktoegang vereist)"
+  },
+  "o_lSourcePanelScriptMediaHelp": {
+    "message": "Bewaakt netwerkverzoeken om media op te sporen die paginascripts laden — ook uit workers en frames — zoals HLS/DASH-streams. Inschakelen vraagt om een optionele netwerktoegangsmachtiging."
+  },
   "o_lSourcePanelDiscovery": {
     "message": "Bronnen en voorvertoningen"
   },

@@ -329,6 +329,12 @@
   "o_cSourcePanelLinks": {
     "message": "Includi collegamenti, contenuti multimediali collegati e documenti PDF"
   },
+  "o_cSourcePanelScriptMedia": {
+    "message": "Rileva i media caricati dagli script (richiede accesso alla rete)"
+  },
+  "o_lSourcePanelScriptMediaHelp": {
+    "message": "Controlla le richieste di rete per individuare i media caricati dagli script della pagina, anche da worker e frame, come i flussi HLS/DASH. Attivandolo viene richiesta un'autorizzazione facoltativa di accesso alla rete."
+  },
   "o_lSourcePanelDiscovery": {
     "message": "Sorgenti e anteprime"
   },

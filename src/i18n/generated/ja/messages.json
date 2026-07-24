@@ -341,6 +341,12 @@
   "o_cSourcePanelLinks": {
     "message": "リンク、リンクされたメディア、PDF ドキュメントを含める"
   },
+  "o_cSourcePanelScriptMedia": {
+    "message": "スクリプトが読み込むメディアを検出（ネットワークアクセスが必要）"
+  },
+  "o_lSourcePanelScriptMediaHelp": {
+    "message": "ページのスクリプトが読み込むメディア（ワーカーやフレームからのものを含む、HLS/DASH ストリームなど）を、ネットワークリクエストの監視によって検出します。有効にすると、任意のネットワークアクセス権限を求めます。"
+  },
   "o_lSourcePanelDiscovery": {
     "message": "ソースとプレビュー"
   },

@@ -341,6 +341,12 @@
   "o_cSourcePanelLinks": {
     "message": "링크, 연결된 미디어, PDF 문서 포함"
   },
+  "o_cSourcePanelScriptMedia": {
+    "message": "스크립트가 불러오는 미디어 감지 (네트워크 접근 권한 필요)"
+  },
+  "o_lSourcePanelScriptMediaHelp": {
+    "message": "페이지 스크립트가 불러오는 미디어(워커와 프레임 포함, HLS/DASH 스트림 등)를 네트워크 요청을 관찰하여 감지합니다. 켜면 선택적 네트워크 접근 권한을 요청합니다."
+  },
   "o_lSourcePanelDiscovery": {
     "message": "소스 및 미리보기"
   },

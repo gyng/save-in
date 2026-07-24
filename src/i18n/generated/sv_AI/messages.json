@@ -763,6 +763,12 @@
   "o_cSourcePanelLinks": {
     "message": "Inkludera länkar, länkade media och PDF-dokument"
   },
+  "o_cSourcePanelScriptMedia": {
+    "message": "Upptäck media som läses in av skript (kräver nätverksåtkomst)"
+  },
+  "o_lSourcePanelScriptMediaHelp": {
+    "message": "Bevakar nätverksbegäranden för att fånga media som sidans skript läser in – även från workers och ramar – som HLS/DASH-strömmar. Att slå på detta ber om en valfri behörighet för nätverksåtkomst."
+  },
   "o_lSourcePanelDiscovery": {
     "message": "Källor och förhandsvisningar"
   },

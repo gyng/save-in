@@ -70,6 +70,8 @@ export const OptionsManagement: OptionsManagementApi = {
     sourcePanelPreviews: "Load image and video thumbnails in the source list.",
     sourcePanelResourceHints: "Best-effort discovery of HLS and DASH manifests in resource timing.",
     sourcePanelLinks: "Include safe page links, classifying linked media and PDF documents.",
+    sourcePanelScriptMedia:
+      "Opt-in: observe network requests (optional webRequest permission) to detect script-loaded media such as HLS/DASH streams.",
     uiTheme: "Color theme shared by the options page and Page Sources.",
     debug: "Write extra routing and download details to the browser developer console.",
     persistPrivateActivity:

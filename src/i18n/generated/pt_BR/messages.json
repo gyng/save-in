@@ -763,6 +763,12 @@
   "o_cSourcePanelLinks": {
     "message": "Incluir links, mídias vinculadas e documentos PDF"
   },
+  "o_cSourcePanelScriptMedia": {
+    "message": "Detectar mídia carregada por scripts (requer acesso à rede)"
+  },
+  "o_lSourcePanelScriptMediaHelp": {
+    "message": "Observa as requisições de rede para captar mídias que os scripts da página carregam — inclusive de workers e frames — como transmissões HLS/DASH. Ativar pede uma permissão opcional de acesso à rede."
+  },
   "o_lSourcePanelDiscovery": {
     "message": "Fontes e visualizações"
   },
