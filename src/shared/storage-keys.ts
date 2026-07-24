@@ -22,6 +22,9 @@ export const FINAL_FILENAMES_SESSION_KEY = "siFinalFilenames";
 export const DEFERRED_ROUTES_SESSION_KEY = "siDeferredRoutes";
 export const ACTIVE_TRANSFERS_SESSION_KEY = "siActiveTransfers";
 export const SOURCE_PANEL_OPEN_SESSION_KEY = "sourcePanelOpen";
+// Bounded per-tab buffer of script-loaded media URLs the webRequest collector
+// observed, so an evicted service worker can rehydrate what it already saw.
+export const SCRIPT_MEDIA_BY_TAB_SESSION_KEY = "siScriptMediaByTab";
 export const SOURCE_PANEL_SORT_STORAGE_KEY = "sourcePanelSort";
 export const SOURCE_PANEL_LAYOUT_STORAGE_KEY = "sourcePanelLayout";
 export const SOURCE_RULE_DRAFT_SESSION_KEY = "sourceRuleDraft";

@@ -19,6 +19,7 @@ const withPerms = (contains: boolean, extra: Record<string, any> = {}) => {
   (global.browser as any).permissions = {
     contains: vi.fn(() => Promise.resolve(contains)),
     request: vi.fn(() => Promise.resolve(true)),
+    remove: vi.fn(() => Promise.resolve(true)),
     onRemoved: { addListener: vi.fn() },
     ...extra,
   };
@@ -79,7 +80,7 @@ describe("initScriptMediaPermission", () => {
     expect(box.checked).toBe(true);
   });
 
-  test("does not request a permission when the toggle is turned off", async () => {
+  test("removes the permission (not requests one) when the toggle is turned off", async () => {
     withPerms(true);
     const box = checkbox(true);
     await initScriptMediaPermission(box);
@@ -87,6 +88,7 @@ describe("initScriptMediaPermission", () => {
     box.checked = false;
     box.dispatchEvent(new Event("change"));
     expect(global.browser.permissions.request).not.toHaveBeenCalled();
+    expect(global.browser.permissions.remove).toHaveBeenCalledWith({ permissions: ["webRequest"] });
   });
 
   test("self-heals a stored on whose permission is missing", async () => {

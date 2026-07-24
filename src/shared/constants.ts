@@ -156,6 +156,9 @@ export const MESSAGE_TYPES = {
   SOURCE_PANEL_STATE: "SOURCE_PANEL_STATE",
   SOURCE_PANEL_COPY: "SOURCE_PANEL_COPY",
   CREATE_SOURCE_RULE: "CREATE_SOURCE_RULE",
+  // Background → content: script-loaded media the webRequest collector observed
+  // (opt-in). Delivered as a batch to merge into the Page Sources panel.
+  SCRIPT_MEDIA_DETECTED: "SCRIPT_MEDIA_DETECTED",
   DIAGNOSTICS_GET: "DIAGNOSTICS_GET",
   DIAGNOSTICS_CLEAR_FAILURES: "DIAGNOSTICS_CLEAR_FAILURES",
   HISTORY_GET: "HISTORY_GET",

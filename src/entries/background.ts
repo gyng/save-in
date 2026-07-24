@@ -10,6 +10,7 @@ import { registerNotifier } from "../downloads/notification.ts";
 import { registerDownloadListener } from "../downloads/download.ts";
 import { start } from "../background/main.ts";
 import { configureBackgroundPorts } from "../background/ports.ts";
+import { registerScriptMediaCollector } from "../background/script-media-collector.ts";
 
 // Register the MV3 event listeners and run the background bootstrap
 // synchronously at startup. Listeners MUST attach synchronously or the service
@@ -21,4 +22,5 @@ configureBackgroundPorts();
 registerNotifier();
 registerDownloadListener();
 registerMessaging();
+registerScriptMediaCollector();
 start();

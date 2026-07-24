@@ -21,6 +21,7 @@ import { respondAsync } from "../message-dispatch.ts";
 import { addLogEntry } from "../log.ts";
 import { clearHistory, getHistoryEntries, setHistoryStatus } from "../history.ts";
 import { syncSourcePanelToTab, setSourcePanelOpenState } from "../source-panel-state.ts";
+import { pushBufferedScriptMedia } from "../script-media-collector.ts";
 import { cancelActiveTransfer, getActiveTransfer } from "../../downloads/active-transfers.ts";
 import { findVerifiedDownload, undoDownloadAndMark } from "../../downloads/undo-download.ts";
 import {
@@ -90,8 +91,12 @@ const internalHandlers = {
     if (sender.tab?.id != null) await syncSourcePanelToTab(sender.tab.id);
     sendResponse({ type: MESSAGE_TYPES.OK });
   },
-  [MESSAGE_TYPES.SOURCE_PANEL_STATE]: async (request, _sender, sendResponse) => {
-    await setSourcePanelOpenState(Boolean(request.body?.open));
+  [MESSAGE_TYPES.SOURCE_PANEL_STATE]: async (request, sender, sendResponse) => {
+    const open = Boolean(request.body?.open);
+    await setSourcePanelOpenState(open);
+    // When the panel opens, hand it whatever script-loaded media the collector
+    // already observed for this tab before the panel existed.
+    if (open && sender.tab?.id != null) pushBufferedScriptMedia(sender.tab.id);
     sendResponse({ type: MESSAGE_TYPES.OK });
   },
   [MESSAGE_TYPES.SOURCE_PANEL_COPY]: (_request, _sender, sendResponse) => {

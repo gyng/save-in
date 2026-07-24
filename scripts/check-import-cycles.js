@@ -381,6 +381,7 @@ for (const [file, dependencies] of imports) {
 // registration modules are composition boundaries even when called by an entry.
 const listenerOwners = new Set([
   "src/background/main.ts",
+  "src/background/script-media-collector.ts",
   "src/background/menu-click.ts",
   "src/background/menu-tabs.ts",
   "src/background/messaging/index.ts",

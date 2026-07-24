@@ -17,6 +17,7 @@ type WebRequestPermission = { permissions: string[] };
 type PermissionsApi = {
   contains(permission: WebRequestPermission): Promise<boolean>;
   request(permission: WebRequestPermission): Promise<boolean>;
+  remove?(permission: WebRequestPermission): Promise<boolean>;
   onRemoved?: { addListener(listener: () => void): void };
 };
 
@@ -52,8 +53,13 @@ export const initScriptMediaPermission = (checkbox: HTMLInputElement | null): Pr
   };
 
   checkbox.addEventListener("change", () => {
-    if (!checkbox.checked) return; // turning it off never needs a permission
     if (!api) return; // no permissions API: leave as-is
+    if (!checkbox.checked) {
+      // Drop the permission when the feature is turned off so the background
+      // listener tears down and re-enabling asks for consent again.
+      if (api.remove) void api.remove(WEBREQUEST_PERMISSION).catch(() => {});
+      return;
+    }
     api.request(WEBREQUEST_PERMISSION).then(
       (granted) => {
         if (!granted) revert();
