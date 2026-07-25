@@ -84,8 +84,9 @@ the target is missing or inaccessible.
   content fetches, so protected downloads can use MIME, final-URL, and SHA-256
   variables. Firefox keeps its native `downloads.download({ headers })` final
   transfer unless content was already fetched for hashing; Chrome saves the
-  protected content blob. Save In does not request `webRequest` or
-  `webRequestBlocking`.
+  protected content blob. This feature does not use `webRequest` or
+  `webRequestBlocking`; the separate Page Sources script-media detector requests
+  optional `webRequest` access only when the user turns it on.
 - Extension-side Fetch/HEAD requests include applicable credentials by default,
   including at redirect destinations. They can be made anonymous in Advanced
   downloading and require no cookie-reading permission. Private-window
