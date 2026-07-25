@@ -1,9 +1,11 @@
 import {
+  mergeScriptMediaSources,
   replaceSourcePanel,
   setSourcePanelOpen,
   toggleSourcePanel,
   type PageSource,
 } from "./source-panel.ts";
+import { isPageSourceKind, type PageSourceKind } from "../shared/page-source.ts";
 import {
   CONTENT_OPTION_DEFAULTS,
   CONTENT_LONG_PRESS_DEFAULT_MS,
@@ -1122,6 +1124,19 @@ try {
         Object.keys(changed).forEach((key) => changedDuringRead.add(key));
       }
       if (Object.keys(changed).length > 0) applyOptions(changed);
+      return;
+    }
+    if (message?.type === "SCRIPT_MEDIA_DETECTED") {
+      const raw = message.body?.sources;
+      if (Array.isArray(raw)) {
+        const sources = raw.filter(
+          (entry: unknown): entry is { url: string; kind: PageSourceKind } =>
+            !!entry &&
+            typeof (entry as { url?: unknown }).url === "string" &&
+            isPageSourceKind((entry as { kind?: unknown }).kind),
+        );
+        if (sources.length > 0) mergeScriptMediaSources(sources);
+      }
       return;
     }
     if (!["TOGGLE_SOURCE_PANEL", "SET_SOURCE_PANEL"].includes(message?.type)) return;

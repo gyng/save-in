@@ -1,4 +1,5 @@
 import type { PageSource, SourcePanelOptions } from "./source-panel-model.ts";
+import type { PageSourceKind } from "../shared/page-source.ts";
 
 export const PANEL_HOST_ID = "save-in-source-panel";
 
@@ -11,6 +12,11 @@ export type SourcePanelDownload = (source: PageSource) => void | boolean | Promi
 export const panelUpdates = new WeakMap<
   HTMLElement,
   (sendDownload: SourcePanelDownload, options: SourcePanelOptions) => void
+>();
+// Routes background webRequest media pushes to the live panel instance's merge.
+export const panelScriptMedia = new WeakMap<
+  HTMLElement,
+  (sources: Array<{ url: string; kind: PageSourceKind }>) => void
 >();
 
 export let activePanelHost: HTMLElement | null = null;
@@ -27,6 +33,7 @@ export const cleanupPanelHost = (host: HTMLElement) => {
   panelRoots.delete(host);
   panelOpenChanges.delete(host);
   panelUpdates.delete(host);
+  panelScriptMedia.delete(host);
   if (activePanelHost === host) activePanelHost = null;
 };
 

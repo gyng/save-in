@@ -13,6 +13,7 @@ import {
   type PageSource,
   type PageSourceCandidate,
 } from "./source-panel-model.ts";
+import type { PageSourceKind } from "../shared/page-source.ts";
 import { PANEL_HOST_ID, cleanupPanelHost, panelOpenChanges } from "./source-panel-host.ts";
 import type { SourcePanelContext } from "./source-panel-context.ts";
 
@@ -34,16 +35,26 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
   let sourceCandidates: PageSourceCandidate[] = [];
   let backgroundCandidates: PageSourceCandidate[] = [];
   let resourceHintSources: PageSourceCandidate[] = [];
+  // Opt-in script-loaded media pushed by the background webRequest collector.
+  // Push-accumulated (not rebuilt on refresh) and URL-only like resource hints.
+  let scriptMediaSources: PageSourceCandidate[] = [];
   let sourcesByUrl = new Map<string, PageSource>();
   // Stream rows exist only as projections of timingByUrl: full refreshes
   // rebuild resourceHintSources from that map, so letting recency eviction
   // drop a manifest entry would also drop its discovered row and prune its
   // selection. Both backing sets are bounded by discovered sources.
   const pinnedTimingUrl = (url: string): boolean =>
-    ctx.selectedSourceUrls.has(url) || resourceHintSources.some((source) => source.url === url);
+    ctx.selectedSourceUrls.has(url) ||
+    resourceHintSources.some((source) => source.url === url) ||
+    scriptMediaSources.some((source) => source.url === url);
   const firstSeen = new Map<string, { at: number; order: number }>();
   const commitSources = () => {
-    const candidates = [sourceCandidates, backgroundCandidates, resourceHintSources].flat();
+    const candidates = [
+      sourceCandidates,
+      backgroundCandidates,
+      resourceHintSources,
+      scriptMediaSources,
+    ].flat();
     // A candidate that becomes the representative only after its duplicate is
     // removed still needs metadata observed since it was first collected.
     candidates.forEach((source) => {
@@ -409,7 +420,26 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
     }
   };
 
+  const addScriptMediaSources = (sources: Array<{ url: string; kind: PageSourceKind }>) => {
+    const known = new Set(scriptMediaSources.map((source) => source.url));
+    let added = false;
+    for (const { url, kind } of sources) {
+      if (!url || known.has(url)) continue;
+      known.add(url);
+      added = true;
+      scriptMediaSources.push({
+        url,
+        kind,
+        element: document.body,
+        collectorOriginElements: [],
+        channel: "resource-hint",
+      });
+    }
+    if (added) commitSources();
+  };
+
   ctx.refreshSources = refreshSources;
+  ctx.addScriptMediaSources = addScriptMediaSources;
   ctx.configureLiveObservers = configureLiveObservers;
   ctx.resyncResourceTiming = () =>
     mergeResourceTimings(timingByUrl, resourceTimingByUrl().values(), pinnedTimingUrl);

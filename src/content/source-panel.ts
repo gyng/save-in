@@ -1,4 +1,5 @@
 import type { SourcePanelOptions } from "./source-panel-model.ts";
+import type { PageSourceKind } from "../shared/page-source.ts";
 export { resetSourcePanelLayoutForTesting } from "./source-panel-layout.ts";
 import { loadSourceSort } from "./source-panel-layout.ts";
 import { resolvedPanelTheme } from "./source-panel-format.ts";
@@ -9,6 +10,7 @@ import {
   panelPreviousFocus,
   panelRoots,
   panelUpdates,
+  panelScriptMedia,
   activePanelHost,
   setActivePanelHost,
   cancelPanelRemoval,
@@ -173,6 +175,7 @@ export const toggleSourcePanel = (
 
   panelCleanups.set(host, () => ctx.cleanupTasks.forEach((task) => task()));
   panelUpdates.set(host, buildPanelUpdate(ctx));
+  panelScriptMedia.set(host, ctx.addScriptMediaSources);
 
   ctx.configureLiveObservers();
   ctx.resyncResourceTiming();
@@ -180,6 +183,16 @@ export const toggleSourcePanel = (
   loadSourceSort(ctx.applyStoredSortPreference);
   ctx.filter.focus();
   return true;
+};
+
+// Merge opt-in script-loaded media (from the background webRequest collector)
+// into the live panel, if one is open. No-ops when the panel is closed; the
+// background replays the tab's buffer on the next SOURCE_PANEL_STATE open.
+export const mergeScriptMediaSources = (
+  sources: Array<{ url: string; kind: PageSourceKind }>,
+): void => {
+  const host = activePanelHost?.isConnected ? activePanelHost : null;
+  if (host) panelScriptMedia.get(host)?.(sources);
 };
 
 export const replaceSourcePanel = (

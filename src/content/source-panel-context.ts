@@ -15,6 +15,7 @@
 // in dependency order, before toggleSourcePanel returns; nothing reads a
 // placeholder after setup because no panel event can fire until then.
 import type { PageSource, SourcePanelOptions, SourceSort } from "./source-panel-model.ts";
+import type { PageSourceKind } from "../shared/page-source.ts";
 import type { SourcePanelCopy } from "../shared/source-panel-copy.ts";
 import { DEFAULT_SOURCE_PANEL_COPY } from "../shared/source-panel-copy.ts";
 import { DEFAULT_SOURCE_PANEL_LAYOUT, type SourcePanelLayout } from "./source-panel-layout.ts";
@@ -101,6 +102,9 @@ export type SourcePanelContext = {
   refreshSources: () => void;
   configureLiveObservers: () => void;
   resyncResourceTiming: () => void;
+  // Background webRequest collector → merge opt-in script-loaded media (URL-only,
+  // resource-hint channel) into the panel.
+  addScriptMediaSources: (sources: Array<{ url: string; kind: PageSourceKind }>) => void;
 
   rowCache: Map<string, CachedRow>;
   deactivateAndRemove: (cached: CachedRow) => void;
@@ -192,6 +196,7 @@ export const createSourcePanelContext = (
   refreshSources: noop,
   configureLiveObservers: noop,
   resyncResourceTiming: noop,
+  addScriptMediaSources: noop,
 
   rowCache: new Map(),
   deactivateAndRemove: noop,

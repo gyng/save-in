@@ -9,6 +9,7 @@
 // risk mis-filing or duplicating coverage that currently passes at 100%.
 import {
   getSourcePanelHostForTesting,
+  mergeScriptMediaSources,
   replaceSourcePanel,
   resetSourcePanelLayoutForTesting,
   setSourcePanelOpen,
@@ -3053,5 +3054,43 @@ describe("Page Sources panel interactions", () => {
     action.click();
     await vi.advanceTimersByTimeAsync(0);
     expect(action.textContent).toContain("failed");
+  });
+});
+
+describe("script-media merge (background webRequest push)", () => {
+  afterEach(() => document.getElementById("save-in-source-panel")?.remove());
+
+  test("merges pushed script media into the open panel", () => {
+    document.body.innerHTML = "";
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    mergeScriptMediaSources([{ url: "https://cdn.test/live/master.m3u8", kind: "stream" }]);
+
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const streams = [...shadow.querySelectorAll('li[data-kind="stream"]')];
+    expect(streams).toHaveLength(1);
+    const hrefs = [...shadow.querySelectorAll<HTMLAnchorElement>("a[href]")].map((a) => a.href);
+    expect(hrefs).toContain("https://cdn.test/live/master.m3u8");
+  });
+
+  test("dedupes a script-media url already surfaced", () => {
+    document.body.innerHTML = "";
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const source = { url: "https://cdn.test/a.m3u8", kind: "stream" as const };
+    mergeScriptMediaSources([source]);
+    mergeScriptMediaSources([source]);
+
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    expect(shadow.querySelectorAll('li[data-kind="stream"]')).toHaveLength(1);
+  });
+
+  test("does not merge into a disconnected panel", () => {
+    document.body.innerHTML = "";
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const host = getSourcePanelHostForTesting()!;
+    host.remove();
+    expect(() =>
+      mergeScriptMediaSources([{ url: "https://cdn.test/x.m3u8", kind: "stream" }]),
+    ).not.toThrow();
+    expect(host.shadowRoot!.querySelectorAll('li[data-kind="stream"]')).toHaveLength(0);
   });
 });
