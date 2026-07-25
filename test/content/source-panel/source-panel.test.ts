@@ -3093,4 +3093,43 @@ describe("script-media merge (background webRequest push)", () => {
     ).not.toThrow();
     expect(host.shadowRoot!.querySelectorAll('li[data-kind="stream"]')).toHaveLength(0);
   });
+
+  test("keeps a merged script-media stream through a resource-timing segment flood", () => {
+    vi.useFakeTimers();
+    let performanceCallback: PerformanceObserverCallback | undefined;
+    class PerformanceObserverStub {
+      constructor(callback: PerformanceObserverCallback) {
+        performanceCallback = callback;
+      }
+      observe = vi.fn();
+      disconnect = vi.fn();
+      takeRecords = vi.fn(() => []);
+    }
+    vi.stubGlobal("PerformanceObserver", PerformanceObserverStub);
+    document.body.innerHTML = "";
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true, resourceHints: true });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+
+    // The stream is known only from the collector, not the DOM or timing map.
+    mergeScriptMediaSources([{ url: "https://cdn.test/live/master.m3u8", kind: "stream" }]);
+
+    // Overflow the timing cap so the eviction path runs and consults
+    // pinnedTimingUrl per candidate url. Segments classify as "link", so they
+    // are not resource-hints and the predicate falls through to its script-media
+    // operand — the branch under test.
+    performanceCallback!(
+      {
+        getEntries: () =>
+          Array.from({ length: SOURCE_PANEL_RESOURCE_TIMING_LIMIT + 5 }, (_, index) => ({
+            name: `https://cdn.test/live/segment-${index}.ts`,
+          })),
+      } as unknown as PerformanceObserverEntryList,
+      {} as PerformanceObserver,
+    );
+    vi.advanceTimersByTime(200);
+
+    const hrefs = [...shadow.querySelectorAll<HTMLAnchorElement>("a[href]")].map((a) => a.href);
+    expect(hrefs).toContain("https://cdn.test/live/master.m3u8");
+    vi.useRealTimers();
+  });
 });

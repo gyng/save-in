@@ -22,6 +22,7 @@ import {
   setupGlobals,
   waitForCall,
 } from "./messaging.fixture.ts";
+import * as ScriptMediaCollector from "../../../src/background/script-media-collector.ts";
 
 beforeEach(() => setupGlobals());
 
@@ -1472,6 +1473,30 @@ describe("onMessage", () => {
     await waitForCall(sendResponse);
     expect(SourcePanelState.setSourcePanelOpenState).toHaveBeenCalledWith(false);
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
+  });
+
+  test("SOURCE_PANEL_STATE replays buffered script media only when a tab opens the panel", async () => {
+    const push = vi.spyOn(ScriptMediaCollector, "pushBufferedScriptMedia").mockReturnValue();
+    try {
+      // Opening from a real tab replays that tab's pre-panel media.
+      const opened = vi.fn();
+      onMessage(
+        { type: MESSAGE_TYPES.SOURCE_PANEL_STATE, body: { open: true } },
+        { tab: { id: 8 } },
+        opened,
+      );
+      await waitForCall(opened);
+      expect(push).toHaveBeenCalledWith(8);
+
+      // Opening without a sender tab has nowhere to replay into.
+      push.mockClear();
+      const tabless = vi.fn();
+      onMessage({ type: MESSAGE_TYPES.SOURCE_PANEL_STATE, body: { open: true } }, {}, tabless);
+      await waitForCall(tabless);
+      expect(push).not.toHaveBeenCalled();
+    } finally {
+      push.mockRestore();
+    }
   });
 
   test("CREATE_SOURCE_RULE stores a disabled domain-scoped draft and opens Options", async () => {

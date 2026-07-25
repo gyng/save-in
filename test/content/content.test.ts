@@ -890,6 +890,49 @@ describe("content.js initialisation", () => {
     expect(document.getElementById("save-in-source-panel")?.classList).toContain("closing");
   });
 
+  test("merges SCRIPT_MEDIA_DETECTED pushes into the open panel and drops malformed entries", async () => {
+    document.getElementById("save-in-source-panel")?.remove();
+    document.body.innerHTML = "";
+    let runtimeListener: ((message: any) => void) | undefined;
+    vi.resetModules();
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({ sourcePanelEnabled: true, sourcePanelBackgrounds: false }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+    await import("../../src/content/content.ts");
+
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+    const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
+
+    // A non-array body and all-malformed entries are ignored, never thrown.
+    runtimeListener!({ type: "SCRIPT_MEDIA_DETECTED", body: { sources: "nope" } });
+    runtimeListener!({
+      type: "SCRIPT_MEDIA_DETECTED",
+      body: { sources: [{ url: 42 }, { kind: "stream" }, { url: "x", kind: "bogus" }] },
+    });
+    expect(shadow.querySelectorAll("li[data-kind]")).toHaveLength(0);
+
+    // A valid entry renders; an invalid entry pushed alongside it is dropped.
+    runtimeListener!({
+      type: "SCRIPT_MEDIA_DETECTED",
+      body: {
+        sources: [
+          { url: "https://cdn.test/live/master.m3u8", kind: "stream" },
+          { url: "https://cdn.test/bad", kind: "not-a-kind" },
+        ],
+      },
+    });
+    expect(shadow.querySelectorAll('li[data-kind="stream"]')).toHaveLength(1);
+    const hrefs = [...shadow.querySelectorAll<HTMLAnchorElement>("a[href]")].map((a) => a.href);
+    expect(hrefs).toContain("https://cdn.test/live/master.m3u8");
+
+    document.getElementById("save-in-source-panel")?.remove();
+  });
+
   test("keeps an ambient state restore gated on a disabled page", async () => {
     document.getElementById("save-in-source-panel")?.remove();
     let runtimeListener: ((message: any) => void) | undefined;

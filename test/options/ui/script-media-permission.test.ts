@@ -105,6 +105,53 @@ describe("initScriptMediaPermission", () => {
     expect(box.checked).toBe(true);
   });
 
+  test("keeps a stored on when contains() rejects (cannot verify → do not fight it)", async () => {
+    withPerms(true, { contains: vi.fn(() => Promise.reject(new Error("api error"))) });
+    const box = checkbox(true);
+    await initScriptMediaPermission(box);
+    expect(box.checked).toBe(true);
+  });
+
+  test("toggling off on a host without a remove() API does not throw", async () => {
+    withPerms(true);
+    Reflect.deleteProperty(global.browser.permissions as any, "remove");
+    const box = checkbox(true);
+    await initScriptMediaPermission(box);
+
+    box.checked = false;
+    expect(() => box.dispatchEvent(new Event("change"))).not.toThrow();
+  });
+
+  test("swallows a failed permission removal on toggle-off", async () => {
+    withPerms(true, { remove: vi.fn(() => Promise.reject(new Error("nope"))) });
+    const box = checkbox(true);
+    await initScriptMediaPermission(box);
+
+    box.checked = false;
+    box.dispatchEvent(new Event("change"));
+    await Promise.resolve();
+    expect(global.browser.permissions.remove).toHaveBeenCalledWith({ permissions: ["webRequest"] });
+  });
+
+  test("leaves the toggle on when onRemoved fires but webRequest is still held", async () => {
+    let revoke: () => void = () => {};
+    withPerms(true, {
+      contains: vi.fn(() => Promise.resolve(true)), // an unrelated permission was removed
+      onRemoved: {
+        addListener: (fn: () => void) => {
+          revoke = fn;
+        },
+      },
+    });
+    const box = checkbox(true);
+    await initScriptMediaPermission(box);
+
+    revoke();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(box.checked).toBe(true);
+  });
+
   test("reverts when the permission is revoked while the page is open", async () => {
     let held = true;
     let revoke: () => void = () => {};

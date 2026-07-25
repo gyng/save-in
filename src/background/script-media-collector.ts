@@ -100,7 +100,9 @@ const doHydrate = async (): Promise<void> => {
       for (const entry of entries as MediaEntry[]) {
         if (entry && typeof entry.url === "string") map.set(entry.url, entry.kind);
       }
-      if (map.size && !buffers.has(tabId)) buffers.set(tabId, map);
+      // Every caller awaits the shared hydrate promise before touching buffers,
+      // so nothing has populated this tab yet — a plain set, no has() guard.
+      if (map.size) buffers.set(tabId, map);
     }
   } catch {
     // No session storage (older hosts): the in-memory buffer alone still works.
@@ -122,7 +124,6 @@ const persist = async (): Promise<void> => {
 };
 
 const send = (tabId: number, sources: MediaEntry[]): void => {
-  if (!sources.length) return;
   try {
     void webExtensionApi.tabs
       .sendMessage(tabId, { type: MESSAGE_TYPES.SCRIPT_MEDIA_DETECTED, body: { sources } })
@@ -134,9 +135,11 @@ const send = (tabId: number, sources: MediaEntry[]): void => {
 
 const flush = (): void => {
   flushTimer = null;
-  for (const [tabId, urls] of pending) {
-    const map = buffers.get(tabId);
-    if (!map) continue;
+  // Iterate buffers (each map is definitely present) and cross-reference the
+  // per-tab pending set — a tab may hold media yet have no new urls this tick.
+  for (const [tabId, map] of buffers) {
+    const urls = pending.get(tabId);
+    if (!urls) continue;
     const sources: MediaEntry[] = [];
     for (const url of urls) {
       const kind = map.get(url);
@@ -155,16 +158,18 @@ const scheduleFlush = (): void => {
 
 // Evict the oldest entry, preferring non-stream media so a manifest survives a
 // flood of ordinary media requests. Streams go only when nothing else remains.
+// Eviction runs only on overflow, so the loop always executes and assigns a
+// victim; a URL is never "", so that sentinel just means "not yet chosen".
 const evictOldest = (map: Map<string, PageSourceKind>): void => {
-  let fallback: string | undefined;
+  let victim = "";
   for (const [url, kind] of map) {
+    if (victim === "") victim = url; // oldest entry (first iteration)
     if (kind !== "stream") {
-      map.delete(url);
-      return;
+      victim = url; // the oldest non-stream is the better victim
+      break;
     }
-    if (fallback === undefined) fallback = url;
   }
-  if (fallback !== undefined) map.delete(fallback);
+  map.delete(victim);
 };
 
 const record = (tabId: number, url: string, requestType: string): void => {

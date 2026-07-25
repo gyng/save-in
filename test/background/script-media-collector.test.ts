@@ -225,3 +225,248 @@ test("closing a tab drops its session-stored media on a cold worker (no reuse le
   await new Promise((r) => setTimeout(r, 50));
   expect(browser.tabs.sendMessage).not.toHaveBeenCalled();
 });
+
+test("clears a pending flush timer when the collector is torn down mid-debounce", async () => {
+  const { listener } = await setup();
+  listener!({ url: "https://cdn.example/live.m3u8", tabId: 3, type: "xmlhttprequest" });
+  // Drain the hydrate → record microtasks so the 300ms flush is scheduled but
+  // has not yet fired.
+  for (let i = 0; i < 6; i += 1) await Promise.resolve();
+
+  // Revoke before the flush fires; stopListening must clear the pending timer.
+  (browser as any).permissions.contains = vi.fn(() => Promise.resolve(false));
+  ((browser as any).permissions.onRemoved.addListener.mock.calls[0][0] as () => void)();
+  for (let i = 0; i < 6; i += 1) await Promise.resolve();
+
+  await new Promise((r) => setTimeout(r, 350));
+  expect(browser.tabs.sendMessage).not.toHaveBeenCalled();
+});
+
+test("tears down when onRemoved fires and contains() is unavailable", async () => {
+  const { onBeforeRequest } = await setup();
+  (browser as any).permissions.contains = undefined;
+
+  ((browser as any).permissions.onRemoved.addListener.mock.calls[0][0] as () => void)();
+  expect(onBeforeRequest.removeListener).toHaveBeenCalled();
+});
+
+const replayBuffer = async (
+  mod: { pushBufferedScriptMedia: (id: number) => void },
+  tabId: number,
+) => {
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+  vi.mocked(browser.tabs.sendMessage).mockClear();
+  mod.pushBufferedScriptMedia(tabId);
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+  return lastSend()![1].body.sources as Array<{ url: string; kind: string }>;
+};
+
+test("caps a tab's buffer, evicting the oldest non-stream first", async () => {
+  const { listener, mod } = await setup();
+  for (let i = 0; i < 257; i += 1) {
+    listener!({ url: `https://cdn.example/v${i}.mp4`, tabId: 2, type: "media" });
+  }
+  const sources = await replayBuffer(mod, 2);
+  expect(sources).toHaveLength(256);
+  // The oldest video was evicted; the newest survives.
+  expect(sources.some((s) => s.url === "https://cdn.example/v0.mp4")).toBe(false);
+  expect(sources.some((s) => s.url === "https://cdn.example/v256.mp4")).toBe(true);
+});
+
+test("evicts the oldest stream only when every buffered entry is a stream", async () => {
+  const { listener, mod } = await setup();
+  for (let i = 0; i < 257; i += 1) {
+    listener!({ url: `https://cdn.example/s${i}.m3u8`, tabId: 4, type: "xmlhttprequest" });
+  }
+  const sources = await replayBuffer(mod, 4);
+  expect(sources).toHaveLength(256);
+  expect(sources.every((s) => s.kind === "stream")).toBe(true);
+  expect(sources.some((s) => s.url === "https://cdn.example/s0.m3u8")).toBe(false);
+});
+
+test("refreshes recency for a repeated url without duplicating it", async () => {
+  const { listener, mod } = await setup();
+  listener!({ url: "https://cdn.example/dup.mp4", tabId: 6, type: "media" });
+  listener!({ url: "https://cdn.example/dup.mp4", tabId: 6, type: "media" });
+  const sources = await replayBuffer(mod, 6);
+  expect(sources).toHaveLength(1);
+});
+
+const drain = async () => {
+  await Promise.resolve();
+  await Promise.resolve();
+};
+
+const fireOnRemoved = () =>
+  ((browser as any).permissions.onRemoved.addListener.mock.calls[0][0] as () => void)();
+
+test("keeps observing when onRemoved fires but webRequest is still held", async () => {
+  const { onBeforeRequest } = await setup(); // contains() defaults to true
+  fireOnRemoved();
+  await drain();
+  expect(onBeforeRequest.removeListener).not.toHaveBeenCalled();
+});
+
+test("re-attaches the listener when the permission is granted again after a revoke", async () => {
+  const { onBeforeRequest } = await setup();
+  (browser as any).permissions.contains = vi.fn(() => Promise.resolve(false));
+  fireOnRemoved();
+  await drain();
+  expect(onBeforeRequest.removeListener).toHaveBeenCalledTimes(1);
+
+  onBeforeRequest.addListener.mockClear();
+  ((browser as any).permissions.onAdded.addListener.mock.calls[0][0] as () => void)();
+  expect(onBeforeRequest.addListener).toHaveBeenCalledTimes(1);
+});
+
+test("a second revoke after teardown is a no-op", async () => {
+  const { onBeforeRequest } = await setup();
+  (browser as any).permissions.contains = vi.fn(() => Promise.resolve(false));
+  fireOnRemoved();
+  await drain();
+  fireOnRemoved(); // listening is already false → early return
+  await drain();
+  expect(onBeforeRequest.removeListener).toHaveBeenCalledTimes(1);
+});
+
+test("teardown is a safe no-op when the webRequest API is already gone", async () => {
+  await setup();
+  Reflect.deleteProperty(browser as any, "webRequest");
+  (browser as any).permissions.contains = undefined;
+  expect(() => fireOnRemoved()).not.toThrow();
+});
+
+test("tolerates a host without storage.session", async () => {
+  const { listener } = await setup();
+  const session = (browser as any).storage.session;
+  (browser as any).storage.session = undefined;
+  try {
+    listener!({ url: "https://cdn.example/a.m3u8", tabId: 1, type: "xmlhttprequest" });
+    await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+  } finally {
+    (browser as any).storage.session = session;
+  }
+});
+
+test("drops malformed stored entries during rehydrate", async () => {
+  const { mod } = await setup();
+  vi.mocked(browser.storage.session.get).mockResolvedValue({
+    [SCRIPT_MEDIA_BY_TAB_SESSION_KEY]: {
+      notanumber: [{ url: "https://x.example/a.m3u8", kind: "stream" }],
+      "1": "not-an-array",
+      "2": [{ kind: "stream" }, { url: 5 }, null],
+      "3": [{ url: "https://ok.example/a.m3u8", kind: "stream" }],
+    },
+  } as any);
+
+  mod.pushBufferedScriptMedia(3);
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+  expect(lastSend()![1].body.sources).toEqual([
+    { url: "https://ok.example/a.m3u8", kind: "stream" },
+  ]);
+});
+
+test("survives a failed rehydrate read", async () => {
+  const { listener } = await setup();
+  vi.mocked(browser.storage.session.get).mockRejectedValue(new Error("read failed"));
+  listener!({ url: "https://cdn.example/a.m3u8", tabId: 1, type: "xmlhttprequest" });
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+});
+
+test("survives a failed persist write", async () => {
+  const { listener } = await setup();
+  vi.mocked(browser.storage.session.set).mockRejectedValue(new Error("write failed"));
+  listener!({ url: "https://cdn.example/a.m3u8", tabId: 1, type: "xmlhttprequest" });
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+});
+
+test("survives a synchronous sendMessage failure", async () => {
+  const { listener } = await setup();
+  vi.mocked(browser.tabs.sendMessage).mockImplementation(() => {
+    throw new Error("no receiver");
+  });
+  listener!({ url: "https://cdn.example/a.m3u8", tabId: 1, type: "xmlhttprequest" });
+  await new Promise((r) => setTimeout(r, 350));
+  expect(browser.tabs.sendMessage).toHaveBeenCalled();
+});
+
+test("swallows an async sendMessage rejection", async () => {
+  const { listener } = await setup();
+  vi.mocked(browser.tabs.sendMessage).mockRejectedValue(new Error("no tab"));
+  listener!({ url: "https://cdn.example/a.m3u8", tabId: 1, type: "xmlhttprequest" });
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+  await Promise.resolve(); // let the .catch() settle
+});
+
+test("flushes only tabs with new media, skipping already-flushed tabs", async () => {
+  const { listener } = await setup();
+  listener!({ url: "https://cdn.example/a.m3u8", tabId: 1, type: "xmlhttprequest" });
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+  vi.mocked(browser.tabs.sendMessage).mockClear();
+
+  // Tab 1 stays in buffers but has no new urls; tab 2 records. The next flush
+  // iterates both and skips tab 1 (no pending urls this tick).
+  listener!({ url: "https://cdn.example/b.m3u8", tabId: 2, type: "xmlhttprequest" });
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+  const tabs = vi.mocked(browser.tabs.sendMessage).mock.calls.map((c) => c[0]);
+  expect(tabs).toContain(2);
+  expect(tabs).not.toContain(1);
+});
+
+test("pushBufferedScriptMedia does nothing while the feature is off", async () => {
+  const { mod } = await setup({ sourcePanelScriptMedia: false });
+  mod.pushBufferedScriptMedia(1);
+  await new Promise((r) => setTimeout(r, 50));
+  expect(browser.tabs.sendMessage).not.toHaveBeenCalled();
+});
+
+test("a navigation on a tab with no buffered media is a harmless no-op", async () => {
+  const { listener } = await setup();
+  listener!({ url: "https://example.com/", tabId: 99, type: "main_frame" });
+  await new Promise((r) => setTimeout(r, 50));
+  expect(browser.tabs.sendMessage).not.toHaveBeenCalled();
+  expect(browser.storage.session.set).not.toHaveBeenCalled();
+});
+
+// Freezes the hydrate storage read so a teardown can be interleaved before the
+// deferred drop callback runs, exercising its generation guard's skip path.
+const frozenHydrate = () => {
+  let resolveGet: (value: Record<string, unknown>) => void = () => {};
+  vi.mocked(browser.storage.session.get).mockReturnValue(
+    new Promise<Record<string, unknown>>((resolve) => {
+      resolveGet = resolve;
+    }),
+  );
+  return () => resolveGet({});
+};
+
+test("drops a main_frame reset queued before a mid-hydrate teardown", async () => {
+  const { listener } = await setup();
+  const release = frozenHydrate();
+  listener!({ url: "https://new.example/", tabId: 3, type: "main_frame" });
+
+  (browser as any).permissions.contains = vi.fn(() => Promise.resolve(false));
+  fireOnRemoved();
+  await drain();
+
+  release();
+  await new Promise((r) => setTimeout(r, 20));
+  expect(browser.storage.session.set).not.toHaveBeenCalled();
+});
+
+test("drops a tab-close reset queued before a mid-hydrate teardown", async () => {
+  await setup();
+  const release = frozenHydrate();
+  const onTabRemoved = (browser as any).tabs.onRemoved.addListener.mock.calls[0][0] as (
+    id: number,
+  ) => void;
+  onTabRemoved(3);
+
+  (browser as any).permissions.contains = vi.fn(() => Promise.resolve(false));
+  fireOnRemoved();
+  await drain();
+
+  release();
+  await new Promise((r) => setTimeout(r, 20));
+  expect(browser.storage.session.set).not.toHaveBeenCalled();
+});
