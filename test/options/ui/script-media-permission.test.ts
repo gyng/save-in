@@ -80,6 +80,113 @@ describe("initScriptMediaPermission", () => {
     expect(box.checked).toBe(true);
   });
 
+  test("removes a permission granted after the user already toggled the feature off", async () => {
+    let resolveRequest: (granted: boolean) => void = () => {};
+    withPerms(false, {
+      request: vi.fn(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveRequest = resolve;
+          }),
+      ),
+    });
+    const box = checkbox(false);
+    await initScriptMediaPermission(box);
+
+    box.checked = true;
+    box.dispatchEvent(new Event("change"));
+    box.checked = false;
+    box.dispatchEvent(new Event("change"));
+    resolveRequest(true);
+    await vi.waitFor(() => expect(global.browser.permissions.remove).toHaveBeenCalledTimes(2));
+
+    expect(box.checked).toBe(false);
+  });
+
+  test("ignores a stale rejected request after a later opt-in succeeds", async () => {
+    let rejectFirst: (error: Error) => void = () => {};
+    let resolveSecond: (granted: boolean) => void = () => {};
+    withPerms(false, {
+      request: vi
+        .fn<() => Promise<boolean>>()
+        .mockReturnValueOnce(
+          new Promise<boolean>((_resolve, reject) => {
+            rejectFirst = reject;
+          }),
+        )
+        .mockReturnValueOnce(
+          new Promise<boolean>((resolve) => {
+            resolveSecond = resolve;
+          }),
+        ),
+    });
+    const box = checkbox(false);
+    await initScriptMediaPermission(box);
+
+    box.checked = true;
+    box.dispatchEvent(new Event("change"));
+    box.checked = false;
+    box.dispatchEvent(new Event("change"));
+    box.checked = true;
+    box.dispatchEvent(new Event("change"));
+    resolveSecond(true);
+    rejectFirst(new Error("stale denial"));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(box.checked).toBe(true);
+  });
+
+  test("ignores a stale denied request after a later opt-in succeeds", async () => {
+    let resolveFirst: (granted: boolean) => void = () => {};
+    withPerms(false, {
+      request: vi
+        .fn<() => Promise<boolean>>()
+        .mockReturnValueOnce(
+          new Promise<boolean>((resolve) => {
+            resolveFirst = resolve;
+          }),
+        )
+        .mockResolvedValueOnce(true),
+    });
+    const box = checkbox(false);
+    await initScriptMediaPermission(box);
+
+    box.checked = true;
+    box.dispatchEvent(new Event("change"));
+    box.checked = false;
+    box.dispatchEvent(new Event("change"));
+    box.checked = true;
+    box.dispatchEvent(new Event("change"));
+    resolveFirst(false);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(box.checked).toBe(true);
+  });
+
+  test("ignores a stale initial missing-permission result after the user opts in", async () => {
+    let resolveContains: (granted: boolean) => void = () => {};
+    withPerms(false, {
+      contains: vi.fn(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveContains = resolve;
+          }),
+      ),
+    });
+    const box = checkbox(false);
+    const initialized = initScriptMediaPermission(box);
+
+    box.checked = true;
+    box.dispatchEvent(new Event("change"));
+    await Promise.resolve();
+    resolveContains(false);
+    await initialized;
+
+    expect(box.checked).toBe(true);
+  });
+
   test("removes the permission (not requests one) when the toggle is turned off", async () => {
     withPerms(true);
     const box = checkbox(true);

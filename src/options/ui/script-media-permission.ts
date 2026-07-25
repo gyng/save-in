@@ -44,6 +44,7 @@ const hasWebRequest = (): Promise<boolean> => {
 export const initScriptMediaPermission = (checkbox: HTMLInputElement | null): Promise<void> => {
   if (!checkbox) return Promise.resolve();
   const api = permissionsApi();
+  let changeGeneration = 0;
 
   // Turn the toggle off and let the shared autosave listener persist it.
   const revert = (): void => {
@@ -52,33 +53,49 @@ export const initScriptMediaPermission = (checkbox: HTMLInputElement | null): Pr
     checkbox.dispatchEvent(new Event("change", { bubbles: true }));
   };
 
+  const removePermission = (): void => {
+    if (api?.remove) void api.remove(WEBREQUEST_PERMISSION).catch(() => {});
+  };
+
   checkbox.addEventListener("change", () => {
+    const requestGeneration = (changeGeneration += 1);
     if (!api) return; // no permissions API: leave as-is
     if (!checkbox.checked) {
       // Drop the permission when the feature is turned off so the background
       // listener tears down and re-enabling asks for consent again.
-      if (api.remove) void api.remove(WEBREQUEST_PERMISSION).catch(() => {});
+      removePermission();
       return;
     }
     api.request(WEBREQUEST_PERMISSION).then(
       (granted) => {
+        if (requestGeneration !== changeGeneration || !checkbox.checked) {
+          // A late grant after the user turned the feature off must not leave
+          // the optional permission held behind an unchecked control. If the
+          // latest state is on, a newer request owns the same grant.
+          if (granted && !checkbox.checked) removePermission();
+          return;
+        }
         if (!granted) revert();
       },
-      () => revert(),
+      () => {
+        if (requestGeneration === changeGeneration && checkbox.checked) revert();
+      },
     );
   });
 
   if (api && api.onRemoved) {
     api.onRemoved.addListener(() => {
+      const removalGeneration = changeGeneration;
       hasWebRequest().then((granted) => {
-        if (!granted) revert();
+        if (!granted && removalGeneration === changeGeneration) revert();
       });
     });
   }
 
   // Self-heal a stored "on" whose permission was revoked out of band.
+  const initialGeneration = changeGeneration;
   return hasWebRequest().then((granted) => {
-    if (!granted) revert();
+    if (!granted && initialGeneration === changeGeneration) revert();
   });
 };
 
