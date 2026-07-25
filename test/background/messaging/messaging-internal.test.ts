@@ -1302,6 +1302,64 @@ describe("onMessage", () => {
     });
   });
 
+  test("HISTORY_CANCEL does not overwrite an existing browser failure", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      { id: "history-failed", url: "https://x.test/file", downloadId: 24 },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      {
+        id: 24,
+        state: "interrupted",
+        error: "NETWORK_FAILED",
+        url: "https://x.test/file",
+      } as any,
+    ]);
+    const sendResponse = vi.fn();
+
+    onMessage(
+      { type: MESSAGE_TYPES.HISTORY_CANCEL, body: { historyId: "history-failed" } },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(global.browser.downloads.cancel).toHaveBeenCalledWith(24);
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_CANCEL,
+      body: { canceled: true },
+    });
+  });
+
+  test("HISTORY_CANCEL preserves a failure that raced active-transfer cleanup", async () => {
+    vi.mocked(ActiveTransfers.getActiveTransfer).mockReturnValue({
+      downloadId: 25,
+      updatedAt: 1,
+    });
+    vi.mocked(ActiveTransfers.cancelActiveTransfer).mockReturnValue(true);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      {
+        id: 25,
+        state: "interrupted",
+        error: "SERVER_FAILED",
+      } as any,
+    ]);
+    const sendResponse = vi.fn();
+
+    onMessage(
+      { type: MESSAGE_TYPES.HISTORY_CANCEL, body: { historyId: "history-active-failed" } },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_CANCEL,
+      body: { canceled: true },
+    });
+  });
+
   test("HISTORY_CANCEL refuses a stored download id that no longer names its download", async () => {
     // Firefox reassigns download ids per session while history keeps them, so a
     // row left pending by a restart can name a download the user started later.

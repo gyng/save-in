@@ -188,10 +188,13 @@ const internalHandlers = {
         await webExtensionApi.downloads.cancel(downloadId);
         canceled = true;
         const [item] = await webExtensionApi.downloads.search({ id: downloadId });
-        // cancel() also resolves for complete, interrupted, or vanished items.
-        // Never overwrite a real completion merely because the promise resolved.
+        // cancel() also resolves for complete, already-failed, or vanished
+        // items. Only USER_CANCELED proves this request stopped a persisted
+        // browser transfer; an active in-memory transfer separately proves
+        // its preparation controller was aborted.
         shouldRecordCanceled =
-          item?.state === "interrupted" || Boolean(active && item?.state !== "complete");
+          (item?.state === "interrupted" && item.error === "USER_CANCELED") ||
+          Boolean(active && item?.state !== "complete" && item?.state !== "interrupted");
       } catch {
         // The browser may have completed between the History poll and click.
       }
