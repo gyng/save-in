@@ -582,6 +582,29 @@ describe("config API", () => {
     });
   });
 
+  test("APPLY_CONFIG synchronizes the script-media permission boundary", async () => {
+    (OptionsManagement.OPTION_KEYS as unknown as Array<Record<string, unknown>>).push({
+      name: "sourcePanelScriptMedia",
+      type: "BOOL",
+      default: false,
+    });
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.APPLY_CONFIG,
+        body: { config: { sourcePanelScriptMedia: true } },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(sendResponse.mock.calls[0]![0]!.body.applied).toEqual({
+      sourcePanelScriptMedia: true,
+    });
+  });
+
   test("APPLY_CONFIG atomically rejects a stale expected value", async () => {
     vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce({ prompt: false });
     const sendResponse = vi.fn();

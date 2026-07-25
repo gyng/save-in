@@ -260,6 +260,18 @@ const SOURCE_PDF = Buffer.from(
 
 const startSourcePanelServer = async () => {
   const server = http.createServer((req, res) => {
+    if (req.url?.startsWith("/script-media-worker.js")) {
+      res.writeHead(200, { "Content-Type": "application/javascript" });
+      res.end(
+        `fetch("/script-only.m3u8").then(() => postMessage("done"), (error) => postMessage(String(error)))`,
+      );
+      return;
+    }
+    if (req.url === "/script-only.m3u8") {
+      res.writeHead(200, { "Content-Type": "application/vnd.apple.mpegurl" });
+      res.end("#EXTM3U\n#EXT-X-VERSION:3\n");
+      return;
+    }
     if (req.url?.endsWith(".png")) {
       res.writeHead(200, { "Content-Type": "image/png", "Content-Length": SOURCE_PNG.length });
       res.end(SOURCE_PNG);
@@ -2673,6 +2685,185 @@ into: e2e/automatic-phase-c-chrome/inline.:mimeext:`,
     ]);
     const fixtureIds = (await control.tabs.query())
       .filter((tab) => tab.url?.includes(target))
+      .map((tab) => tab.id)
+      .filter((id) => id !== undefined);
+    if (fixtureIds.length) await control.tabs.remove(fixtureIds);
+    await control.runtime.reset();
+    await closeLocal(server);
+  }
+});
+
+test("script-media permission discovers hidden fetches and revokes cleanly", async () => {
+  const { server, port } = await startSourcePanelServer();
+  const pagePath = `127.0.0.1:${port}/script-media-sources`;
+  const pageUrl = `http://${pagePath}`;
+  /** @param {string} expression */
+  const evalPage = (expression) => cdp.evalInTarget(PORT, pagePath, expression);
+
+  try {
+    await evalOptions(`chrome.permissions.remove({ permissions: ["webRequest"] })`);
+    await control.storage.local.set({
+      sourcePanelEnabled: true,
+      sourcePanelLive: true,
+      sourcePanelPreviews: false,
+      sourcePanelBackgrounds: false,
+      sourcePanelResourceHints: false,
+      sourcePanelLinks: false,
+      sourcePanelScriptMedia: false,
+    });
+    await control.runtime.reset();
+    await reloadOptionsPage();
+    await evalOptions(`document.querySelector(".welcome-accept")?.click()`);
+    await waitForOptionsInteractive();
+    await evalOptions(`document.querySelector("#tab-section-page-sources")?.click()`);
+    await waitForPageCondition(
+      evalOptions,
+      `document.querySelector("#tab-section-page-sources")?.getAttribute("aria-selected") ===
+        "true"`,
+      { description: "Chrome Page Sources options tab" },
+    );
+
+    const point = parseJson(
+      await evalOptions(`JSON.stringify((() => {
+        const checkbox = document.querySelector("#sourcePanelScriptMedia");
+        checkbox.scrollIntoView({ block: "center" });
+        const rect = checkbox.getBoundingClientRect();
+        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      })())`),
+      objectOf({ x: decodeNumber, y: decodeNumber }),
+    );
+    await Promise.all([
+      evalOptions(`new Promise((resolve, reject) => {
+        const permission = { permissions: ["webRequest"] };
+        const timeout = AbortSignal.timeout(8000);
+        let settled = false;
+        const finish = (callback) => {
+          if (settled) return;
+          settled = true;
+          chrome.permissions.onAdded.removeListener(onAdded);
+          timeout.removeEventListener("abort", onTimeout);
+          callback();
+        };
+        const onAdded = (added) => {
+          if (added.permissions?.includes("webRequest")) finish(() => resolve(true));
+        };
+        const onTimeout = () => finish(() => reject(
+          new Error("Timed out waiting for Chrome script-media permission")
+        ));
+        chrome.permissions.onAdded.addListener(onAdded);
+        timeout.addEventListener("abort", onTimeout, { once: true });
+        chrome.permissions.contains(permission).then((held) => {
+          if (held) finish(() => resolve(true));
+        }, (error) => finish(() => reject(error)));
+      })`),
+      control.storage.local.wait("sourcePanelScriptMedia", true),
+      cdp.dispatchInput(PORT, "options.html", [
+        {
+          method: "Input.dispatchMouseEvent",
+          params: {
+            type: "mousePressed",
+            x: point.x,
+            y: point.y,
+            button: "left",
+            clickCount: 1,
+          },
+        },
+        {
+          method: "Input.dispatchMouseEvent",
+          params: {
+            type: "mouseReleased",
+            x: point.x,
+            y: point.y,
+            button: "left",
+            clickCount: 1,
+          },
+        },
+      ]),
+    ]);
+    await waitForPageCondition(
+      evalOptions,
+      `(() => {
+        const label = document.querySelector("#sourcePanelScriptMedia")?.labels?.item(0)
+          ?.textContent?.trim();
+        return Boolean(label) &&
+          [...document.querySelectorAll("#saved-change-popover li")]
+            .some((item) => item.textContent?.includes(label));
+      })()`,
+      { description: "Chrome script-media option save acknowledgement" },
+    );
+    const tab = await control.tabs.create({ url: pageUrl, active: true });
+    const ready = await control.tabs.wait(
+      tab.id === undefined ? { urlIncludes: pagePath } : { id: tab.id },
+    );
+    const tabId = requireValue(tab.id ?? ready.id, "script-media fixture tab missing");
+    await control.tabs.update(tabId, { active: true });
+    await waitForPageCondition(evalPage, "document.readyState === 'complete'", {
+      description: "Chrome script-media fixture",
+    });
+    const collectorPersisted = evalOptions(`new Promise((resolve, reject) => {
+      const key = "siScriptMediaByTab";
+      const timeout = AbortSignal.timeout(8000);
+      let settled = false;
+      const finish = (callback) => {
+        if (settled) return;
+        settled = true;
+        chrome.storage.onChanged.removeListener(onChanged);
+        timeout.removeEventListener("abort", onTimeout);
+        callback();
+      };
+      const matches = (record) => Object.values(record?.[key] ?? {}).some((entries) =>
+        Array.isArray(entries) &&
+        entries.some((entry) => entry?.url?.endsWith("/script-only.m3u8"))
+      );
+      const onChanged = (changes, area) => {
+        if (area === "session" && matches({ [key]: changes[key]?.newValue })) {
+          finish(() => resolve(true));
+        }
+      };
+      const onTimeout = () => finish(() => reject(
+        new Error("Timed out waiting for Chrome script-media collector persistence")
+      ));
+      chrome.storage.onChanged.addListener(onChanged);
+      timeout.addEventListener("abort", onTimeout, { once: true });
+      chrome.storage.session.get(key).then((stored) => {
+        if (matches(stored)) finish(() => resolve(true));
+      }, (error) => finish(() => reject(error)));
+    })`);
+    await Promise.all([
+      collectorPersisted,
+      evalPage(`new Promise((resolve, reject) => {
+        const worker = new Worker("/script-media-worker.js");
+        worker.onmessage = (event) => event.data === "done"
+          ? resolve(true)
+          : reject(new Error(String(event.data)));
+        worker.onerror = (event) => reject(new Error(event.message));
+      })`),
+      cdp.triggerAction(PORT, extensionId, pagePath),
+    ]);
+    await waitForPageCondition(
+      evalPage,
+      `[...document.querySelector("#save-in-source-panel")?.shadowRoot
+        ?.querySelectorAll(".name") ?? []]
+        .some((element) => element.textContent === "script-only.m3u8")`,
+      { description: "worker-loaded HLS source in Chrome Page Sources" },
+    );
+
+    const optionReverted = control.storage.local.wait("sourcePanelScriptMedia", false);
+    expect(await evalOptions(`chrome.permissions.remove({ permissions: ["webRequest"] })`)).toBe(
+      true,
+    );
+    await optionReverted;
+  } finally {
+    await evalOptions(`chrome.permissions.remove({ permissions: ["webRequest"] })`).catch(() => {});
+    await Promise.all([
+      control.storage.session.set({ sourcePanelOpen: false }),
+      control.storage.local.set({
+        sourcePanelEnabled: false,
+        sourcePanelScriptMedia: false,
+      }),
+    ]);
+    const fixtureIds = (await control.tabs.query())
+      .filter((tab) => tab.url?.includes(`127.0.0.1:${port}/script-media-sources`))
       .map((tab) => tab.id)
       .filter((id) => id !== undefined);
     if (fixtureIds.length) await control.tabs.remove(fixtureIds);

@@ -19,8 +19,11 @@ import { SCRIPT_MEDIA_BY_TAB_SESSION_KEY } from "../shared/storage-keys.ts";
 // nothing unless the sourcePanelScriptMedia option is on AND the optional
 // webRequest permission is held. A dormant listener is registered synchronously
 // during startup so it can wake an MV3 background, but no event or stored replay
-// passes the permission proof and an absent permission removes that listener. The
-// permission is bound to that child toggle, not the parent sourcePanelEnabled,
+// passes the permission proof and an absent permission removes that listener.
+// Firefox does not activate a listener that was registered before webRequest
+// was granted, so the completed config-apply boundary also rebinds it from the
+// authoritative permission state. The permission is bound to that child toggle,
+// not the parent sourcePanelEnabled,
 // so with the panel disabled but the toggle still on the listener stays
 // attached and simply no-ops each request (isConfigured below) rather than
 // re-prompting for the permission on every parent re-enable.
@@ -151,10 +154,12 @@ const checkWebRequestPermission = (refresh = false): Promise<boolean | null> => 
   const checkGeneration = permissionCheckGeneration;
   permissionCheck = contains({ permissions: ["webRequest"] }).then(
     (held) => {
-      if (checkGeneration === permissionCheckGeneration) {
-        webRequestPermissionHeld = held;
-        permissionCheck = null;
-      }
+      // An explicit permission event supersedes this older snapshot. Returning
+      // its stale value would let the startup caller tear down a listener that
+      // onAdded just proved and retained.
+      if (checkGeneration !== permissionCheckGeneration) return null;
+      webRequestPermissionHeld = held;
+      permissionCheck = null;
       return held;
     },
     () => {
@@ -396,6 +401,24 @@ export const pushBufferedScriptMedia = (tabId: number): void => {
       [...map].map(([url, kind]) => ({ url, kind })),
     );
   });
+};
+
+// Firefox event pages do not reliably wake the background permissions.onAdded
+// listener for a silently granted optional webRequest permission. The config
+// apply boundary calls this before acknowledging the toggle, so the listener
+// state is also rebound from the permission's authoritative current value.
+export const refreshScriptMediaCollectorPermission = async (): Promise<void> => {
+  const held = await checkWebRequestPermission(true);
+  if (held === true) {
+    // Firefox does not activate a listener registered before the optional
+    // permission existed. Rebind even when our bookkeeping says it is present.
+    const api = webRequestApi()?.onBeforeRequest;
+    if (api && listening) api.removeListener(onBeforeRequest);
+    listening = false;
+    startListening();
+  } else if (held === false) {
+    stopListening();
+  }
 };
 
 // Registered synchronously at startup (MV3 rule). A dormant webRequest listener

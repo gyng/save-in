@@ -50,6 +50,7 @@ import {
   type ProtocolSendResponse,
 } from "./protocol.ts";
 import { closeRoutingSourceTab } from "../tab-action.ts";
+import { refreshScriptMediaCollectorPermission } from "../script-media-collector.ts";
 
 export const sourcePanelCopies = new Map<string, ReturnType<typeof createSourcePanelCopy>>();
 const allowExternalValidation = createExternalValidationRateLimiter();
@@ -369,6 +370,9 @@ export const handleApplyConfig = async (
     (appliedConfig) => backgroundRuntime.reset(appliedConfig),
   );
   await broadcastContentOptions(applied);
+  if (Object.hasOwn(applied, "sourcePanelScriptMedia")) {
+    await refreshScriptMediaCollectorPermission();
+  }
 
   sendResponse({
     type: MESSAGE_TYPES.APPLY_CONFIG_RESULT,

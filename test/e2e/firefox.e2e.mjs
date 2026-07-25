@@ -225,6 +225,16 @@ const SOURCE_PDF = Buffer.from(
 
 const startSourcePanelServer = async () => {
   const server = http.createServer((req, res) => {
+    if (req.url === "/script-media-frame") {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end("<!doctype html><title>Script media frame</title>");
+      return;
+    }
+    if (req.url === "/script-only.m3u8") {
+      res.writeHead(200, { "Content-Type": "application/vnd.apple.mpegurl" });
+      res.end("#EXTM3U\n#EXT-X-VERSION:3\n");
+      return;
+    }
     if (req.url?.endsWith(".png")) {
       res.writeHead(200, { "Content-Type": "image/png", "Content-Length": PNG.length });
       res.end(PNG);
@@ -1352,6 +1362,196 @@ into: e2e/automatic-phase-c-firefox/inline.:mimeext:`,
     ]);
     const fixtureIds = (await control.tabs.query())
       .filter((tab) => tab.url?.includes(target))
+      .map((tab) => tab.id)
+      .filter((id) => id !== undefined);
+    if (fixtureIds.length) await control.tabs.remove(fixtureIds);
+    await control.runtime.reset();
+    await closeLocal(server);
+  }
+});
+
+test("script-media permission discovers hidden fetches and revokes cleanly", async () => {
+  const { server, port } = await startSourcePanelServer();
+  const pageMatch = `localhost:${port}/script-media-sources`;
+  const pageTarget = `localhost:${port}`;
+  const pageUrl = `http://${pageMatch}`;
+
+  try {
+    await evalOptions(`browser.permissions.remove({ permissions: ["webRequest"] })`);
+    await control.storage.local.set({
+      sourcePanelEnabled: true,
+      sourcePanelLive: true,
+      sourcePanelPreviews: false,
+      sourcePanelBackgrounds: false,
+      sourcePanelResourceHints: false,
+      sourcePanelLinks: false,
+      sourcePanelScriptMedia: false,
+    });
+    await control.runtime.reset();
+    await reloadOptionsPage();
+    await evalOptions(`document.querySelector(".welcome-accept")?.click()`);
+    await waitForPageCondition(
+      evalOptions,
+      `!document.querySelector("#welcome-dialog") &&
+        Boolean(document.querySelector("#tab-section-page-sources"))`,
+      { description: "Firefox options ready for Page Sources" },
+    );
+    await evalOptions(`document.querySelector("#tab-section-page-sources")?.click()`);
+    await waitForPageCondition(
+      evalOptions,
+      `document.querySelector("#tab-section-page-sources")?.getAttribute("aria-selected") ===
+        "true"`,
+      { description: "Firefox Page Sources options tab" },
+    );
+
+    const point = parseJson(
+      await evalOptions(`JSON.stringify((() => {
+        const checkbox = document.querySelector("#sourcePanelScriptMedia");
+        checkbox.scrollIntoView({ block: "center" });
+        const rect = checkbox.getBoundingClientRect();
+        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      })())`),
+      objectOf({ x: decodeNumber, y: decodeNumber }),
+    );
+    const context = await session.bidi.findContext("src/options/options.html");
+    await Promise.all([
+      evalOptions(`new Promise((resolve, reject) => {
+        const permission = { permissions: ["webRequest"] };
+        const timeout = AbortSignal.timeout(8000);
+        let settled = false;
+        const finish = (callback) => {
+          if (settled) return;
+          settled = true;
+          browser.permissions.onAdded.removeListener(onAdded);
+          timeout.removeEventListener("abort", onTimeout);
+          callback();
+        };
+        const onAdded = (added) => {
+          if (added.permissions?.includes("webRequest")) finish(() => resolve(true));
+        };
+        const onTimeout = () => finish(() => reject(
+          new Error("Timed out waiting for Firefox script-media permission")
+        ));
+        browser.permissions.onAdded.addListener(onAdded);
+        timeout.addEventListener("abort", onTimeout, { once: true });
+        browser.permissions.contains(permission).then((held) => {
+          if (held) finish(() => resolve(true));
+        }, (error) => finish(() => reject(error)));
+      })`),
+      control.storage.local.wait("sourcePanelScriptMedia", true),
+      session.bidi.send("input.performActions", {
+        context,
+        actions: [
+          {
+            type: "pointer",
+            id: "script-media-permission",
+            parameters: { pointerType: "mouse" },
+            actions: [
+              { type: "pointerMove", x: point.x, y: point.y, duration: 0, origin: "viewport" },
+              { type: "pointerDown", button: 0 },
+              { type: "pointerUp", button: 0 },
+            ],
+          },
+        ],
+      }),
+    ]);
+    await waitForPageCondition(
+      evalOptions,
+      `(() => {
+        const label = document.querySelector("#sourcePanelScriptMedia")?.labels?.item(0)
+          ?.textContent?.trim();
+        return Boolean(label) &&
+          [...document.querySelectorAll("#saved-change-popover li")]
+            .some((item) => item.textContent?.includes(label));
+      })()`,
+      { description: "Firefox script-media option save acknowledgement" },
+    );
+    expect(await control.options.get("sourcePanelScriptMedia")).toBe(true);
+    const tab = await control.tabs.create({ url: pageUrl, active: true });
+    const ready = await control.tabs.wait(
+      tab.id === undefined ? { urlIncludes: pageMatch } : { id: tab.id },
+    );
+    const tabId = requireValue(tab.id ?? ready.id, "script-media fixture tab missing");
+    await control.tabs.update(tabId, { active: true });
+    await waitForPageCondition(
+      (expression, timeoutMs) => session.evaluateInTab(pageTarget, expression, timeoutMs),
+      "document.readyState === 'complete'",
+      { description: "Firefox script-media fixture" },
+    );
+    const collectorPersisted = evalOptions(`new Promise((resolve, reject) => {
+      const key = "siScriptMediaByTab";
+      const timeout = AbortSignal.timeout(8000);
+      let settled = false;
+      const finish = (callback) => {
+        if (settled) return;
+        settled = true;
+        browser.storage.onChanged.removeListener(onChanged);
+        timeout.removeEventListener("abort", onTimeout);
+        callback();
+      };
+      const matches = (record) => Object.values(record?.[key] ?? {}).some((entries) =>
+        Array.isArray(entries) &&
+        entries.some((entry) => entry?.url?.endsWith("/script-only.m3u8"))
+      );
+      const onChanged = (changes, area) => {
+        if (area === "session" && matches({ [key]: changes[key]?.newValue })) {
+          finish(() => resolve(true));
+        }
+      };
+      const onTimeout = () => finish(() => reject(
+        new Error("Timed out waiting for Firefox script-media collector persistence")
+      ));
+      browser.storage.onChanged.addListener(onChanged);
+      timeout.addEventListener("abort", onTimeout, { once: true });
+      browser.storage.session.get(key).then((stored) => {
+        if (matches(stored)) finish(() => resolve(true));
+      }, (error) => finish(() => reject(error)));
+    })`);
+    await Promise.all([
+      collectorPersisted,
+      session.evaluateInTab(
+        pageTarget,
+        `new Promise((resolve, reject) => {
+          const frame = document.createElement("iframe");
+          frame.hidden = true;
+          frame.onload = () => frame.contentWindow.fetch("/script-only.m3u8").then(
+            () => resolve(true),
+            reject,
+          );
+          frame.onerror = () => reject(new Error("Script-media frame failed to load"));
+          frame.src = "/script-media-frame";
+          document.body.append(frame);
+        })`,
+      ),
+      control.storage.session.set({ sourcePanelOpen: true }),
+      control.tabs.sendMessage(tabId, { type: "SET_SOURCE_PANEL", body: { open: true } }),
+    ]);
+    await waitForPageCondition(
+      (expression) => session.evaluateInTab(pageTarget, expression),
+      `[...document.querySelector("#save-in-source-panel")?.shadowRoot
+        ?.querySelectorAll(".name") ?? []]
+        .some((element) => element.textContent === "script-only.m3u8")`,
+      { description: "subframe-loaded HLS source in Firefox Page Sources" },
+    );
+
+    const optionReverted = control.storage.local.wait("sourcePanelScriptMedia", false);
+    expect(await evalOptions(`browser.permissions.remove({ permissions: ["webRequest"] })`)).toBe(
+      true,
+    );
+    await optionReverted;
+  } finally {
+    await evalOptions(`browser.permissions.remove({ permissions: ["webRequest"] })`).catch(
+      () => {},
+    );
+    await Promise.all([
+      control.storage.session.set({ sourcePanelOpen: false }),
+      control.storage.local.set({
+        sourcePanelEnabled: false,
+        sourcePanelScriptMedia: false,
+      }),
+    ]);
+    const fixtureIds = (await control.tabs.query())
+      .filter((tab) => tab.url?.includes(`localhost:${port}/script-media-sources`))
       .map((tab) => tab.id)
       .filter((id) => id !== undefined);
     if (fixtureIds.length) await control.tabs.remove(fixtureIds);

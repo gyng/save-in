@@ -139,6 +139,29 @@ test("does not let a stale failed startup check overwrite an explicit revoke", a
   expect(onBeforeRequest.removeListener).toHaveBeenCalledTimes(1);
 });
 
+test("does not let a stale negative startup check undo an explicit grant", async () => {
+  let resolveContains: (held: boolean) => void = () => {};
+  const contains = vi.fn(
+    () =>
+      new Promise<boolean>((resolve) => {
+        resolveContains = resolve;
+      }),
+  );
+  const { listener, onBeforeRequest } = await setup({}, true, true, contains);
+  (
+    (browser as any).permissions.onAdded.addListener.mock.calls[0][0] as (permissions: {
+      permissions: string[];
+    }) => void
+  )({ permissions: ["webRequest"] });
+
+  resolveContains(false);
+  await drain();
+  listener!({ url: "https://cdn.example/live.m3u8", tabId: 7, type: "xmlhttprequest" });
+
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+  expect(onBeforeRequest.removeListener).not.toHaveBeenCalled();
+});
+
 test("keeps a failed permission check fail-closed and retryable", async () => {
   const contains = vi
     .fn<() => Promise<boolean>>()
@@ -534,6 +557,52 @@ test("re-attaches the listener when the permission is granted again after a revo
     }) => void
   )({ permissions: ["webRequest"] });
   expect(onBeforeRequest.addListener).toHaveBeenCalledTimes(1);
+});
+
+test("rebinds the listener from the authoritative permission after config apply", async () => {
+  const { mod, onBeforeRequest } = await setup({}, true, false);
+  await vi.waitFor(() => expect(onBeforeRequest.removeListener).toHaveBeenCalledTimes(1));
+  onBeforeRequest.addListener.mockClear();
+  onBeforeRequest.removeListener.mockClear();
+  (browser as any).permissions.contains = vi.fn(() => Promise.resolve(true));
+
+  await mod.refreshScriptMediaCollectorPermission();
+
+  expect(onBeforeRequest.addListener).toHaveBeenCalledTimes(1);
+  expect(onBeforeRequest.removeListener).not.toHaveBeenCalled();
+});
+
+test("rebinds an already attached listener after config apply", async () => {
+  const { mod, onBeforeRequest } = await setup();
+  await drain();
+  onBeforeRequest.addListener.mockClear();
+  onBeforeRequest.removeListener.mockClear();
+
+  await mod.refreshScriptMediaCollectorPermission();
+
+  expect(onBeforeRequest.removeListener).toHaveBeenCalledTimes(1);
+  expect(onBeforeRequest.addListener).toHaveBeenCalledTimes(1);
+});
+
+test("refresh is a safe no-op when the webRequest API is unavailable", async () => {
+  const { mod } = await setup({}, false);
+  await expect(mod.refreshScriptMediaCollectorPermission()).resolves.toBeUndefined();
+});
+
+test("refresh stays fail-closed when the permission check fails", async () => {
+  const contains = vi
+    .fn<() => Promise<boolean>>()
+    .mockResolvedValueOnce(true)
+    .mockRejectedValueOnce(new Error("permission lookup failed"));
+  const { mod, onBeforeRequest } = await setup({}, true, true, contains);
+  await drain();
+  onBeforeRequest.addListener.mockClear();
+  onBeforeRequest.removeListener.mockClear();
+
+  await mod.refreshScriptMediaCollectorPermission();
+
+  expect(onBeforeRequest.removeListener).not.toHaveBeenCalled();
+  expect(onBeforeRequest.addListener).not.toHaveBeenCalled();
 });
 
 test("re-checks and re-attaches when a host omits permission event details", async () => {

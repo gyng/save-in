@@ -44,6 +44,7 @@ export interface E2EStoredOptionValues {
   sourcePanelEnabled: boolean;
   sourcePanelLive: boolean;
   sourcePanelLinks: boolean;
+  sourcePanelScriptMedia: boolean;
   trackBrowserDownloads: boolean;
   webhookEnabled: boolean;
   webhookIncludePageTitle: boolean;
