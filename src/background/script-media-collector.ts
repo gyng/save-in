@@ -20,6 +20,11 @@ import { SCRIPT_MEDIA_BY_TAB_SESSION_KEY } from "../shared/storage-keys.ts";
 // tick (never per request) so an evicted MV3 worker can rehydrate what it saw.
 
 const MEDIA_TYPES = ["xmlhttprequest", "media", "object", "other"];
+// The filter must also deliver main_frame so a top-level navigation can reset
+// the tab's buffer (record() drops it and returns — main_frame is never
+// buffered as media). Without it that reset branch never fires and a tab's
+// media would bleed across page navigations.
+const OBSERVED_TYPES = [...MEDIA_TYPES, "main_frame"];
 const PER_TAB_LIMIT = 256;
 const FLUSH_DELAY_MS = 300;
 
@@ -31,7 +36,7 @@ const buffers = new Map<number, Map<string, PageSourceKind>>();
 // tabId → media urls observed since the last flush (for the live push).
 const pending = new Map<number, Set<string>>();
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
-let hydrated = false;
+let hydratePromise: Promise<void> | null = null;
 
 const permissionsApi = ():
   | { contains?: (p: { permissions: string[] }) => Promise<boolean> }
@@ -62,11 +67,14 @@ const isHttp = (url: string): boolean => url.startsWith("http://") || url.starts
 
 const sessionStorage = () => webExtensionApi.storage.session;
 
-// One-time rehydrate of the per-tab buffer after a worker restart. Malformed
-// stored shapes are dropped rather than trusted.
-const hydrate = async (): Promise<void> => {
-  if (hydrated) return;
-  hydrated = true;
+// One-time rehydrate of the per-tab buffer after a worker restart. Every caller
+// awaits the SAME promise, so a live request that wakes the worker cannot run
+// record() (and claim a tabId) before the stored buffer is merged back in —
+// otherwise the restored history for exactly the busy tab would be dropped.
+// Malformed stored shapes are dropped rather than trusted.
+const hydrate = (): Promise<void> => (hydratePromise ??= doHydrate());
+
+const doHydrate = async (): Promise<void> => {
   const storage = sessionStorage();
   if (!storage) return;
   try {
@@ -199,7 +207,7 @@ let listening = false;
 const startListening = (): void => {
   const api = webRequestApi()?.onBeforeRequest;
   if (!api || listening) return;
-  api.addListener(onBeforeRequest, { urls: ["<all_urls>"], types: MEDIA_TYPES });
+  api.addListener(onBeforeRequest, { urls: ["<all_urls>"], types: OBSERVED_TYPES });
   listening = true;
 };
 

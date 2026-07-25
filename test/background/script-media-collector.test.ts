@@ -45,7 +45,8 @@ test("registers the onBeforeRequest listener when webRequest is available", asyn
   const { onBeforeRequest } = await setup();
   expect(onBeforeRequest.addListener).toHaveBeenCalledWith(expect.any(Function), {
     urls: ["<all_urls>"],
-    types: ["xmlhttprequest", "media", "object", "other"],
+    // main_frame must be observed so a top-level navigation resets the tab.
+    types: ["xmlhttprequest", "media", "object", "other", "main_frame"],
   });
 });
 
