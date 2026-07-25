@@ -1,7 +1,13 @@
 import { options } from "../config/options-data.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
-import { classifyUrlKind, isMediaSourceKind, type PageSourceKind } from "../shared/page-source.ts";
+import {
+  classifyUrlKind,
+  isMediaSourceKind,
+  isPageSourceKind,
+  SCRIPT_MEDIA_SOURCE_LIMIT,
+  type PageSourceKind,
+} from "../shared/page-source.ts";
 import { SCRIPT_MEDIA_BY_TAB_SESSION_KEY } from "../shared/storage-keys.ts";
 
 // Opt-in webRequest collector for media a page loads with scripts (HLS/DASH
@@ -11,10 +17,12 @@ import { SCRIPT_MEDIA_BY_TAB_SESSION_KEY } from "../shared/storage-keys.ts";
 // script/stylesheet/font/image/ping traffic — never saveable media, or already
 // covered by the DOM scan — costs nothing. Everything here is gated: it does
 // nothing unless the sourcePanelScriptMedia option is on AND the optional
-// webRequest permission is held (the listener only exists once granted). The
+// webRequest permission is held. A dormant listener is registered synchronously
+// during startup so it can wake an MV3 background, but no event or stored replay
+// passes the permission proof and an absent permission removes that listener. The
 // permission is bound to that child toggle, not the parent sourcePanelEnabled,
 // so with the panel disabled but the toggle still on the listener stays
-// attached and simply no-ops each request (isEnabled below) rather than
+// attached and simply no-ops each request (isConfigured below) rather than
 // re-prompting for the permission on every parent re-enable.
 //
 // Perf/memory: the per-event handler is O(1) (classify + Map insert). Only
@@ -29,11 +37,11 @@ const MEDIA_TYPES = ["xmlhttprequest", "media", "object", "other"];
 // buffered as media). Without it that reset branch never fires and a tab's
 // media would bleed across page navigations.
 const OBSERVED_TYPES = [...MEDIA_TYPES, "main_frame"];
-const PER_TAB_LIMIT = 256;
 const FLUSH_DELAY_MS = 300;
 
 type MediaEntry = { url: string; kind: PageSourceKind };
 type WebRequestDetails = { url: string; tabId: number; type: string };
+type PermissionChange = { permissions?: string[] };
 
 // tabId → (url → kind), insertion order = age for LRU eviction.
 const buffers = new Map<number, Map<string, PageSourceKind>>();
@@ -44,9 +52,19 @@ let hydratePromise: Promise<void> | null = null;
 // Bumped by stopListening so an in-flight rehydrate that read the session
 // snapshot before the teardown does not repopulate the just-cleared buffers.
 let generation = 0;
+// `null` means the startup/retry permissions.contains check has not proved the
+// state yet. Web requests and buffer replay wait for a positive result; a
+// failed check never grants access merely because the stored option says on.
+let webRequestPermissionHeld: boolean | null = null;
+let permissionCheck: Promise<boolean | null> | null = null;
+let permissionCheckGeneration = 0;
 
 const permissionsApi = ():
-  | { contains?: (p: { permissions: string[] }) => Promise<boolean> }
+  | {
+      contains?: (p: { permissions: string[] }) => Promise<boolean>;
+      onAdded?: { addListener: (fn: (permissions?: PermissionChange) => void) => void };
+      onRemoved?: { addListener: (fn: (permissions?: PermissionChange) => void) => void };
+    }
   | undefined =>
   (
     webExtensionApi as {
@@ -67,12 +85,48 @@ const webRequestApi = ():
     }
   | undefined => (webExtensionApi as { webRequest?: unknown }).webRequest as never;
 
-const isEnabled = (): boolean =>
+const isConfigured = (): boolean =>
   options.sourcePanelEnabled === true && options.sourcePanelScriptMedia === true;
 
 const isHttp = (url: string): boolean => url.startsWith("http://") || url.startsWith("https://");
 
 const sessionStorage = () => webExtensionApi.storage.session;
+
+const setWebRequestPermission = (held: boolean): void => {
+  permissionCheckGeneration += 1;
+  permissionCheck = null;
+  webRequestPermissionHeld = held;
+};
+
+const checkWebRequestPermission = (refresh = false): Promise<boolean | null> => {
+  if (refresh) {
+    permissionCheckGeneration += 1;
+    permissionCheck = null;
+    webRequestPermissionHeld = null;
+  }
+  if (webRequestPermissionHeld !== null) return Promise.resolve(webRequestPermissionHeld);
+  if (permissionCheck) return permissionCheck;
+  const contains = permissionsApi()?.contains;
+  if (!contains) {
+    webRequestPermissionHeld = false;
+    return Promise.resolve(false);
+  }
+  const checkGeneration = permissionCheckGeneration;
+  permissionCheck = contains({ permissions: ["webRequest"] }).then(
+    (held) => {
+      if (checkGeneration === permissionCheckGeneration) {
+        webRequestPermissionHeld = held;
+        permissionCheck = null;
+      }
+      return held;
+    },
+    () => {
+      if (checkGeneration === permissionCheckGeneration) permissionCheck = null;
+      return null;
+    },
+  );
+  return permissionCheck;
+};
 
 // One-time rehydrate of the per-tab buffer after a worker restart. Every caller
 // awaits the SAME promise, so a live request that wakes the worker cannot run
@@ -98,7 +152,17 @@ const doHydrate = async (): Promise<void> => {
       if (!Number.isInteger(tabId) || !Array.isArray(entries)) continue;
       const map = new Map<string, PageSourceKind>();
       for (const entry of entries as MediaEntry[]) {
-        if (entry && typeof entry.url === "string") map.set(entry.url, entry.kind);
+        if (
+          !entry ||
+          typeof entry.url !== "string" ||
+          !isHttp(entry.url) ||
+          !isPageSourceKind(entry.kind) ||
+          !isMediaSourceKind(entry.kind)
+        )
+          continue;
+        if (map.has(entry.url)) map.delete(entry.url);
+        map.set(entry.url, entry.kind);
+        while (map.size > SCRIPT_MEDIA_SOURCE_LIMIT) evictOldest(map);
       }
       // Every caller awaits the shared hydrate promise before touching buffers,
       // so nothing has populated this tab yet — a plain set, no has() guard.
@@ -189,7 +253,7 @@ const record = (tabId: number, url: string, requestType: string): void => {
     map.delete(url);
   }
   map.set(url, kind);
-  while (map.size > PER_TAB_LIMIT) evictOldest(map);
+  while (map.size > SCRIPT_MEDIA_SOURCE_LIMIT) evictOldest(map);
 
   let queued = pending.get(tabId);
   if (!queued) {
@@ -207,7 +271,7 @@ const dropTab = (tabId: number): void => {
 };
 
 const onBeforeRequest = (details: WebRequestDetails): void => {
-  if (!isEnabled()) return;
+  if (!isConfigured()) return;
   if (typeof details.tabId !== "number" || details.tabId < 0) return;
   if (!isHttp(details.url)) return;
   // Capture the generation now: a teardown (permission revoke) can land while
@@ -221,14 +285,17 @@ const onBeforeRequest = (details: WebRequestDetails): void => {
   // the next request's hydrate resurrects the old page's media. Both callbacks
   // await the same promise and main_frame fires before its subresources, so the
   // drop is queued ahead of any record() for the new page.
-  if (details.type === "main_frame") {
+  void checkWebRequestPermission().then((held) => {
+    if (held !== true || eventGeneration !== generation || !isConfigured()) return;
+    if (details.type === "main_frame") {
+      void hydrate().then(() => {
+        if (eventGeneration === generation) dropTab(details.tabId);
+      });
+      return;
+    }
     void hydrate().then(() => {
-      if (eventGeneration === generation) dropTab(details.tabId);
+      if (eventGeneration === generation) record(details.tabId, details.url, details.type);
     });
-    return;
-  }
-  void hydrate().then(() => {
-    if (eventGeneration === generation) record(details.tabId, details.url, details.type);
   });
 };
 
@@ -243,9 +310,9 @@ const startListening = (): void => {
 
 const stopListening = (): void => {
   const api = webRequestApi()?.onBeforeRequest;
-  if (!api || !listening) return;
-  api.removeListener(onBeforeRequest);
+  if (api && listening) api.removeListener(onBeforeRequest);
   listening = false;
+  setWebRequestPermission(false);
   generation += 1;
   hydratePromise = null;
   if (flushTimer !== null) {
@@ -260,39 +327,57 @@ const stopListening = (): void => {
 // Push a tab's whole buffered media set — used when its Page Sources panel
 // opens, so media observed before the panel existed still appears.
 export const pushBufferedScriptMedia = (tabId: number): void => {
-  if (!isEnabled()) return;
-  void hydrate().then(() => {
-    const map = buffers.get(tabId);
-    if (!map || map.size === 0) return;
-    send(
-      tabId,
-      [...map].map(([url, kind]) => ({ url, kind })),
-    );
+  if (!isConfigured()) return;
+  const pushGeneration = generation;
+  void checkWebRequestPermission().then((held) => {
+    if (held !== true || pushGeneration !== generation || !isConfigured()) return;
+    void hydrate().then(() => {
+      if (pushGeneration !== generation) return;
+      const map = buffers.get(tabId);
+      if (!map || map.size === 0) return;
+      send(
+        tabId,
+        [...map].map(([url, kind]) => ({ url, kind })),
+      );
+    });
   });
 };
 
-// Registered synchronously at startup (MV3 rule). The webRequest listener is
-// attached only when the permission is already held, and (re)attached when the
-// user grants it mid-session; it is detached on revocation.
+// Registered synchronously at startup (MV3 rule). A dormant webRequest listener
+// is removed once startup proves the permission absent, (re)attached when the
+// user grants it mid-session, and detached immediately on explicit revocation.
 export const registerScriptMediaCollector = (): void => {
+  // Register synchronously so a granted permission can wake an MV3 background,
+  // then prove the optional permission before processing any event or replay.
+  // A startup check that proves it absent removes the dormant listener.
   startListening();
+  void checkWebRequestPermission().then((held) => {
+    if (held === false) stopListening();
+  });
 
-  const permissions = (
-    webExtensionApi as {
-      permissions?: {
-        onAdded?: { addListener: (fn: () => void) => void };
-        onRemoved?: { addListener: (fn: () => void) => void };
-      };
+  const permissions = permissionsApi();
+  permissions?.onAdded?.addListener((added) => {
+    if (added?.permissions && !added.permissions.includes("webRequest")) return;
+    if (added?.permissions?.includes("webRequest")) {
+      setWebRequestPermission(true);
+      startListening();
+      return;
     }
-  ).permissions;
-  permissions?.onAdded?.addListener(() => startListening());
-  permissions?.onRemoved?.addListener(() => {
-    const api = permissionsApi();
-    if (!api?.contains) {
+    void checkWebRequestPermission(true).then((held) => {
+      if (held === true) startListening();
+    });
+  });
+  permissions?.onRemoved?.addListener((removed) => {
+    if (removed?.permissions && !removed.permissions.includes("webRequest")) return;
+    if (removed?.permissions?.includes("webRequest")) {
       stopListening();
       return;
     }
-    void api.contains({ permissions: ["webRequest"] }).then((held) => {
+    if (!permissionsApi()?.contains) {
+      stopListening();
+      return;
+    }
+    void checkWebRequestPermission(true).then((held) => {
       if (!held) stopListening();
     });
   });

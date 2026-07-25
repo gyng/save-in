@@ -16,6 +16,7 @@ import {
   toggleSourcePanel,
 } from "../../../src/content/source-panel.ts";
 import { SOURCE_PANEL_RESOURCE_TIMING_LIMIT } from "../../../src/content/source-panel-model.ts";
+import { SCRIPT_MEDIA_SOURCE_LIMIT } from "../../../src/shared/page-source.ts";
 import { createSourcePanelCopy } from "../../../src/shared/source-panel-copy.ts";
 import { SOURCE_PANEL_LAYOUT_STORAGE_KEY } from "../../../src/shared/storage-keys.ts";
 
@@ -3078,9 +3079,48 @@ describe("script-media merge (background webRequest push)", () => {
     const source = { url: "https://cdn.test/a.m3u8", kind: "stream" as const };
     mergeScriptMediaSources([source]);
     mergeScriptMediaSources([source]);
+    mergeScriptMediaSources([{ url: "", kind: "video" }]);
 
     const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
     expect(shadow.querySelectorAll('li[data-kind="stream"]')).toHaveLength(1);
+  });
+
+  test("bounds live script-media pushes to the collector's per-tab limit", () => {
+    document.body.innerHTML = "";
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    mergeScriptMediaSources([
+      { url: "https://cdn.test/live/master.m3u8", kind: "stream" },
+      ...Array.from({ length: SCRIPT_MEDIA_SOURCE_LIMIT }, (_, index) => ({
+        url: `https://cdn.test/video-${index}.mp4`,
+        kind: "video" as const,
+      })),
+    ]);
+
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    expect(shadow.querySelector(".source-count")?.textContent).toBe(
+      String(SCRIPT_MEDIA_SOURCE_LIMIT),
+    );
+    expect(
+      [...shadow.querySelectorAll<HTMLAnchorElement>("a[href]")].some(
+        ({ href }) => href === "https://cdn.test/live/master.m3u8",
+      ),
+    ).toBe(true);
+  });
+
+  test("evicts the oldest stream when a live push contains only streams", () => {
+    document.body.innerHTML = "";
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    mergeScriptMediaSources(
+      Array.from({ length: SCRIPT_MEDIA_SOURCE_LIMIT + 1 }, (_, index) => ({
+        url: `https://cdn.test/stream-${index}.m3u8`,
+        kind: "stream" as const,
+      })),
+    );
+
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    expect(shadow.querySelector(".source-count")?.textContent).toBe(
+      String(SCRIPT_MEDIA_SOURCE_LIMIT),
+    );
   });
 
   test("does not merge into a disconnected panel", () => {

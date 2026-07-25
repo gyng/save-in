@@ -11,13 +11,18 @@ const withStoredTab = (tabId: number, entries: Array<{ url: string; kind: string
     [SCRIPT_MEDIA_BY_TAB_SESSION_KEY]: { [String(tabId)]: entries },
   });
 
-const setup = async (optionOverrides: Record<string, unknown> = {}, withWebRequest = true) => {
+const setup = async (
+  optionOverrides: Record<string, unknown> = {},
+  withWebRequest = true,
+  permissionHeld = true,
+  contains: (() => Promise<boolean>) | null = vi.fn(() => Promise.resolve(permissionHeld)),
+) => {
   vi.resetModules();
   vi.useRealTimers();
   const onBeforeRequest = { addListener: vi.fn(), removeListener: vi.fn() };
   (browser as any).webRequest = withWebRequest ? { onBeforeRequest } : undefined;
   (browser as any).permissions = {
-    contains: vi.fn(() => Promise.resolve(true)),
+    ...(contains ? { contains } : {}),
     onAdded: { addListener: vi.fn() },
     onRemoved: { addListener: vi.fn() },
   };
@@ -61,6 +66,89 @@ test("registers the onBeforeRequest listener when webRequest is available", asyn
 test("does not register a listener without the webRequest permission/api", async () => {
   const { listener } = await setup({}, false);
   expect(listener).toBeUndefined();
+});
+
+test("removes the dormant listener when permissions.contains is unavailable", async () => {
+  const { onBeforeRequest } = await setup({}, true, true, null);
+  await vi.waitFor(() => expect(onBeforeRequest.removeListener).toHaveBeenCalledTimes(1));
+});
+
+test("drops the listener and refuses requests when webRequest is not held at startup", async () => {
+  const { listener, onBeforeRequest } = await setup({}, true, false);
+  listener!({ url: "https://example.com/video.mp4", tabId: 7, type: "media" });
+
+  await vi.waitFor(() => expect(onBeforeRequest.removeListener).toHaveBeenCalled());
+  await new Promise((resolve) => setTimeout(resolve, 350));
+  expect(browser.tabs.sendMessage).not.toHaveBeenCalled();
+  expect(browser.storage.session.remove).toHaveBeenCalledWith(SCRIPT_MEDIA_BY_TAB_SESSION_KEY);
+});
+
+test("shares a pending startup permission proof with the waking request", async () => {
+  let resolveContains: (held: boolean) => void = () => {};
+  const contains = vi.fn(
+    () =>
+      new Promise<boolean>((resolve) => {
+        resolveContains = resolve;
+      }),
+  );
+  const { listener } = await setup({}, true, true, contains);
+  listener!({ url: "https://example.com/video.mp4", tabId: 7, type: "media" });
+
+  expect(contains).toHaveBeenCalledTimes(1);
+  resolveContains(true);
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+});
+
+test("does not let a stale positive startup check undo an explicit revoke", async () => {
+  let resolveContains: (held: boolean) => void = () => {};
+  const contains = vi.fn(
+    () =>
+      new Promise<boolean>((resolve) => {
+        resolveContains = resolve;
+      }),
+  );
+  const { onBeforeRequest } = await setup({}, true, true, contains);
+  const onRemoved = (browser as any).permissions.onRemoved.addListener.mock
+    .calls[0][0] as (permissions: { permissions: string[] }) => void;
+
+  onRemoved({ permissions: ["webRequest"] });
+  resolveContains(true);
+  await drain();
+
+  expect(onBeforeRequest.removeListener).toHaveBeenCalledTimes(1);
+});
+
+test("does not let a stale failed startup check overwrite an explicit revoke", async () => {
+  let rejectContains: (error: Error) => void = () => {};
+  const contains = vi.fn(
+    () =>
+      new Promise<boolean>((_resolve, reject) => {
+        rejectContains = reject;
+      }),
+  );
+  const { onBeforeRequest } = await setup({}, true, true, contains);
+  (
+    (browser as any).permissions.onRemoved.addListener.mock.calls[0][0] as (permissions: {
+      permissions: string[];
+    }) => void
+  )({ permissions: ["webRequest"] });
+
+  rejectContains(new Error("stale lookup"));
+  await drain();
+  expect(onBeforeRequest.removeListener).toHaveBeenCalledTimes(1);
+});
+
+test("keeps a failed permission check fail-closed and retryable", async () => {
+  const contains = vi
+    .fn<() => Promise<boolean>>()
+    .mockRejectedValueOnce(new Error("permission lookup failed"))
+    .mockResolvedValueOnce(true);
+  const { listener } = await setup({}, true, true, contains);
+  await drain();
+
+  listener!({ url: "https://example.com/video.mp4", tabId: 7, type: "media" });
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+  expect(contains).toHaveBeenCalledTimes(2);
 });
 
 test("buffers a stream manifest and pushes it to the tab", async () => {
@@ -307,6 +395,27 @@ test("keeps observing when onRemoved fires but webRequest is still held", async 
   expect(onBeforeRequest.removeListener).not.toHaveBeenCalled();
 });
 
+test("ignores an explicit unrelated permission removal", async () => {
+  const { onBeforeRequest } = await setup();
+  (
+    (browser as any).permissions.onRemoved.addListener.mock.calls[0][0] as (permissions: {
+      permissions: string[];
+    }) => void
+  )({ permissions: ["notifications"] });
+  await drain();
+  expect(onBeforeRequest.removeListener).not.toHaveBeenCalled();
+});
+
+test("tears down immediately for an explicit webRequest removal", async () => {
+  const { onBeforeRequest } = await setup();
+  (
+    (browser as any).permissions.onRemoved.addListener.mock.calls[0][0] as (permissions: {
+      permissions: string[];
+    }) => void
+  )({ permissions: ["webRequest"] });
+  expect(onBeforeRequest.removeListener).toHaveBeenCalledTimes(1);
+});
+
 test("re-attaches the listener when the permission is granted again after a revoke", async () => {
   const { onBeforeRequest } = await setup();
   (browser as any).permissions.contains = vi.fn(() => Promise.resolve(false));
@@ -315,8 +424,89 @@ test("re-attaches the listener when the permission is granted again after a revo
   expect(onBeforeRequest.removeListener).toHaveBeenCalledTimes(1);
 
   onBeforeRequest.addListener.mockClear();
-  ((browser as any).permissions.onAdded.addListener.mock.calls[0][0] as () => void)();
+  (
+    (browser as any).permissions.onAdded.addListener.mock.calls[0][0] as (permissions: {
+      permissions: string[];
+    }) => void
+  )({ permissions: ["webRequest"] });
   expect(onBeforeRequest.addListener).toHaveBeenCalledTimes(1);
+});
+
+test("re-checks and re-attaches when a host omits permission event details", async () => {
+  const { onBeforeRequest } = await setup();
+  (
+    (browser as any).permissions.onRemoved.addListener.mock.calls[0][0] as (permissions: {
+      permissions: string[];
+    }) => void
+  )({ permissions: ["webRequest"] });
+  onBeforeRequest.addListener.mockClear();
+  (browser as any).permissions.contains = vi.fn(() => Promise.resolve(true));
+
+  ((browser as any).permissions.onAdded.addListener.mock.calls[0][0] as () => void)();
+  await drain();
+  expect(onBeforeRequest.addListener).toHaveBeenCalledTimes(1);
+});
+
+test("does not re-attach when a detail-less permission event re-checks false", async () => {
+  const { onBeforeRequest } = await setup();
+  (
+    (browser as any).permissions.onRemoved.addListener.mock.calls[0][0] as (permissions: {
+      permissions: string[];
+    }) => void
+  )({ permissions: ["webRequest"] });
+  onBeforeRequest.addListener.mockClear();
+  (browser as any).permissions.contains = vi.fn(() => Promise.resolve(false));
+
+  ((browser as any).permissions.onAdded.addListener.mock.calls[0][0] as () => void)();
+  await drain();
+  expect(onBeforeRequest.addListener).not.toHaveBeenCalled();
+});
+
+test("does not re-attach for an unrelated permission grant", async () => {
+  const { onBeforeRequest } = await setup();
+  (browser as any).permissions.contains = vi.fn(() => Promise.resolve(false));
+  fireOnRemoved();
+  await drain();
+  onBeforeRequest.addListener.mockClear();
+
+  (
+    (browser as any).permissions.onAdded.addListener.mock.calls[0][0] as (permissions: {
+      permissions: string[];
+    }) => void
+  )({ permissions: ["notifications"] });
+  await drain();
+  expect(onBeforeRequest.addListener).not.toHaveBeenCalled();
+});
+
+test("does not replay a stored buffer after webRequest is revoked", async () => {
+  const { mod } = await setup();
+  withStoredTab(12, [{ url: "https://old.example/a.m3u8", kind: "stream" }]);
+  vi.mocked(browser.storage.session.remove).mockRejectedValue(new Error("remove failed"));
+  (browser as any).permissions.contains = vi.fn(() => Promise.resolve(false));
+
+  fireOnRemoved();
+  await drain();
+  mod.pushBufferedScriptMedia(12);
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  expect(browser.tabs.sendMessage).not.toHaveBeenCalled();
+});
+
+test("drops a panel replay queued before an explicit mid-hydrate revoke", async () => {
+  const { mod } = await setup();
+  const release = frozenHydrate();
+  mod.pushBufferedScriptMedia(12);
+  await drain();
+
+  (
+    (browser as any).permissions.onRemoved.addListener.mock.calls[0][0] as (permissions: {
+      permissions: string[];
+    }) => void
+  )({ permissions: ["webRequest"] });
+  release();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+
+  expect(browser.tabs.sendMessage).not.toHaveBeenCalled();
 });
 
 test("a second revoke after teardown is a no-op", async () => {
@@ -364,6 +554,30 @@ test("drops malformed stored entries during rehydrate", async () => {
   expect(lastSend()![1].body.sources).toEqual([
     { url: "https://ok.example/a.m3u8", kind: "stream" },
   ]);
+});
+
+test("validates and caps a session-stored buffer before replay", async () => {
+  const { mod } = await setup();
+  withStoredTab(8, [
+    { url: "javascript:alert(1)", kind: "video" },
+    { url: "https://cdn.example/not-media", kind: "link" },
+    { url: "https://cdn.example/bad.m3u8", kind: "bogus" },
+    ...Array.from({ length: 257 }, (_, index) => ({
+      url: `https://cdn.example/v${index}.mp4`,
+      kind: "video",
+    })),
+    { url: "https://cdn.example/v256.mp4", kind: "video" },
+  ]);
+
+  mod.pushBufferedScriptMedia(8);
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+  const sources = lastSend()![1].body.sources as Array<{ url: string; kind: string }>;
+  expect(sources).toHaveLength(256);
+  expect(sources.every(({ url, kind }) => url.startsWith("https://") && kind === "video")).toBe(
+    true,
+  );
+  expect(sources.some(({ url }) => url.endsWith("/v0.mp4"))).toBe(false);
+  expect(sources.some(({ url }) => url.endsWith("/v256.mp4"))).toBe(true);
 });
 
 test("survives a failed rehydrate read", async () => {

@@ -13,7 +13,7 @@ import {
   type PageSource,
   type PageSourceCandidate,
 } from "./source-panel-model.ts";
-import type { PageSourceKind } from "../shared/page-source.ts";
+import { SCRIPT_MEDIA_SOURCE_LIMIT, type PageSourceKind } from "../shared/page-source.ts";
 import { PANEL_HOST_ID, cleanupPanelHost, panelOpenChanges } from "./source-panel-host.ts";
 import type { SourcePanelContext } from "./source-panel-context.ts";
 
@@ -421,21 +421,28 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
   };
 
   const addScriptMediaSources = (sources: Array<{ url: string; kind: PageSourceKind }>) => {
-    const known = new Set(scriptMediaSources.map((source) => source.url));
-    let added = false;
+    let changed = false;
     for (const { url, kind } of sources) {
-      if (!url || known.has(url)) continue;
-      known.add(url);
-      added = true;
-      scriptMediaSources.push({
+      if (!url) continue;
+      const existingIndex = scriptMediaSources.findIndex((source) => source.url === url);
+      const existing = existingIndex < 0 ? undefined : scriptMediaSources[existingIndex];
+      if (existingIndex >= 0) scriptMediaSources.splice(existingIndex, 1);
+      const candidate: PageSourceCandidate = {
         url,
         kind,
         element: document.body,
         collectorOriginElements: [],
         channel: "resource-hint",
-      });
+      };
+      scriptMediaSources.push(candidate);
+      changed ||= !existing || existing.kind !== kind;
+      while (scriptMediaSources.length > SCRIPT_MEDIA_SOURCE_LIMIT) {
+        const nonStreamIndex = scriptMediaSources.findIndex((source) => source.kind !== "stream");
+        scriptMediaSources.splice(nonStreamIndex < 0 ? 0 : nonStreamIndex, 1);
+        changed = true;
+      }
     }
-    if (added) commitSources();
+    if (changed) commitSources();
   };
 
   ctx.refreshSources = refreshSources;

@@ -7,6 +7,10 @@ export type PageSourceKind = (typeof PAGE_SOURCE_KINDS)[number];
 export const isPageSourceKind = (value: unknown): value is PageSourceKind =>
   isStringMember(PAGE_SOURCE_KINDS, value);
 
+// Shared by the background collector and the live content panel so a stream of
+// delta messages cannot outgrow the worker's bounded per-tab source window.
+export const SCRIPT_MEDIA_SOURCE_LIMIT = 256;
+
 // The collector's origin for a candidate, distinct from its media kind. A
 // candidate embedded directly on the page (img/video/audio) carries no
 // channel — that is the pre-4.2 default and keeps old candidates valid.
