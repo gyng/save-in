@@ -171,3 +171,38 @@ test("a top-level navigation resets a tab restored from session storage (cold wo
   await new Promise((r) => setTimeout(r, 50));
   expect(browser.tabs.sendMessage).not.toHaveBeenCalled();
 });
+
+test("a permission revoke mid-hydrate does not resurrect buffers or push stale media", async () => {
+  await setup();
+  // Hang the in-flight hydrate's storage read so a revoke can interleave with
+  // the still-pending record callback.
+  let resolveGet: (value: Record<string, unknown>) => void = () => {};
+  vi.mocked(browser.storage.session.get).mockReturnValue(
+    new Promise<Record<string, unknown>>((resolve) => {
+      resolveGet = resolve;
+    }),
+  );
+  const listener = (browser as any).webRequest.onBeforeRequest.addListener.mock.calls[0][0] as (
+    d: Details,
+  ) => void;
+
+  // A media request wakes the worker and starts a (now pending) hydrate.
+  listener({ url: "https://cdn.example/live.m3u8", tabId: 5, type: "xmlhttprequest" });
+
+  // The user revokes webRequest while hydrate is still awaiting storage.
+  (browser as any).permissions.contains = vi.fn(() => Promise.resolve(false));
+  const onRemoved = (browser as any).permissions.onRemoved.addListener.mock
+    .calls[0][0] as () => void;
+  onRemoved();
+  await Promise.resolve();
+  await Promise.resolve(); // let contains().then(stopListening) run
+
+  // Now let the pre-revoke storage snapshot resolve; the deferred record must
+  // be dropped by the generation guard.
+  resolveGet({});
+  await new Promise((r) => setTimeout(r, 350));
+
+  expect(browser.tabs.sendMessage).not.toHaveBeenCalled();
+  // stopListening removes the session key; nothing may re-persist it.
+  expect(browser.storage.session.set).not.toHaveBeenCalled();
+});

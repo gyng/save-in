@@ -201,6 +201,11 @@ const onBeforeRequest = (details: WebRequestDetails): void => {
   if (!isEnabled()) return;
   if (typeof details.tabId !== "number" || details.tabId < 0) return;
   if (!isHttp(details.url)) return;
+  // Capture the generation now: a teardown (permission revoke) can land while
+  // hydrate awaits storage, and the deferred callback below survives it. Drop
+  // the callback if that happened so a torn-down collector never repopulates
+  // the cleared buffers or re-persists the removed session key.
+  const eventGeneration = generation;
   // A top-level navigation starts a fresh page; forget the old tab's media.
   // Route through hydrate so a cold-woken worker restores the persisted buffer
   // FIRST — otherwise dropTab sees an empty in-memory map, early-returns, and
@@ -208,10 +213,14 @@ const onBeforeRequest = (details: WebRequestDetails): void => {
   // await the same promise and main_frame fires before its subresources, so the
   // drop is queued ahead of any record() for the new page.
   if (details.type === "main_frame") {
-    void hydrate().then(() => dropTab(details.tabId));
+    void hydrate().then(() => {
+      if (eventGeneration === generation) dropTab(details.tabId);
+    });
     return;
   }
-  void hydrate().then(() => record(details.tabId, details.url, details.type));
+  void hydrate().then(() => {
+    if (eventGeneration === generation) record(details.tabId, details.url, details.type);
+  });
 };
 
 let listening = false;
