@@ -1,7 +1,15 @@
 // Opt-in webRequest collector: observes media-carrying requests, buffers only
 // recognized media per tab, and pushes it (debounced) to the tab's panel. State
 // is module-local, so each test re-imports it fresh.
+import { SCRIPT_MEDIA_BY_TAB_SESSION_KEY } from "../../src/shared/storage-keys.ts";
+
 type Details = { url: string; tabId: number; type: string };
+
+// A cold worker whose only record of a tab lives in storage.session.
+const withStoredTab = (tabId: number, entries: Array<{ url: string; kind: string }>) =>
+  vi.mocked(browser.storage.session.get).mockResolvedValue({
+    [SCRIPT_MEDIA_BY_TAB_SESSION_KEY]: { [String(tabId)]: entries },
+  });
 
 const setup = async (optionOverrides: Record<string, unknown> = {}, withWebRequest = true) => {
   vi.resetModules();
@@ -133,4 +141,33 @@ test("pushBufferedScriptMedia replays a tab's buffered media on panel open", asy
   expect(lastSend()![1].body.sources).toEqual([
     { url: "https://example.com/a.m3u8", kind: "stream" },
   ]);
+});
+
+test("rehydrates a tab's media from session storage after a worker restart", async () => {
+  const { mod } = await setup();
+  withStoredTab(4, [{ url: "https://cdn.example/live.m3u8", kind: "stream" }]);
+
+  // Cold worker: nothing is in memory, only the persisted snapshot.
+  mod.pushBufferedScriptMedia(4);
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+  expect(lastSend()![1].body.sources).toEqual([
+    { url: "https://cdn.example/live.m3u8", kind: "stream" },
+  ]);
+});
+
+test("a top-level navigation resets a tab restored from session storage (cold worker)", async () => {
+  const { listener, mod } = await setup();
+  withStoredTab(7, [{ url: "https://old.example/a.m3u8", kind: "stream" }]);
+
+  // The main_frame request is the first event to touch tab 7 after the restart;
+  // it must hydrate the stored buffer and then drop it, not leave it to be
+  // resurrected by the next request.
+  listener!({ url: "https://new.example/", tabId: 7, type: "main_frame" });
+  // dropTab persists the (now tab-7-less) buffer — wait for that write.
+  await vi.waitFor(() => expect(browser.storage.session.set).toHaveBeenCalled());
+  vi.mocked(browser.tabs.sendMessage).mockClear();
+
+  mod.pushBufferedScriptMedia(7);
+  await new Promise((r) => setTimeout(r, 50));
+  expect(browser.tabs.sendMessage).not.toHaveBeenCalled();
 });

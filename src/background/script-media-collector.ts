@@ -37,6 +37,9 @@ const buffers = new Map<number, Map<string, PageSourceKind>>();
 const pending = new Map<number, Set<string>>();
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 let hydratePromise: Promise<void> | null = null;
+// Bumped by stopListening so an in-flight rehydrate that read the session
+// snapshot before the teardown does not repopulate the just-cleared buffers.
+let generation = 0;
 
 const permissionsApi = ():
   | { contains?: (p: { permissions: string[] }) => Promise<boolean> }
@@ -77,10 +80,14 @@ const hydrate = (): Promise<void> => (hydratePromise ??= doHydrate());
 const doHydrate = async (): Promise<void> => {
   const storage = sessionStorage();
   if (!storage) return;
+  const readGeneration = generation;
   try {
     const stored = (await storage.get(SCRIPT_MEDIA_BY_TAB_SESSION_KEY))[
       SCRIPT_MEDIA_BY_TAB_SESSION_KEY
     ];
+    // A teardown (permission revoke) between the read and here cleared the
+    // buffers on purpose; do not resurrect the stale snapshot we just read.
+    if (readGeneration !== generation) return;
     if (!stored || typeof stored !== "object") return;
     for (const [tabKey, entries] of Object.entries(stored as Record<string, unknown>)) {
       const tabId = Number(tabKey);
@@ -195,8 +202,13 @@ const onBeforeRequest = (details: WebRequestDetails): void => {
   if (typeof details.tabId !== "number" || details.tabId < 0) return;
   if (!isHttp(details.url)) return;
   // A top-level navigation starts a fresh page; forget the old tab's media.
+  // Route through hydrate so a cold-woken worker restores the persisted buffer
+  // FIRST — otherwise dropTab sees an empty in-memory map, early-returns, and
+  // the next request's hydrate resurrects the old page's media. Both callbacks
+  // await the same promise and main_frame fires before its subresources, so the
+  // drop is queued ahead of any record() for the new page.
   if (details.type === "main_frame") {
-    dropTab(details.tabId);
+    void hydrate().then(() => dropTab(details.tabId));
     return;
   }
   void hydrate().then(() => record(details.tabId, details.url, details.type));
@@ -216,6 +228,12 @@ const stopListening = (): void => {
   if (!api || !listening) return;
   api.removeListener(onBeforeRequest);
   listening = false;
+  generation += 1;
+  hydratePromise = null;
+  if (flushTimer !== null) {
+    clearTimeout(flushTimer);
+    flushTimer = null;
+  }
   buffers.clear();
   pending.clear();
   void sessionStorage()?.remove?.(SCRIPT_MEDIA_BY_TAB_SESSION_KEY);
