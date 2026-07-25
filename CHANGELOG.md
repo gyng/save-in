@@ -1,5 +1,12 @@
 # 4.1.0 (unreleased)
 
+- Added an off-by-default Page Sources option to detect media that a page
+  loads with scripts (HLS/DASH manifests, fetch/XHR media), including from
+  workers and cross-origin frames that the DOM scan and Resource Timing miss.
+  Turning it on requests the optional `webRequest` permission and reverts if
+  it is denied or later revoked; declining or removing the permission leaves
+  the rest of Save In unaffected. Detected sources merge into the open Page
+  Sources panel the same way as DOM-discovered ones.
 - Expanded click-to-save from one modifier/button pair to multiple configurable
   gestures, including middle, right, back, forward, double-left, and long-left
   click with a hold configurable from 250 to 2,000 milliseconds. Routing rules

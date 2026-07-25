@@ -112,6 +112,15 @@ Not features — release hygiene that gates the close-out of everything above.
   time out without blocking the download path indefinitely. Click-to-save
   already owns the clicked element and attaches the same bounded attributes
   directly.
+- Page Sources can optionally detect media a page loads with scripts (HLS/DASH
+  manifests, fetch/XHR media), including from workers and cross-origin frames
+  that the DOM scan and Resource Timing miss. Off by default; turning it on
+  requests the optional `webRequest` permission and self-heals if it is denied
+  or later revoked out of band. A background listener observes only
+  media-carrying request types, buffers recognized URLs per tab (capped, with
+  stream manifests pinned against eviction), mirrors them to
+  `storage.session` so a worker restart can rehydrate, and merges them into
+  whichever Page Sources panel is open.
 
 ## Gated: Firefox cancel-and-redownload verdict
 

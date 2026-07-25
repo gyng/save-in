@@ -152,9 +152,12 @@ concurrently, each under its own rule ID from a small fixed pool; a single rule
 still never carries two Referer values, and an operation whose exact URL is
 already covered by an in-flight rule with a different Referer waits for it (a
 mid-flight redirect extension toward such a URL degrades to the unextended rule
-instead — waiting there could deadlock two extending operations). The extension
-requests `declarativeNetRequestWithHostAccess`, but not `webRequest` or
-`webRequestBlocking`.
+instead — waiting there could deadlock two extending operations). This Referer
+mechanism uses `declarativeNetRequestWithHostAccess`, not `webRequest` or
+`webRequestBlocking`. Separately, the opt-in Page Sources "Detect media loaded
+by scripts" option (`script-media-collector.ts`) requests the optional
+`webRequest` permission — held only while that toggle is on — to observe
+media-carrying request types; it never requests `webRequestBlocking`.
 Other shared code must **feature-detect, not sniff**:
 `URL.createObjectURL` and `browser.storage.session` are probed for presence.
 Both lifecycles are non-persistent, so all the service worker rules below apply

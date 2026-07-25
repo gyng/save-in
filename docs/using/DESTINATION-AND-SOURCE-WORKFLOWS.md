@@ -67,6 +67,14 @@ menu destination was chosen.
 Open Page Sources from the toolbar or context menu to inspect sources exposed by
 the current page. Each result can be saved by itself or selected for a batch.
 
+Page Sources normally finds sources by reading the page's DOM. The off-by-default
+**Detect media loaded by scripts** setting additionally watches network requests
+for media a page loads with scripts — such as HLS/DASH streams or fetch/XHR
+media, including from workers and cross-origin frames — that the DOM does not
+expose. Turning it on requests the optional network-access (`webRequest`)
+permission; declining or later revoking it reverts the setting and leaves the
+rest of Page Sources unaffected.
+
 - **Select filtered** selects every result in the current text and type filters.
 - Selected sources remain selected when filters change; the selection bar shows
   how many selected sources are currently hidden.

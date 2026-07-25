@@ -29,8 +29,14 @@ is no account and no first-party server.
   the extension's own HEAD/GET for a file the user chose to save, when a site
   serves media that requires it. Session-scoped rules are added for the exact
   requested URL (plus up to three redirect hops) and removed immediately after.
-  The extension does not use `webRequest` or `webRequestBlocking` and does not
-  modify page traffic.
+  It does not modify page traffic and does not use `webRequestBlocking`.
+- `webRequest` (optional, not held on install) — requested only when the user
+  turns on the off-by-default Page Sources option to detect media a page loads
+  with scripts. Once granted, a listener watches only media-carrying request
+  types (`xmlhttprequest`, `media`, `object`, `other`, `main_frame`) to catch
+  HLS/DASH manifests and fetch/XHR media, including from workers and
+  cross-origin frames, that the DOM scan misses. Turning the option off or
+  revoking the permission tears the listener down immediately.
 - `storage` — saves the user's settings, routing rules, and local history in
   `storage.local`; transient per-download state and the separate private **Last
   used** destination in `storage.session`. The private destination is removed
@@ -59,6 +65,9 @@ is no account and no first-party server.
    list and batch-save its images, video, and audio.
 4. Optionally enable Browser routings to record or route downloads the browser
    starts on its own; it is off by default.
+5. In Page Sources settings, optionally turn on "Detect media loaded by
+   scripts" and accept the permission prompt to also surface HLS/DASH and
+   fetch/XHR media in the panel.
 
 ## Data collection and privacy
 

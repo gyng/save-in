@@ -1,6 +1,6 @@
 # Save In Privacy Policy
 
-Last updated: July 22, 2026
+Last updated: July 25, 2026
 
 ## What information does Save In collect?
 
@@ -48,6 +48,16 @@ operation. Firefox normally attaches the page URL directly to the final browser
 download; Chrome saves the protected content as a local Blob. Content already
 fetched for hashing is reused on both browsers. The rule does not apply to
 ordinary page traffic.
+
+Page Sources normally finds saveable media by reading the page's own DOM. An
+off-by-default option, "Detect media loaded by scripts," additionally watches
+the browser's own network requests for media a page loads with scripts —
+such as HLS/DASH streams or fetch/XHR media, including from workers and
+cross-origin frames — that the DOM does not expose. Turning it on requests the
+optional `webRequest` permission and does nothing until it is granted;
+turning the option off, declining the prompt, or removing the permission stops
+it immediately. Matching URLs are only added to the same local Page Sources
+list; nothing leaves the device.
 
 External extensions can request a save only after the user allows their ID.
 Extension permissions support only the features described above.

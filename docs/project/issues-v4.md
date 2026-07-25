@@ -798,11 +798,14 @@ the reply should show both the menu annotation and routing-clause forms.
 The intent shipped: automatic saves of everything matching a rule, as
 `context: ^auto$` (`routing/automatic-rule.ts`, `docs/using/AUTOMATIC-SOURCE-SAVES.md`),
 off by default. The *design in the body* did not and should not: it asked to
-*"add `webRequest` permissions"* and *"listen to all URLs"*, and AGENTS.md makes
-that a standing architectural refusal — Save In requests
-`declarativeNetRequestWithHostAccess`, never `webRequest`. v4 discovers page-DOM
-sources, not arbitrary network traffic. Credited in the changelog as of this
-pass; cleanest close is his own, pointing at `context: ^auto$`.
+*"add `webRequest` permissions"* and *"listen to all URLs"* — a standing
+architectural refusal at the time of this audit. (4.1 later added a narrow,
+off-by-default exception: the optional `webRequest` permission requested only
+by the Page Sources "Detect media loaded by scripts" toggle, scoped to
+media-carrying request types, not the broad always-on listener this issue
+asked for.) v4 discovers page-DOM sources, not arbitrary network traffic.
+Credited in the changelog as of this pass; cleanest close is his own, pointing
+at `context: ^auto$`.
 
 ### Not reproducible
 

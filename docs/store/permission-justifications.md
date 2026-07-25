@@ -9,9 +9,10 @@ use changes, update the matching entry here and the terse rationale list in
 
 The set below matches `manifest.json` exactly: `permissions` are `contextMenus`,
 `declarativeNetRequestWithHostAccess`, `downloads`, `notifications`, `storage`,
-`offscreen`; `host_permissions` is `<all_urls>`. A listing that requests a
-permission with no justification here — or justifies one it does not request —
-is the common review snag; keep this file and the manifest in step.
+`offscreen`; `optional_permissions` is `webRequest`; `host_permissions` is
+`<all_urls>`. A listing that requests a permission with no justification
+here — or justifies one it does not request — is the common review snag; keep
+this file and the manifest in step.
 
 ## Single purpose
 
@@ -50,9 +51,9 @@ the peripheral features fit a single purpose:
 >
 > The rule covers only the exact extension-initiated request URL (plus up to
 > three exact redirect hops it follows), is removed as soon as that operation
-> finishes, and never applies to the user's ordinary page browsing. The
-> extension does not request webRequest or webRequestBlocking, and does not
-> modify, block, or observe general network traffic.
+> finishes, and never applies to the user's ordinary page browsing. This
+> permission does not modify, block, or observe general network traffic; it
+> does not request webRequestBlocking.
 
 ### `downloads`
 
@@ -101,6 +102,24 @@ the peripheral features fit a single purpose:
 >
 > The offscreen document is created only when one of these is needed and is
 > closed afterward. It performs no background or persistent activity.
+
+### `webRequest` (optional)
+
+> Save In requests this permission only when the user turns on the off-by-default
+> Page Sources option "Detect media loaded by scripts." It is not held on
+> install and no prompt is shown until that action.
+>
+> When granted, a background listener observes only the request types that can
+> carry media (`xmlhttprequest`, `media`, `object`, `other`, plus `main_frame`
+> so a page navigation resets what was seen) to find media a page loads with
+> scripts — for example HLS/DASH manifests or fetch/XHR media, including from
+> workers and cross-origin frames — that the page's own DOM does not expose.
+> Recognized URLs are added to the same Page Sources list the DOM scan
+> produces, entirely on the device.
+>
+> Turning the option off, denying the permission prompt, or removing the
+> permission from the browser's extension settings immediately drops it and
+> tears down the listener; every other Save In feature is unaffected.
 
 ## Host permission justification
 

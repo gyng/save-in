@@ -50,6 +50,10 @@ Use these permission rationales:
   responsible document and refuses to run in a worker. Name all three: a
   justification that omits the model is the one a re-review finds.
 - `<all_urls>`: identify and fetch user-selected resources on arbitrary sites.
+- `webRequest` (optional): held only after the user turns on the off-by-default
+  Page Sources "Detect media loaded by scripts" option; watches media-carrying
+  request types to surface HLS/DASH and fetch/XHR media the DOM scan misses,
+  and is dropped when the option is turned off or the permission is revoked.
 
 Firefox additionally declares `data_collection_permissions`. `required` is
 `none` — Save In collects nothing to function. The three `optional` entries are
