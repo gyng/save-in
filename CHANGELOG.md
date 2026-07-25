@@ -1,12 +1,5 @@
 # 4.1.0 (unreleased)
 
-- Added an off-by-default Page Sources option to detect media that a page
-  loads with scripts (HLS/DASH manifests, fetch/XHR media), including from
-  workers and cross-origin frames that the DOM scan and Resource Timing miss.
-  Turning it on requests the optional `webRequest` permission and reverts if
-  it is denied or later revoked; declining or removing the permission leaves
-  the rest of Save In unaffected. Detected sources merge into the open Page
-  Sources panel the same way as DOM-discovered ones.
 - Expanded click-to-save from one modifier/button pair to multiple configurable
   gestures, including middle, right, back, forward, double-left, and long-left
   click with a hold configurable from 250 to 2,000 milliseconds. Routing rules
@@ -24,44 +17,37 @@
 - Menu items can spell their post-save tab action `(after: close-tab)` or
   `(after: return-tab)`, sharing the routing grammar's vocabulary; the
   existing `(tab: close)` and `(tab: return)` spellings stay accepted.
+- Added an off-by-default Page Sources option to detect media that a page
+  loads with scripts (HLS/DASH manifests, fetch/XHR media), including from
+  workers and cross-origin frames that the DOM scan and Resource Timing miss.
+  Turning it on requests the optional `webRequest` permission and reverts if
+  it is denied or later revoked; declining or removing the permission leaves
+  the rest of Save In unaffected. Detected sources merge into the open Page
+  Sources panel the same way as DOM-discovered ones.
 - Made **Last used** reliable in Private Browsing and Incognito across event-page
   and service-worker sleeps. Private Last used remains separate and clears when
   private browsing ends by default. Chrome worker restarts can no longer
   misclassify an isolated private save as an ordinary browser download.
-- Added an independent opt-in that lets an ordinary browser Save As subfolder
-  inside Downloads update **Last used**, without enabling browser-download
-  History. Direct-to-Downloads and browser-routed destinations are ignored.
+- Made History **Move** durable across background restarts: the moved entry
+  commits before the original files are removed, interrupted moves are
+  recovered or reported, and originals are kept when their links are missing.
+- Made every OS notification about a private-browsing save non-identifying:
+  success, failure, exclusion, and unmatched-route notifications no longer
+  carry the URL, filename, or destination.
 - Added the off-by-default **Remember private browsing activity** option. It
   includes private saves in normal local Last used, Recent locations, History,
   counter, diagnostics, and restart-recovery state, while webhooks and browser
   credentials remain disabled in private windows.
-- Made every OS notification about a private-browsing save non-identifying:
-  success, failure, exclusion, and unmatched-route notifications no longer
-  carry the URL, filename, or destination.
+- Added an independent opt-in that lets an ordinary browser Save As subfolder
+  inside Downloads update **Last used**, without enabling browser-download
+  History. Direct-to-Downloads and browser-routed destinations are ignored.
 - Added a completed-History retention limit from 0 to 10,000. Active saves stay
   visible until they finish, and lowering the limit asks before permanently
   pruning older completed entries.
-- Made History **Move** durable across background restarts: the moved entry
-  commits before the original files are removed, interrupted moves are
-  recovered or reported, and originals are kept when their links are missing.
 - Reduced repeated work and retained memory in History and Page Sources, and
   hardened their large-list and long-lived-page behavior.
-- Hardened Chrome and Firefox browser-test control, lifecycle recovery, and
-  constrained-CI execution, with full source coverage and real-browser memory
-  gates.
-- Fixed the Route debugger's context choices to the values saves actually
-  carry — media, tab-strip, and browser-initiated contexts are now selectable
-  and survive loading a recorded save — replacing entries no save produces.
 - Fixed a parser stack overflow on deeply nested parentheses in menu comment
   metadata, which the external `VALIDATE` message could reach.
-- Integrations: `DOWNLOAD` responses echo the canonical form of the requested
-  URL, `GET_KEYWORDS` lists the routing action clauses, and `VALIDATE` traces
-  report each rule's outcome and selected post-save action.
-- Refined every generated catalog for the new 4.1 controls, including consistent
-  Last used and Click-to-save terminology, explicit private-data boundaries,
-  and clearer browser-download and History behavior.
-- Made **Hide folder choices** preserve non-folder context-menu actions such as
-  Options, Open Downloads, context information, and Page Sources.
 - Added **Debug this save** to History. It loads the recorded fields into the
   Route debugger and tests them against the rules currently in the editor,
   without storing a second routing trace or rereading History.
@@ -71,6 +57,20 @@
   attributes only when current paths or rules use them; the lookup is bounded,
   frame-specific, and failure-tolerant. Click-to-save reads the same bounded
   attributes directly from the element after the save gesture.
+- Fixed the Route debugger's context choices to the values saves actually
+  carry — media, tab-strip, and browser-initiated contexts are now selectable
+  and survive loading a recorded save — replacing entries no save produces.
+- Made **Hide folder choices** preserve non-folder context-menu actions such as
+  Options, Open Downloads, context information, and Page Sources.
+- Integrations: `DOWNLOAD` responses echo the canonical form of the requested
+  URL, `GET_KEYWORDS` lists the routing action clauses, and `VALIDATE` traces
+  report each rule's outcome and selected post-save action.
+- Refined every generated catalog for the new 4.1 controls, including consistent
+  Last used and Click-to-save terminology, explicit private-data boundaries,
+  and clearer browser-download and History behavior.
+- Hardened Chrome and Firefox browser-test control, lifecycle recovery, and
+  constrained-CI execution, with full source coverage and real-browser memory
+  gates.
 
 # 4.0.1
 
