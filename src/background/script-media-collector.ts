@@ -288,5 +288,14 @@ export const registerScriptMediaCollector = (): void => {
     });
   });
 
-  webExtensionApi.tabs?.onRemoved?.addListener((tabId: number) => dropTab(tabId));
+  // Route through hydrate for the same reason main_frame does: a tab close can
+  // wake a cold worker whose in-memory buffer is empty, so a bare dropTab would
+  // early-return and leave the closed tab's persisted media to be resurrected
+  // (and surfaced) under a reused tabId. Restore the buffer first, then drop.
+  webExtensionApi.tabs?.onRemoved?.addListener((tabId: number) => {
+    const eventGeneration = generation;
+    void hydrate().then(() => {
+      if (eventGeneration === generation) dropTab(tabId);
+    });
+  });
 };

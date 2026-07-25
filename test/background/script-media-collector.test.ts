@@ -206,3 +206,22 @@ test("a permission revoke mid-hydrate does not resurrect buffers or push stale m
   // stopListening removes the session key; nothing may re-persist it.
   expect(browser.storage.session.set).not.toHaveBeenCalled();
 });
+
+test("closing a tab drops its session-stored media on a cold worker (no reuse leak)", async () => {
+  const { mod } = await setup();
+  withStoredTab(5, [{ url: "https://old.example/a.m3u8", kind: "stream" }]);
+
+  // Tab close wakes a cold worker whose buffer is empty; the drop must hydrate
+  // the persisted buffer first so the entry is actually removed, not left for a
+  // reused tabId to resurrect.
+  const onTabRemoved = (browser as any).tabs.onRemoved.addListener.mock.calls[0][0] as (
+    id: number,
+  ) => void;
+  onTabRemoved(5);
+  // dropTab persists the (now tab-5-less) buffer — only reached if hydrate ran.
+  await vi.waitFor(() => expect(browser.storage.session.set).toHaveBeenCalled());
+
+  mod.pushBufferedScriptMedia(5);
+  await new Promise((r) => setTimeout(r, 50));
+  expect(browser.tabs.sendMessage).not.toHaveBeenCalled();
+});
