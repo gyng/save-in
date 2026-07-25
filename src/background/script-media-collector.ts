@@ -11,7 +11,11 @@ import { SCRIPT_MEDIA_BY_TAB_SESSION_KEY } from "../shared/storage-keys.ts";
 // script/stylesheet/font/image/ping traffic — never saveable media, or already
 // covered by the DOM scan — costs nothing. Everything here is gated: it does
 // nothing unless the sourcePanelScriptMedia option is on AND the optional
-// webRequest permission is held (the listener only exists once granted).
+// webRequest permission is held (the listener only exists once granted). The
+// permission is bound to that child toggle, not the parent sourcePanelEnabled,
+// so with the panel disabled but the toggle still on the listener stays
+// attached and simply no-ops each request (isEnabled below) rather than
+// re-prompting for the permission on every parent re-enable.
 //
 // Perf/memory: the per-event handler is O(1) (classify + Map insert). Only
 // recognized media is buffered, capped per tab with stream manifests pinned so
