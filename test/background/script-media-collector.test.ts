@@ -3,7 +3,7 @@
 // is module-local, so each test re-imports it fresh.
 import { SCRIPT_MEDIA_BY_TAB_SESSION_KEY } from "../../src/shared/storage-keys.ts";
 
-type Details = { url: string; tabId: number; type: string };
+type Details = { url: string; tabId: number; type: string; incognito?: boolean };
 
 // A cold worker whose only record of a tab lives in storage.session.
 const withStoredTab = (tabId: number, entries: Array<{ url: string; kind: string }>) =>
@@ -29,6 +29,7 @@ const setup = async (
   (browser as any).tabs.onRemoved = { addListener: vi.fn() };
   vi.mocked(browser.storage.session.get).mockResolvedValue({});
   vi.mocked(browser.storage.session.set).mockResolvedValue(undefined);
+  vi.mocked(browser.tabs.get).mockResolvedValue({ incognito: false } as browser.tabs.Tab);
   vi.mocked(browser.tabs.sendMessage).mockResolvedValue(undefined);
 
   const { options } = await import("../../src/config/options-data.ts");
@@ -168,6 +169,108 @@ test("buffers a stream manifest and pushes it to the tab", async () => {
   ]);
 });
 
+test("shows Firefox private media without persisting its identifying URL", async () => {
+  const { listener } = await setup();
+  listener!({
+    url: "https://private.example/live/master.m3u8",
+    tabId: 7,
+    type: "xmlhttprequest",
+    incognito: true,
+  });
+
+  await vi.waitFor(() => expect(browser.storage.session.set).toHaveBeenCalled());
+  expect(browser.tabs.sendMessage).toHaveBeenCalled();
+  const stored = vi.mocked(browser.storage.session.set).mock.calls.at(-1)?.[0] as Record<
+    string,
+    Record<string, unknown>
+  >;
+  expect(stored[SCRIPT_MEDIA_BY_TAB_SESSION_KEY]?.["7"]).toBeUndefined();
+  expect(browser.tabs.get).not.toHaveBeenCalled();
+});
+
+test("resolves Chrome private-tab state before deciding what may persist", async () => {
+  const { listener } = await setup();
+  vi.mocked(browser.tabs.get).mockResolvedValue({ incognito: true } as browser.tabs.Tab);
+  listener!({
+    url: "https://private.example/live/master.m3u8",
+    tabId: 8,
+    type: "xmlhttprequest",
+  });
+
+  await vi.waitFor(() => expect(browser.storage.session.set).toHaveBeenCalled());
+  expect(browser.tabs.get).toHaveBeenCalledWith(8);
+  const stored = vi.mocked(browser.storage.session.set).mock.calls.at(-1)?.[0] as Record<
+    string,
+    Record<string, unknown>
+  >;
+  expect(stored[SCRIPT_MEDIA_BY_TAB_SESSION_KEY]?.["8"]).toBeUndefined();
+});
+
+test("fails closed on persistence when Chrome cannot resolve the request tab", async () => {
+  const { listener } = await setup();
+  vi.mocked(browser.tabs.get).mockRejectedValue(new Error("tab disappeared"));
+  listener!({
+    url: "https://unknown.example/live/master.m3u8",
+    tabId: 9,
+    type: "xmlhttprequest",
+  });
+
+  await vi.waitFor(() => expect(browser.storage.session.set).toHaveBeenCalled());
+  expect(browser.tabs.sendMessage).toHaveBeenCalled();
+  const stored = vi.mocked(browser.storage.session.set).mock.calls.at(-1)?.[0] as Record<
+    string,
+    Record<string, unknown>
+  >;
+  expect(stored[SCRIPT_MEDIA_BY_TAB_SESSION_KEY]?.["9"]).toBeUndefined();
+});
+
+test("fails closed on persistence when Chrome tab lookup throws synchronously", async () => {
+  const { listener } = await setup();
+  vi.mocked(browser.tabs.get).mockImplementation(() => {
+    throw new Error("extension context invalidated");
+  });
+  listener!({
+    url: "https://unknown.example/live/master.m3u8",
+    tabId: 10,
+    type: "xmlhttprequest",
+  });
+
+  await vi.waitFor(() => expect(browser.storage.session.set).toHaveBeenCalled());
+  expect(browser.tabs.sendMessage).toHaveBeenCalled();
+  const stored = vi.mocked(browser.storage.session.set).mock.calls.at(-1)?.[0] as Record<
+    string,
+    Record<string, unknown>
+  >;
+  expect(stored[SCRIPT_MEDIA_BY_TAB_SESSION_KEY]?.["10"]).toBeUndefined();
+});
+
+test("drops a prior public buffer if the same tab id is later classified private", async () => {
+  const { listener, mod } = await setup();
+  listener!({
+    url: "https://public.example/old.mp4",
+    tabId: 11,
+    type: "media",
+    incognito: false,
+  });
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+  vi.mocked(browser.tabs.sendMessage).mockClear();
+
+  listener!({
+    url: "https://private.example/new.mp4",
+    tabId: 11,
+    type: "media",
+    incognito: true,
+  });
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+  vi.mocked(browser.tabs.sendMessage).mockClear();
+  mod.pushBufferedScriptMedia(11);
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+
+  expect(lastSend()![1].body.sources).toEqual([
+    { url: "https://private.example/new.mp4", kind: "video" },
+  ]);
+});
+
 test("ignores non-media requests", async () => {
   const { listener } = await setup();
   listener!({ url: "https://example.com/app.js", tabId: 7, type: "xmlhttprequest" });
@@ -276,6 +379,7 @@ test("a permission revoke mid-hydrate does not resurrect buffers or push stale m
 
   // A media request wakes the worker and starts a (now pending) hydrate.
   listener({ url: "https://cdn.example/live.m3u8", tabId: 5, type: "xmlhttprequest" });
+  await vi.waitFor(() => expect(browser.storage.session.get).toHaveBeenCalled());
 
   // The user revokes webRequest while hydrate is still awaiting storage.
   (browser as any).permissions.contains = vi.fn(() => Promise.resolve(false));

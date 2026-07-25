@@ -40,11 +40,21 @@ const OBSERVED_TYPES = [...MEDIA_TYPES, "main_frame"];
 const FLUSH_DELAY_MS = 300;
 
 type MediaEntry = { url: string; kind: PageSourceKind };
-type WebRequestDetails = { url: string; tabId: number; type: string };
+type WebRequestDetails = { url: string; tabId: number; type: string; incognito?: boolean };
 type PermissionChange = { permissions?: string[] };
 
 // tabId → (url → kind), insertion order = age for LRU eviction.
 const buffers = new Map<number, Map<string, PageSourceKind>>();
+// Privacy belongs to the buffer, not just the latest request. Rehydrated
+// buffers are public; live buffers are classified before their first write.
+const bufferPrivate = new Map<number, boolean>();
+// Chrome webRequest details omit incognito, so resolve the owning tab once and
+// share that promise across a burst. Firefox supplies details.incognito.
+const tabPrivacyChecks = new Map<number, Promise<boolean>>();
+// Preserve browser event order across the asynchronous permission, tab-private,
+// and session-hydration checks. In particular, a panel replay must not overtake
+// the main_frame reset that immediately preceded it.
+const tabOperations = new Map<number, Promise<void>>();
 // tabId → media urls observed since the last flush (for the live push).
 const pending = new Map<number, Set<string>>();
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -91,6 +101,33 @@ const isConfigured = (): boolean =>
 const isHttp = (url: string): boolean => url.startsWith("http://") || url.startsWith("https://");
 
 const sessionStorage = () => webExtensionApi.storage.session;
+
+const queueTabOperation = (tabId: number, operation: () => Promise<void>): void => {
+  const previous = tabOperations.get(tabId);
+  const current = previous?.then(operation, operation) ?? operation();
+  tabOperations.set(tabId, current);
+  const cleanup = () => {
+    if (tabOperations.get(tabId) === current) tabOperations.delete(tabId);
+  };
+  void current.then(cleanup, cleanup);
+};
+
+const resolvePrivateContext = (details: WebRequestDetails): Promise<boolean> => {
+  if (typeof details.incognito === "boolean") return Promise.resolve(details.incognito);
+  const existing = tabPrivacyChecks.get(details.tabId);
+  if (existing) return existing;
+  let check: Promise<boolean>;
+  try {
+    check = webExtensionApi.tabs.get(details.tabId).then(
+      (tab) => tab.incognito === true,
+      () => true,
+    );
+  } catch {
+    check = Promise.resolve(true);
+  }
+  tabPrivacyChecks.set(details.tabId, check);
+  return check;
+};
 
 const setWebRequestPermission = (held: boolean): void => {
   permissionCheckGeneration += 1;
@@ -166,7 +203,10 @@ const doHydrate = async (): Promise<void> => {
       }
       // Every caller awaits the shared hydrate promise before touching buffers,
       // so nothing has populated this tab yet — a plain set, no has() guard.
-      if (map.size) buffers.set(tabId, map);
+      if (map.size) {
+        buffers.set(tabId, map);
+        bufferPrivate.set(tabId, false);
+      }
     }
   } catch {
     // No session storage (older hosts): the in-memory buffer alone still works.
@@ -178,6 +218,9 @@ const persist = async (): Promise<void> => {
   if (!storage) return;
   const record: Record<string, MediaEntry[]> = {};
   for (const [tabId, map] of buffers) {
+    // Script-media discovery is not one of the admitted private activity
+    // stores. Keep private and unclassified URLs in memory only.
+    if (bufferPrivate.get(tabId) !== false) continue;
     record[String(tabId)] = [...map].map(([url, kind]) => ({ url, kind }));
   }
   try {
@@ -236,7 +279,7 @@ const evictOldest = (map: Map<string, PageSourceKind>): void => {
   map.delete(victim);
 };
 
-const record = (tabId: number, url: string, requestType: string): void => {
+const record = (tabId: number, url: string, requestType: string, privateContext: boolean): void => {
   let kind = classifyUrlKind(url);
   // A `media`-typed request with no telltale extension is still a media element
   // load; treat it as video rather than dropping it.
@@ -244,10 +287,17 @@ const record = (tabId: number, url: string, requestType: string): void => {
   if (!isMediaSourceKind(kind)) return; // not saveable media: never buffered
 
   let map = buffers.get(tabId);
+  const previousPrivacy = bufferPrivate.get(tabId);
+  if (map && previousPrivacy !== undefined && previousPrivacy !== privateContext) {
+    map = undefined;
+    buffers.delete(tabId);
+    pending.delete(tabId);
+  }
   if (!map) {
     map = new Map();
     buffers.set(tabId, map);
   }
+  bufferPrivate.set(tabId, privateContext);
   if (map.has(url)) {
     // Refresh recency without changing the kind.
     map.delete(url);
@@ -265,6 +315,8 @@ const record = (tabId: number, url: string, requestType: string): void => {
 };
 
 const dropTab = (tabId: number): void => {
+  tabPrivacyChecks.delete(tabId);
+  bufferPrivate.delete(tabId);
   if (!buffers.delete(tabId)) return;
   pending.delete(tabId);
   void persist();
@@ -279,23 +331,22 @@ const onBeforeRequest = (details: WebRequestDetails): void => {
   // the callback if that happened so a torn-down collector never repopulates
   // the cleared buffers or re-persists the removed session key.
   const eventGeneration = generation;
-  // A top-level navigation starts a fresh page; forget the old tab's media.
-  // Route through hydrate so a cold-woken worker restores the persisted buffer
-  // FIRST — otherwise dropTab sees an empty in-memory map, early-returns, and
-  // the next request's hydrate resurrects the old page's media. Both callbacks
-  // await the same promise and main_frame fires before its subresources, so the
-  // drop is queued ahead of any record() for the new page.
-  void checkWebRequestPermission().then((held) => {
+  queueTabOperation(details.tabId, async () => {
+    const held = await checkWebRequestPermission();
     if (held !== true || eventGeneration !== generation || !isConfigured()) return;
+    const privateContext = await resolvePrivateContext(details);
+    if (eventGeneration !== generation) return;
+    // A top-level navigation starts a fresh page; forget the old tab's media.
+    // Hydrate first so a cold-woken worker cannot leave the persisted buffer to
+    // be resurrected by the next request. queueTabOperation preserves the
+    // browser's main_frame-before-subresource order through every await.
+    await hydrate();
+    if (eventGeneration !== generation) return;
     if (details.type === "main_frame") {
-      void hydrate().then(() => {
-        if (eventGeneration === generation) dropTab(details.tabId);
-      });
+      dropTab(details.tabId);
       return;
     }
-    void hydrate().then(() => {
-      if (eventGeneration === generation) record(details.tabId, details.url, details.type);
-    });
+    record(details.tabId, details.url, details.type, privateContext);
   });
 };
 
@@ -320,6 +371,9 @@ const stopListening = (): void => {
     flushTimer = null;
   }
   buffers.clear();
+  bufferPrivate.clear();
+  tabPrivacyChecks.clear();
+  tabOperations.clear();
   pending.clear();
   void sessionStorage()?.remove?.(SCRIPT_MEDIA_BY_TAB_SESSION_KEY);
 };
@@ -329,17 +383,18 @@ const stopListening = (): void => {
 export const pushBufferedScriptMedia = (tabId: number): void => {
   if (!isConfigured()) return;
   const pushGeneration = generation;
-  void checkWebRequestPermission().then((held) => {
+  const precedingOperation = tabOperations.get(tabId) ?? Promise.resolve();
+  void precedingOperation.then(async () => {
+    const held = await checkWebRequestPermission();
     if (held !== true || pushGeneration !== generation || !isConfigured()) return;
-    void hydrate().then(() => {
-      if (pushGeneration !== generation) return;
-      const map = buffers.get(tabId);
-      if (!map || map.size === 0) return;
-      send(
-        tabId,
-        [...map].map(([url, kind]) => ({ url, kind })),
-      );
-    });
+    await hydrate();
+    if (pushGeneration !== generation) return;
+    const map = buffers.get(tabId);
+    if (!map || map.size === 0) return;
+    send(
+      tabId,
+      [...map].map(([url, kind]) => ({ url, kind })),
+    );
   });
 };
 
@@ -388,7 +443,8 @@ export const registerScriptMediaCollector = (): void => {
   // (and surfaced) under a reused tabId. Restore the buffer first, then drop.
   webExtensionApi.tabs?.onRemoved?.addListener((tabId: number) => {
     const eventGeneration = generation;
-    void hydrate().then(() => {
+    queueTabOperation(tabId, async () => {
+      await hydrate();
       if (eventGeneration === generation) dropTab(tabId);
     });
   });
