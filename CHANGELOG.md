@@ -23,7 +23,9 @@
   Turning it on requests the optional `webRequest` permission and reverts if
   it is denied or later revoked; declining or removing the permission leaves
   the rest of Save In unaffected. Detected sources merge into the open Page
-  Sources panel the same way as DOM-discovered ones.
+  Sources panel the same way as DOM-discovered ones. Chrome does not report the
+  request that wakes its sleeping extension background, so reload a page whose
+  stream is missing right after it loads.
 - Made **Last used** reliable in Private Browsing and Incognito across event-page
   and service-worker sleeps. Private Last used remains separate and clears when
   private browsing ends by default. Chrome worker restarts can no longer
