@@ -589,7 +589,12 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           // A restart can reach this path without a retained download record.
           // downloadItem.incognito is then the only evidence that a new record
           // is private, so it — not a public default — decides whether that
-          // record is admitted to storage.session.
+          // record is admitted to storage.session. Measured on Chrome 150:
+          // onDeterminingFilename does NOT strip this field the way onCreated
+          // strips extension ownership — a browser-owned Incognito download
+          // reports incognito true on both events, and an extension-started one
+          // reports false because Chrome genuinely runs it in the normal
+          // profile. Trusting the field here is therefore sound.
           rememberFilenameSafely(downloadItem.id, recovered, downloadItem.incognito === true);
         }
         await updateSession<FinalFilenameMap>(
