@@ -21,6 +21,15 @@ import { SCRIPT_MEDIA_BY_TAB_SESSION_KEY } from "../shared/storage-keys.ts";
 // webRequest permission is held. A dormant listener is registered synchronously
 // during startup so it can wake an MV3 background, but no event or stored replay
 // passes the permission proof and an absent permission removes that listener.
+//
+// Measured on Chrome 150 (natural 40s idle, worker target gone): the request
+// that wakes a terminated service worker starts it within ~20ms but is never
+// delivered to this listener — only requests issued once the worker is already
+// running arrive. So a page's first media load after an idle period can be
+// missed on Chrome, and nothing in the extension can recover it; the panel-open
+// replay and the DOM scan are what cover that page. This is also why the
+// deferred init wait below matters: after such a wake, the rest of the page's
+// burst arrives while init is still in flight.
 // Firefox does not activate a listener that was registered before webRequest
 // was granted, so the completed config-apply boundary also rebinds it from the
 // authoritative permission state. The permission is bound to that child toggle,

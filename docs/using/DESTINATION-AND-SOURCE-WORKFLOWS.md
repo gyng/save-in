@@ -73,7 +73,9 @@ for media a page loads with scripts — such as HLS/DASH streams or fetch/XHR
 media, including from workers and cross-origin frames — that the DOM does not
 expose. Turning it on requests the optional network-access (`webRequest`)
 permission; declining or later revoking it reverts the setting and leaves the
-rest of Page Sources unaffected.
+rest of Page Sources unaffected. On Chrome, the request that wakes the sleeping
+extension background is not reported to it, so reload the page if a stream is
+missing right after the page loads.
 
 - **Select filtered** selects every result in the current text and type filters.
 - Selected sources remain selected when filters change; the selection bar shows
