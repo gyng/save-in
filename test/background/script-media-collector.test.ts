@@ -857,3 +857,84 @@ test("drops a tab-close reset queued before a mid-hydrate teardown", async () =>
   await new Promise((r) => setTimeout(r, 20));
   expect(browser.storage.session.set).not.toHaveBeenCalled();
 });
+
+// MV3 cold start: the worker is woken BY an observed request, and the options
+// bag still holds seeded defaults (script media off) until init replaces it.
+// Judging the toggle before init would drop exactly the events that woke us.
+const pendingInit = async () => {
+  const { backgroundRuntime } = await import("../../src/background/runtime.ts");
+  let finish: () => void = () => {};
+  backgroundRuntime.ready = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  return async () => {
+    const { options } = await import("../../src/config/options-data.ts");
+    Object.assign(options, { sourcePanelEnabled: true, sourcePanelScriptMedia: true });
+    finish();
+  };
+};
+
+const coldSetup = () => setup({ sourcePanelEnabled: false, sourcePanelScriptMedia: false });
+
+test("buffers a request that woke the worker before init replaced the defaults", async () => {
+  const { listener } = await coldSetup();
+  const completeInit = await pendingInit();
+
+  listener!({ url: "https://cdn.example/live/master.m3u8", tabId: 7, type: "xmlhttprequest" });
+  await completeInit();
+
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+  expect(lastSend()![1].body.sources).toEqual([
+    { url: "https://cdn.example/live/master.m3u8", kind: "stream" },
+  ]);
+});
+
+test("resets a rehydrated buffer for a navigation that woke the worker", async () => {
+  const { listener, mod } = await coldSetup();
+  withStoredTab(7, [{ url: "https://old.example/a.m3u8", kind: "stream" }]);
+  const completeInit = await pendingInit();
+
+  listener!({ url: "https://new.example/", tabId: 7, type: "main_frame" });
+  await completeInit();
+  await vi.waitFor(() => expect(browser.storage.session.set).toHaveBeenCalled());
+
+  mod.pushBufferedScriptMedia(7);
+  await new Promise((r) => setTimeout(r, 50));
+  expect(browser.tabs.sendMessage).not.toHaveBeenCalled();
+});
+
+test("replays a panel open that arrived before init replaced the defaults", async () => {
+  const { mod } = await coldSetup();
+  withStoredTab(4, [{ url: "https://cdn.example/live.m3u8", kind: "stream" }]);
+  const completeInit = await pendingInit();
+
+  mod.pushBufferedScriptMedia(4);
+  await completeInit();
+
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+  expect(lastSend()![1].body.sources).toEqual([
+    { url: "https://cdn.example/live.m3u8", kind: "stream" },
+  ]);
+});
+
+test("keeps observing after a failed init instead of wedging on its rejection", async () => {
+  const { listener } = await coldSetup();
+  const { backgroundRuntime } = await import("../../src/background/runtime.ts");
+  let failInit: () => void = () => {};
+  backgroundRuntime.ready = new Promise<void>((_resolve, reject) => {
+    failInit = () => reject(new Error("init failed"));
+  });
+  // A rejected ready must not leave every queued request waiting forever; the
+  // options the failed init did manage to apply still decide the outcome.
+  backgroundRuntime.ready.catch(() => {});
+
+  listener!({ url: "https://cdn.example/live/master.m3u8", tabId: 7, type: "xmlhttprequest" });
+  const { options } = await import("../../src/config/options-data.ts");
+  Object.assign(options, { sourcePanelEnabled: true, sourcePanelScriptMedia: true });
+  failInit();
+
+  await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
+  expect(lastSend()![1].body.sources).toEqual([
+    { url: "https://cdn.example/live/master.m3u8", kind: "stream" },
+  ]);
+});

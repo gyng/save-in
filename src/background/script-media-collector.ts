@@ -1,5 +1,6 @@
 import { options } from "../config/options-data.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { backgroundRuntime } from "./runtime.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import {
   classifyUrlKind,
@@ -54,9 +55,11 @@ const bufferPrivate = new Map<number, boolean>();
 // Chrome webRequest details omit incognito, so resolve the owning tab once and
 // share that promise across a burst. Firefox supplies details.incognito.
 const tabPrivacyChecks = new Map<number, Promise<boolean>>();
-// Preserve browser event order across the asynchronous permission, tab-private,
-// and session-hydration checks. In particular, a panel replay must not overtake
-// the main_frame reset that immediately preceded it.
+// Preserve browser event order across the asynchronous init, permission,
+// tab-private, and session-hydration checks. A panel replay joins the same
+// queue in both directions: it must not overtake the main_frame reset that
+// preceded it, nor send a pre-navigation buffer that a reset behind it in the
+// queue is about to drop.
 const tabOperations = new Map<number, Promise<void>>();
 // tabId → media urls observed since the last flush (for the live push).
 const pending = new Map<number, Set<string>>();
@@ -100,6 +103,18 @@ const webRequestApi = ():
 
 const isConfigured = (): boolean =>
   options.sourcePanelEnabled === true && options.sourcePanelScriptMedia === true;
+
+// MV3: an observed request (or a panel-open message) is often the very event
+// that woke the worker, and until init resolves the options bag still holds the
+// seeded defaults — where script media reads as off. Judging the toggle before
+// then would discard exactly the events that woke us, including the main_frame
+// reset that keeps a rehydrated buffer from bleeding into the next page. A
+// failed init leaves the seeded defaults in place, so this still fails closed.
+const initialized = (): Promise<void> =>
+  backgroundRuntime.ready?.then(
+    () => {},
+    () => {},
+  ) ?? Promise.resolve();
 
 const isHttp = (url: string): boolean => url.startsWith("http://") || url.startsWith("https://");
 
@@ -328,7 +343,6 @@ const dropTab = (tabId: number): void => {
 };
 
 const onBeforeRequest = (details: WebRequestDetails): void => {
-  if (!isConfigured()) return;
   if (typeof details.tabId !== "number" || details.tabId < 0) return;
   if (!isHttp(details.url)) return;
   // Capture the generation now: a teardown (permission revoke) can land while
@@ -337,6 +351,7 @@ const onBeforeRequest = (details: WebRequestDetails): void => {
   // the cleared buffers or re-persists the removed session key.
   const eventGeneration = generation;
   queueTabOperation(details.tabId, async () => {
+    await initialized();
     const held = await checkWebRequestPermission();
     if (held !== true || eventGeneration !== generation || !isConfigured()) return;
     const privateContext = await resolvePrivateContext(details);
@@ -386,10 +401,9 @@ const stopListening = (): void => {
 // Push a tab's whole buffered media set — used when its Page Sources panel
 // opens, so media observed before the panel existed still appears.
 export const pushBufferedScriptMedia = (tabId: number): void => {
-  if (!isConfigured()) return;
   const pushGeneration = generation;
-  const precedingOperation = tabOperations.get(tabId) ?? Promise.resolve();
-  void precedingOperation.then(async () => {
+  queueTabOperation(tabId, async () => {
+    await initialized();
     const held = await checkWebRequestPermission();
     if (held !== true || pushGeneration !== generation || !isConfigured()) return;
     await hydrate();
