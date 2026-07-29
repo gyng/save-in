@@ -30,6 +30,7 @@ import { SCRIPT_MEDIA_BY_TAB_SESSION_KEY } from "../shared/storage-keys.ts";
 // replay and the DOM scan are what cover that page. This is also why the
 // deferred init wait below matters: after such a wake, the rest of the page's
 // burst arrives while init is still in flight.
+//
 // Firefox does not activate a listener that was registered before webRequest
 // was granted, so the completed config-apply boundary also rebinds it from the
 // authoritative permission state. The permission is bound to that child toggle,
@@ -113,12 +114,13 @@ const webRequestApi = ():
 const isConfigured = (): boolean =>
   options.sourcePanelEnabled === true && options.sourcePanelScriptMedia === true;
 
-// MV3: an observed request (or a panel-open message) is often the very event
-// that woke the worker, and until init resolves the options bag still holds the
-// seeded defaults — where script media reads as off. Judging the toggle before
-// then would discard exactly the events that woke us, including the main_frame
-// reset that keeps a rehydrated buffer from bleeding into the next page. A
-// failed init leaves the seeded defaults in place, so this still fails closed.
+// MV3: a request or panel-open message routinely arrives while the worker is
+// still starting — on Chrome the whole burst that follows a wake lands in that
+// window (see the measured note above) — and until init resolves the options
+// bag still holds the seeded defaults, where script media reads as off.
+// Judging the toggle before then would discard those events, including the
+// main_frame reset that keeps a rehydrated buffer from bleeding into the next
+// page. A failed init leaves the seeded defaults, so this still fails closed.
 const initialized = (): Promise<void> =>
   backgroundRuntime.ready?.then(
     () => {},

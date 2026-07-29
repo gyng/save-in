@@ -938,3 +938,32 @@ test("keeps observing after a failed init instead of wedging on its rejection", 
     { url: "https://cdn.example/live/master.m3u8", kind: "stream" },
   ]);
 });
+
+// Chrome supplies no details.incognito, so the collector resolves the owning
+// tab before it may buffer anything. Freezing that lookup lets a teardown land
+// while the request is parked on it.
+const frozenTabPrivacy = () => {
+  let resolveTab: (tab: browser.tabs.Tab) => void = () => {};
+  vi.mocked(browser.tabs.get).mockReturnValue(
+    new Promise<browser.tabs.Tab>((resolve) => {
+      resolveTab = resolve;
+    }),
+  );
+  return () => resolveTab({ incognito: false } as browser.tabs.Tab);
+};
+
+test("drops a request whose tab-privacy lookup outlived a teardown", async () => {
+  const { listener } = await setup();
+  const release = frozenTabPrivacy();
+  listener!({ url: "https://example.com/a.mp4", tabId: 7, type: "media" });
+  await drain();
+
+  (browser as any).permissions.contains = vi.fn(() => Promise.resolve(false));
+  fireOnRemoved();
+  await drain();
+
+  release();
+  await new Promise((r) => setTimeout(r, 350));
+  expect(browser.tabs.sendMessage).not.toHaveBeenCalled();
+  expect(browser.storage.session.set).not.toHaveBeenCalled();
+});
