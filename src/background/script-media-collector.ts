@@ -25,11 +25,14 @@ import { SCRIPT_MEDIA_BY_TAB_SESSION_KEY } from "../shared/storage-keys.ts";
 // Measured on Chrome 150 (natural 40s idle, worker target gone): the request
 // that wakes a terminated service worker starts it within ~20ms but is never
 // delivered to this listener — only requests issued once the worker is already
-// running arrive. So a page's first media load after an idle period can be
-// missed on Chrome, and nothing in the extension can recover it; the panel-open
-// replay and the DOM scan are what cover that page. This is also why the
-// deferred init wait below matters: after such a wake, the rest of the page's
-// burst arrives while init is still in flight.
+// running arrive. A page's first media load after an idle period is therefore
+// missed; reloading recovers it, since by then the wake has happened (measured:
+// the reloaded page's stream is collected). Two consequences follow. The
+// dropped request can be the main_frame reset itself, so the previous load's
+// buffer survives that navigation and the panel shows both — unfixable here,
+// because the reset we would act on is the event we never receive. And the
+// rest of the page's burst arrives while init is still in flight, which is why
+// the deferred init wait below matters.
 //
 // Firefox does not activate a listener that was registered before webRequest
 // was granted, so the completed config-apply boundary also rebinds it from the
