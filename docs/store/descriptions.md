@@ -279,11 +279,23 @@ for reproducible bytes.
 - Source and build: built from TypeScript, bundled with rolldown into readable,
   non-minified files; npm ci uses the committed package-lock.json; no build-time
   network access or code generation beyond that.
+- The submitted package is also published on the GitHub release for this
+  version (https://github.com/gyng/save-in/releases) with a build-provenance
+  attestation created by the release workflow; it can be verified with
+  `gh attestation verify save-in-<version>.zip -R gyng/save-in`.
+- An optional webRequest permission is requested only when the user turns on
+  the off-by-default Page Sources option "Detect media loaded by scripts".
+  When granted, a listener observes media-carrying request types to surface
+  script-loaded media (HLS/DASH, fetch/XHR) in the Page Sources panel,
+  entirely on the device. Turning the option off or revoking the permission
+  tears the listener down; webRequestBlocking is never requested.
 - Webhooks (the only feature that can send data off the device) are disabled by
   default, have no developer endpoint, require the user to add an endpoint and
   enable them, require HTTPS unless the user opts into http, omit credentials and
   referrers, reject redirects, never retry, and never read responses. Private
   browsing never triggers delivery. Save In receives none of this data.
+  The Firefox 140+ optional data-collection permissions are requested from the
+  enabling user action and checked again before delivery.
 - Some code paths feature-detect Chrome-only APIs (WebMCP document.modelContext,
   the Prompt API LanguageModel) that Firefox does not implement, so on Firefox
   they never register and never run — there is no on-device model to assess here.
