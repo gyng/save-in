@@ -1,4 +1,4 @@
-# 4.1.0 (unreleased)
+# 4.1.0
 
 - Expanded click-to-save from one modifier/button pair to multiple configurable
   gestures, including middle, right, back, forward, double-left, and long-left

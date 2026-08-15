@@ -12,8 +12,8 @@ have it yet and is scanning search results, so it leads with the action and the
 outcome. Keep the manifest one aligned with `extensionDescription` in
 `_locales/en/messages.json`; the summary answers to the stores alone.
 
-- Version: 4.0.1
-- Last reviewed: 2026-07-20
+- Version: 4.1.0
+- Last reviewed: 2026-08-15
 - Listing name: Save In
 
 ## Manifest description
@@ -93,19 +93,10 @@ Save In does not collect or transmit any data. All data is stored and kept on de
 Requires Chrome 123 or later.
 ```
 
-## Version 4.0.1 release notes
+## Version 4.1.0 release notes
 
 Use this as the store-facing release note. `CHANGELOG.md` remains the complete
 release history.
-
-```text
-Version 4.0.1 fixes the slowdown and memory growth some users saw after upgrading to Version 4. History is now persisted entry by entry and no longer triggers a full settings reload in every open tab on each update. Page Sources renders large lists incrementally and bounds the metadata it retains. Long-lived validation and download-diagnostic state is bounded as well. Chrome and Firefox browser tests now gate memory growth under repeated history changes.
-```
-
-## Next release notes (4.1.0 draft)
-
-Keep this draft until the manifest/package version bump; then replace the
-4.0.1 release-note section and update the reviewed version/date above.
 
 ```text
 Version 4.1 adds configurable click-to-save gestures, including multiple mouse-button and modifier combinations, double-click saving, configurable long-press saving, and gesture-aware routing. Click-to-save now also honors Prefer links and its page filter. Routing rules gain two actions: end a rule with exclude: true to stop matching saves without downloading, or add after: close-tab to close a save's source tab once the browser accepts the download; menu items can use the same after: spelling for their own tab action. Page Sources can optionally detect media that a page loads with scripts, such as HLS/DASH streams and fetch/XHR media, including from workers and cross-origin frames; this is off by default and asks for an optional network-access permission only when turned on. Notifications about private-browsing saves never include the URL, filename, or destination, and History Move now survives background restarts without losing files. Last used remains reliable through private-window background sleeps while staying isolated by default, and a separate opt-in can use ordinary browser Save As subfolders inside Downloads as Last used without enabling browser-download History. Completed History retention is configurable from 0 to 10,000 entries; lowering it asks for confirmation, and active saves remain visible until they finish. History rows can now replay a save in the Route debugger against the current rules. Interactive link rules can use the link's HTML title and suggested download filename without changing existing link-text behavior. A new off-by-default option can remember private saves in local Last used, Recent locations, History, diagnostics, and restart recovery; webhooks and browser credentials remain disabled in private windows. History, Page Sources, and the Chrome/Firefox test harness also receive further performance and reliability improvements.
