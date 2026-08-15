@@ -27,8 +27,8 @@
   request that wakes its sleeping extension background, so reload a page whose
   stream is missing right after it loads.
 - Made **Last used** reliable in Private Browsing and Incognito across event-page
-  and service-worker sleeps. Private Last used remains separate and clears when
-  private browsing ends by default. Chrome worker restarts can no longer
+  and service-worker sleeps (#235). Private Last used remains separate and clears
+  when private browsing ends by default. Chrome worker restarts can no longer
   misclassify an isolated private save as an ordinary browser download.
 - Made History **Move** durable across background restarts: the moved entry
   commits before the original files are removed, interrupted moves are
