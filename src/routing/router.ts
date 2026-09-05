@@ -10,8 +10,7 @@ import type {
   RoutingRule,
 } from "./rule-types.ts";
 import { routingPorts } from "./ports.ts";
-import { canonicalFetchRewrite, expandFetchUrl } from "./fetch-url.ts";
-import { deriveUrlFilenames } from "./filename.ts";
+import { canonicalFetchRewrite, expandFetchUrl, retargetDownloadInfo } from "./fetch-url.ts";
 import { applyVariables } from "./variable.ts";
 import { applyRenameTransform, expandRenameTransform, type RenameTransform } from "./rename.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
@@ -186,20 +185,10 @@ export const traceRules = async (
   // (applyFetchRewrite does the same for real downloads).
   const rewrittenUrl = expandedFetchUrl !== null ? canonicalFetchRewrite(expandedFetchUrl) : null;
   const fetchRewriteFailed = selectedFetchTemplate !== null && rewrittenUrl === null;
-  let destinationInfo = traceInfo;
-  if (rewrittenUrl) {
-    const { naiveFilename, initialFilename } = deriveUrlFilenames(
-      rewrittenUrl,
-      info.suggestedFilename,
-    );
-    destinationInfo = {
-      ...traceInfo,
-      url: rewrittenUrl,
-      naiveFilename,
-      filename: initialFilename,
-      initialFilename,
-    };
-  }
+  const destinationInfo =
+    rewrittenUrl && rewrittenUrl !== downloadUrl
+      ? retargetDownloadInfo(traceInfo, rewrittenUrl)
+      : traceInfo;
   const expandedPath =
     destination && !fetchRewriteFailed
       ? await applyVariables(new Path(destination), destinationInfo)

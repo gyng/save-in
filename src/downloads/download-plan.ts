@@ -7,7 +7,11 @@ import {
   matchRulesDetailed,
   type RuleMatch,
 } from "../routing/router.ts";
-import { canonicalFetchRewrite, expandFetchUrl } from "../routing/fetch-url.ts";
+import {
+  canonicalFetchRewrite,
+  expandFetchUrl,
+  retargetDownloadInfo,
+} from "../routing/fetch-url.ts";
 import { Path, ROUTES_TO_FOLDER_REGEX } from "../routing/path.ts";
 import { applyVariables, mimeToExtension, resolveMime } from "../routing/variable.ts";
 import { options } from "../config/options-data.ts";
@@ -108,22 +112,12 @@ export const applyFetchRewrite = async (
   rewrittenUrl: string,
 ): Promise<void> => {
   await releaseUnusedContent(state);
-  delete state.info.headPromise;
-  delete state.info.resolvedHead;
-  delete state.info.sha256;
-  delete state.info.mime;
-  delete state.info.mimeExtension;
   delete state.scratch.mimeExtension;
   if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
     downloadRuntime.movePendingState(state, rewrittenUrl);
   }
-  state.info.url = rewrittenUrl;
+  state.info = retargetDownloadInfo(state.info, rewrittenUrl);
   resolveRefererState(state);
-  const { naiveFilename, initialFilename } = deriveUrlFilenames(
-    rewrittenUrl,
-    state.info.suggestedFilename,
-  );
-  Object.assign(state.info, { naiveFilename, filename: initialFilename, initialFilename });
 };
 
 export const resolveDownloadPlan = async (

@@ -2,7 +2,43 @@ import {
   expandFetchUrl,
   isUsableFetchRewrite,
   isUsableFetchTemplate,
+  retargetDownloadInfo,
 } from "../../src/routing/fetch-url.ts";
+
+test("retargets resource metadata without mutating or dropping the save context", () => {
+  const context = {
+    sourceUrl: "https://cdn.example/preview.png",
+    pageUrl: "https://gallery.example/view",
+    currentTab: { id: 42, incognito: true },
+    suggestedFilename: "chosen.png",
+    preview: true,
+    counter: 3,
+    abortSignal: new AbortController().signal,
+  };
+  const metadata = {
+    resolvedHead: { contentType: "image/png", finalUrl: context.sourceUrl },
+    headPromise: Promise.resolve({ contentType: "image/png", finalUrl: context.sourceUrl }),
+    contentPromise: Promise.resolve(null),
+    sha256: "old-hash",
+    mime: "image/png",
+    mimeExtension: "png",
+    resolvedFilename: "old-name.png",
+    protectedFetchReferer: context.pageUrl,
+    contentFetchDisabled: true,
+  };
+  const original = Object.freeze({ ...context, ...metadata, url: context.sourceUrl });
+
+  const retargeted = retargetDownloadInfo(original, "https://mirror.example/original.bin");
+
+  expect(retargeted).toEqual({
+    ...context,
+    url: "https://mirror.example/original.bin",
+    naiveFilename: "original.bin",
+    filename: "chosen.png",
+    initialFilename: "chosen.png",
+  });
+  expect(original).toEqual({ ...context, ...metadata, url: context.sourceUrl });
+});
 
 test("substitutes variables verbatim without path sanitization", async () => {
   const now = new Date(2026, 6, 15, 9, 30, 5);

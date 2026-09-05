@@ -1266,6 +1266,60 @@ into: captures/:$1:/:$2:`,
       expect(trace.finalPath).toBe("mirrored/orig.png");
     });
 
+    test.each(["mime", "resolvedHead"] as const)(
+      "does not reuse original %s or hashes after a fetch rewrite",
+      async (metadataSource) => {
+        const rules = router.parseRules(
+          "mime: ^image/png$\nfetch: https://mirror.example/original.bin\n" +
+            "into: mirrored/:mimeext:/:filename:\n" +
+            "rename: $ -> -:mime:-:contenttype:-:sha256:-:sha256full:-:finalurl:-:redirecturl:",
+        );
+        const original: RoutingInfo = {
+          url: "https://cdn.example/preview.png",
+          filename: "preview.png",
+          sha256: "a".repeat(64),
+          ...(metadataSource === "mime"
+            ? { mime: "image/png" }
+            : {
+                resolvedHead: {
+                  contentType: "image/png",
+                  finalUrl: "https://cdn.example/resolved-preview.png",
+                },
+              }),
+        };
+        const fetcher = vi
+          .spyOn(globalThis, "fetch")
+          .mockRejectedValue(new Error("unexpected fetch"));
+        try {
+          const trace = await router.traceRules(rules, original);
+          expect(trace.selectedRule).toBe(1);
+          expect(trace.expandedDestination).toBe("mirrored//original.bin");
+          expect(trace.renamedTo).toBe("original.bin------");
+          expect(fetcher).not.toHaveBeenCalled();
+          expect(original.sha256).toBe("a".repeat(64));
+          expect(original[metadataSource]).toBeDefined();
+        } finally {
+          fetcher.mockRestore();
+        }
+      },
+    );
+
+    test("preserves a resolved filename and metadata when fetch keeps the same URL", async () => {
+      const url = "https://cdn.example/download";
+      const rules = router.parseRules(
+        `mime: ^image/png$\nfetch: ${url}\ninto: mirrored/:mimeext:/:filename:\nrename: $ -> -:sha256:`,
+      );
+      const trace = await router.traceRules(rules, {
+        url,
+        filename: "server-name.png",
+        mime: "image/png",
+        sha256: "a".repeat(64),
+      });
+      expect(trace.rewrittenUrl).toBe(url);
+      expect(trace.expandedDestination).toBe("mirrored/png/server-name.png");
+      expect(trace.renamedTo).toBe(`server-name.png-${"a".repeat(12)}`);
+    });
+
     test("stage two falls back to the rewritten URL when it has no path filename", async () => {
       const rules = router.parseRules(
         "sourceurl: \\.png$\nfetch: https://mirror.example/\ninto: mirrored/:filename:",

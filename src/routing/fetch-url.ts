@@ -2,6 +2,29 @@ import { withUrl } from "../shared/util.ts";
 import { FETCH_URL_BANNED_VARIABLES } from "./path-variables.ts";
 import type { RoutingDownloadInfo } from "./rule-types.ts";
 import { expandVariableTemplate } from "./variable.ts";
+import { deriveUrlFilenames } from "./filename.ts";
+
+// The download plan and its offline trace must retain the same request context
+// and discard the same resource-derived values when fetch: changes the URL.
+// Resource owners release any fetched content before replacing their info.
+export const retargetDownloadInfo = <Info extends RoutingDownloadInfo>(info: Info, url: string) => {
+  /* eslint-disable no-unused-vars -- Destructuring deliberately omits resource-derived fields. */
+  const {
+    headPromise,
+    resolvedHead,
+    contentPromise,
+    sha256,
+    mime,
+    mimeExtension,
+    resolvedFilename,
+    protectedFetchReferer,
+    contentFetchDisabled,
+    ...context
+  } = info;
+  /* eslint-enable no-unused-vars */
+  const { naiveFilename, initialFilename } = deriveUrlFilenames(url, context.suggestedFilename);
+  return { ...context, url, naiveFilename, filename: initialFilename, initialFilename };
+};
 
 // Expands routing variables inside a fetch: URL template. Values are
 // substituted verbatim — captures come from URLs and are typically already
