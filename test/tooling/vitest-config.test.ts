@@ -8,7 +8,8 @@ describe("Vitest worker policy", () => {
     [{ cores: 6, ci: "1" }, 6],
     [{ cores: 2, ci: "" }, 1],
   ])("bounds automatic workers for %j", (environment, expected) => {
-    expect(resolveMaxWorkers({ ...environment, requested: undefined })).toBe(expected);
+    // Undefined inherits TEST_MAX_WORKERS; these fixtures exercise automatic sizing.
+    expect(resolveMaxWorkers({ ...environment, requested: "" })).toBe(expected);
   });
 
   test("keeps the explicit worker override authoritative", () => {
