@@ -143,6 +143,40 @@ describe("sanitisation", () => {
     test("prefixes reserved device names with the custom replacement character", () => {
       expect(new Path.Path("con.txt").finalize()).toBe("xcon.txt");
     });
+
+    test.each(["$&", "$`", "$'", "$$"])(
+      "treats the custom replacement %j as literal text",
+      (replacement) => {
+        const previous = options.replacementChar;
+        options.replacementChar = replacement;
+        try {
+          expect(Path.replaceFsBadChars("a:b?c")).toBe(`a${replacement}b${replacement}c`);
+          expect(Path.sanitizeFilename(".hidden.txt")).toBe(`${replacement}hidden.txt`);
+          expect(Path.replaceFsBadChars("a:b", replacement)).toBe(`a${replacement}b`);
+        } finally {
+          options.replacementChar = previous;
+        }
+      },
+    );
+
+    test.each([" ", "\u00a0", " CON"])(
+      "keeps reserved names safe with a whitespace-prefixed replacement %j",
+      (replacement) => {
+        const previous = options.replacementChar;
+        options.replacementChar = replacement;
+        try {
+          for (const max of [0, 3, 7, 255]) {
+            const result = Path.sanitizeFilename("CON.txt", max, true, true);
+            expect(result).not.toMatch(/^\s/);
+            expect(Path.RESERVED_DEVICE_NAME_REGEX.test(result.split(".")[0]!)).toBe(false);
+            expect(Path.getFilenameDiagnostics(result, max).exceedsLimit).toBe(false);
+            expect(Path.sanitizeFilename(result, max, true, true)).toBe(result);
+          }
+        } finally {
+          options.replacementChar = previous;
+        }
+      },
+    );
   });
 
   describe("empty segments", () => {

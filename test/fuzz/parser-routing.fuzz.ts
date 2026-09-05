@@ -416,43 +416,55 @@ const filenameSafety: FuzzTarget = {
   run: (parameters) =>
     fc.check(
       fc.property(
-        sourceTextArbitrary,
+        fc.oneof(sourceTextArbitrary, fc.constantFrom("CON.txt", "NUL", ".hidden", "a:b?c")),
         fc.integer({ min: 1, max: 255 }),
         fc.boolean(),
         fc.boolean(),
-        (source, maxBytes, leadingDotsForbidden, preserveExtension) => {
-          const result = sanitizeFilename(
-            source,
-            maxBytes,
-            leadingDotsForbidden,
-            preserveExtension,
-          );
-          if (!source) {
-            invariant(result === source, "empty filename changed");
-            return;
-          }
-          invariant(result.length > 0, "sanitization produced an empty filename");
-          invariant(
-            !getFilenameDiagnostics(result, maxBytes).exceedsLimit,
-            "sanitized filename exceeds its UTF-8 byte limit",
-          );
-          invariant(
-            !FORBIDDEN_FILENAME_CHARS.test(result),
-            "sanitized filename has forbidden characters",
-          );
-          invariant(!/[. ]$/.test(result), "sanitized filename has trailing dots or spaces");
-          if (leadingDotsForbidden) {
-            invariant(
-              !/^[./\\]/.test(result),
-              "sanitized filename has a forbidden leading character",
+        fc.constantFrom("_", "", " ", "\u00a0", " CON", "CON", ".x", "界", "$&", "$`", "$'", "$$"),
+        (source, maxBytes, leadingDotsForbidden, preserveExtension, replacement) => {
+          const previous = options.replacementChar;
+          options.replacementChar = replacement;
+          try {
+            const result = sanitizeFilename(
+              source,
+              maxBytes,
+              leadingDotsForbidden,
+              preserveExtension,
             );
+            if (!source) {
+              invariant(result === source, "empty filename changed");
+              return;
+            }
+            invariant(result.length > 0, "sanitization produced an empty filename");
+            invariant(
+              !getFilenameDiagnostics(result, maxBytes).exceedsLimit,
+              "sanitized filename exceeds its UTF-8 byte limit",
+            );
+            invariant(
+              !FORBIDDEN_FILENAME_CHARS.test(result),
+              "sanitized filename has forbidden characters",
+            );
+            invariant(!/[. ]$/.test(result), "sanitized filename has trailing dots or spaces");
+            invariant(!/^\s/.test(result), "sanitized filename has leading whitespace");
+            if (leadingDotsForbidden) {
+              invariant(
+                !/^[./\\]/.test(result),
+                "sanitized filename has a forbidden leading character",
+              );
+            }
+            const base = result.split(".")[0] || result;
+            invariant(
+              !RESERVED_DEVICE_NAME_REGEX.test(base),
+              "sanitized filename is a device name",
+            );
+            invariant(
+              sanitizeFilename(result, maxBytes, leadingDotsForbidden, preserveExtension) ===
+                result,
+              "filename sanitization was not idempotent",
+            );
+          } finally {
+            options.replacementChar = previous;
           }
-          const base = result.split(".")[0] || result;
-          invariant(!RESERVED_DEVICE_NAME_REGEX.test(base), "sanitized filename is a device name");
-          invariant(
-            sanitizeFilename(result, maxBytes, leadingDotsForbidden, preserveExtension) === result,
-            "filename sanitization was not idempotent",
-          );
         },
       ),
       parameters,

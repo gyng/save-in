@@ -93,7 +93,9 @@ export function replacementChar(override?: string, fallback = "") {
 }
 
 export function replaceFsBadChars(value: string, replacement?: string) {
-  return value.replace(SPECIAL_CHARACTERS_REGEX, replacementChar(replacement));
+  // Configured text is literal; `$&` and the prefix/suffix substitutions can
+  // otherwise reintroduce the forbidden characters being removed.
+  return value.replace(SPECIAL_CHARACTERS_REGEX, () => replacementChar(replacement));
 }
 
 function removeUnsafeInvisibleChars(value: string) {
@@ -101,7 +103,7 @@ function removeUnsafeInvisibleChars(value: string) {
 }
 
 function replaceLeadingDots(value: string, replacement?: string) {
-  return value.replace(BAD_LEADING_CHARACTERS, replacementChar(replacement));
+  return value.replace(BAD_LEADING_CHARACTERS, () => replacementChar(replacement));
 }
 
 export function truncateIfLongerThan(value: string, max: number) {
@@ -190,7 +192,11 @@ export function sanitizeFilename(
   const truncated = preserveExtension
     ? truncatePreservingExtension(trimmed, max)
     : truncateIfLongerThan(trimmed, max);
-  const safeName = neutralizeReservedDeviceName(trimTrailingDotsAndSpaces(truncated));
+  // A custom device-name prefix can restore leading whitespace after the
+  // edge pass. Trim before bounding it and rechecking with the safe prefix.
+  const safeName = trimLeadingWhitespace(
+    neutralizeReservedDeviceName(trimTrailingDotsAndSpaces(truncated)),
+  );
   const finalName = preserveExtension
     ? truncatePreservingExtension(safeName, max)
     : truncateIfLongerThan(safeName, max);
