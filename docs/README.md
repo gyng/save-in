@@ -75,3 +75,5 @@ these documents assume.
   4.0.0 tracker sweep. Point-in-time and anchored to an older commit, not a contract.
 - [4.1 issue sweep](project/issues-4.1-sweep.md) — published-release verification,
   posted closure replies, and remaining open issues as of 2026-09-05.
+- [4.1 failure reproductions](project/issues-4.1-reproductions.md) — follow-up
+  browser evidence for 13 reports and closure of the two maintainer trackers.

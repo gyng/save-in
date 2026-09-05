@@ -1,5 +1,9 @@
 # Published-release issue sweep — 2026-09-05
 
+Follow-up: [reproduction of the 13 failure reports](issues-4.1-reproductions.md)
+records new browser evidence and the subsequent closure of maintainer trackers
+#142 and #143. The counts and tables below preserve the initial sweep snapshot.
+
 Reviewed all 82 open issues in `gyng/save-in`, including their comments, after
 the maintainer explicitly authorized replies and closures. Posted concise
 release-specific replies on 38 verified resolved issues and closed each
