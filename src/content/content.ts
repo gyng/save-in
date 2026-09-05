@@ -61,6 +61,7 @@ import {
   parseContextLinkMetadata,
   type ContextLinkMetadata,
 } from "../shared/context-link-metadata.ts";
+import { servePageBlob } from "./page-blob.ts";
 
 declare const SAVE_IN_CONTENT_E2E: boolean;
 
@@ -72,6 +73,7 @@ declare const SAVE_IN_CONTENT_E2E: boolean;
 // This file is the content bundle's entry, so it composes the layer before
 // anything below it runs, as the background and options entries do.
 configureContentPorts();
+chrome.runtime.onConnect.addListener(servePageBlob);
 
 const ClickToSave = {
   isKeyboardComboActive: (combo: number[], activeKeys: Record<number, boolean>) =>

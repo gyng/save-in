@@ -73,6 +73,26 @@ at-home API and save that HTTP(S) source. Both browsers returned
 That filter already ships in 4.1.0; the Referer option defaults to off.
 This successful CDN path **does not fix the displayed blob path**.
 
+#### Unreleased fix follow-up
+
+The subsequent fix reads a page-owned blob through the isolated content script
+in its source tab/frame and relays bounded chunks over an extension port. The
+download pipeline owns the resulting copy, derives the filename extension from
+the blob's MIME type, and reuses its computed hash. It leaves the page's original
+blob URL alive. No new permission, Referer setting, or MangaDex-specific rule is
+required.
+
+Retested the same live chapter in Firefox 152.0.6 with Referer disabled: its
+2063 × 3000 displayed blob image now completed as a 1,176,195-byte PNG with a
+`.png` filename. The deterministic Chrome/Firefox regression verifies several
+transport chunks, MIME routing, full-hash naming, exact saved bytes, and that
+the original page blob remains readable. The regression failed without blob
+preparation. The complete verification passed 4,892 unit/integration tests,
+memory checks, lint/type checks, 70 Chrome cases, and 50 Firefox cases.
+
+This fix is **not part of the tested 4.1.0 release**. The release findings above
+remain historical; #218 stays open until release disposition.
+
 ### Webtoons: confirmed Referer requirement
 
 The report's [Erma episode](https://www.webtoons.com/en/canvas/erma/13-days-of-ermaween-2023-day-1/viewer?title_no=170650&episode_no=555)

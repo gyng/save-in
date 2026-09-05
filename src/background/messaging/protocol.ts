@@ -5,6 +5,7 @@ import type { InternalMessage, ResponseFor } from "../../shared/message-protocol
 import type { SendResponse } from "../message-dispatch.ts";
 
 export type MessageSender = {
+  frameId?: number | undefined;
   id?: string | undefined;
   tab?: CurrentTab | undefined;
   url?: string | undefined;

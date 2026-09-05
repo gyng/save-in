@@ -14,6 +14,7 @@ export type PathValue = {
 export type DownloadInfo = LazyDownloadMetadata &
   Omit<RoutingDownloadInfo, keyof LazyDownloadMetadata | "currentTab"> & {
     currentTab?: CurrentTab | null | undefined;
+    frameId?: number | undefined;
   };
 
 export type SourceSidecarRequest = {

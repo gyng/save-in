@@ -469,6 +469,7 @@ export const handleDownloadMessage = (
     const opts: DownloadInfo = {
       // Prefer the tab the message came from over the tracked global (#172).
       currentTab: resolvedTab,
+      frameId: internal ? sender.frameId : undefined,
       now: new Date(),
       pageUrl: info.pageUrl,
       selectionText: info.selectionText,

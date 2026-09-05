@@ -422,6 +422,7 @@ const handleContextMenuClickInternal = async (
     const opts: DownloadInfo = {
       currentTab: clickTab,
       frameUrl: info.frameUrl,
+      frameId: info.frameId,
       linkText: typeof linkTextValue === "string" ? linkTextValue : undefined,
       linkTitle: contextLinkMetadata?.title,
       linkDownload: contextLinkMetadata?.download,

@@ -24,6 +24,7 @@ import {
 import { runTemplateLibraryScenario } from "../template-library-scenario.mjs";
 import { runRoutingVisualEditorScenario } from "../routing-visual-editor-scenario.mjs";
 import { runHistoryMemoryScenario } from "../history-memory-scenario.mjs";
+import { runPageBlobScenario } from "../page-blob-scenario.mjs";
 import { decodeBoolean, decodeString, evaluateJson, objectOf, requireValue } from "../helpers.mjs";
 
 /** @typedef {import("../control-protocol.mjs").DownloadSummary} DownloadSummary */
@@ -79,6 +80,10 @@ export const registerSharedBrowserCases = (adapters) => {
       evaluate,
       filename: `cancel-${browserLabel}.bin`,
     });
+  });
+
+  test("a page-owned blob image is saved with its MIME type and content hash", async () => {
+    await runPageBlobScenario({ control, evaluatePage });
   });
 
   test("undo removes the saved file and marks the History entry undone", async () => {

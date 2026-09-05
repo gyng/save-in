@@ -35,6 +35,7 @@ import type {
   DownloadLaunchResult,
 } from "./download-types.ts";
 import { downloadRuntime } from "./download-runtime-instance.ts";
+import { preparePageBlob } from "./page-blob.ts";
 import { resolveDownloadPlan } from "./download-plan.ts";
 import { beginAnonymousPrivateDownloadGuard } from "./private-download-guard.ts";
 import { ensureHistoryEntry } from "./history-entry.ts";
@@ -579,6 +580,9 @@ export const renameAndDownload = async (
   };
   let plan: DownloadPlan | null;
   try {
+    // Ordinary saves must reach filename-listener correlation before yielding.
+    const pageBlobPreparation = preparePageBlob(state);
+    if (pageBlobPreparation) await pageBlobPreparation;
     plan = await resolveDownloadPlan(state);
   } catch (error) {
     downloadRuntime.forgetPendingState(state);

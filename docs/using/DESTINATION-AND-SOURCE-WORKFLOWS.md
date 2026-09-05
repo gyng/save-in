@@ -97,6 +97,13 @@ downloads. The first matching rule sets the save location. See
 [Automatic source saves](AUTOMATIC-SOURCE-SAVES.md) for eligibility and safety
 controls.
 
+Manual saves also support images and files that a page creates as `blob:` URLs,
+including MangaDex reader images. Keep the source page open until the save
+starts. Save In preserves the bytes and uses the media type for the filename
+extension; routing and content-hash variables work normally. A revoked blob or
+streaming-video `MediaSource` cannot be recovered this way. After updating the
+extension, reload an older open page before saving its blobs.
+
 Use `css:` when a URL or source kind is too broad and the page element that
 discovered the source is the useful distinction. Its value is a CSS selector,
 not a regular expression:

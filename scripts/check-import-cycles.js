@@ -387,6 +387,9 @@ const listenerOwners = new Set([
   "src/background/messaging/index.ts",
   "src/background/e2e-command.ts",
   "src/content/content.ts",
+  // Per-transfer port listeners, not global browser wakeup listeners.
+  "src/content/page-blob.ts",
+  "src/downloads/page-blob.ts",
   "src/downloads/filename-listener.ts",
   "src/downloads/notification.ts",
   "src/entries/offscreen.ts",
