@@ -17,6 +17,9 @@ export const createLatestTaskRunner = <T>(run: (value: T) => Promise<void>) => {
     if (active) return;
     active = drain().finally(() => {
       active = null;
+      // A microtask can queue a value after drain's last check but before
+      // this active task retires. That value still needs its own drain.
+      if (pending) start();
     });
   };
   const idle = async (): Promise<void> => {

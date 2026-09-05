@@ -34,3 +34,17 @@ test("continues with the latest value after a failed task", async () => {
   await runner.idle();
   expect(seen).toEqual(["a", "b"]);
 });
+
+test("runs a value queued between draining and retiring the active task", async () => {
+  const seen: string[] = [];
+  const runner = createLatestTaskRunner<string>(async (value) => {
+    seen.push(value);
+  });
+  runner.schedule("a");
+  queueMicrotask(() => runner.schedule("b"));
+
+  await runner.idle();
+
+  expect(seen).toEqual(["a", "b"]);
+  expect(runner.isRunning()).toBe(false);
+});
