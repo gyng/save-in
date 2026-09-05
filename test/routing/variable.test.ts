@@ -268,6 +268,17 @@ describe("variables", () => {
   });
 
   describe("Variable.toRootDomain", () => {
+    test.each([
+      ["media.example.com.", "example.com"],
+      ["example.com.", "example.com"],
+      ["media.example.co.uk.", "example.co.uk"],
+      ["example.co.uk.", "example.co.uk"],
+      ["localhost.", "localhost"],
+      ["127.0.0.1.", "127.0.0.1"],
+    ])("ignores the DNS root dot in %s", (hostname, expected) => {
+      expect(Variable.toRootDomain(hostname)).toBe(expected);
+    });
+
     test("strips subdomains to the last two labels", async () => {
       expect(Variable.toRootDomain("sub.cdn.example.com")).toBe("example.com");
     });
@@ -474,6 +485,15 @@ describe("URL-part variables", () => {
   test(":tld: is the last hostname label", async () => {
     expect(await interpolate(":tld:", "https://cdn.example.co.uk/pic.jpg")).toBe("uk");
     expect(await interpolate(":tld:", "https://example.com/pic.jpg")).toBe("com");
+  });
+
+  test.each([
+    ["https://media.example.co.uk./pic.jpg", "uk"],
+    ["https://example.com./pic.jpg", "com"],
+    ["http://localhost./pic.jpg", "_"],
+    ["http://127.0.0.1./pic.jpg", "_"],
+  ])(":tld: ignores the DNS root dot in %s", async (url, expected) => {
+    expect(await interpolate(":tld:", url)).toBe(expected);
   });
 
   test(":tld: is empty (replacement char) for IPs and single-label hosts", async () => {

@@ -786,12 +786,13 @@ export const runInterruptedTransferRecoveryScenario = async ({
  */
 export const runRoutingScenario = async ({ control, waitForDownloads, content }) => {
   await control.options.set({
-    filenamePatterns: "filename: routeme\ninto: routed/renamed-:filename:",
+    filenamePatterns:
+      "filename: routeme\npagerootdomain: ^example\\.com$\ninto: routed/renamed-:filename:",
   });
   await control.background.startDownload({
     content,
     suggestedFilename: "routeme.txt",
-    pageUrl: "https://example.com/",
+    pageUrl: "https://media.example.com./",
   });
   const downloads = await waitForDownloads("renamed-routeme");
   expect(downloads.map((entry) => entry.state)).toEqual(["complete"]);

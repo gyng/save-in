@@ -171,11 +171,12 @@ const toDelimited = (str: string | null | undefined, delimiter: string) =>
 
 // Last hostname label; empty for IPs and single-label hosts (localhost)
 const toTld = (hostname: string | null | undefined) => {
-  if (!hostname || IPV4_REGEX.test(hostname)) {
+  const domain = hostname?.replace(/\.$/, "");
+  if (!domain || IPV4_REGEX.test(domain)) {
     return "";
   }
 
-  const labels = hostname.split(".");
+  const labels = domain.split(".");
   return labels.length >= 2 ? labels[labels.length - 1] : "";
 };
 

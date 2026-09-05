@@ -69,9 +69,11 @@ const MULTI_LABEL_PUBLIC_SUFFIXES = new Set([
 export function toRootDomain(hostname: string): string;
 export function toRootDomain(hostname: undefined): undefined;
 export function toRootDomain(hostname: string | undefined): string | undefined {
-  if (!hostname || IPV4_ADDRESS.test(hostname)) return hostname;
-  const labels = hostname.split(".");
-  if (labels.length <= 2) return hostname;
+  // URL.hostname preserves a DNS root dot; it is not another domain label.
+  const domain = hostname?.replace(/\.$/, "");
+  if (!domain || IPV4_ADDRESS.test(domain)) return domain;
+  const labels = domain.split(".");
+  if (labels.length <= 2) return domain;
   const publicSuffix = labels.slice(-2).join(".").toLocaleLowerCase();
   return labels.slice(MULTI_LABEL_PUBLIC_SUFFIXES.has(publicSuffix) ? -3 : -2).join(".");
 }
