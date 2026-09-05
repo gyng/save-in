@@ -802,12 +802,13 @@ export const setupRouteDebugger = (): void => {
     // One snapshot feeds both the validation request and the rendered trace,
     // so the reachability note always describes the input the trace ran with.
     const fields = readFields();
+    const ruleSource = textarea.value;
     try {
       const requestValidation = async () => {
         const response = await sendInternalMessage(webExtensionApi.runtime, {
           type: MESSAGE_TYPES.VALIDATE,
           body: {
-            filenamePatterns: textarea.value,
+            filenamePatterns: ruleSource,
             info: routeDebuggerInfo(fields),
           },
         });
@@ -824,6 +825,7 @@ export const setupRouteDebugger = (): void => {
       try {
         validation = await requestValidation();
       } catch {
+        if (mine !== generation) return;
         // VALIDATE is read-only. A freshly reloaded MV3 background can miss or
         // interrupt the first request while it finishes waking, so retry once.
         validation = await requestValidation();
@@ -840,7 +842,7 @@ export const setupRouteDebugger = (): void => {
         );
         return;
       }
-      renderTrace(mapRouteTraceToSource(textarea.value, validation.trace), fields);
+      renderTrace(mapRouteTraceToSource(ruleSource, validation.trace), fields);
     } catch {
       if (mine !== generation) return;
       renderMessage(
@@ -858,6 +860,9 @@ export const setupRouteDebugger = (): void => {
   };
 
   const scheduleRerun = (): void => {
+    // Edits supersede an in-flight response immediately, including before the
+    // debounced replacement runs or the initial latest-download lookup ends.
+    generation += 1;
     if (!hasRun) return;
     if (rerunTimer !== null) window.clearTimeout(rerunTimer);
     rerunTimer = window.setTimeout(() => {
@@ -944,12 +949,13 @@ export const setupRouteDebugger = (): void => {
 
   const refreshLatestDownload = (replaceFields: boolean): void => {
     const mine = ++latestDownloadGeneration;
+    const inputGeneration = generation;
     void sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.CHECK_ROUTES })
       .then((response) => {
         if (mine !== latestDownloadGeneration || !("lastDownload" in response.body)) return;
         lastDownloadInfo = response.body.lastDownload?.info ?? null;
         useLastButton.disabled = lastDownloadInfo === null;
-        if (replaceFields) {
+        if (replaceFields && inputGeneration === generation) {
           writeFields(lastDownloadInfo ? fieldsFromInfo(lastDownloadInfo) : SAMPLE_DOWNLOAD);
         }
       })

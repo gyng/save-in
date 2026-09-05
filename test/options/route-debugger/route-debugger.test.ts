@@ -5,6 +5,7 @@ import {
 } from "../../../src/options/route-debugger/route-debugger.ts";
 import { webExtensionApi } from "../../../src/platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../../../src/shared/constants.ts";
+import { isStringKeyedRecord } from "../../../src/shared/message-protocol.ts";
 
 const renderWorkbench = (): void => {
   document.body.innerHTML = `
@@ -1106,6 +1107,99 @@ test("ignores stale validation rejection after clearing", async () => {
     "empty",
   );
 });
+
+test.each(["resolve", "reject"])(
+  "ignores a validation %s during the debounce after a rule edit",
+  async (outcome) => {
+    vi.useFakeTimers();
+    renderWorkbench();
+    let resolveValidation!: (value: unknown) => void;
+    let rejectValidation!: (reason: Error) => void;
+    const validation = new Promise<unknown>((resolve, reject) => {
+      resolveValidation = resolve;
+      rejectValidation = reject;
+    });
+    const response = {
+      type: MESSAGE_TYPES.VALIDATE_RESULT,
+      body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
+    };
+    let validations = 0;
+    const sendMessage = vi
+      .spyOn(webExtensionApi.runtime, "sendMessage")
+      .mockImplementation((message: unknown) => {
+        if (isStringKeyedRecord(message) && message.type === MESSAGE_TYPES.CHECK_ROUTES)
+          return Promise.resolve(checkResponse());
+        validations += 1;
+        return validations === 1 ? validation : Promise.resolve(response);
+      });
+    setupRouteDebugger();
+    await vi.advanceTimersByTimeAsync(0);
+    document.querySelector<HTMLButtonElement>("#route-debugger-run")!.click();
+    const textarea = document.querySelector<HTMLTextAreaElement>("#filenamePatterns")!;
+    textarea.value = "filename: .*\ninto: changed/";
+    textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+
+    if (outcome === "resolve") resolveValidation(response);
+    else rejectValidation(new Error("old request failed"));
+    await vi.advanceTimersByTimeAsync(0);
+
+    const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
+    expect(result.dataset.state).toBe("empty");
+    expect(validations).toBe(1);
+    await vi.advanceTimersByTimeAsync(250);
+    expect(validations).toBe(2);
+    expect(sendMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ filenamePatterns: textarea.value }),
+      }),
+    );
+    expect(result.dataset.state).toBe("no-match");
+    expect(document.querySelector<HTMLButtonElement>("#route-debugger-run")!.disabled).toBe(false);
+    expect(result.hasAttribute("aria-busy")).toBe(false);
+  },
+);
+
+test.each(["edit", "clear", "sample"])(
+  "keeps the user's %s when the initial latest-download lookup arrives late",
+  async (action) => {
+    vi.useFakeTimers();
+    renderWorkbench();
+    let resolveLookup!: (value: unknown) => void;
+    const lookup = new Promise<unknown>((resolve) => {
+      resolveLookup = resolve;
+    });
+    vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation((message: unknown) =>
+      isStringKeyedRecord(message) && message.type === MESSAGE_TYPES.CHECK_ROUTES
+        ? lookup
+        : Promise.resolve({
+            type: MESSAGE_TYPES.VALIDATE_RESULT,
+            body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
+          }),
+    );
+    setupRouteDebugger();
+    const filename = document.querySelector<HTMLInputElement>("#route-debugger-filename")!;
+    if (action === "edit") {
+      filename.value = "my-test.png";
+      filename.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    } else {
+      document
+        .querySelector<HTMLButtonElement>(
+          action === "clear" ? "#route-debugger-clear" : "#route-debugger-use-sample",
+        )!
+        .click();
+    }
+    const expectedFilename = filename.value;
+    resolveLookup(checkResponse({ info: { filename: "late-download.jpg" } }));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(filename.value).toBe(expectedFilename);
+
+    const useLast = document.querySelector<HTMLButtonElement>("#route-debugger-use-last")!;
+    expect(useLast.disabled).toBe(false);
+    useLast.click();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(filename.value).toBe("late-download.jpg");
+  },
+);
 
 test("debounces reruns and supports form and Meta keyboard entry points", async () => {
   vi.useFakeTimers();
