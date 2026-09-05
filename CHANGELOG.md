@@ -1,3 +1,24 @@
+# Unreleased
+
+- Fixed filename sanitization with custom replacement text, including literal
+  dollar-sign sequences and replacements that introduce leading whitespace.
+- Kept Route debugger results tied to the current inputs when requests finish
+  out of order. Previews now discard stale resource metadata after a `fetch:`
+  URL rewrite, matching actual downloads.
+- Fixed Chrome destinations using `:actualfileext:` when the browser resolves
+  a different filename from the server response.
+- Fixed root-domain and top-level-domain variables for hostnames ending in a
+  DNS root dot, such as `media.example.co.uk.`.
+- Made Restore defaults wait for the controls to reload before reporting
+  success, and report reload failures.
+- Fixed History-limit confirmation when importing settings or editing a
+  malformed stored limit. The effective default is used consistently, and
+  declining a reduction preserves the limit while importing other settings.
+- Fixed `./`-prefixed folder paths bypassing validation of unknown variables
+  and invalid filename components. Valid relative paths remain supported.
+- Fixed an autosave queue race that could leave the latest value waiting after
+  the previous save finished.
+
 # 4.1.0
 
 - Expanded click-to-save from one modifier/button pair to multiple configurable
