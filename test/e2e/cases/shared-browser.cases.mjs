@@ -234,6 +234,40 @@ export const registerSharedBrowserCases = (adapters) => {
     expect(await control.options.get("quickSaveEnabled")).toBe(false);
   });
 
+  test("History limit edits confirm reductions from malformed stored settings", async () => {
+    await control.storage.local.set({ historyRetentionLimit: null });
+    await control.runtime.reset();
+    // Reload once so the form and its persisted snapshot both read the legacy value.
+    await reloadOptions?.();
+    const result = await evaluateJson(
+      evaluateOptions,
+      `new Promise((resolve, reject) => {
+      const input = document.querySelector("#historyRetentionLimit");
+      if (!input) {
+        reject(new Error("History limit control is missing"));
+        return;
+      }
+      const initial = input.value;
+      const observer = new MutationObserver(() => {
+        const dialog = document.querySelector(".history-retention-dialog");
+        if (!dialog) return;
+        observer.disconnect();
+        dialog.dispatchEvent(new Event("cancel", { cancelable: true }));
+        // Capture the restored control at the next paint, after the decline settles.
+        requestAnimationFrame(() => resolve(JSON.stringify({ initial, restored: input.value })));
+      });
+      observer.observe(document.body, { childList: true });
+      input.value = "100";
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    })`,
+      objectOf({ initial: decodeString, restored: decodeString }),
+    );
+    expect(result).toEqual({ initial: "10000", restored: "10000" });
+    expect(await control.storage.local.get("historyRetentionLimit")).toEqual({
+      historyRetentionLimit: null,
+    });
+  });
+
   test("Settings import can keep the default History limit while applying other settings", async () => {
     await control.storage.local.remove("historyRetentionLimit");
     await control.runtime.reset();

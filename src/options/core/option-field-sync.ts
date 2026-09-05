@@ -6,6 +6,7 @@ import { normalizeKeyComboForDisplay } from "./options-logic.ts";
 import type { OptionSchema } from "./options-persistence.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../../platform/chrome-detector.ts";
 import { LEGACY_REFERER_HEADER_FILTER } from "../../config/option-defaults.ts";
+import { resolveHistoryRetentionLimit } from "../../config/history-retention.ts";
 import {
   CONFLICT_ACTION,
   FORBIDDEN_FILENAME_CHARS,
@@ -28,6 +29,7 @@ const OPTION_FIELD_DISPLAY_TRANSFORMS: Record<
   string,
   (value: unknown, option: OptionDefinition) => unknown
 > = {
+  historyRetentionLimit: resolveHistoryRetentionLimit,
   contentClickToSaveCombo: (value: unknown) =>
     typeof value === "string" || typeof value === "number"
       ? normalizeKeyComboForDisplay(value)

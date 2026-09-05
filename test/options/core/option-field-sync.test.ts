@@ -10,6 +10,16 @@ import {
 const schema: OptionSchema = { keys: [], types: { BOOL: "BOOL", VALUE: "VALUE" } };
 const UPGRADED_REFERER_FILTER = OPTION_DEFAULTS.setRefererHeaderFilter;
 
+test("shows the effective History limit when the stored value is malformed", () => {
+  document.body.innerHTML = '<input type="number" id="historyRetentionLimit">';
+  setOptionFieldValue(
+    { name: "historyRetentionLimit", type: "VALUE", default: 10000 },
+    null,
+    schema,
+  );
+  expect(document.querySelector<HTMLInputElement>("#historyRetentionLimit")!.value).toBe("10000");
+});
+
 afterEach(() => setCurrentBrowser(BROWSERS.UNKNOWN));
 
 test("sets a checkbox field from a stored boolean value", () => {
