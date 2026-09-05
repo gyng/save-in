@@ -1009,13 +1009,13 @@ describe("buildTree", () => {
     ]);
   });
 
-  test("reports the exact range of an unknown path variable", () => {
-    expect(menu.buildTree(["docs/:year:/:modnthname:"]).errors).toEqual([
+  test.each(["", "./"])("locates an unknown path variable after prefix %j", (prefix) => {
+    expect(menu.buildTree([`${prefix}docs/:year:/:modnthname:`]).errors).toEqual([
       {
         sourceIndex: 0,
         message: "Translated<ruleUnknownDestinationVariable>",
         error: ":modnthname:",
-        sourceRange: { start: 12, end: 24 },
+        sourceRange: { start: prefix.length + 12, end: prefix.length + 24 },
         parentId: menu.IDS.ROOT,
       },
     ]);

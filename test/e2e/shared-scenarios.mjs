@@ -1209,7 +1209,7 @@ into: routed/:linktitle:/:linkdownload:/`,
 export const runQuickSaveScenario = async ({ control, waitForDownloads }) => {
   await control.options.set({
     quickSaveEnabled: true,
-    quickSaveDirectory: "e2e/quick-save",
+    quickSaveDirectory: "./e2e/quick-save",
     quickSaveUseDirectory: true,
     selection: true,
   });

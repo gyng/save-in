@@ -26,11 +26,14 @@ describe("resolveDefaultDestination", () => {
     ).toBe(".");
   });
 
-  test("falls back to Downloads when the configured directory is invalid", () => {
-    expect(
-      resolveDefaultDestination({ quickSaveDirectory: "../escape", quickSaveUseDirectory: true }),
-    ).toBe(".");
-  });
+  test.each(["../escape", "./Photos/:domian:"])(
+    "falls back to Downloads when the configured directory is invalid: %s",
+    (quickSaveDirectory) => {
+      expect(resolveDefaultDestination({ quickSaveDirectory, quickSaveUseDirectory: true })).toBe(
+        ".",
+      );
+    },
+  );
 });
 
 describe("parseTabAction", () => {

@@ -451,9 +451,27 @@ describe("Path.validate", () => {
     expect(p.validate()).toEqual({ valid: false });
   });
 
-  test("'.'-prefixed paths are valid", () => {
-    expect(new Path.Path("./sub").validate()).toEqual({ valid: true });
+  test.each([".", "./", ".\\", "./sub", ".\\sub", "./:sourcedomain:/sub"])(
+    "accepts the Downloads-relative path %s",
+    (path) => {
+      expect(new Path.Path(path).validate()).toEqual({ valid: true });
+    },
+  );
+
+  test("locates an unknown variable after an explicit relative prefix", () => {
+    expect(new Path.Path("./Photos/:domian:").validate()).toMatchObject({
+      valid: false,
+      error: ":domian:",
+      sourceRange: { start: 9, end: 17 },
+    });
   });
+
+  test.each(["./bad?name", "./con.txt", "./dir.", "./dir ", "./../up", ".\\bad?name"])(
+    "rejects invalid components after an explicit relative prefix: %s",
+    (path) => {
+      expect(new Path.Path(path).validate().valid).toBe(false);
+    },
+  );
 
   test("absolute paths are invalid", () => {
     const result = new Path.Path("/abs").validate();

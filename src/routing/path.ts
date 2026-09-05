@@ -315,9 +315,6 @@ export class Path {
     }
     const first = this.buf[0];
     if (!first) return { valid: false };
-    if (first.val === ".") {
-      return { valid: true };
-    }
     if (first.type === PATH_SEGMENT_TYPES.SEPARATOR || first.val === "..") {
       return {
         valid: false,
@@ -337,7 +334,10 @@ export class Path {
       }
     }
 
-    for (const item of this.buf) {
+    for (const [index, item] of this.buf.entries()) {
+      // The Downloads-root marker is valid, but does not exempt the rest of
+      // an explicitly relative path from variable and filename validation.
+      if (index === 0 && item.val === ".") continue;
       if (item.type === PATH_SEGMENT_TYPES.STRING && sanitizeFilename(item.val) !== item.val) {
         return {
           valid: false,
