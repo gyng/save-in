@@ -7,7 +7,7 @@ import { markSavedNow } from "./saved-indicator.ts";
 type Localize = (key: string) => string;
 
 type ResetOptionsDependencies = {
-  restoreOptions: () => void;
+  restoreOptions: () => void | Promise<void>;
   updateErrors: () => void;
   getOptionNames: () => Promise<string[]>;
   localize?: Localize;
@@ -94,9 +94,9 @@ export const setupResetOptions = ({
       // default of off, but Chrome cannot unregister a tool, so tools this page
       // already registered stay live and callable until it is reloaded.
       // Accepted: reloading here would take the success message with it.
-      markSavedNow();
-      restoreOptions();
+      await restoreOptions();
       updateErrors();
+      markSavedNow();
       renderResetStatus(localize("restoreDefaultsSuccess") || "Default settings restored.", false);
     } catch {
       renderResetStatus(

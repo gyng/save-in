@@ -13,6 +13,7 @@ import {
   setupVariablesPreview,
 } from "../../../src/options/reference/variables-preview.ts";
 import { setupResetOptions } from "../../../src/options/core/reset-options.ts";
+import * as savedIndicator from "../../../src/options/core/saved-indicator.ts";
 import { COUNTER_KEY } from "../../../src/shared/storage-keys.ts";
 import { MESSAGE_TYPES } from "../../../src/shared/constants.ts";
 import type { DiagnosticSnapshot } from "../../../src/shared/diagnostics-types.ts";
@@ -883,6 +884,52 @@ describe("variables preview", () => {
 });
 
 describe("reset options", () => {
+  test.each(["success", "failure"] as const)(
+    "waits for controls to reload before reporting reset %s",
+    async (outcome) => {
+      document.body.innerHTML =
+        '<button id="reset"></button><div id="settings-reset-status"></div>';
+      vi.mocked(browser.storage.local.remove).mockResolvedValue();
+      vi.mocked(browser.runtime.sendMessage).mockResolvedValue({ type: "OK" });
+      let resolveRestore!: () => void;
+      let rejectRestore!: (reason: Error) => void;
+      const restored = new Promise<void>((resolve, reject) => {
+        resolveRestore = resolve;
+        rejectRestore = reject;
+      });
+      const restoreOptions = vi.fn(() => restored);
+      const updateErrors = vi.fn();
+      const markSaved = vi.spyOn(savedIndicator, "markSavedNow");
+      setupResetOptions({
+        restoreOptions,
+        updateErrors,
+        getOptionNames: () => Promise.resolve(["paths"]),
+        localize: () => "",
+      });
+      const button = document.querySelector<HTMLButtonElement>("#reset")!;
+      const status = document.querySelector<HTMLElement>("#settings-reset-status")!;
+      button.click();
+      document.querySelector<HTMLButtonElement>(".reset-settings-confirm")!.click();
+      await vi.waitFor(() => expect(restoreOptions).toHaveBeenCalled());
+
+      expect(button.disabled).toBe(true);
+      expect(status.textContent).toBe("");
+      expect(updateErrors).not.toHaveBeenCalled();
+      expect(markSaved).not.toHaveBeenCalled();
+
+      if (outcome === "success") resolveRestore();
+      else rejectRestore(new Error("reload failed"));
+      await vi.waitFor(() => expect(button.disabled).toBe(false));
+      expect(status.textContent).toBe(
+        outcome === "success"
+          ? "Default settings restored."
+          : "Could not restore default settings.",
+      );
+      expect(updateErrors).toHaveBeenCalledTimes(outcome === "success" ? 1 : 0);
+      expect(markSaved).toHaveBeenCalledTimes(outcome === "success" ? 1 : 0);
+    },
+  );
+
   test("removes only schema options, preserving history and other extension data", async () => {
     document.body.innerHTML =
       '<button id="reset"></button><div id="settings-reset-status"></div><span id="lastSavedAt"></span>';

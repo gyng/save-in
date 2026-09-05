@@ -24,7 +24,7 @@ import {
 import { runTemplateLibraryScenario } from "../template-library-scenario.mjs";
 import { runRoutingVisualEditorScenario } from "../routing-visual-editor-scenario.mjs";
 import { runHistoryMemoryScenario } from "../history-memory-scenario.mjs";
-import { requireValue } from "../helpers.mjs";
+import { decodeBoolean, decodeString, evaluateJson, objectOf, requireValue } from "../helpers.mjs";
 
 /** @typedef {import("../control-protocol.mjs").DownloadSummary} DownloadSummary */
 /** @typedef {import("../control-protocol.mjs").LogEntry} LogEntry */
@@ -200,6 +200,38 @@ export const registerSharedBrowserCases = (adapters) => {
       evaluateOptions,
       ...(reloadOptions ? { reloadOptions } : {}),
     });
+  });
+
+  test("Restore defaults refreshes controls before reporting success", async () => {
+    await control.options.set({ paths: "e2e/reset-custom", quickSaveEnabled: true });
+    const restored = await evaluateJson(
+      evaluateOptions,
+      `new Promise((resolve, reject) => {
+      const paths = document.querySelector("#paths");
+      const quickSave = document.querySelector("#quickSaveEnabled");
+      const button = document.querySelector("#reset");
+      const status = document.querySelector("#settings-reset-status");
+      if (!paths || !quickSave || !button || !status) {
+        reject(new Error("Reset controls are missing"));
+        return;
+      }
+      paths.value = "e2e/reset-custom";
+      quickSave.checked = true;
+      const observer = new MutationObserver(() => {
+        if (button.disabled || status.hidden) return;
+        observer.disconnect();
+        resolve(JSON.stringify({ paths: paths.value, quickSave: quickSave.checked, role: status.getAttribute("role") }));
+      });
+      observer.observe(status, { attributes: true, childList: true, subtree: true });
+      button.click();
+      document.querySelector(".reset-settings-confirm")?.click();
+    })`,
+      objectOf({ paths: decodeString, quickSave: decodeBoolean, role: decodeString }),
+    );
+    const paths = await control.options.get("paths");
+    expect(paths).not.toBe("e2e/reset-custom");
+    expect(restored).toEqual({ paths, quickSave: false, role: "status" });
+    expect(await control.options.get("quickSaveEnabled")).toBe(false);
   });
 
   test(
