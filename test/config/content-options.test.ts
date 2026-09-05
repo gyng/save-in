@@ -8,6 +8,7 @@ import {
   resolveContentOptions,
 } from "../../src/config/content-options.ts";
 import { OPTION_KEYS } from "../../src/config/option-schema.ts";
+import { resolveHistoryRetentionLimit } from "../../src/config/history-retention.ts";
 import { MAX_RECENT_DESTINATIONS } from "../../src/shared/constants.ts";
 import { CONTENT_FEATURE_OPTION_DEFINITIONS } from "../../src/config/content-option-schema.ts";
 import { CLICK_GESTURES, serializeClickToSaveBindings } from "../../src/shared/click-gesture.ts";
@@ -224,12 +225,31 @@ test("validates the bounded recent-destination count", () => {
   ).toBe(false);
 });
 
-test("validates the completed-history retention limit", () => {
+test("validates and resolves the completed-history retention limit", () => {
   const definition = OPTION_KEYS.find(({ name }) => name === "historyRetentionLimit")!;
   const validate = "validate" in definition ? definition.validate : () => false;
 
-  expect([0, 10000, " 250 "].every((value) => validate(value))).toBe(true);
-  expect([null, "", "   ", 1.5, -1, 10001].some((value) => validate(value))).toBe(false);
+  for (const value of [0, 10000, " 250 "]) {
+    expect(validate(value)).toBe(true);
+    expect(resolveHistoryRetentionLimit(value)).toBe(Number(value));
+  }
+  for (const value of [
+    undefined,
+    null,
+    "",
+    "   ",
+    false,
+    true,
+    {},
+    NaN,
+    Infinity,
+    1.5,
+    -1,
+    10001,
+  ]) {
+    expect(validate(value)).toBe(false);
+    expect(resolveHistoryRetentionLimit(value)).toBe(10000);
+  }
 });
 
 test.each([-1, 0, 1.5, "-1", "0", "1.5", "toString"])(

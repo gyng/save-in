@@ -4,6 +4,7 @@ import { assertApplyAcknowledged } from "./options-save.ts";
 import { cssSelectorErrors } from "./css-selector-validation.ts";
 import type { SavedChange } from "./options-persistence.ts";
 import { lowersHistoryRetention } from "../history/history-retention-model.ts";
+import { resolveHistoryRetentionLimit } from "../../config/history-retention.ts";
 
 type OptionSchema = { keys: Array<{ name: string }> };
 
@@ -59,7 +60,7 @@ export const setupSettingsTransfer = (dependencies: SettingsTransferDependencies
         if (invalidCss) throw new TypeError(`${invalidCss.message}: ${invalidCss.error}`);
       }
 
-      // An imported historyRetentionLimit lower than what's stored would
+      // An imported historyRetentionLimit lower than the effective limit would
       // otherwise reach APPLY_CONFIG unconfirmed and silently prune older
       // completed entries. Declining keeps every other imported setting —
       // only the retention limit itself is left at its current value.
@@ -69,7 +70,7 @@ export const setupSettingsTransfer = (dependencies: SettingsTransferDependencies
         const changes: SavedChange[] = [
           {
             name: "historyRetentionLimit",
-            before: stored.historyRetentionLimit,
+            before: resolveHistoryRetentionLimit(stored.historyRetentionLimit),
             after: settings.historyRetentionLimit,
           },
         ];

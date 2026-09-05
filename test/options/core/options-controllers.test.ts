@@ -316,6 +316,36 @@ describe("settings transfer", () => {
     expect(apply).toHaveBeenCalledWith(settings);
   });
 
+  test.each([true, false])(
+    "confirms a reduction from the default retention limit (accepted: %s)",
+    async (accepted) => {
+      importMarkup();
+      vi.spyOn(window, "prompt").mockReturnValue(
+        JSON.stringify({ paths: "kept", historyRetentionLimit: 10 }),
+      );
+      vi.spyOn(window, "alert").mockImplementation(() => {});
+      const apply = vi.fn().mockResolvedValue(applyResult());
+      const confirmChanges = vi.fn(async () => accepted);
+      setupSettingsTransfer({
+        getSchema: async () => ({ keys: [] }),
+        getStored: async () => ({}),
+        apply,
+        restore: restore(),
+        confirmChanges,
+      });
+
+      document.querySelector<HTMLButtonElement>("#settings-import")!.click();
+
+      await vi.waitFor(() => expect(apply).toHaveBeenCalled());
+      expect(confirmChanges).toHaveBeenCalledWith([
+        { name: "historyRetentionLimit", before: 10000, after: 10 },
+      ]);
+      expect(apply).toHaveBeenCalledWith(
+        accepted ? { paths: "kept", historyRetentionLimit: 10 } : { paths: "kept" },
+      );
+    },
+  );
+
   test("applies an imported historyRetentionLimit lowering once confirmed", async () => {
     importMarkup();
     vi.spyOn(window, "prompt").mockReturnValue(

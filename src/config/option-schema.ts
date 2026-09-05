@@ -23,6 +23,7 @@ import {
 } from "./option-defaults.ts";
 import { parseWebhookEndpoints } from "../shared/webhook.ts";
 import { isStringMember } from "../shared/util.ts";
+import { isHistoryRetentionLimit } from "./history-retention.ts";
 
 export { defaultOptions };
 
@@ -173,12 +174,7 @@ export const OPTION_KEYS = defineOptions([
     type: OPTION_TYPES.VALUE,
     onLoad: normalizeWholeNumber,
     onSave: normalizeWholeNumber,
-    validate: (value: unknown): value is string | number => {
-      if ((typeof value !== "number" && typeof value !== "string") || String(value).trim() === "")
-        return false;
-      const count = Number(value);
-      return Number.isSafeInteger(count) && count >= 0 && count <= 10000;
-    },
+    validate: isHistoryRetentionLimit,
     default: OPTION_DEFAULTS.historyRetentionLimit,
   },
   {

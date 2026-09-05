@@ -234,6 +234,47 @@ export const registerSharedBrowserCases = (adapters) => {
     expect(await control.options.get("quickSaveEnabled")).toBe(false);
   });
 
+  test("Settings import can keep the default History limit while applying other settings", async () => {
+    await control.storage.local.remove("historyRetentionLimit");
+    await control.runtime.reset();
+    const imported = await evaluateJson(
+      evaluateOptions,
+      `new Promise((resolve, reject) => {
+      const button = document.querySelector("#settings-import");
+      if (!button) {
+        reject(new Error("Import control is missing"));
+        return;
+      }
+      const originalPrompt = window.prompt;
+      const originalAlert = window.alert;
+      let confirmed = false;
+      const observer = new MutationObserver(() => {
+        const dialog = document.querySelector(".history-retention-dialog");
+        if (!dialog) return;
+        confirmed = true;
+        dialog.dispatchEvent(new Event("cancel", { cancelable: true }));
+      });
+      observer.observe(document.body, { childList: true });
+      window.prompt = () => JSON.stringify({ paths: "e2e/import-kept", historyRetentionLimit: 10 });
+      window.alert = message => {
+        observer.disconnect();
+        window.prompt = originalPrompt;
+        window.alert = originalAlert;
+        resolve(JSON.stringify({
+          confirmed,
+          message,
+          limit: document.querySelector("#historyRetentionLimit")?.value,
+        }));
+      };
+      button.click();
+    })`,
+      objectOf({ confirmed: decodeBoolean, message: decodeString, limit: decodeString }),
+    );
+    expect(imported).toEqual({ confirmed: true, message: "Settings loaded.", limit: "10000" });
+    expect(await control.options.get("paths")).toBe("e2e/import-kept");
+    expect(await control.storage.local.get("historyRetentionLimit")).toEqual({});
+  });
+
   test(
     browserLabel === "chrome"
       ? "shortcut files download with redirect content"
