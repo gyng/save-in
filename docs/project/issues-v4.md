@@ -1,10 +1,11 @@
 # Save In 4 — issue validation
 
-**None of this has been posted to GitHub, and none of it should be until the
-release ships.** Every `gh` call behind these notes was read-only (`issue view`
-/ `issue list`); no issue was commented on, closed, or relabelled. Save In 4 is
-still unreleased (`manifest.json`/`package.json` say 4.0.0), and per the
-maintainer the tracker sweep stays an explicit outward action.
+**Historical validation notes.** The July audit below used read-only GitHub
+calls while Save In 4 was unreleased. Releases 4.0.0, 4.0.1, and 4.1.0 have
+since shipped. The maintainer authorized replies and closures on 2026-09-05;
+see the [published-release sweep](issues-4.1-sweep.md) for fresh verification,
+posted replies, and the issues deliberately left open. Its decisions supersede
+the historical verdicts below.
 
 These are working notes, not a contract: they record what was verified, what was
 not, and where a close would be wrong. Treat a verdict as an input to a reply,
@@ -397,9 +398,12 @@ captures `:$1:` expand; a literal-space find also breaks on the ` -> ` split,
 so `\x20` is the documented escape). **#189** (this is the #178 shape — their
 posted rule uses `filename:`, which is not the final name; they must switch to
 `finalfilename:`. Do not point them at a DeviantArt template: it was removed).
-**#209** (`rename: ^https?_+ -> ` with an empty replacement is the "omit certain
+**#209** (`rename: ^https?:// ->` with an empty replacement is the "omit certain
 text" option they could not find; there is still no scheme-free page-URL
-variable).
+variable). Corrected during the 2026-09-05 sweep: renaming runs before filename
+sanitization, so the earlier `^https?_+` example did nothing. The corrected rule
+was executed against the reporter's `:pageurl:_:pagetitle:_:filename:` recipe
+using the 4.1.0 release code.
 
 **Clean:** **#137** (`fetch:`, tested with the reporter's exact pbs.twimg.com
 URL), **#208** (`:menupath:` — note it is the full chosen *path*, not the leaf

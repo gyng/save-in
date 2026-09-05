@@ -71,5 +71,7 @@ these documents assume.
   reopening a recurring request.
 - [V4 archaeology](project/V4-ARCHAEOLOGY.md) — a retrospective on the six-day MV3
   rewrite. A snapshot: its numbers are dated and drift with the branch.
-- [Issue validation](project/issues-v4.md) — working notes for the unposted 4.0.0
-  tracker sweep. Point-in-time and anchored to an older commit, not a contract.
+- [Issue validation](project/issues-v4.md) — historical working notes for the
+  4.0.0 tracker sweep. Point-in-time and anchored to an older commit, not a contract.
+- [4.1 issue sweep](project/issues-4.1-sweep.md) — published-release verification,
+  posted closure replies, and remaining open issues as of 2026-09-05.
