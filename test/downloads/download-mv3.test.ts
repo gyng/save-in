@@ -17,6 +17,7 @@ import {
   resolveContent,
 } from "../../src/downloads/content-fetch.ts";
 import * as RefererRules from "../../src/downloads/referer-rules.ts";
+import type { DownloadPipelineState } from "../../src/downloads/download-types.ts";
 
 const decodeDataUrl = (url: string) => {
   const [meta, b64] = url.split(",");
@@ -1139,6 +1140,45 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       }),
     );
   });
+
+  test.each(["path", "route"] as const)(
+    "refreshes :actualfileext: in a %s template without routing rules",
+    async (templateOwner) => {
+      const { Path } = await import("../../src/routing/path.ts");
+      freshOptions.filenamePatterns = [];
+      const state: DownloadPipelineState = {
+        path: new Path(templateOwner === "path" ? "downloads/txt" : "downloads"),
+        ...(templateOwner === "route" ? { route: new Path("routed/txt/saved.bin") } : {}),
+        scratch:
+          templateOwner === "path"
+            ? { pathTemplateRaw: "downloads/:actualfileext:" }
+            : { routeTemplateRaw: "routed/:actualfileext:/saved.bin" },
+        info: { url: "https://x/original.txt", filename: "original.txt" },
+      };
+      freshDownload.downloadRuntime.rememberPendingState(state);
+      const suggest = vi.fn();
+
+      expect(
+        listener(
+          {
+            byExtensionId: "self-extension-id",
+            filename: "server.jpg",
+            url: "https://x/original.txt",
+          },
+          suggest,
+        ),
+      ).toBe(true);
+      await vi.waitFor(() =>
+        expect(suggest).toHaveBeenCalledWith({
+          filename:
+            templateOwner === "path"
+              ? "downloads/jpg/server.jpg"
+              : "downloads/routed/jpg/saved.bin",
+          conflictAction: "uniquify",
+        }),
+      );
+    },
+  );
 
   test("keeps the pending filename when Chrome supplies no replacement", () => {
     const state = {

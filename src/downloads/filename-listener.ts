@@ -633,8 +633,10 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         usesFinalFilename ||
         pendingState.scratch?.deferredRouteRequirement === true) &&
       ((Array.isArray(options.filenamePatterns) && options.filenamePatterns.length > 0) ||
-        (typeof pathTemplateRaw === "string" && /:(?:filename|fileext):/.test(pathTemplateRaw)) ||
-        (typeof routeTemplateRaw === "string" && /:(?:filename|fileext):/.test(routeTemplateRaw)));
+        [pathTemplateRaw, routeTemplateRaw].some(
+          (template) =>
+            typeof template === "string" && /:(?:filename|(?:actual)?fileext):/.test(template),
+        ));
     if (needsActualFilenameResolution) {
       void (async () => {
         await resolveFinalMimeExtension(pendingState);

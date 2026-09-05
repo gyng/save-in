@@ -41,13 +41,24 @@ export const runContentDispositionScenario = async ({
       const nativeUrl = `http://127.0.0.1:${port}/${fixture.id}?source=native`;
       const saveInUrl = `http://127.0.0.1:${port}/${fixture.id}?source=save-in`;
       const nativeFilename = await downloadUsingBrowserFilename(nativeUrl);
+      const checkExtensionDirectory = fixture.id === "valid-extended";
       await control.background.startDownload({
         url: saveInUrl,
         suggestedFilename: `${fixture.id}-url-fallback.bin`,
         pageUrl: `http://127.0.0.1:${port}/`,
-        path: "e2e/content-disposition",
+        path: checkExtensionDirectory
+          ? "e2e/content-disposition/:actualfileext:"
+          : "e2e/content-disposition",
       });
       expect.soft(await waitForDownloadUrl(saveInUrl), fixture.id).toBe(nativeFilename);
+      if (checkExtensionDirectory) {
+        // The URL fallback ends in .bin; the server's .txt name must also
+        // refresh filename-dependent destination directories on Chrome.
+        const [download] = await control.downloads.search({ url: saveInUrl });
+        expect(
+          path.basename(path.dirname(requireValue(download, "Download is missing").filename)),
+        ).toBe("txt");
+      }
     }
   } finally {
     await closeLocal(server);
