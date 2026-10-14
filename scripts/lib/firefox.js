@@ -203,6 +203,13 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
     "--remote-debugging-port",
     String(bidiPort),
   ];
+  // Newer Firefox refuses BiDi chrome-context access (the e2e control realm)
+  // unless launched with this flag; it exists from Firefox 138, so the pinned
+  // minimum (140) accepts it too, and older builds never see it.
+  const firefoxMajor = Number(/Firefox (\d+)/.exec(firefoxVersion)?.[1] ?? 0);
+  if (firefoxMajor >= 138) {
+    args.push("-remote-allow-system-access");
+  }
   if (process.env.HEADLESS) {
     args.push("-headless");
   }
