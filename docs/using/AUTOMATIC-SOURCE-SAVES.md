@@ -156,6 +156,13 @@ Only whole files are adopted, never pieces of a stream:
   script fetches, such as the fragmented `.mp4`/`.m4a`/`.webm` segments of an
   adaptive player, is never adopted, and once a page loads a playlist its media
   requests are treated as that stream's segments.
+- A player element loading an address with no media extension, such as
+  `<video src="/api/stream/123/master">`, counts as loading a playlist: a
+  browser playing a stream natively requests an extensionless playlist that
+  way and then its `.mp4` segments. Save In cannot tell such a playlist from a
+  whole file served at an extensionless address, so after one of these the
+  tab's video and audio are no longer adopted, and the extensionless file
+  itself never is. A file adopted before it stays adopted.
 
 These candidates use the `script-media` channel internally and keep their
 ordinary `sourcekind:` (`image`, `video`, `audio`, `stream`, or `document`), so

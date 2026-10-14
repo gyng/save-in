@@ -69,11 +69,19 @@ const FLUSH_DELAY_MS = 300;
 // previous document keeps issuing requests until the new one commits, a
 // back/forward-cache restore sends no navigation request, and Chrome can drop
 // the navigation that should have reset it (see above). See
-// isScriptMediaFromVisit.
-type BufferedMedia = { kind: PageSourceKind; auto: boolean; at: number; doc?: string };
+// isScriptMediaFromVisit. `opaque` marks a media-element load whose URL named
+// no media type (see isStreamEvidence).
+type BufferedMedia = {
+  kind: PageSourceKind;
+  auto: boolean;
+  at: number;
+  doc?: string;
+  opaque?: true;
+};
 type ScriptMediaEntry = { url: string; kind: PageSourceKind; auto?: true; at?: number };
-// The session mirror also keeps the document identity, which pages never see.
-type StoredScriptMediaEntry = ScriptMediaEntry & { doc?: string };
+// The session mirror also keeps the document identity and the opaque marker,
+// which pages never see.
+type StoredScriptMediaEntry = ScriptMediaEntry & { doc?: string; opaque?: true };
 type WebRequestDetails = {
   url: string;
   tabId: number;
@@ -274,6 +282,7 @@ const doHydrate = async (): Promise<void> => {
           auto: entry.auto === true,
           at: typeof entry.at === "number" && Number.isFinite(entry.at) ? entry.at : 0,
           ...(typeof entry.doc === "string" ? { doc: entry.doc } : {}),
+          ...(entry.opaque === true ? { opaque: true as const } : {}),
         });
         while (map.size > SCRIPT_MEDIA_SOURCE_LIMIT) evictOldest(map);
       }
@@ -300,6 +309,7 @@ const persist = async (): Promise<void> => {
     record[String(tabId)] = [...map].map(([url, media]) => ({
       ...wireEntry(url, media),
       ...(media.doc !== undefined ? { doc: media.doc } : {}),
+      ...(media.opaque ? { opaque: true as const } : {}),
     }));
   }
   try {
@@ -349,15 +359,28 @@ const scheduleFlush = (): void => {
   flushTimer = setTimeout(flush, FLUSH_DELAY_MS);
 };
 
-// Evict the oldest entry, preferring non-stream media so a manifest survives a
-// flood of ordinary media requests. Streams go only when nothing else remains.
-// Eviction runs only on overflow, so the loop always executes and assigns a
-// victim; a URL is never "", so that sentinel just means "not yet chosen".
+// Whether an entry shows the tab playing a stream, after which its video and
+// audio media-element loads are presumed to be that stream's segments: a
+// recognized manifest, or a media element loading a URL that names no media
+// type. A natively played HLS/DASH stream whose playlist has no extension
+// (`<video src="/api/stream/123/master">`) leaves only the latter, and its
+// segments (`seg_00001.mp4`) are media-element loads with ordinary extensions.
+// The collector cannot tell such a playlist from an extensionless progressive
+// file, so it assumes the stream and stops adopting the tab's video and audio.
+const isStreamEvidence = (media: BufferedMedia): boolean =>
+  media.kind === "stream" || media.opaque === true;
+
+// Evict the oldest entry, preferring entries that are not stream evidence so a
+// manifest survives a flood of ordinary media requests, and with it the
+// judgment that the tab's media loads are segments. Stream evidence goes only
+// when nothing else remains. Eviction runs only on overflow, so the loop always
+// executes and assigns a victim; a URL is never "", so that sentinel just means
+// "not yet chosen".
 const evictOldest = (map: Map<string, BufferedMedia>): void => {
   let victim = "";
-  for (const [url, { kind }] of map) {
+  for (const [url, media] of map) {
     if (victim === "") victim = url; // oldest entry (first iteration)
-    if (kind !== "stream") {
+    if (!isStreamEvidence(media)) {
       victim = url; // the oldest non-stream is the better victim
       break;
     }
@@ -375,8 +398,9 @@ const record = (
 ): void => {
   let kind = classifyUrlKind(url);
   // A `media`-typed request with no telltale extension is still a media element
-  // load; treat it as video rather than dropping it.
-  if (!isMediaSourceKind(kind) && requestType === "media") kind = "video";
+  // load; treat it as video rather than dropping it, and as stream evidence.
+  const opaque = !isMediaSourceKind(kind) && requestType === "media";
+  if (opaque) kind = "video";
   if (!isMediaSourceKind(kind)) return; // not saveable media: never buffered
 
   let map = buffers.get(tabId);
@@ -403,12 +427,17 @@ const record = (
       requestType,
       // Only video/audio consult it, so other kinds skip the buffer walk.
       tabHasStream:
-        (kind === "video" || kind === "audio") &&
-        [...map.values()].some((media) => media.kind === "stream"),
+        (kind === "video" || kind === "audio") && [...map.values()].some(isStreamEvidence),
     });
   // The latest observation also names the document that made it: a URL the
   // next page requests again belongs to that page from then on.
-  map.set(url, { kind: previous?.kind ?? kind, auto, at, ...(doc !== undefined ? { doc } : {}) });
+  map.set(url, {
+    kind: previous?.kind ?? kind,
+    auto,
+    at,
+    ...(doc !== undefined ? { doc } : {}),
+    ...(opaque ? { opaque: true as const } : {}),
+  });
   while (map.size > SCRIPT_MEDIA_SOURCE_LIMIT) evictOldest(map);
 
   let queued = pending.get(tabId);

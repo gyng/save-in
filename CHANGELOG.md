@@ -15,10 +15,11 @@
   coverage**; it uses what Page Sources' **Detect media loaded by scripts**
   observes, so that option and its permission must be on too. Only whole files
   are adopted: images, PDFs, HLS/DASH playlists, and video or audio a player
-  loads directly. Stream segments fetched by scripts are never saved, media
-  requested by the previous page while the next one loads or by the page left
-  with Back or Forward is not adopted for the page on screen, and candidates
-  still need a matching automatic rule and count against the per-page limit.
+  loads directly. Stream segments are never saved, including those of a stream
+  a player loads from an address with no file extension. Only media the page
+  on screen requested is adopted, not media from the page before it or the one
+  left with Back or Forward. Candidates still need a matching automatic rule
+  and count against the per-page limit.
 - On Firefox, **When a file already exists** can now **Skip** the save or
   **Ask each time** (#94, #18, #217). Save In reads the `name(1).ext` Firefox
   picks for a file already in the folder, cancels that copy, and either records

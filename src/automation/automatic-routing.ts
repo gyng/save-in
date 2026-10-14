@@ -107,8 +107,10 @@ export const isAdmittedAutomaticSource = (
 // - video/audio count only when a media element or <object>/<embed> requested
 //   the URL itself, the URL's own extension names that kind (the collector's
 //   extensionless media-element fallback could be a .ts segment), and the tab
-//   has not loaded a stream manifest, after which its media requests are
-//   presumed to be that stream's segments.
+//   shows no sign of a stream (a manifest, or a media element loading a URL
+//   that names no media type, as a natively played extensionless playlist
+//   does), after which its media requests are presumed to be that stream's
+//   segments.
 export const isWholeFileScriptMediaRequest = (request: {
   url: string;
   kind: PageSourceKind;

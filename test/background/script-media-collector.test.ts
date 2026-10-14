@@ -1019,6 +1019,76 @@ describe("automatic script-media candidates", () => {
     ]);
   });
 
+  // A natively played stream whose playlist has no extension leaves only an
+  // extensionless media-element load; its segments are media-element loads
+  // under ordinary extensions.
+  test("treats an extensionless media-element load as a stream", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    const media = (url: string) => listener!({ url, tabId: 7, type: "media", timeStamp: 1 });
+    media("https://cdn.example/api/stream/123/master");
+    media("https://cdn.example/hls/seg_00001.mp4");
+    media("https://cdn.example/hls/seg_00002.m4a");
+
+    expect(await mod.automaticScriptMediaForTab(7, ANY_VISIT)).toEqual([]);
+    expect(
+      await mod.isAutomaticScriptMediaCollected(
+        7,
+        "https://cdn.example/hls/seg_00001.mp4",
+        "video",
+        ANY_VISIT,
+      ),
+    ).toBe(false);
+  });
+
+  test("still adopts the one whole file a page without a stream plays", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    listener!({ url: "https://cdn.example/movie.mp4", tabId: 7, type: "media", timeStamp: 1 });
+    listener!({ url: "https://cdn.example/movie.mp4", tabId: 7, type: "media", timeStamp: 2 });
+    // A whole file adopted before the stream appeared keeps its evidence.
+    listener!({ url: "https://cdn.example/api/stream/9", tabId: 7, type: "media", timeStamp: 3 });
+
+    expect(await mod.automaticScriptMediaForTab(7, ANY_VISIT)).toEqual([
+      { url: "https://cdn.example/movie.mp4", kind: "video", at: 2 },
+    ]);
+  });
+
+  test("keeps the stream evidence through a flood of segment requests", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    listener!({ url: "https://cdn.example/api/stream/9", tabId: 7, type: "media" });
+    for (let index = 0; index < 300; index += 1) {
+      listener!({ url: `https://cdn.example/seg-${index}.mp4`, tabId: 7, type: "xmlhttprequest" });
+    }
+    listener!({ url: "https://cdn.example/seg-last.mp4", tabId: 7, type: "media" });
+
+    expect(await mod.automaticScriptMediaForTab(7, ANY_VISIT)).toEqual([]);
+  });
+
+  test("persists and rehydrates the stream evidence", async () => {
+    const { listener } = await setup(AUTO_ON);
+    listener!({ url: "https://cdn.example/api/stream/9", tabId: 7, type: "media", timeStamp: 4 });
+    await vi.waitFor(() =>
+      expect(browser.storage.session.set).toHaveBeenCalledWith({
+        [SCRIPT_MEDIA_BY_TAB_SESSION_KEY]: {
+          "7": [{ url: "https://cdn.example/api/stream/9", kind: "video", at: 4, opaque: true }],
+        },
+      }),
+    );
+    // Pages never see it.
+    expect(lastSend()![1].body.sources).toEqual([
+      { url: "https://cdn.example/api/stream/9", kind: "video", at: 4 },
+    ]);
+
+    for (const [opaque, adopted] of [
+      [true, 0],
+      ["yes", 1],
+    ] as const) {
+      const { mod, listener: woken } = await setup(AUTO_ON);
+      withStoredTab(7, [{ url: "https://cdn.example/api/stream/9", kind: "video", at: 4, opaque }]);
+      woken!({ url: "https://cdn.example/clip.mp4", tabId: 7, type: "media" });
+      expect(await mod.automaticScriptMediaForTab(7, ANY_VISIT)).toHaveLength(adopted);
+    }
+  });
+
   test("keeps whole-file evidence and refreshes the time on a repeat request", async () => {
     const { mod, listener } = await setup(AUTO_ON);
     listener!({ url: "https://cdn.example/a.mp4", tabId: 7, type: "xmlhttprequest", timeStamp: 1 });
