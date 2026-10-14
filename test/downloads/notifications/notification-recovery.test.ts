@@ -171,7 +171,7 @@ describe("startup restore", () => {
     expect(sessionStore.siNotificationRecovery).toBeUndefined();
   });
 
-  test("does not fold newer downloads into an expired recovery lease", async () => {
+  test("gives requests a dying recovery worker started their own grace window", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
     const sessionStore = { siPendingDownloads: 1 } as Record<string, any>;
@@ -190,7 +190,56 @@ describe("startup restore", () => {
 
     await loadNotification();
 
-    expect(sessionStore.siPendingDownloads).toBe(1);
+    expect(sessionStore.siPendingDownloads).toBe(2);
+    expect(sessionStore.siNotificationRecovery).toMatchObject({ pendingDownloads: 2 });
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(sessionStore.siPendingDownloads).toBe(0);
+    expect(sessionStore.siNotificationRecovery).toBeUndefined();
+  });
+
+  test("refreshes the public count when a recovering worker restarts again", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+    const sessionStore = { siPendingDownloads: 1 } as Record<string, any>;
+    setupGlobals(sessionStore, () => []);
+    await loadNotification();
+
+    // Within the lease, the recovering worker starts another save and dies.
+    sessionStore.siPendingDownloads = 2;
+    vi.clearAllTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:05Z"));
+    vi.resetModules();
+    setupGlobals(sessionStore, () => []);
+    await loadNotification();
+
+    expect(sessionStore.siNotificationRecovery).toMatchObject({ pendingDownloads: 2 });
+    await vi.advanceTimersByTimeAsync(10_000);
+    // The stale lease count of 1 left one phantom request behind forever.
+    expect(sessionStore.siPendingDownloads).toBe(0);
+  });
+
+  test("keeps an inherited lease deadline when nothing new was requested", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+    const sessionStore = {
+      siPendingDownloads: 1,
+      siNotificationRecovery: {
+        version: 1,
+        token: "existing",
+        deadline: Date.now() + 4_000,
+        pendingDownloads: 2,
+        adoptedDownloadIds: [],
+      },
+    } as Record<string, any>;
+    setupGlobals(sessionStore, () => []);
+
+    await loadNotification();
+    expect(sessionStore.siNotificationRecovery).toMatchObject({
+      pendingDownloads: 1,
+      deadline: Date.now() + 4_000,
+    });
+    await vi.advanceTimersByTimeAsync(4_000);
+    expect(sessionStore.siPendingDownloads).toBe(0);
   });
 
   test("finishes adopted-record recovery after the worker died before its timer", async () => {
@@ -466,25 +515,21 @@ describe("startup restore", () => {
   // for. The count cannot be recomputed from a read that failed, so the write is
   // skipped and the stored value left for the next pass to reconcile.
   test("a failed pending read leaves the pending counter alone", async () => {
-    const sessionStore: Record<string, any> = {
-      siPendingDownloads: 5,
-      siNotificationRecovery: {
-        version: 1,
-        token: "tok",
-        deadline: Date.now() - 1,
-        pendingDownloads: 3,
-        adoptedDownloadIds: [],
-      },
-    };
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+    const sessionStore: Record<string, any> = { siPendingDownloads: 3 };
     setupGlobals(sessionStore, () => []);
+
+    await loadNotification();
+    // This worker then starts two saves of its own before the lease expires.
+    sessionStore.siPendingDownloads = 5;
     const originalGet = vi.mocked(global.browser.storage.session.get).getMockImplementation()!;
     vi.mocked(global.browser.storage.session.get).mockImplementation((key: any) =>
       key === "siPendingDownloads"
         ? Promise.reject(new Error("session read failed"))
         : originalGet(key),
     );
-
-    await loadNotification();
+    await vi.advanceTimersByTimeAsync(10_000);
 
     // Five were pending; three belong to this recovery. Rebasing onto the failed
     // read wrote max(0, 0 - 3) and lost the other two.

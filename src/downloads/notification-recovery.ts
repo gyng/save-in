@@ -243,14 +243,25 @@ const initializeRecovery = async (): Promise<void> => {
   } else if (expected) {
     const adoptedIds = new Set(expected.adoptedDownloadIds);
     adoptedDownloadIds.forEach((id) => adoptedIds.add(id));
+    // No event runs before initialization finishes, so the stored counters are
+    // the exact anonymous barriers this worker inherited, including requests a
+    // previous recovering worker started and then lost. Keeping the old lease
+    // count would leave those requests in the counter after expiry, where no
+    // later recovery could tell them from a live request.
+    const grew =
+      pendingDownloads > expected.pendingDownloads ||
+      privatePendingDownloads > expected.privatePendingDownloads;
     const merged: NotificationRecovery = {
       ...expected,
-      // No event runs before initialization finishes, so this is the exact
-      // anonymous barrier this worker inherited, including a repeated restart.
+      // A request the previous worker started after this lease began has had
+      // no grace window of its own yet, so the inherited lease restarts one.
+      ...(grew ? { deadline: Date.now() + PENDING_RECOVERY_GRACE_MS } : {}),
+      pendingDownloads,
       privatePendingDownloads,
       adoptedDownloadIds: [...adoptedIds],
     };
     if (
+      merged.pendingDownloads !== expected.pendingDownloads ||
       merged.privatePendingDownloads !== expected.privatePendingDownloads ||
       merged.adoptedDownloadIds.length !== expected.adoptedDownloadIds.length
     ) {
