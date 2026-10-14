@@ -96,6 +96,20 @@ describe("sanitisation", () => {
     test("still neutralizes a leading dot revealed by trimming", () => {
       expect(Path.sanitizeFilename(` ${NBSP}.hidden`)).toBe("_hidden");
     });
+
+    // U+0085 is Unicode White_Space, which browsers trim, but not JS `\s`.
+    test.each(["", "-"])(
+      "treats NEXT LINE as edge whitespace with replacement %j",
+      (replacement) => {
+        options.replacementChar = replacement;
+        try {
+          expect(Path.sanitizeFilename("\u0085name\u0085", 0, false)).toBe("name");
+          expect(Path.sanitizeFilename("\u0085.config")).not.toMatch(/^[\s\u0085.]/u);
+        } finally {
+          options.replacementChar = "_";
+        }
+      },
+    );
   });
 
   describe("reserved Windows device names", () => {

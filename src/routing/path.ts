@@ -55,9 +55,10 @@ const BAD_LEADING_CHARACTERS = /^[./\\]/g;
 // left edged with it is silently altered or dropped instead of being saved
 // where the rule says (#53). `\s` matters more than the ASCII space here: the
 // report was about U+00A0, which no filesystem rule forbids and which nothing
-// else in this file removes.
-const LEADING_WHITESPACE_REGEX = /^\s+/;
-const TRAILING_DOTS_AND_SPACES_REGEX = /[.\s]+$/;
+// else in this file removes. JS `\s` omits U+0085, which is Unicode White_Space
+// and so is trimmed (and refused at an edge) by Chrome just like the others.
+const LEADING_WHITESPACE_REGEX = /^[\s\u0085]+/;
+const TRAILING_DOTS_AND_SPACES_REGEX = /[.\s\u0085]+$/;
 export const RESERVED_DEVICE_NAME_REGEX = /^(CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³])$/i;
 const SEPARATOR_REGEX_INCLUSIVE = /([/\\])/g;
 // A destination ending in a separator names a folder and keeps the download's
