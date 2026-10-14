@@ -100,6 +100,7 @@ describe("message protocol runtime validation", () => {
             now: "2026-01-02T03:04:05.000Z",
             context: "media",
             gesture: "double-left-click",
+            clickKeys: "ctrl+shift",
             menuIndex: "2",
             currentTab: { title: "Quarterly report", incognito: false },
           },
@@ -159,6 +160,8 @@ describe("message protocol runtime validation", () => {
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { pageUrl: null } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { mediaType: 42 } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { gesture: "double-right-click" } } },
+    { type: MESSAGE_TYPES.VALIDATE, body: { info: { clickKeys: "Alt+Ctrl" } } },
+    { type: MESSAGE_TYPES.VALIDATE, body: { info: { clickKeys: 18 } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { resolvedFilename: {} } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { mimeExtension: false } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { suggestedFilename: 42 } } },
@@ -393,6 +396,7 @@ describe("message protocol runtime validation", () => {
         info: {
           sourceKind: "audio",
           gesture: "double-left-click",
+          clickKeys: "none",
           suggestedFilename: null,
           menuIndex: null,
           comment: "menu",
@@ -416,6 +420,8 @@ describe("message protocol runtime validation", () => {
     { info: null },
     { info: { sourceKind: "script" } },
     { info: { gesture: "long-left-press" } },
+    { info: { clickKeys: "" } },
+    { info: { clickKeys: "shift+ctrl" } },
     { info: { suggestedFilename: 2 } },
     { info: { modifiers: "Alt" } },
     { info: { modifiers: [2] } },
@@ -455,10 +461,19 @@ describe("message protocol runtime validation", () => {
     { info: { suggestedFilename: null, menuIndex: null, comment: null } },
     { info: { modifiers: [] } },
     { info: { gesture: "forward-click" } },
+    // Any string passes the shape check; the handler re-spells or drops it.
+    { info: { gesture: "left-click", clickKeys: "alt" } },
+    { info: { gesture: "left-click", clickKeys: "not keys" } },
     { info: { currentTab: null } },
     { info: { currentTab: { id: 1, url: "https://x/", incognito: false } } },
   ])("accepts optional download request info %#", (body) => {
     expect(isExternalMessage({ type: MESSAGE_TYPES.DOWNLOAD, body })).toBe(true);
+  });
+
+  test.each([18, null, ["alt"], {}])("rejects non-string download click keys %j", (clickKeys) => {
+    expect(isExternalMessage({ type: MESSAGE_TYPES.DOWNLOAD, body: { info: { clickKeys } } })).toBe(
+      false,
+    );
   });
 
   test("rejects malformed persisted download state", () => {

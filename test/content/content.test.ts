@@ -2051,11 +2051,19 @@ describe("setupClickToSave", () => {
             srcUrl: "http://x.test/pic.png",
             sourceKind: "image",
             gesture: "left-click",
+            clickKeys: "alt",
           },
         },
       },
       expect.any(Function),
     );
+  });
+
+  test("a legacy single pair still fires while extra keys are held", () => {
+    holdCombo();
+    window.dispatchEvent(keyEvent("keydown", 16));
+    mousedown(document.getElementById("i"));
+    expect(downloadsSent().map(([message]) => message.body.info.clickKeys)).toEqual(["alt"]);
   });
 
   test("click-to-save sends CSS matches for the exact clicked element", () => {
@@ -2254,6 +2262,56 @@ describe("setupClickToSave", () => {
       "middle-click",
       "back-click",
     ]);
+    expect(downloadsSent().map(([message]) => message.body.info.clickKeys)).toEqual([
+      "ctrl",
+      "shift",
+    ]);
+    remove();
+  });
+
+  test("sends the keys of the most specific binding of one gesture (#15)", () => {
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt" },
+          { gesture: CLICK_GESTURES.MIDDLE, combo: "Shift+Ctrl" },
+          { gesture: CLICK_GESTURES.MIDDLE, combo: "Ctrl" },
+          { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Ctrl" },
+          { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Ctrl+Shift" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "MIDDLE_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+    );
+    const img = document.getElementById("i");
+
+    window.dispatchEvent(keyEvent("keydown", 18));
+    mousedown(img, 4);
+    window.dispatchEvent(keyEvent("keyup", 18));
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(img, 4);
+    window.dispatchEvent(keyEvent("keydown", 16));
+    mousedown(img, 4);
+    mousedown(img, 1, 1);
+    mousedown(img, 1, 2);
+    expect(
+      downloadsSent().map(([message]) => [message.body.info.gesture, message.body.info.clickKeys]),
+    ).toEqual([
+      ["middle-click", "alt"],
+      ["middle-click", "ctrl"],
+      ["middle-click", "ctrl+shift"],
+      ["double-left-click", "ctrl+shift"],
+    ]);
+
+    // Alt with Ctrl+Shift satisfies the alt and ctrl+shift bindings, and
+    // neither includes the other: an ambiguous press claims nothing rather
+    // than letting list order choose a folder.
+    window.dispatchEvent(keyEvent("keydown", 18));
+    const ambiguous = mousedown(img, 4);
+    expect(ambiguous.preventDefault).not.toHaveBeenCalled();
+    expect(downloadsSent()).toHaveLength(4);
     remove();
   });
 

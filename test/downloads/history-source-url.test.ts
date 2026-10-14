@@ -29,6 +29,8 @@ test("history keeps the remaining compact inputs needed to replay routing decisi
       sourceKind: "image",
       mime: "image/jpeg",
       sha256: "abc123",
+      gesture: "left-click",
+      clickKeys: "ctrl+shift",
     },
   });
 
@@ -42,6 +44,8 @@ test("history keeps the remaining compact inputs needed to replay routing decisi
       sourcekind: "image",
       mime: "image/jpeg",
       sha256: "abc123",
+      gesture: "left-click",
+      keys: "ctrl+shift",
     }),
   );
 });

@@ -3,7 +3,7 @@ import { getMessage } from "../../platform/localization.ts";
 import { isStringKeyedRecord, withUrl } from "../../shared/util.ts";
 import { isPageSourceKind, PAGE_SOURCE_KINDS } from "../../shared/page-source.ts";
 import { cssSelectorErrors } from "../core/css-selector-validation.ts";
-import { CLICK_GESTURES, isClickGesture } from "../../shared/click-gesture.ts";
+import { CLICK_GESTURES, isClickGesture, isClickKeys } from "../../shared/click-gesture.ts";
 
 type WebMcpMessage = { type: string; body?: unknown };
 type WebMcpSend = (message: WebMcpMessage) => unknown;
@@ -135,6 +135,7 @@ const TRACE_STRING_FIELDS = [
   "resolvedFilename",
   "context",
   "gesture",
+  "clickKeys",
   "menuIndex",
   "comment",
   "sha256",
@@ -285,6 +286,10 @@ export const buildTools = (
               resolvedFilename: { type: "string" },
               context: { type: "string" },
               gesture: { type: "string", enum: Object.values(CLICK_GESTURES) },
+              clickKeys: {
+                type: "string",
+                description: "Click-to-save keys, e.g. alt, ctrl+shift, or none",
+              },
               menuIndex: { type: "string" },
               comment: { type: "string" },
               sourceKind: { type: "string", enum: [...PAGE_SOURCE_KINDS] },
@@ -324,6 +329,12 @@ export const buildTools = (
           }
           if (typeof input.info.gesture !== "undefined" && !isClickGesture(input.info.gesture)) {
             return inputError("info.gesture", "Unknown click gesture");
+          }
+          if (typeof input.info.clickKeys !== "undefined" && !isClickKeys(input.info.clickKeys)) {
+            return inputError(
+              "info.clickKeys",
+              "Expected click-to-save keys such as alt, ctrl+shift, or none",
+            );
           }
           if (
             typeof input.info.counter !== "undefined" &&

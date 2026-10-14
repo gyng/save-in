@@ -1081,6 +1081,9 @@
   "o_cKeyboardShortcutModifierHelp": {
     "message": "Mantenga pulsadas las teclas modificadoras seleccionadas mientras usa el gesto de clic elegido. Elija None para ambos modificadores si quiere usar solo el gesto. Los cambios se aplican a las páginas que ya están abiertas."
   },
+  "o_lClickToSaveKeysRoutingHelp": {
+    "message": "Para guardar en carpetas distintas, añada el mismo gesto de clic con otras teclas y dirija cada uno con una regla keys:."
+  },
   "o_cRestoreDefaults": {
     "message": "Restaurar valores predeterminados"
   },
@@ -2399,6 +2402,9 @@
   },
   "o_lShortcutNoRepeats": {
     "message": "No repita teclas ni modificadores."
+  },
+  "o_lClickToSaveDuplicateBinding": {
+    "message": "Dos gestos de clic usan el mismo clic y las mismas teclas. Cambie uno de ellos."
   },
   "o_lShortcutReady": {
     "message": "Listo para aplicar."
@@ -4447,6 +4453,9 @@
   "html_gestureMatcherDescription": {
     "message": "Coincide con el gesto usado por «Clic para guardar». Los patrones coinciden en cualquier parte del valor, así que ánclelos (^left-click$) para evitar que left-click también coincida con double-left-click o long-left-click."
   },
+  "html_keysMatcherDescription": {
+    "message": "Coincide con las teclas mantenidas en el gesto de «Clic para guardar» que inició el guardado, como alt, ctrl+shift o none. Las teclas van en minúsculas y en el orden ctrl, alt, shift, meta, así que ancle los patrones (^alt$) para evitar que alt también coincida con ctrl+alt."
+  },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Doble clic izquierdo"
   },
@@ -4479,6 +4488,9 @@
   },
   "routeDebuggerAnyGesture": {
     "message": "Cualquier gesto de clic"
+  },
+  "routeDebuggerClickKeys": {
+    "message": "Teclas de Clic para guardar"
   },
   "routeDebuggerClickContext": {
     "message": "Clic para guardar"

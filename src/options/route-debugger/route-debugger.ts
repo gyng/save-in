@@ -60,6 +60,7 @@ const fieldsFromInfo = (info: WireDownloadInfo): RouteDebuggerFields => ({
         ? info.context.toLowerCase()
         : "",
   gesture: info.gesture || "",
+  clickKeys: info.clickKeys || "",
   pageTitle: info.currentTab?.title || "",
   referrerUrl: info.referrerUrl || "",
   frameUrl: info.frameUrl || "",
@@ -83,6 +84,7 @@ const SAMPLE_DOWNLOAD: RouteDebuggerFields = {
   mime: "application/pdf",
   context: "",
   gesture: "",
+  clickKeys: "",
   pageTitle: "",
   referrerUrl: "",
   frameUrl: "",
@@ -167,6 +169,7 @@ export const setupRouteDebugger = (): void => {
   const mime = element<HTMLInputElement>("#route-debugger-mime");
   const context = element<HTMLSelectElement>("#route-debugger-context");
   const gesture = element<HTMLSelectElement>("#route-debugger-gesture");
+  const clickKeys = element<HTMLInputElement>("#route-debugger-click-keys");
   const pageTitle = element<HTMLInputElement>("#route-debugger-page-title");
   const referrerUrl = element<HTMLInputElement>("#route-debugger-referrer-url");
   const frameUrl = element<HTMLInputElement>("#route-debugger-frame-url");
@@ -195,6 +198,7 @@ export const setupRouteDebugger = (): void => {
     !mime ||
     !context ||
     !gesture ||
+    !clickKeys ||
     !pageTitle ||
     !referrerUrl ||
     !frameUrl ||
@@ -220,6 +224,7 @@ export const setupRouteDebugger = (): void => {
     mime,
     context,
     gesture,
+    clickKeys,
     pageTitle,
     referrerUrl,
     frameUrl,
@@ -255,6 +260,7 @@ export const setupRouteDebugger = (): void => {
     mime: mime.value.trim(),
     context: context.value,
     gesture: isClickGesture(gesture.value) ? gesture.value : "",
+    clickKeys: clickKeys.value.trim(),
     pageTitle: pageTitle.value.trim(),
     referrerUrl: referrerUrl.value.trim(),
     frameUrl: frameUrl.value.trim(),
@@ -280,6 +286,7 @@ export const setupRouteDebugger = (): void => {
       ? fields.context
       : "";
     gesture.value = isClickGesture(fields.gesture) ? fields.gesture : "";
+    clickKeys.value = fields.clickKeys || "";
     pageTitle.value = fields.pageTitle || "";
     referrerUrl.value = fields.referrerUrl || "";
     frameUrl.value = fields.frameUrl || "";

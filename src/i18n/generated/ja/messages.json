@@ -659,6 +659,9 @@
   "o_cKeyboardShortcutModifierHelp": {
     "message": "選択した修飾キーを押したまま、選択したクリック操作を行います。クリック操作だけを使用するには、両方の修飾キーで「None」を選択します。変更は既に開いているページにも適用されます。"
   },
+  "o_lClickToSaveKeysRoutingHelp": {
+    "message": "別々のフォルダーに保存するには、同じクリック操作を別のキーで追加し、それぞれを keys: ルールで振り分けます。"
+  },
   "o_cRestoreDefaults": {
     "message": "デフォルトに戻す"
   },
@@ -1977,6 +1980,9 @@
   },
   "o_lShortcutNoRepeats": {
     "message": "キーや修飾子を繰り返さないでください。"
+  },
+  "o_lClickToSaveDuplicateBinding": {
+    "message": "2 つのクリック操作で同じクリックとキーが使われています。どちらかを変更してください。"
   },
   "o_lShortcutReady": {
     "message": "適用できます。"
@@ -4447,6 +4453,9 @@
   "html_gestureMatcherDescription": {
     "message": "クリックして保存で使われたクリック操作に一致します。パターンは値内の任意の位置に一致するため、left-click が double-left-click や long-left-click にも一致しないように (^left-click$) のように固定してください。"
   },
+  "html_keysMatcherDescription": {
+    "message": "保存を開始したクリックして保存の操作で押していたキーに一致します (例: alt、ctrl+shift、none)。キーは小文字で ctrl、alt、shift、meta の順に並ぶため、alt が ctrl+alt にも一致しないように (^alt$) のように固定してください。"
+  },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "左ボタンのダブルクリック"
   },
@@ -4479,6 +4488,9 @@
   },
   "routeDebuggerAnyGesture": {
     "message": "任意のクリック操作"
+  },
+  "routeDebuggerClickKeys": {
+    "message": "クリックして保存のキー"
   },
   "routeDebuggerClickContext": {
     "message": "クリックして保存"

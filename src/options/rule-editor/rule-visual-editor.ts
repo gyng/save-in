@@ -68,6 +68,7 @@ const DEFAULT_MATCHERS = [
   "sourcerootdomain",
   "sourcekind",
   "gesture",
+  "keys",
   "filename",
   "finalfilename",
   "naivefilename",

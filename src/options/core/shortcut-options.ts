@@ -4,6 +4,7 @@ import { isClickType } from "../../config/content-options.ts";
 import {
   CLICK_GESTURES,
   LEGACY_CLICK_TO_SAVE_DISABLED_COMBO,
+  clickKeysForCombo,
   gestureToClickType,
   isClickGesture,
   resolveClickToSaveBindings,
@@ -183,17 +184,29 @@ export const setupShortcutOptions = () => {
   };
   const selectedBindings = (): ClickToSaveBinding[] => allControls().map(readBinding);
   let baselineSerialized = "";
-  const gestureConflicts = (gesture: ClickGesture, other: ClickGesture): boolean =>
-    gesture === other ||
+  // A gesture may repeat with different keys (#15); only a single left click
+  // beside a double or long left click conflicts whatever the keys are.
+  const gestureFamilyConflicts = (gesture: ClickGesture, other: ClickGesture): boolean =>
     (gesture === CLICK_GESTURES.LEFT && other === CLICK_GESTURES.DOUBLE_LEFT) ||
     (gesture === CLICK_GESTURES.DOUBLE_LEFT && other === CLICK_GESTURES.LEFT) ||
     (gesture === CLICK_GESTURES.LEFT && other === CLICK_GESTURES.LONG_LEFT) ||
     (gesture === CLICK_GESTURES.LONG_LEFT && other === CLICK_GESTURES.LEFT);
-  const unusedGestures = (): ClickGesture[] => {
-    const used = selectedBindings().map(({ gesture }) => gesture);
-    return Object.values(CLICK_GESTURES).filter(
-      (gesture) => !used.some((selected) => gestureConflicts(gesture, selected)),
-    );
+  const bindingConflicts = (binding: ClickToSaveBinding, other: ClickToSaveBinding): boolean =>
+    gestureFamilyConflicts(binding.gesture, other.gesture) ||
+    (binding.gesture === other.gesture &&
+      clickKeysForCombo(binding.combo) === clickKeysForCombo(other.combo));
+  // Added rows keep their historical default — the first unused gesture with
+  // Alt — and only then reuse a gesture with other keys.
+  const ADDED_ROW_COMBOS = ["Alt", "Ctrl", "Shift", "Meta", "Ctrl+Shift", "Alt+Shift"] as const;
+  const nextBinding = (): ClickToSaveBinding | null => {
+    const bindings = selectedBindings();
+    for (const addedCombo of ADDED_ROW_COMBOS) {
+      for (const gesture of Object.values(CLICK_GESTURES)) {
+        const candidate = { gesture, combo: addedCombo };
+        if (trySerializeClickToSaveBindings([...bindings, candidate]) !== null) return candidate;
+      }
+    }
+    return null;
   };
   const syncGestureWarning = () => {
     const bindings = selectedBindings();
@@ -226,7 +239,12 @@ export const setupShortcutOptions = () => {
           isClickGesture(value) &&
           value !== current.gesture.value &&
           controls.some(
-            (other) => other !== current && gestureConflicts(value, readBinding(other).gesture),
+            (other) =>
+              other !== current &&
+              bindingConflicts(
+                { gesture: value, combo: readBinding(current).combo },
+                readBinding(other),
+              ),
           );
         // Only touch the option when its state actually flips: a redundant
         // write to a select whose native popup happens to be open repaints
@@ -253,11 +271,12 @@ export const setupShortcutOptions = () => {
     const changed = serialized !== null && serialized !== baselineSerialized;
     if (apply) apply.disabled = !enabled || !changed;
     if (reset) reset.disabled = !enabled;
-    if (add) add.disabled = !enabled || unusedGestures().length === 0;
+    if (add) add.disabled = !enabled || nextBinding() === null;
     if (status)
       status.textContent =
         serialized === null
-          ? getMessage("o_lShortcutNoRepeats") || "Do not repeat keys or modifiers."
+          ? getMessage("o_lClickToSaveDuplicateBinding") ||
+            "Two click gestures use the same click and keys. Change one of them."
           : changed
             ? getMessage("o_lShortcutReady") || "Ready to apply."
             : "";
@@ -400,9 +419,9 @@ export const setupShortcutOptions = () => {
   };
   apply?.addEventListener("click", applyGesture);
   add?.addEventListener("click", () => {
-    const gesture = unusedGestures()[0];
-    if (!gesture) return;
-    addBindingRow({ gesture, combo: "Alt" });
+    const binding = nextBinding();
+    if (!binding) return;
+    addBindingRow(binding);
     syncClickControls();
   });
   reset?.addEventListener("click", () => {

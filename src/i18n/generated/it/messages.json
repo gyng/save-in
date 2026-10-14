@@ -971,6 +971,9 @@
   "o_cKeyboardShortcutModifierHelp": {
     "message": "Tieni premuti i modificatori selezionati mentre esegui il gesto di clic scelto. Seleziona None per entrambi i modificatori per usare soltanto il gesto. Le modifiche si applicano anche alle pagine già aperte."
   },
+  "o_lClickToSaveKeysRoutingHelp": {
+    "message": "Per salvare in cartelle diverse, aggiungi lo stesso gesto di clic con altri tasti, quindi instrada ciascuno con una regola keys:."
+  },
   "o_cRestoreDefaults": {
     "message": "Ripristina le impostazioni predefinite"
   },
@@ -1144,6 +1147,9 @@
   },
   "o_lShortcutNoRepeats": {
     "message": "Non ripetere tasti o modificatori."
+  },
+  "o_lClickToSaveDuplicateBinding": {
+    "message": "Due gesti di clic usano lo stesso clic e gli stessi tasti. Modificane uno."
   },
   "o_lShortcutReady": {
     "message": "Scorciatoia pronta per essere applicata."
@@ -4447,6 +4453,9 @@
   "html_gestureMatcherDescription": {
     "message": "Corrisponde al gesto usato da «Clic per salvare». I pattern corrispondono in qualsiasi punto del valore, quindi ancorali (^left-click$) per evitare che left-click corrisponda anche a double-left-click o long-left-click."
   },
+  "html_keysMatcherDescription": {
+    "message": "Corrisponde ai tasti tenuti premuti durante il gesto di «Salvataggio con clic» che ha avviato il salvataggio, ad esempio alt, ctrl+shift o none. I tasti sono in minuscolo nell’ordine ctrl, alt, shift, meta, quindi ancora i pattern (^alt$) per evitare che alt corrisponda anche a ctrl+alt."
+  },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Doppio clic sinistro"
   },
@@ -4479,6 +4488,9 @@
   },
   "routeDebuggerAnyGesture": {
     "message": "Qualsiasi gesto di clic"
+  },
+  "routeDebuggerClickKeys": {
+    "message": "Tasti del salvataggio con clic"
   },
   "routeDebuggerClickContext": {
     "message": "Clic per salvare"

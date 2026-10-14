@@ -537,6 +537,45 @@ describe("handleDownloadMessage", () => {
     expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.gesture).toBeUndefined();
   });
 
+  test.each([
+    ["ctrl+shift", "ctrl+shift"],
+    // A content script spells keys canonically, but the field is untrusted:
+    // re-spell what the binding parser reads and drop anything else.
+    ["Shift+Ctrl", "ctrl+shift"],
+    ["none", "none"],
+    ["", undefined],
+    ["hyper+click", undefined],
+    // Content scripts from before #15 send no keys at all.
+    [undefined, undefined],
+  ])("normalizes content click keys %j to %j for routing", (clickKeys, expected) => {
+    onMessage(
+      request({
+        info: {
+          pageUrl: "https://x/",
+          srcUrl: "https://x/file.png",
+          gesture: "left-click",
+          ...(clickKeys === undefined ? {} : { clickKeys }),
+        },
+      }),
+      { url: "https://x/", tab: { id: 8, url: "https://x/" } },
+      vi.fn(),
+    );
+    const info = vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info;
+    expect(info.gesture).toBe("left-click");
+    expect(info.clickKeys).toBe(expected);
+  });
+
+  test("ignores click keys from external callers", async () => {
+    const response = vi.fn();
+    onMessageExternal(
+      request({ info: { pageUrl: "https://x/", srcUrl: "https://x/file.png", clickKeys: "alt" } }),
+      { id: "trusted-extension", tab: { id: 9 } },
+      response,
+    );
+    await waitForCall(response);
+    expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.clickKeys).toBeUndefined();
+  });
+
   test("rejects CSS attestations forged by another internal extension page", () => {
     onMessage(
       request({

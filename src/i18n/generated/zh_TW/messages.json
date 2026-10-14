@@ -659,6 +659,9 @@
   "o_cKeyboardShortcutModifierHelp": {
     "message": "使用選取的點選手勢時，請按住選取的修飾鍵。若不使用修飾鍵，請將兩個修飾鍵都設為「None」。變更也會套用至已開啟的頁面。"
   },
+  "o_lClickToSaveKeysRoutingHelp": {
+    "message": "若要儲存到不同的資料夾，請以不同的按鍵新增相同的點選手勢，再用 keys: 規則分別路由。"
+  },
   "o_cRestoreDefaults": {
     "message": "還原預設設定"
   },
@@ -1977,6 +1980,9 @@
   },
   "o_lShortcutNoRepeats": {
     "message": "不要重複按鍵或修飾鍵。"
+  },
+  "o_lClickToSaveDuplicateBinding": {
+    "message": "兩個點選手勢使用了相同的點選和按鍵。請變更其中一個。"
   },
   "o_lShortcutReady": {
     "message": "可以套用。"
@@ -4447,6 +4453,9 @@
   "html_gestureMatcherDescription": {
     "message": "比對點選儲存時使用的點選手勢。模式會比對值中的任意位置，因此請將其錨定 (^left-click$)，避免 left-click 也比對到 double-left-click 或 long-left-click。"
   },
+  "html_keysMatcherDescription": {
+    "message": "比對啟動儲存的點選儲存手勢中按住的按鍵，例如 alt、ctrl+shift 或 none。按鍵為小寫，並依 ctrl、alt、shift、meta 的順序排列，因此請錨定模式 (^alt$)，避免 alt 也比對到 ctrl+alt。"
+  },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "按兩下滑鼠左鍵"
   },
@@ -4479,6 +4488,9 @@
   },
   "routeDebuggerAnyGesture": {
     "message": "任何點選手勢"
+  },
+  "routeDebuggerClickKeys": {
+    "message": "點選儲存按鍵"
   },
   "routeDebuggerClickContext": {
     "message": "點選儲存"

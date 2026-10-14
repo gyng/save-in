@@ -14,7 +14,7 @@ import type {
   HistoryRow,
 } from "../../shared/history-types.ts";
 import type { WireDownloadInfo, WireDownloadState } from "../../shared/message-protocol.ts";
-import { isClickGesture } from "../../shared/click-gesture.ts";
+import { isClickGesture, normalizeClickKeys } from "../../shared/click-gesture.ts";
 import { isPageSourceKind } from "../../shared/page-source.ts";
 import {
   historyEntryInfo,
@@ -312,6 +312,8 @@ export const historyDebuggerState = (entry: HistoryEntry): WireDownloadState => 
   if (isPageSourceKind(sourceKind)) info.sourceKind = sourceKind;
   const gesture = firstVariable("gesture");
   if (isClickGesture(gesture)) info.gesture = gesture;
+  const clickKeys = normalizeClickKeys(firstVariable("keys"));
+  if (clickKeys) info.clickKeys = clickKeys;
   const counterText = firstVariable("counter");
   const counter = counterText === undefined ? Number.NaN : Number(counterText);
   if (Number.isSafeInteger(counter) && counter >= 0) info.counter = counter;

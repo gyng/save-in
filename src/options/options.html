@@ -883,7 +883,7 @@ Goal: [describe which downloads to match and where they should be saved]
 Save In syntax:
 - Write one clause per line and separate rules with a blank line.
 - Every matcher in one rule must match. Matcher values are JavaScript regular expressions except css:, which takes a CSS selector and no flags. Do not leave a regex matcher empty; write .* explicitly for a match-all condition. Use at most 64 css: matchers in one rule and 256 across the configuration.
-- Common matchers include filename:, finalfilename:, actualfileext:, mime:, sourceurl:, sourcedomain:, sourcerootdomain:, sourcekind:, gesture:, css:, pageurl:, pagedomain:, pagerootdomain:, referrerurl:, referrerdomain:, pagetitle:, context:, and mediatype:.
+- Common matchers include filename:, finalfilename:, actualfileext:, mime:, sourceurl:, sourcedomain:, sourcerootdomain:, sourcekind:, gesture:, keys:, css:, pageurl:, pagedomain:, pagerootdomain:, referrerurl:, referrerdomain:, pagetitle:, context:, and mediatype:.
 - Add /i to a matcher name for case-insensitive matching, for example filename/i: \.pdf$. Regex flags are allowed only on matcher names and rename:.
 - Every saving rule must contain exactly one into: clause. Its value is a relative destination or filename template and cannot contain .. path components.
 - To stop processing without saving, replace into: with exclude: true. An exclusion must contain at least one matcher and cannot contain after:, capture:, capturegroups:, fetch:, or rename:.
@@ -1264,6 +1264,15 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                                 __MSG_o_cKeyboardShortcutModifierLongLeftClick__
                               </option>
                             </select>
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerClickKeys__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-click-keys"
+                              data-no-autosave
+                              spellcheck="false"
+                            />
                           </label>
                           <label class="route-debugger-field">
                             <span>__MSG_routeDebuggerSourceKind__</span>
@@ -1671,6 +1680,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               <span id="clickToSaveStatus" class="feedback" role="status" aria-live="polite"></span>
             </div>
             <div class="caption caption-line">__MSG_o_cKeyboardShortcutModifierHelp__</div>
+            <div class="caption caption-line">__MSG_o_lClickToSaveKeysRoutingHelp__</div>
             <div
               id="click-to-save-warning"
               class="feedback feedback-warning feedback-inline warning notice"
@@ -3893,6 +3903,15 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <code>^double-left-click$</code>
                 </td>
                 <td>__MSG_html_gestureMatcherDescription__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">keys:</code>
+                </td>
+                <td>
+                  <code>^ctrl\+shift$</code>
+                </td>
+                <td>__MSG_html_keysMatcherDescription__</td>
               </tr>
               <tr>
                 <td>

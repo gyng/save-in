@@ -17,6 +17,7 @@ const renderWorkbench = (): void => {
       <input id="route-debugger-mime" value="application/pdf">
       <select id="route-debugger-context"><option value=""></option><option value="link">Link</option><option value="AUTO">Automatic</option></select>
       <select id="route-debugger-gesture"><option value=""></option><option value="double-left-click">Double left click</option></select>
+      <input id="route-debugger-click-keys">
       <input id="route-debugger-page-title">
       <input id="route-debugger-referrer-url">
       <input id="route-debugger-frame-url">
@@ -173,6 +174,7 @@ test("shows production rule and clause decisions and jumps back to their source"
 
   setupRouteDebugger();
   document.querySelector<HTMLSelectElement>("#route-debugger-gesture")!.value = "double-left-click";
+  document.querySelector<HTMLInputElement>("#route-debugger-click-keys")!.value = "Shift+Ctrl";
   document.querySelector<HTMLButtonElement>("#route-debugger-run")?.click();
 
   const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
@@ -263,6 +265,7 @@ test("shows production rule and clause decisions and jumps back to their source"
         info: expect.objectContaining({
           filename: "report.pdf",
           gesture: "double-left-click",
+          clickKeys: "ctrl+shift",
         }),
       }),
     }),
@@ -575,6 +578,7 @@ test("loads the last download into the test bench", async () => {
                 mime: "image/jpeg",
                 context: "link",
                 gesture: "double-left-click",
+                clickKeys: "alt",
                 currentTab: { title: "Photo gallery" },
                 referrerUrl: "https://example.com/home",
                 mediaType: "image",
@@ -619,6 +623,7 @@ test("loads the last download into the test bench", async () => {
   expect(document.querySelector<HTMLSelectElement>("#route-debugger-gesture")?.value).toBe(
     "double-left-click",
   );
+  expect(document.querySelector<HTMLInputElement>("#route-debugger-click-keys")?.value).toBe("alt");
   expect(document.querySelector<HTMLInputElement>("#route-debugger-page-title")?.value).toBe(
     "Photo gallery",
   );
@@ -782,6 +787,7 @@ test("uses legacy last-download filename and URL fallbacks and normalizes unknow
   );
   expect(document.querySelector<HTMLSelectElement>("#route-debugger-context")!.value).toBe("");
   expect(document.querySelector<HTMLSelectElement>("#route-debugger-gesture")!.value).toBe("");
+  expect(document.querySelector<HTMLInputElement>("#route-debugger-click-keys")!.value).toBe("");
   expect(document.querySelector<HTMLSelectElement>("#route-debugger-media-type")!.value).toBe("");
   expect(document.querySelector<HTMLSelectElement>("#route-debugger-source-kind")!.value).toBe(
     "image",

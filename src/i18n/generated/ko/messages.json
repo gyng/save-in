@@ -659,6 +659,9 @@
   "o_cKeyboardShortcutModifierHelp": {
     "message": "선택한 보조 키를 누른 상태에서 선택한 클릭 제스처를 사용하세요. 보조 키 없이 제스처만 사용하려면 두 보조 키를 모두 None으로 선택하세요. 변경 사항은 이미 열린 페이지에도 적용됩니다."
   },
+  "o_lClickToSaveKeysRoutingHelp": {
+    "message": "서로 다른 폴더에 저장하려면 같은 클릭 제스처를 다른 키로 추가한 다음, 각각을 keys: 규칙으로 라우팅하세요."
+  },
   "o_cRestoreDefaults": {
     "message": "기본값 복원"
   },
@@ -1977,6 +1980,9 @@
   },
   "o_lShortcutNoRepeats": {
     "message": "키나 보조 키를 반복하지 마세요."
+  },
+  "o_lClickToSaveDuplicateBinding": {
+    "message": "두 클릭 제스처가 같은 클릭과 키를 사용합니다. 하나를 변경하세요."
   },
   "o_lShortcutReady": {
     "message": "적용할 준비가 되었습니다."
@@ -4447,6 +4453,9 @@
   "html_gestureMatcherDescription": {
     "message": "클릭하여 저장할 때 사용된 클릭 제스처와 일치합니다. 패턴은 값 안 어디에서나 일치하므로, left-click이 double-left-click 또는 long-left-click과도 일치하지 않도록 (^left-click$)처럼 고정하세요."
   },
+  "html_keysMatcherDescription": {
+    "message": "저장을 시작한 클릭하여 저장 제스처에서 누르고 있던 키와 일치합니다(예: alt, ctrl+shift, none). 키는 소문자로 ctrl, alt, shift, meta 순서로 표시되므로, alt가 ctrl+alt와도 일치하지 않도록 (^alt$)처럼 고정하세요."
+  },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "왼쪽 버튼 두 번 클릭"
   },
@@ -4479,6 +4488,9 @@
   },
   "routeDebuggerAnyGesture": {
     "message": "모든 클릭 제스처"
+  },
+  "routeDebuggerClickKeys": {
+    "message": "클릭하여 저장 키"
   },
   "routeDebuggerClickContext": {
     "message": "클릭하여 저장"

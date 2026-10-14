@@ -2,7 +2,10 @@ import { describe, expect, test } from "vitest";
 import { CLICK_TYPES } from "../../src/shared/constants.ts";
 import {
   CLICK_GESTURES,
+  clickKeysForCombo,
   contentClickComboToKeyCodes,
+  isClickKeys,
+  normalizeClickKeys,
   gestureToClickType,
   LEGACY_CLICK_TO_SAVE_DISABLED_COMBO,
   parseClickToSaveBindings,
@@ -34,13 +37,44 @@ describe("click-to-save gesture bindings", () => {
     expect(parseClickToSaveBindings(serializeClickToSaveBindings(bindings))).toEqual(bindings);
   });
 
-  test("rejects duplicate and ambiguous primary-button gestures", () => {
-    expect(() =>
-      serializeClickToSaveBindings([
-        { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
-        { gesture: CLICK_GESTURES.LEFT, combo: "Ctrl" },
+  test("allows one gesture with different keys (#15)", () => {
+    const bindings = [
+      { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
+      { gesture: CLICK_GESTURES.LEFT, combo: "Ctrl" },
+      { gesture: CLICK_GESTURES.LEFT, combo: "Alt+Shift" },
+      { gesture: CLICK_GESTURES.LEFT, combo: "" },
+    ];
+
+    expect(parseClickToSaveBindings(serializeClickToSaveBindings(bindings))).toEqual(bindings);
+  });
+
+  test.each([
+    ["Alt", "Alt"],
+    ["Alt", "alt"],
+    ["Alt", 18],
+    ["Ctrl+Shift", "Shift+Ctrl"],
+    ["", "None"],
+    ["Alt", "Alt+18"],
+  ] as const)("rejects one gesture repeated with the same keys: %j and %j", (first, second) => {
+    expect(
+      trySerializeClickToSaveBindings([
+        { gesture: CLICK_GESTURES.MIDDLE, combo: first },
+        { gesture: CLICK_GESTURES.MIDDLE, combo: second },
       ]),
-    ).toThrow("Invalid click-to-save bindings");
+    ).toBeNull();
+  });
+
+  test("bounds the number of bindings", () => {
+    const bindings = Array.from({ length: 17 }, (_, index) => ({
+      gesture: CLICK_GESTURES.MIDDLE,
+      combo: String(index + 100),
+    }));
+    expect(trySerializeClickToSaveBindings(bindings.slice(0, 16))).not.toBeNull();
+    expect(trySerializeClickToSaveBindings(bindings)).toBeNull();
+    expect(parseClickToSaveBindings(JSON.stringify({ version: 1, bindings: bindings }))).toBeNull();
+  });
+
+  test("rejects a single left click beside a double or long left click whatever the keys", () => {
     expect(() =>
       serializeClickToSaveBindings([
         { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
@@ -78,7 +112,7 @@ describe("click-to-save gesture bindings", () => {
     expect(
       trySerializeClickToSaveBindings([
         { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
-        { gesture: CLICK_GESTURES.LEFT, combo: "Ctrl" },
+        { gesture: CLICK_GESTURES.LEFT, combo: "alt" },
       ]),
     ).toBeNull();
     expect(
@@ -131,4 +165,43 @@ describe("click-to-save gesture bindings", () => {
       { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
     ]);
   });
+
+  test.each([
+    ["Alt", "alt"],
+    ["Option", "alt"],
+    ["Control", "ctrl"],
+    ["Command", "meta"],
+    ["Shift+Alt+Ctrl+Meta", "ctrl+alt+shift+meta"],
+    ["Shift+Ctrl", "ctrl+shift"],
+    ["Alt+18", "alt"],
+    [18, "alt"],
+    ["17+16", "ctrl+shift"],
+    ["90+Ctrl+65", "ctrl+65+90"],
+    [90, "90"],
+    ["", "none"],
+    ["None", "none"],
+    [LEGACY_CLICK_TO_SAVE_DISABLED_COMBO, "999"],
+  ] as const)("spells the keys of combo %j canonically as %j", (combo, keys) => {
+    expect(clickKeysForCombo(combo)).toBe(keys);
+    expect(normalizeClickKeys(keys)).toBe(keys);
+    expect(isClickKeys(keys)).toBe(true);
+  });
+
+  test.each([
+    ["Alt+Ctrl", "ctrl+alt"],
+    ["  shift + ctrl ", "ctrl+shift"],
+    ["NONE", "none"],
+    ["91", "meta"],
+  ])("normalizes the untrusted keys value %j to %j", (value, keys) => {
+    expect(normalizeClickKeys(value)).toBe(keys);
+    expect(isClickKeys(value)).toBe(false);
+  });
+
+  test.each([undefined, null, 18, "", "   ", "garbage", "alt+garbage", "0", "-1", "alt++", {}])(
+    "treats the malformed keys value %j as absent",
+    (value) => {
+      expect(normalizeClickKeys(value)).toBeUndefined();
+      expect(isClickKeys(value)).toBe(false);
+    },
+  );
 });

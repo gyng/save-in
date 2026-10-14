@@ -49,6 +49,8 @@ const MATCHER_PATTERN_PLACEHOLDERS: Record<string, string> = {
   // alternative would also match double-left-click and long-left-click and
   // shadow them.
   gesture: "^(left-click|middle-click|double-left-click|long-left-click)$",
+  // Anchored for the same reason: ^alt$ must not also match ctrl+alt.
+  keys: "^(alt|ctrl\\+shift)$",
 };
 
 const showTemplateFeedback = (

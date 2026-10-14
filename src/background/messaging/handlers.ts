@@ -2,6 +2,7 @@ import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { getMessage } from "../../platform/localization.ts";
 
 import { splitLines, withUrl } from "../../shared/util.ts";
+import { normalizeClickKeys } from "../../shared/click-gesture.ts";
 import { MESSAGE_TYPES, DOWNLOAD_TYPES } from "../../shared/constants.ts";
 import { applyVariables, transformers } from "../../routing/variable.ts";
 import { ROUTING_ACTION_VALUES } from "../../routing/action-values.ts";
@@ -501,6 +502,7 @@ export const handleDownloadMessage = (
       mediaType: info.mediaType,
       sourceKind: info.sourceKind,
       gesture: internal ? info.gesture : undefined,
+      clickKeys: internal ? normalizeClickKeys(info.clickKeys) : undefined,
       ...(internal && info.matchedCssSelectorsByOrigin
         ? { matchedCssSelectorsByOrigin: info.matchedCssSelectorsByOrigin }
         : {}),

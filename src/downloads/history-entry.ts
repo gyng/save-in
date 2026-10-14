@@ -58,6 +58,7 @@ const historyRoutingMetadata = (
       mime: state.info.mime || state.info.resolvedHead?.contentType,
       context: state.info.context,
       gesture: state.info.gesture,
+      keys: state.info.clickKeys,
       comment: state.info.comment,
       menuindex: state.info.menuIndex,
       counter: state.info.counter,

@@ -1,6 +1,7 @@
 import { EXTENSION_REGEX, getFilenameFromUrl } from "../../routing/filename.ts";
 import { toRootDomain } from "../../shared/domain.ts";
 import { referenceDescription } from "./reference-descriptions.ts";
+import { normalizeClickKeys } from "../../shared/click-gesture.ts";
 
 export const matcherDescription = (matcher: string, root: ParentNode = document): string =>
   referenceDescription("clauses", `${matcher.toLocaleLowerCase()}:`, root);
@@ -67,6 +68,10 @@ export const matcherTestValue = (matcher: string, root: ParentNode = document): 
       return testFieldValue(root, "route-debugger-source-kind");
     case "gesture":
       return testFieldValue(root, "route-debugger-gesture");
+    case "keys": {
+      const keys = testFieldValue(root, "route-debugger-click-keys");
+      return normalizeClickKeys(keys) ?? keys;
+    }
     case "filename":
     case "finalfilename":
       return filename;

@@ -127,6 +127,7 @@ const CLAUSE_ORDER = [
   "actualfileext",
   "sourcekind",
   "gesture",
+  "keys",
   "mediatype",
   "mime",
   "contenttype",
@@ -142,7 +143,7 @@ export const clauseGroup = (clause: string): ClauseGroup => {
   if (["into", "exclude", "after", "fetch", "rename"].includes(name)) return "Output";
   if (name === "capture" || name === "capturegroups") return "Capture setup";
   if (
-    /^(context|gesture|menuindex|comment|directory|linktext|linktitle|linkdownload|selectiontext|css)$/.test(
+    /^(context|gesture|keys|menuindex|comment|directory|linktext|linktitle|linkdownload|selectiontext|css)$/.test(
       name,
     )
   )

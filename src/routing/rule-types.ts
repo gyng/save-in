@@ -30,6 +30,9 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   suggestedFilename?: string | null | undefined;
   context?: string | undefined;
   gesture?: ClickGesture | undefined;
+  // Canonical keys of the click-to-save binding that fired (see
+  // clickKeysForCombo); absent for every other kind of save.
+  clickKeys?: string | undefined;
   menuIndex?: string | null | undefined;
   menuItemId?: string | undefined;
   menuItemTitle?: string | undefined;

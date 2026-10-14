@@ -6,9 +6,36 @@ import {
   createLongClickReleaseSuppressor,
   createLongPressTracker,
   isSingleGestureButton,
+  mostSpecificBinding,
 } from "../../src/content/click-gesture-model.ts";
 
 describe("click gesture model", () => {
+  const binding = (name: string, keyCodes: number[]) => ({ name, keyCodes });
+  test.each([
+    ["no active binding", [], null],
+    ["one active binding", [binding("alt", [18])], "alt"],
+    ["a keyless binding alone", [binding("none", [])], "none"],
+    ["more keys over fewer", [binding("alt", [18]), binding("alt+shift", [18, 16])], "alt+shift"],
+    ["any keys over none", [binding("none", []), binding("ctrl", [17])], "ctrl"],
+    [
+      "the superset regardless of list order",
+      [binding("alt+shift", [18, 16]), binding("none", []), binding("alt", [18])],
+      "alt+shift",
+    ],
+    [
+      "nothing for incomparable keys of equal size",
+      [binding("alt", [18]), binding("ctrl", [17])],
+      null,
+    ],
+    [
+      "nothing when no binding includes every other",
+      [binding("alt+shift", [18, 16]), binding("ctrl+shift", [17, 16]), binding("shift", [16])],
+      null,
+    ],
+  ] as const)("chooses %s", (_name, candidates, expected) => {
+    expect(mostSpecificBinding(candidates)?.name ?? null).toBe(expected);
+  });
+
   test.each([
     [CLICK_GESTURES.LEFT, 0],
     [CLICK_GESTURES.MIDDLE, 1],

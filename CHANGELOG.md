@@ -1,5 +1,12 @@
 # Unreleased
 
+- Click-to-save can bind the same mouse action to different keys, and the new
+  `keys:` routing matcher sends each binding to its own folder, for example
+  `keys: ^alt$` to `images/` and `keys: ^ctrl\+shift$` to `wallpapers/` (#15).
+  Keys are lowercase in the order `ctrl`, `alt`, `shift`, `meta`, or `none`.
+  When held keys satisfy several bindings, the one whose keys include all the
+  others is used; an ambiguous click is left to the page. History and the Route
+  debugger record and test the keys.
 - Fixed filename sanitization with custom replacement text, including literal
   dollar-sign sequences and replacements that introduce leading whitespace.
 - Kept Route debugger results tied to the current inputs when requests finish

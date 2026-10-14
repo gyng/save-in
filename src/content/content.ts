@@ -38,6 +38,7 @@ import type { RoutingRule } from "../routing/rule-types.ts";
 import { isDataUrl, isDataUrlWithinCap } from "../shared/data-url.ts";
 import {
   CLICK_GESTURES,
+  clickKeysForCombo,
   resolveClickToSaveBindings,
   type ClickGesture,
 } from "../shared/click-gesture.ts";
@@ -47,6 +48,7 @@ import {
   createLongClickReleaseSuppressor,
   createLongPressTracker,
   isSingleGestureButton,
+  mostSpecificBinding,
 } from "./click-gesture-model.ts";
 import { parseRegularExpressionList } from "../shared/pattern-list.ts";
 import { configureContentPorts } from "./ports.ts";
@@ -198,6 +200,7 @@ type ContentDownloadRequest = {
     srcUrl: string;
     sourceKind?: PageSource["kind"];
     gesture?: ClickGesture;
+    clickKeys?: string;
     linkTitle?: string;
     linkDownload?: string;
     matchedCssSelectorsByOrigin?: string[][];
@@ -283,7 +286,11 @@ const setupClickToSave = (
     options.contentClickToSaveBindings,
     options.contentClickToSaveCombo,
     options.contentClickToSaveButton,
-  ).map((binding) => ({ ...binding, keyCodes: contentClickComboToKeyCodes(binding.combo) }));
+  ).map((binding) => ({
+    ...binding,
+    keyCodes: contentClickComboToKeyCodes(binding.combo),
+    clickKeys: clickKeysForCombo(binding.combo),
+  }));
 
   let active: Record<number, boolean> = {};
   const retryTimers = new Set<number>();
@@ -322,6 +329,7 @@ const setupClickToSave = (
           srcUrl: source.url,
           sourceKind: source.kind,
           gesture: binding.gesture,
+          clickKeys: binding.clickKeys,
           ...(linkMetadata?.title ? { linkTitle: linkMetadata.title } : {}),
           ...(linkMetadata?.download ? { linkDownload: linkMetadata.download } : {}),
           ...(cssSelectors.length > 0
@@ -509,7 +517,9 @@ const setupClickToSave = (
         return;
       }
 
-      const doubleBinding = bindings.find(({ gesture }) => gesture === CLICK_GESTURES.DOUBLE_LEFT);
+      const doubleBinding = mostSpecificBinding(
+        bindings.filter(({ gesture }) => gesture === CLICK_GESTURES.DOUBLE_LEFT),
+      );
       if (doubleBinding) {
         if (e.detail === 1) warmBackground();
         if (doubleClick.press(e.detail, e.button, source)) {
@@ -523,7 +533,9 @@ const setupClickToSave = (
         doubleClick.reset();
       }
 
-      const longBinding = bindings.find(({ gesture }) => gesture === CLICK_GESTURES.LONG_LEFT);
+      const longBinding = mostSpecificBinding(
+        bindings.filter(({ gesture }) => gesture === CLICK_GESTURES.LONG_LEFT),
+      );
       if (longBinding) {
         // Unlike every immediate gesture, a long press must leave mousedown
         // untouched so a release before the threshold remains an ordinary
@@ -543,7 +555,9 @@ const setupClickToSave = (
         return;
       }
 
-      const binding = bindings.find(({ gesture }) => isSingleGestureButton(gesture, e.button));
+      const binding = mostSpecificBinding(
+        bindings.filter(({ gesture }) => isSingleGestureButton(gesture, e.button)),
+      );
       if (!binding) return;
       doubleClick.reset();
       e.preventDefault();

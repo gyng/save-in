@@ -1081,6 +1081,9 @@
   "o_cKeyboardShortcutModifierHelp": {
     "message": "Mantenha as teclas modificadoras selecionadas pressionadas enquanto usa o gesto de clique escolhido. Selecione None para os dois modificadores para usar apenas o gesto. As alterações também se aplicam às páginas já abertas."
   },
+  "o_lClickToSaveKeysRoutingHelp": {
+    "message": "Para salvar em pastas diferentes, adicione o mesmo gesto de clique com outras teclas e encaminhe cada um com uma regra keys:."
+  },
   "o_cRestoreDefaults": {
     "message": "Restaurar padrões"
   },
@@ -2399,6 +2402,9 @@
   },
   "o_lShortcutNoRepeats": {
     "message": "Não repita teclas ou modificadores."
+  },
+  "o_lClickToSaveDuplicateBinding": {
+    "message": "Dois gestos de clique usam o mesmo clique e as mesmas teclas. Altere um deles."
   },
   "o_lShortcutReady": {
     "message": "Pronto para aplicar."
@@ -4447,6 +4453,9 @@
   "html_gestureMatcherDescription": {
     "message": "Corresponde ao gesto usado por «Clique para salvar». Os padrões correspondem a qualquer parte do valor, então ancore-os (^left-click$) para impedir que left-click também corresponda a double-left-click ou long-left-click."
   },
+  "html_keysMatcherDescription": {
+    "message": "Corresponde às teclas mantidas pressionadas no gesto de «Clique para salvar» que iniciou o salvamento, como alt, ctrl+shift ou none. As teclas ficam em minúsculas na ordem ctrl, alt, shift, meta, então ancore os padrões (^alt$) para impedir que alt também corresponda a ctrl+alt."
+  },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Clique duplo com o botão esquerdo"
   },
@@ -4479,6 +4488,9 @@
   },
   "routeDebuggerAnyGesture": {
     "message": "Qualquer gesto de clique"
+  },
+  "routeDebuggerClickKeys": {
+    "message": "Teclas do Clique para salvar"
   },
   "routeDebuggerClickContext": {
     "message": "Clique para salvar"

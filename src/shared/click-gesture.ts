@@ -24,7 +24,9 @@ export type ClickToSaveBinding = {
 export type ClickToSaveBindings = [ClickToSaveBinding, ...ClickToSaveBinding[]];
 
 const CLICK_TO_SAVE_BINDINGS_VERSION = 1;
-const MAX_CLICK_TO_SAVE_BINDINGS = Object.keys(CLICK_GESTURES).length;
+// One binding per gesture used to be the only shape (#15 relaxed it to one
+// per gesture and key set). The bound is a sanity limit, not a UX target.
+const MAX_CLICK_TO_SAVE_BINDINGS = 16;
 const DEFAULT_CONTENT_CLICK_COMBO = "Alt";
 const DEFAULT_CONTENT_CLICK_COMBO_KEY_CODE = 18;
 
@@ -115,10 +117,50 @@ export const contentClickComboToKeyCodes = (
     .filter((keyCode) => keyCode > 0);
 };
 
+// The keys: routing matcher reads this spelling, so it is a persisted rule
+// contract: lowercase names in a fixed order (ctrl, alt, shift, meta), then any
+// other key code as a decimal number in ascending order, joined with "+". A
+// binding that needs no key is "none" rather than "", so `^none$` reads as
+// what it means and a rule can never confuse it with a save that has no
+// click-to-save keys at all (menu, Quick save, automatic, external).
+const CLICK_KEY_NAMES: ReadonlyArray<readonly [number, string]> = [
+  [17, "ctrl"],
+  [18, "alt"],
+  [16, "shift"],
+  [91, "meta"],
+];
+const NO_CLICK_KEYS = "none";
+
+export const clickKeysForCombo = (combo: string | number): string => {
+  const codes = new Set(contentClickComboToKeyCodes(combo));
+  const named = CLICK_KEY_NAMES.filter(([code]) => codes.has(code));
+  const namedCodes = new Set(named.map(([code]) => code));
+  const others = [...codes].filter((code) => !namedCodes.has(code)).toSorted((a, b) => a - b);
+  const parts = [...named.map(([, name]) => name), ...others.map(String)];
+  return parts.length > 0 ? parts.join("+") : NO_CLICK_KEYS;
+};
+
+// Message, history and debugger values are untrusted: anything the combo
+// parser accepts is re-spelled canonically, and anything else is absent rather
+// than guessed. A blank value is absent too, not "none": a blank debugger field
+// or history variable means the save carried no keys, not a keyless binding.
+export const normalizeClickKeys = (value: unknown): string | undefined =>
+  typeof value === "string" && value.trim() !== "" && isContentClickCombo(value)
+    ? clickKeysForCombo(value)
+    : undefined;
+
+export const isClickKeys = (value: unknown): value is string =>
+  typeof value === "string" && normalizeClickKeys(value) === value;
+
 const hasBindingConflicts = (bindings: ClickToSaveBinding[]): boolean => {
+  const identities = new Set(
+    bindings.map(({ gesture, combo }) => `${gesture} ${clickKeysForCombo(combo)}`),
+  );
   const gestures = new Set(bindings.map(({ gesture }) => gesture));
+  // A single left click resolves on mousedown, before a double or long left
+  // click can be recognized, so those still conflict whatever their keys.
   return (
-    gestures.size !== bindings.length ||
+    identities.size !== bindings.length ||
     (gestures.has(CLICK_GESTURES.LEFT) &&
       (gestures.has(CLICK_GESTURES.DOUBLE_LEFT) || gestures.has(CLICK_GESTURES.LONG_LEFT)))
   );

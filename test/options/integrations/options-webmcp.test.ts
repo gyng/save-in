@@ -65,6 +65,7 @@ describe("buildTools", () => {
     expect(validationInfo.properties).toHaveProperty("mediaType");
     expect(validationInfo.properties).toHaveProperty("context");
     expect(validationInfo.properties).toHaveProperty("gesture");
+    expect(validationInfo.properties).toHaveProperty("clickKeys");
     expect(validationInfo.properties).toHaveProperty("menuIndex");
     expect(validationInfo.properties).toHaveProperty("resolvedFilename");
     expect(validationInfo.properties).toHaveProperty("sourceKind");
@@ -381,14 +382,14 @@ describe("buildTools", () => {
 
     await byName.save_in_validate_config.execute({
       filenamePatterns: "gesture: ^double-left-click$\ninto: Double clicks",
-      info: { context: "click", gesture: "double-left-click" },
+      info: { context: "click", gesture: "double-left-click", clickKeys: "ctrl+shift" },
     });
 
     expect(send).toHaveBeenCalledWith({
       type: "VALIDATE",
       body: {
         filenamePatterns: "gesture: ^double-left-click$\ninto: Double clicks",
-        info: { context: "click", gesture: "double-left-click" },
+        info: { context: "click", gesture: "double-left-click", clickKeys: "ctrl+shift" },
         validationSource: "webmcp",
       },
     });
@@ -550,6 +551,20 @@ describe("buildTools", () => {
     ).resolves.toEqual({
       status: "ERROR",
       errors: [{ field: "info.gesture", message: "Unknown click gesture" }],
+    });
+    await expect(
+      byName.save_in_validate_config.execute({
+        filenamePatterns: "into: test",
+        info: { clickKeys: "Shift+Ctrl" },
+      }),
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [
+        {
+          field: "info.clickKeys",
+          message: "Expected click-to-save keys such as alt, ctrl+shift, or none",
+        },
+      ],
     });
     await expect(
       byName.save_in_validate_config.execute({

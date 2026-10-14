@@ -2317,6 +2317,88 @@ test("click-to-save rejects synthetic input and handles trusted single, double, 
     expect(doubleClickDownloads).toHaveLength(1);
     expect(doubleClickDownloads[0]?.state).toBe("complete");
     expect(fs.readFileSync(requireValue(doubleClickDownloads[0]?.filename, "path"))).toEqual(png);
+
+    // #15: two bindings of one mouse action with different keys route to two
+    // folders through keys:, which only the binding that fired can supply.
+    const keysConfig = {
+      contentClickToSaveBindings: JSON.stringify({
+        version: 1,
+        bindings: [
+          { gesture: "left-click", combo: "Alt" },
+          { gesture: "left-click", combo: "Ctrl+Shift" },
+        ],
+      }),
+      filenamePatterns: [
+        "keys: ^alt$",
+        "into: e2e/keys-alt/:filename:",
+        "",
+        "keys: ^ctrl\\+shift$",
+        "into: e2e/keys-ctrl-shift/:filename:",
+      ].join("\n"),
+    };
+    const appliedKeys = await control.runtime.send({
+      type: "APPLY_CONFIG",
+      body: { config: keysConfig },
+    });
+    expect(appliedKeys.body.applied).toMatchObject(keysConfig);
+    /**
+     * @param {"keyDown" | "keyUp"} type
+     * @param {"Alt" | "Control" | "Shift"} key
+     * @param {number} modifiers
+     * @returns {{method: "Input.dispatchKeyEvent", params: Record<string, unknown>}}
+     */
+    const keyEvent = (type, key, modifiers) => {
+      const keyCode = { Alt: 18, Control: 17, Shift: 16 }[key];
+      return {
+        method: "Input.dispatchKeyEvent",
+        params: {
+          type,
+          key,
+          code: `${key}Left`,
+          windowsVirtualKeyCode: keyCode,
+          nativeVirtualKeyCode: keyCode,
+          modifiers,
+        },
+      };
+    };
+    /**
+     * @param {"mousePressed" | "mouseReleased"} type
+     * @param {number} modifiers
+     * @returns {{method: "Input.dispatchMouseEvent", params: Record<string, unknown>}}
+     */
+    const keyedMouseEvent = (type, modifiers) => ({
+      method: "Input.dispatchMouseEvent",
+      params: {
+        type,
+        x: target.x,
+        y: target.y,
+        button: "left",
+        buttons: type === "mousePressed" ? 1 : 0,
+        clickCount: 1,
+        modifiers,
+      },
+    });
+    // CDP modifier bits: Alt 1, Ctrl 2, Shift 8.
+    await cdp.dispatchInput(PORT, targetUrl, [
+      keyEvent("keyDown", "Alt", 1),
+      keyedMouseEvent("mousePressed", 1),
+      keyedMouseEvent("mouseReleased", 1),
+      keyEvent("keyUp", "Alt", 0),
+    ]);
+    const altDownloads = await waitForDownloads("keys-alt");
+    await cdp.dispatchInput(PORT, targetUrl, [
+      keyEvent("keyDown", "Control", 2),
+      keyEvent("keyDown", "Shift", 10),
+      keyedMouseEvent("mousePressed", 10),
+      keyedMouseEvent("mouseReleased", 10),
+      keyEvent("keyUp", "Shift", 2),
+      keyEvent("keyUp", "Control", 0),
+    ]);
+    const ctrlShiftDownloads = await waitForDownloads("keys-ctrl-shift");
+    expect(altDownloads).toHaveLength(1);
+    expect(altDownloads[0]?.filename).toMatch(/e2e[\\/]keys-alt[\\/]pic\.png$/);
+    expect(ctrlShiftDownloads).toHaveLength(1);
+    expect(ctrlShiftDownloads[0]?.filename).toMatch(/e2e[\\/]keys-ctrl-shift[\\/]pic\.png$/);
   } finally {
     try {
       await control.options.set({

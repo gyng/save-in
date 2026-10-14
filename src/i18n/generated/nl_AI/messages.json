@@ -1081,6 +1081,9 @@
   "o_cKeyboardShortcutModifierHelp": {
     "message": "Houd de geselecteerde modificatietoetsen ingedrukt terwijl u het gekozen klikgebaar gebruikt. Kies None voor beide modificatietoetsen om alleen het gebaar te gebruiken. Wijzigingen gelden ook voor pagina's die al geopend zijn."
   },
+  "o_lClickToSaveKeysRoutingHelp": {
+    "message": "Om in verschillende mappen op te slaan, voegt u hetzelfde klikgebaar toe met andere toetsen en stuurt u elk door met een keys:-regel."
+  },
   "o_cRestoreDefaults": {
     "message": "Standaardwaarden herstellen"
   },
@@ -2399,6 +2402,9 @@
   },
   "o_lShortcutNoRepeats": {
     "message": "Herhaal geen toetsen of modificatoren."
+  },
+  "o_lClickToSaveDuplicateBinding": {
+    "message": "Twee klikgebaren gebruiken dezelfde klik en toetsen. Wijzig er een."
   },
   "o_lShortcutReady": {
     "message": "Klaar om toe te passen."
@@ -4447,6 +4453,9 @@
   "html_gestureMatcherDescription": {
     "message": "Komt overeen met het klikgebaar voor ‘Klikken om op te slaan’. Patronen komen overeen op elke plek in de waarde, dus veranker ze (^left-click$) zodat left-click niet ook overeenkomt met double-left-click of long-left-click."
   },
+  "html_keysMatcherDescription": {
+    "message": "Komt overeen met de toetsen die werden ingedrukt bij het klikgebaar voor ‘Klikken om op te slaan’ dat het opslaan startte, zoals alt, ctrl+shift of none. Toetsen staan in kleine letters in de volgorde ctrl, alt, shift, meta, dus veranker patronen (^alt$) zodat alt niet ook overeenkomt met ctrl+alt."
+  },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Dubbelklik met de linkermuisknop"
   },
@@ -4479,6 +4488,9 @@
   },
   "routeDebuggerAnyGesture": {
     "message": "Elk klikgebaar"
+  },
+  "routeDebuggerClickKeys": {
+    "message": "Toetsen voor klikken om op te slaan"
   },
   "routeDebuggerClickContext": {
     "message": "Klikken om op te slaan"

@@ -62,6 +62,37 @@ Private-window saves are not added unless **Remember private browsing activity**
 is enabled. Rule-selected destinations are also not added because no explicit
 menu destination was chosen.
 
+## Click-to-save folders
+
+**Options → Click-to-save** saves the clicked media without opening the context
+menu. Each click gesture pairs up to two held keys with a mouse action, and the
+same mouse action may appear more than once with different keys. A single left
+click still cannot be combined with a double or long left click, and two rows
+with the same mouse action and the same keys are rejected.
+
+Routing rules can tell the bindings apart. `gesture:` matches the mouse action
+(`left-click`, `middle-click`, `right-click`, `back-click`, `forward-click`,
+`double-left-click`, or `long-left-click`). `keys:` matches the keys of the
+binding that fired, spelled in lowercase in the order `ctrl`, `alt`, `shift`,
+`meta`, joined with `+`; a binding without keys is `none`. To save Alt+click to
+one folder and Ctrl+Shift+click to another (#15), add both bindings and write:
+
+```text
+keys: ^alt$
+into: images/:filename:
+
+keys: ^ctrl\+shift$
+into: wallpapers/:filename:
+```
+
+Anchor `keys:` patterns: without `^` and `$`, `alt` also matches `ctrl+alt`.
+When the held keys satisfy several bindings of the same mouse action, the
+binding whose keys include all the others wins, so Alt+Shift+click uses an
+Alt+Shift binding rather than an Alt binding. If no binding includes all the
+others, such as Alt and Ctrl bindings while both keys are held, the click is
+left to the page. Menu, Quick save, automatic, and external-extension saves
+have no click-to-save keys, so a `keys:` rule never matches them.
+
 ## Page Sources
 
 Open Page Sources from the toolbar or context menu to inspect sources exposed by

@@ -435,3 +435,22 @@ test("includes a selected click gesture in validation input", () => {
     }).gesture,
   ).toBe("double-left-click");
 });
+
+test.each([
+  ["Alt+Ctrl", "ctrl+alt"],
+  ["none", "none"],
+  ["", undefined],
+  ["hyper", undefined],
+  [undefined, undefined],
+])("sends click-to-save keys %j as the canonical %j", (clickKeys, expected) => {
+  const info = routeDebuggerInfo({
+    filename: "image.png",
+    sourceUrl: "https://x/image.png",
+    pageUrl: "https://x/",
+    mime: "image/png",
+    context: "click",
+    clickKeys,
+  });
+  expect(info.clickKeys).toBe(expected);
+  expect(Object.hasOwn(info, "clickKeys")).toBe(expected !== undefined);
+});

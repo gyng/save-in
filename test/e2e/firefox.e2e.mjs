@@ -1014,6 +1014,70 @@ test("click-to-save rejects synthetic input and handles trusted single, double, 
     expect(doubleClickDownloads).toHaveLength(1);
     expect(doubleClickDownloads[0]?.state).toBe("complete");
     expect(fs.readFileSync(requireValue(doubleClickDownloads[0]?.filename, "path"))).toEqual(PNG);
+
+    // #15: two bindings of one mouse action with different keys route to two
+    // folders through keys:, which only the binding that fired can supply.
+    const keysConfig = {
+      contentClickToSaveBindings: JSON.stringify({
+        version: 1,
+        bindings: [
+          { gesture: "left-click", combo: "Alt" },
+          { gesture: "left-click", combo: "Ctrl+Shift" },
+        ],
+      }),
+      filenamePatterns: [
+        "keys: ^alt$",
+        "into: e2e/keys-alt/:filename:",
+        "",
+        "keys: ^ctrl\\+shift$",
+        "into: e2e/keys-ctrl-shift/:filename:",
+      ].join("\n"),
+    };
+    const appliedKeys = await control.runtime.send({
+      type: "APPLY_CONFIG",
+      body: { config: keysConfig },
+    });
+    expect(appliedKeys.body.applied).toMatchObject(keysConfig);
+    const keysContext = await session.bidi.findContext(targetUrl);
+    // WebDriver key values: Shift U+E008, Control U+E009, Alt U+E00A. Key and
+    // pointer sources advance tick by tick, so every key is down before the
+    // press and released only after it.
+    const keyedClick = (/** @type {string[]} */ keys) =>
+      session.bidi.send("input.performActions", {
+        context: keysContext,
+        actions: [
+          {
+            type: "key",
+            id: "save-in-keys",
+            actions: [
+              ...keys.map((value) => ({ type: "keyDown", value })),
+              { type: "pause", duration: 0 },
+              { type: "pause", duration: 0 },
+              { type: "pause", duration: 0 },
+              ...keys.toReversed().map((value) => ({ type: "keyUp", value })),
+            ],
+          },
+          {
+            type: "pointer",
+            id: "save-in-keys-mouse",
+            parameters: { pointerType: "mouse" },
+            actions: [
+              ...keys.map(() => ({ type: "pause", duration: 0 })),
+              { type: "pointerMove", x: point.x, y: point.y, duration: 0, origin: "viewport" },
+              { type: "pointerDown", button: 0 },
+              { type: "pointerUp", button: 0 },
+            ],
+          },
+        ],
+      });
+    await keyedClick(["\uE00A"]);
+    const altDownloads = await waitForDownloads("keys-alt");
+    await keyedClick(["\uE009", "\uE008"]);
+    const ctrlShiftDownloads = await waitForDownloads("keys-ctrl-shift");
+    expect(altDownloads).toHaveLength(1);
+    expect(altDownloads[0]?.filename).toMatch(/e2e[\\/]keys-alt[\\/]pic\.png$/);
+    expect(ctrlShiftDownloads).toHaveLength(1);
+    expect(ctrlShiftDownloads[0]?.filename).toMatch(/e2e[\\/]keys-ctrl-shift[\\/]pic\.png$/);
   } finally {
     try {
       await control.options.set({

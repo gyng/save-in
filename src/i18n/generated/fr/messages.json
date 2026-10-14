@@ -1093,6 +1093,9 @@
   "o_cKeyboardShortcutModifierHelp": {
     "message": "Maintenez les touches de modification sélectionnées lorsque vous effectuez le geste de clic choisi. Choisissez None pour les deux touches de modification afin d’utiliser uniquement le geste. Les modifications s’appliquent aussi aux pages déjà ouvertes."
   },
+  "o_lClickToSaveKeysRoutingHelp": {
+    "message": "Pour enregistrer dans des dossiers différents, ajoutez le même geste de clic avec d’autres touches, puis acheminez chacun avec une règle keys:."
+  },
   "o_cRestoreDefaults": {
     "message": "Restaurer les valeurs par défaut"
   },
@@ -2411,6 +2414,9 @@
   },
   "o_lShortcutNoRepeats": {
     "message": "Ne répétez pas les touches ou les modificateurs."
+  },
+  "o_lClickToSaveDuplicateBinding": {
+    "message": "Deux gestes de clic utilisent le même clic et les mêmes touches. Modifiez l’un d’eux."
   },
   "o_lShortcutReady": {
     "message": "Prêt à appliquer."
@@ -4447,6 +4453,9 @@
   "html_gestureMatcherDescription": {
     "message": "Correspond au geste de clic de « Enregistrement au clic ». Les motifs correspondent n’importe où dans la valeur ; ancrez-les donc (^left-click$) pour empêcher left-click de correspondre aussi à double-left-click ou long-left-click."
   },
+  "html_keysMatcherDescription": {
+    "message": "Correspond aux touches maintenues pendant le geste d’« Enregistrement au clic » qui a lancé l’enregistrement, par exemple alt, ctrl+shift ou none. Les touches sont en minuscules dans l’ordre ctrl, alt, shift, meta ; ancrez donc les motifs (^alt$) pour empêcher alt de correspondre aussi à ctrl+alt."
+  },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Double-clic gauche"
   },
@@ -4479,6 +4488,9 @@
   },
   "routeDebuggerAnyGesture": {
     "message": "Tout geste de clic"
+  },
+  "routeDebuggerClickKeys": {
+    "message": "Touches de l’enregistrement au clic"
   },
   "routeDebuggerClickContext": {
     "message": "Enregistrement au clic"

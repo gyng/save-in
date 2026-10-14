@@ -175,3 +175,15 @@ export const createLongPressTracker = <Candidate>(
     isPending: (): boolean => pending !== null,
   };
 };
+
+// Several bindings may share a gesture with different keys (#15), and holding
+// Alt+Shift also satisfies an Alt-only binding. The binding whose keys include
+// every other active candidate's keys is the one the user meant. When no such
+// binding exists (Alt and Ctrl bindings with both keys held) the press is
+// ambiguous and claims nothing: list order must never pick a folder.
+export const mostSpecificBinding = <Binding extends { keyCodes: readonly number[] }>(
+  candidates: readonly Binding[],
+): Binding | null =>
+  candidates.find((candidate) =>
+    candidates.every((other) => other.keyCodes.every((code) => candidate.keyCodes.includes(code))),
+  ) ?? null;

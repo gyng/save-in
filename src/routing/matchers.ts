@@ -238,6 +238,21 @@ export const matcherFunctions = {
         ? evaluateCandidates(regex, info, [{ source: "gesture", value: info.gesture }], "gesture")
         : missingEvaluation("gesture", null),
     ),
+  // The keys of the click-to-save binding that fired (#15), spelled by
+  // clickKeysForCombo. Every save that was not a click-to-save carries none,
+  // so a keys: rule never matches a menu, Quick save, automatic or external
+  // save.
+  keys: (regex) =>
+    explainableMatcher((info) =>
+      typeof info.clickKeys === "string"
+        ? evaluateCandidates(
+            regex,
+            info,
+            [{ source: "clickKeys", value: info.clickKeys }],
+            "clickKeys",
+          )
+        : missingEvaluation("clickKeys", null),
+    ),
   // Browser context-menu saves report mediaType, while content-originated
   // saves report the more precise sourceKind. Treat mediaType as the legacy
   // host-boundary fallback so one rule can describe the same image in both

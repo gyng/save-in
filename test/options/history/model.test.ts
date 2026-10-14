@@ -99,6 +99,7 @@ test("reconstructs a compact route-debugger input from current and legacy Histor
         sourcekind: "image",
         mime: "image/jpeg",
         gesture: "double-left-click",
+        keys: "Shift+Ctrl",
         menuindex: "2",
         comment: "Pictures",
         counter: "7",
@@ -124,6 +125,7 @@ test("reconstructs a compact route-debugger input from current and legacy Histor
       sha256: "abc123",
       sourceKind: "image",
       gesture: "double-left-click",
+      clickKeys: "ctrl+shift",
       counter: 7,
       now: "2024-01-02T03:04:05Z",
       currentTab: {

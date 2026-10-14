@@ -406,7 +406,7 @@ describe("shortcut option controller", () => {
     const apply = document.querySelector<HTMLButtonElement>("#clickToSaveApply")!;
     expect(apply.disabled).toBe(true);
     expect(document.querySelector("#clickToSaveStatus")!.textContent).toBe(
-      "Do not repeat keys or modifiers.",
+      "Two click gestures use the same click and keys. Change one of them.",
     );
     // A disabled button swallows click(); force it so the handler's own
     // guard is what keeps a conflicting selection from being written.
@@ -416,11 +416,12 @@ describe("shortcut option controller", () => {
     expect(bindingsField.value).toBe("");
     expect(apply.disabled).toBe(true);
     expect(document.querySelector("#clickToSaveStatus")!.textContent).toBe(
-      "Do not repeat keys or modifiers.",
+      "Two click gestures use the same click and keys. Change one of them.",
     );
   });
 
-  test("contains Add when every compatible gesture is already bound", () => {
+  test("reuses a bound gesture with other keys once every gesture is bound (#15)", () => {
+    vi.mocked(browser.i18n.getMessage).mockReturnValue("");
     document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>
       <input id="contentClickToSaveBindings" value='${serializeClickToSaveBindings([
         { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
@@ -438,13 +439,84 @@ describe("shortcut option controller", () => {
         <option value="forward-click">Forward</option><option value="double-left-click">Double</option>
       </select>
       <div id="clickToSaveAdditionalBindings"></div><button id="clickToSaveAdd"></button>
+      <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>
+      <span id="clickToSaveStatus"></span>`;
+    setupShortcutOptions();
+
+    const add = document.querySelector<HTMLButtonElement>("#clickToSaveAdd")!;
+    expect(add.disabled).toBe(false);
+    add.click();
+    const rows = document.querySelectorAll(".click-to-save-binding");
+    expect(rows).toHaveLength(5);
+    const [modifier, , gesture] = rows[4]!.querySelectorAll("select");
+    expect(modifier!.value).toBe("Ctrl");
+    expect(gesture!.value).toBe("left-click");
+    const enabled = (select: HTMLSelectElement) =>
+      [...select.options].filter((option) => !option.disabled).map((option) => option.value);
+    // Another left click with Ctrl is fine; a double or long left click still
+    // conflicts with the single left clicks whatever the keys.
+    expect(enabled(gesture!)).toEqual([
+      "left-click",
+      "middle-click",
+      "right-click",
+      "back-click",
+      "forward-click",
+    ]);
+    // The primary row keeps Alt, which every other gesture already uses.
+    expect(enabled(document.querySelector<HTMLSelectElement>("#clickToSaveButton")!)).toEqual([
+      "left-click",
+    ]);
+
+    const apply = document.querySelector<HTMLButtonElement>("#clickToSaveApply")!;
+    expect(apply.disabled).toBe(false);
+    modifier!.value = "Alt";
+    change(modifier!);
+    expect(apply.disabled).toBe(true);
+    expect(document.querySelector("#clickToSaveStatus")!.textContent).toBe(
+      "Two click gestures use the same click and keys. Change one of them.",
+    );
+    modifier!.value = "Shift";
+    change(modifier!);
+    apply.click();
+    expect(
+      parseClickToSaveBindings(
+        document.querySelector<HTMLInputElement>("#contentClickToSaveBindings")!.value,
+      )?.at(-1),
+    ).toEqual({ gesture: CLICK_GESTURES.LEFT, combo: "Shift" });
+    // The legacy mirror keeps the first legacy-representable binding, so a
+    // content script from before #15 (which reads the repeated left click as
+    // an invalid profile) falls back to Alt + left click.
+    expect(document.querySelector<HTMLInputElement>("#contentClickToSaveCombo")!.value).toBe("Alt");
+    expect(document.querySelector<HTMLInputElement>("#contentClickToSaveButton")!.value).toBe(
+      "LEFT_CLICK",
+    );
+  });
+
+  test("contains Add at the binding limit", () => {
+    const bindings = [
+      CLICK_GESTURES.MIDDLE,
+      CLICK_GESTURES.RIGHT,
+      CLICK_GESTURES.BACK,
+      CLICK_GESTURES.FORWARD,
+    ].flatMap((gesture) => ["Alt", "Ctrl", "Shift", "Meta"].map((combo) => ({ gesture, combo })));
+    document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>
+      <input id="contentClickToSaveBindings" value='${serializeClickToSaveBindings(bindings)}'>
+      <input id="contentClickToSaveCombo" value="Alt"><input id="contentClickToSaveButton" value="LEFT_CLICK">
+      <select id="clickToSaveModifier"><option></option><option value="Alt">Alt</option></select>
+      <select id="clickToSaveModifier2"><option></option></select>
+      <select id="clickToSaveButton">
+        <option value="left-click">Left</option><option value="middle-click">Middle</option>
+        <option value="right-click">Right</option><option value="back-click">Back</option>
+        <option value="forward-click">Forward</option><option value="double-left-click">Double</option>
+      </select>
+      <div id="clickToSaveAdditionalBindings"></div><button id="clickToSaveAdd"></button>
       <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>`;
     setupShortcutOptions();
 
     const add = document.querySelector<HTMLButtonElement>("#clickToSaveAdd")!;
     expect(add.disabled).toBe(true);
     add.dispatchEvent(new MouseEvent("click"));
-    expect(document.querySelectorAll(".click-to-save-binding")).toHaveLength(4);
+    expect(document.querySelectorAll(".click-to-save-binding")).toHaveLength(15);
 
     const modifier = document.querySelector<HTMLSelectElement>("#clickToSaveModifier")!;
     modifier.value = "";

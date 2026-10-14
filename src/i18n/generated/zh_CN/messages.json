@@ -659,6 +659,9 @@
   "o_cKeyboardShortcutModifierHelp": {
     "message": "使用所选点击手势时，请按住所选修饰键。若不使用修饰键，请将两个修饰键都设为“None”。更改也会应用到已打开的页面。"
   },
+  "o_lClickToSaveKeysRoutingHelp": {
+    "message": "要保存到不同的文件夹，请用不同的按键添加相同的点击手势，然后用 keys: 规则分别路由。"
+  },
   "o_cRestoreDefaults": {
     "message": "恢复默认设置"
   },
@@ -1977,6 +1980,9 @@
   },
   "o_lShortcutNoRepeats": {
     "message": "不要重复按键或修饰键。"
+  },
+  "o_lClickToSaveDuplicateBinding": {
+    "message": "两个点击手势使用了相同的点击和按键。请更改其中一个。"
   },
   "o_lShortcutReady": {
     "message": "可以应用。"
@@ -4447,6 +4453,9 @@
   "html_gestureMatcherDescription": {
     "message": "匹配点击保存时使用的点击手势。模式会匹配值中的任意位置，因此请锚定它们 (^left-click$)，以避免 left-click 也匹配 double-left-click 或 long-left-click。"
   },
+  "html_keysMatcherDescription": {
+    "message": "匹配启动保存的点击保存手势中按住的按键，例如 alt、ctrl+shift 或 none。按键为小写，并按 ctrl、alt、shift、meta 的顺序排列，因此请锚定模式 (^alt$)，以避免 alt 也匹配 ctrl+alt。"
+  },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "双击鼠标左键"
   },
@@ -4479,6 +4488,9 @@
   },
   "routeDebuggerAnyGesture": {
     "message": "任意点击手势"
+  },
+  "routeDebuggerClickKeys": {
+    "message": "点击保存按键"
   },
   "routeDebuggerClickContext": {
     "message": "点击保存"

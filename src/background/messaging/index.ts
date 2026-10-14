@@ -1,7 +1,7 @@
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 
 import { splitLines } from "../../shared/util.ts";
-import { isClickGesture } from "../../shared/click-gesture.ts";
+import { isClickGesture, normalizeClickKeys } from "../../shared/click-gesture.ts";
 import { DOWNLOAD_TYPES, MESSAGE_TYPES } from "../../shared/constants.ts";
 import { OptionsManagement } from "../../config/option.ts";
 import { options } from "../../config/options-data.ts";
@@ -312,6 +312,7 @@ const internalHandlers = {
         now: new Date(),
         context: info.context || recordedVariables.context || DOWNLOAD_TYPES.CLICK,
         gesture: isClickGesture(recordedVariables.gesture) ? recordedVariables.gesture : undefined,
+        clickKeys: normalizeClickKeys(recordedVariables.keys),
         // A reroute re-issues an existing save; announcing it through the
         // webhook again would double-report the same content.
         webhookEligible: false,

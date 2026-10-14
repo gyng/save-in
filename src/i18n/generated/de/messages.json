@@ -1081,6 +1081,9 @@
   "o_cKeyboardShortcutModifierHelp": {
     "message": "Halten Sie die ausgewählten Modifikatortasten gedrückt, während Sie die gewählte Klickgeste ausführen. Wählen Sie für beide Modifikatoren „None“, um nur die Geste zu verwenden. Änderungen gelten auch für bereits geöffnete Seiten."
   },
+  "o_lClickToSaveKeysRoutingHelp": {
+    "message": "Um in verschiedene Ordner zu speichern, fügen Sie dieselbe Klickgeste mit anderen Tasten hinzu und leiten Sie jede mit einer keys:-Regel weiter."
+  },
   "o_cRestoreDefaults": {
     "message": "Standardeinstellungen wiederherstellen"
   },
@@ -2399,6 +2402,9 @@
   },
   "o_lShortcutNoRepeats": {
     "message": "Wiederholen Sie keine Tasten oder Modifikatoren."
+  },
+  "o_lClickToSaveDuplicateBinding": {
+    "message": "Zwei Klickgesten verwenden denselben Klick und dieselben Tasten. Ändern Sie eine davon."
   },
   "o_lShortcutReady": {
     "message": "Bereit zum Anwenden."
@@ -4447,6 +4453,9 @@
   "html_gestureMatcherDescription": {
     "message": "Entspricht der Klickgeste, die für „Speichern per Klick“ verwendet wurde. Muster werden an einer beliebigen Stelle im Wert abgeglichen. Verankern Sie sie daher (^left-click$), damit left-click nicht auch double-left-click oder long-left-click erfasst."
   },
+  "html_keysMatcherDescription": {
+    "message": "Entspricht den Tasten, die bei der Klickgeste für „Speichern per Klick“ gedrückt wurden, die das Speichern gestartet hat, etwa alt, ctrl+shift oder none. Tasten stehen kleingeschrieben in der Reihenfolge ctrl, alt, shift, meta. Verankern Sie Muster daher (^alt$), damit alt nicht auch ctrl+alt erfasst."
+  },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Doppelklick mit der linken Maustaste"
   },
@@ -4479,6 +4488,9 @@
   },
   "routeDebuggerAnyGesture": {
     "message": "Beliebige Klickgeste"
+  },
+  "routeDebuggerClickKeys": {
+    "message": "Tasten für Speichern per Klick"
   },
   "routeDebuggerClickContext": {
     "message": "Speichern per Klick"

@@ -1081,6 +1081,9 @@
   "o_cKeyboardShortcutModifierHelp": {
     "message": "Håll ned de valda modifierartangenterna medan du använder den valda klickgesten. Välj None för båda modifierarna om du bara vill använda gesten. Ändringarna gäller även sidor som redan är öppna."
   },
+  "o_lClickToSaveKeysRoutingHelp": {
+    "message": "Om du vill spara i olika mappar lägger du till samma klickgest med andra tangenter och dirigerar sedan var och en med en keys:-regel."
+  },
   "o_cRestoreDefaults": {
     "message": "Återställ standardinställningar"
   },
@@ -2399,6 +2402,9 @@
   },
   "o_lShortcutNoRepeats": {
     "message": "Upprepa inte tangenter eller modifierare."
+  },
+  "o_lClickToSaveDuplicateBinding": {
+    "message": "Två klickgester använder samma klick och tangenter. Ändra en av dem."
   },
   "o_lShortcutReady": {
     "message": "Redo att använda."
@@ -4447,6 +4453,9 @@
   "html_gestureMatcherDescription": {
     "message": "Matchar klickgesten för ”Klicka för att spara”. Mönster matchar var som helst i värdet, så förankra dem (^left-click$) för att förhindra att left-click även matchar double-left-click eller long-left-click."
   },
+  "html_keysMatcherDescription": {
+    "message": "Matchar tangenterna som hölls ned under klickgesten för ”Klicka för att spara” som startade sparandet, till exempel alt, ctrl+shift eller none. Tangenterna skrivs med gemener i ordningen ctrl, alt, shift, meta, så förankra mönster (^alt$) för att förhindra att alt även matchar ctrl+alt."
+  },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Dubbelklick med vänsterknappen"
   },
@@ -4479,6 +4488,9 @@
   },
   "routeDebuggerAnyGesture": {
     "message": "Valfri klickgest"
+  },
+  "routeDebuggerClickKeys": {
+    "message": "Tangenter för Klicka för att spara"
   },
   "routeDebuggerClickContext": {
     "message": "Klicka för att spara"

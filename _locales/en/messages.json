@@ -1197,6 +1197,10 @@
     "message": "Matches the click gesture used by click-to-save. Patterns match anywhere in the value, so anchor them (^left-click$) to keep left-click from also matching double-left-click or long-left-click.",
     "description": "Description of the click-to-save gesture routing matcher, with the anchoring recommendation. Used in src/options/clauselist.html and src/options/options.html."
   },
+  "html_keysMatcherDescription": {
+    "message": "Matches the keys held for the click-to-save gesture that started the save, such as alt, ctrl+shift, or none. Keys are lowercase in the order ctrl, alt, shift, meta, so anchor patterns (^alt$) to keep alt from also matching ctrl+alt.",
+    "description": "Description of the keys: routing matcher, which matches the keys held for the click-to-save gesture. alt, ctrl+shift, none, ctrl, shift, meta, ctrl+alt and ^alt$ are literal rule values and must stay untranslated. Used in src/options/clauselist.html and src/options/options.html."
+  },
   "html_or": {
     "message": ", or",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
@@ -1605,6 +1609,10 @@
     "message": "Hold the selected modifier keys while using the chosen click gesture. Choose None for both modifiers to use the gesture alone. Changes also apply to pages that are already open.",
     "description": "Help text for the click-to-save modifier and gesture controls. Used in src/options/options.html."
   },
+  "o_lClickToSaveKeysRoutingHelp": {
+    "message": "To save into different folders, add the same click gesture with different keys, then route each one with a keys: rule.",
+    "description": "Help text under the click-to-save gesture controls explaining that one click gesture can be added several times with different modifier keys, and that a keys: routing rule sends each to its own folder. keys: is a literal rule name and must stay untranslated. Used in src/options/options.html."
+  },
   "o_cRestoreDefaults": {
     "message": "Restore defaults",
     "description": "Option control label or related help text. Used in src/options/options.html."
@@ -1868,6 +1876,10 @@
   "o_lShortcutNoRepeats": {
     "message": "Do not repeat keys or modifiers.",
     "description": "Label, status, or help text in the options interface. Used in src/options/source-shortcut.ts."
+  },
+  "o_lClickToSaveDuplicateBinding": {
+    "message": "Two click gestures use the same click and keys. Change one of them.",
+    "description": "Status shown when two click-to-save rows have the same click gesture and the same modifier keys, which keeps Apply disabled. Used in src/options/core/shortcut-options.ts."
   },
   "o_lShortcutReady": {
     "message": "Ready to apply.",
@@ -4442,6 +4454,10 @@
   "routeDebuggerAnyGesture": {
     "message": "Any click gesture",
     "description": "Empty click-gesture choice in the route debugger. Used in src/options/options.html."
+  },
+  "routeDebuggerClickKeys": {
+    "message": "Click-to-save keys",
+    "description": "Label for the route debugger text field that holds the keys: value of a click-to-save save, such as alt or ctrl+shift. It stays blank for saves that were not click-to-save. Used in src/options/options.html."
   },
   "routeDebuggerAnySourceKind": {
     "message": "Any source kind",

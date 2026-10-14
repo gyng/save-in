@@ -55,6 +55,7 @@ describe("download wire-state marshalling", () => {
       info: {
         sourceKind: "video" as const,
         gesture: "middle-click" as const,
+        clickKeys: "ctrl+alt",
         suggestedFilename: null,
         menuIndex: "2",
         comment: null,
@@ -71,6 +72,7 @@ describe("download wire-state marshalling", () => {
       info: {
         sourceKind: "video",
         gesture: "middle-click",
+        clickKeys: "ctrl+alt",
         suggestedFilename: null,
         menuIndex: "2",
         comment: null,
@@ -109,6 +111,9 @@ describe("download wire-state marshalling", () => {
       ).toEqual({ info: { currentTab: { title: "Page" } } });
     }
     expect(toWireDownloadState({ path: {} as never, scratch: {}, info: {} })).toEqual({ info: {} });
+    expect(
+      toWireDownloadState({ path: {} as never, scratch: {}, info: { clickKeys: "Alt+Ctrl" } }),
+    ).toEqual({ info: {} });
   });
 
   test("hydrates valid dates and tabs while dropping malformed legacy values", () => {

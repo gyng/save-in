@@ -773,6 +773,37 @@ describe("filename rewrite and routing", () => {
       expect(matcher({})).toBeNull();
     });
 
+    test("keys matches the keys of the click-to-save binding that fired (#15)", () => {
+      const alt = router.matcherFunctions.keys(/^alt$/);
+      expect(expectMatch(alt({ ...info, clickKeys: "alt" }))[0]!).toBe("alt");
+      expect(alt({ ...info, clickKeys: "ctrl+alt" })).toBeNull();
+      expect(alt({ ...info, clickKeys: "none" })).toBeNull();
+      // Menu, Quick save, automatic and external saves carry no keys at all.
+      expect(alt({ ...info })).toBeNull();
+      expect(router.matcherFunctions.keys(/.*/).explain!({ ...info }).attempts).toEqual([
+        { source: "clickKeys", value: null, status: "missing" },
+      ]);
+      expect(expectMatch(router.matcherFunctions.keys(/^none$/)({ clickKeys: "none" }))[0]!).toBe(
+        "none",
+      );
+    });
+
+    test("routes two bindings of one gesture into different folders (#15)", () => {
+      const rules = router.parseRules(
+        "keys: ^alt$\ninto: images/\n\nkeys: ^ctrl\\+shift$\ninto: wallpapers/",
+      );
+      const route = (clickKeys?: string) =>
+        router.matchRules(rules, {
+          ...info,
+          gesture: "left-click",
+          ...(clickKeys === undefined ? {} : { clickKeys }),
+        });
+      expect(route("alt")).toBe("images/");
+      expect(route("ctrl+shift")).toBe("wallpapers/");
+      expect(route("ctrl+alt")).toBeNull();
+      expect(route()).toBeNull();
+    });
+
     test("menuindex", () => {
       const matcher = router.matcherFunctions.menuindex(new RegExp("^2$"));
       expect(expectMatch(matcher(info, { menuIndex: "2" }))[0]!).toBe("2");

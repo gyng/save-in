@@ -13,6 +13,7 @@ beforeEach(() => {
     <input id="route-debugger-mime" value="Image/JPEG; charset=utf-8">
     <select id="route-debugger-context"><option value="MEDIA" selected>Media</option></select>
     <select id="route-debugger-gesture"><option value="double-left-click" selected>Double</option></select>
+    <input id="route-debugger-click-keys" value="Alt+Ctrl">
     <input id="route-debugger-page-title" value="Quarterly report">
     <input id="route-debugger-referrer-url">
     <input id="route-debugger-frame-url" value="https://frame.example/embed">
@@ -41,6 +42,7 @@ test("describes matcher help and falls back for custom matchers", () => {
 test.each([
   ["context", "media"],
   ["gesture", "double-left-click"],
+  ["keys", "ctrl+alt"],
   ["menuindex", "documents"],
   ["comment", "work files"],
   ["linktext", "Download report"],
@@ -91,4 +93,11 @@ test("omits filename and extension previews when their inputs do not provide the
   expect(matcherTestValue("fileext")).toBe("");
   expect(matcherTestValue("urlfileext")).toBe("");
   expect(matcherTestValue("actualfileext")).toBe("");
+});
+
+test("shows a keys value the binding parser cannot read as typed", () => {
+  document.querySelector<HTMLInputElement>("#route-debugger-click-keys")!.value = "hyper";
+  expect(matcherTestValue("keys")).toBe("hyper");
+  document.querySelector<HTMLInputElement>("#route-debugger-click-keys")!.value = "";
+  expect(matcherTestValue("keys")).toBe("");
 });
