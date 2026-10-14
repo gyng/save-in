@@ -1,5 +1,8 @@
 # Unreleased
 
+- With browser-download History on, a page-built `data:` download now stores a
+  shortened URL instead of its whole payload, which could be megabytes. Like
+  automatic `data:` saves, such rows can no longer be moved from History.
 - Routed browser downloads can use page details (#146). With the new, off by
   default **Use page details from the open tab** setting, `pagetitle:`,
   `pageurl:`, `pagedomain:`, and their variables come from the one open,
