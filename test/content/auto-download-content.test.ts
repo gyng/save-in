@@ -723,6 +723,92 @@ describe("automatic source discovery", () => {
     vi.unstubAllGlobals();
   });
 
+  test("cancels background scans of roots removed from the page", () => {
+    const idleCallbacks: IdleRequestCallback[] = [];
+    vi.stubGlobal("requestIdleCallback", (callback: IdleRequestCallback) =>
+      idleCallbacks.push(callback),
+    );
+    const cancelIdleCallback = vi.fn();
+    vi.stubGlobal("cancelIdleCallback", cancelIdleCallback);
+    const styles = vi.spyOn(window, "getComputedStyle").mockReturnValue({
+      backgroundImage: "none",
+    } as CSSStyleDeclaration);
+    const tiles = Array.from({ length: 51 }, () => '<i class="tile"></i>').join("");
+    document.body.innerHTML = Array.from(
+      { length: 64 },
+      (_, index) => `<section id="group-${index}">${tiles}</section>`,
+    ).join("");
+    const discovery = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 20,
+      includeBackgrounds: true,
+      send: vi.fn(() => Promise.resolve("started" as const)),
+    });
+    while (idleCallbacks.length > 0) {
+      idleCallbacks.shift()?.({ didTimeout: false, timeRemaining: () => 0 } as IdleDeadline);
+    }
+    const groups = [...document.querySelectorAll("section")];
+    groups.forEach((group) => discovery.scan(group));
+    expect(idleCallbacks).toHaveLength(64);
+    groups.forEach((group) => group.remove());
+
+    // A detached root is contained by nothing, so its scan must still be
+    // superseded; otherwise the root-limit document fallback never frees one.
+    const fresh = document.createElement("section");
+    fresh.innerHTML = tiles;
+    document.body.append(fresh);
+    expect(() => discovery.scan(fresh)).not.toThrow();
+    expect(cancelIdleCallback).toHaveBeenCalledTimes(64);
+    discovery.stop();
+    expect(cancelIdleCallback).toHaveBeenCalledTimes(65);
+    styles.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
+  test("routes nothing from a detached root's scan that completes after stop", () => {
+    const idleCallbacks: IdleRequestCallback[] = [];
+    vi.stubGlobal("requestIdleCallback", (callback: IdleRequestCallback) =>
+      idleCallbacks.push(callback),
+    );
+    // A missing cancelIdleCallback leaves the queued slice runnable, as on a
+    // host where cancellation cannot reach it.
+    vi.stubGlobal("cancelIdleCallback", vi.fn());
+    const styles = vi.spyOn(window, "getComputedStyle").mockReturnValue({
+      backgroundImage: "none",
+    } as CSSStyleDeclaration);
+    const tiles = Array.from({ length: 51 }, () => '<i class="tile"></i>').join("");
+    document.body.innerHTML = "";
+    const dedup = createAutoDownloadDedup();
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const discovery = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 20,
+      includeBackgrounds: true,
+      dedup,
+      send,
+    });
+    const group = document.createElement("section");
+    group.innerHTML = `<img src="https://cdn.test/late.png">${tiles}`;
+    document.body.append(group);
+    discovery.scan(group);
+    expect(idleCallbacks).toHaveLength(1);
+    group.remove();
+    discovery.stop();
+
+    while (idleCallbacks.length > 0) {
+      idleCallbacks.shift()?.({ didTimeout: false, timeRemaining: () => 0 } as IdleDeadline);
+    }
+
+    // The shared dedup outlives a remount; a stale completion must not
+    // claim the URL for a queue nothing will drain.
+    expect(dedup.seen.size).toBe(0);
+    expect(send).not.toHaveBeenCalled();
+    styles.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
   test("rescans the document when a link stops being a stylesheet", async () => {
     vi.useFakeTimers();
     const stylesheet = document.createElement("link");

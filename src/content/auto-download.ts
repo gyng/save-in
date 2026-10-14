@@ -229,21 +229,25 @@ export const setupAutoDownloadDiscovery = (
   // flip) runs in idle-callback slices instead of one synchronous pass. Routing
   // waits for the whole scan so rule order sees the same candidate set as
   // before. A new scan supersedes pending ones inside its root; past the root
-  // limit, one document scan replaces them all.
+  // limit, one document scan replaces them all. A root removed from the page
+  // is contained by nothing, so its scan is always superseded: otherwise it
+  // would survive the document fallback and stop() and hold a limit slot.
   const backgroundScans = new Map<Document | Element, ChunkedElementScan>();
   const cancelBackgroundScans = (within: Document | Element) => {
     for (const [root, pending] of backgroundScans) {
-      if (within !== root && !within.contains(root)) continue;
+      if (within !== document && root.isConnected && within !== root && !within.contains(root))
+        continue;
       pending.cancel();
       backgroundScans.delete(root);
     }
   };
 
   const scan = (
-    root: Document | Element = document,
+    requestedRoot: Document | Element = document,
     includeResourceHints = options.resourceHints,
     suppliedTimingByUrl?: ResourceTimingByUrl,
   ) => {
+    let root = requestedRoot;
     if (stopped || automaticRules.length === 0) return;
     // A disabled page must consume nothing: recording sources or per-page
     // budget here would block their adoption after the page leaves the list.
@@ -285,8 +289,8 @@ export const setupAutoDownloadDiscovery = (
     }
     cancelBackgroundScans(root);
     if (backgroundScans.size >= LIVE_SCAN_ROOT_LIMIT) {
-      scan(document, includeResourceHints, timingByUrl);
-      return;
+      root = document;
+      cancelBackgroundScans(document);
     }
     const elementCandidates = collectPageSourceCandidates(
       root,
