@@ -1108,6 +1108,29 @@ test("ignores stale validation rejection after clearing", async () => {
   );
 });
 
+test("ignores a stale validation retry rejection after clearing", async () => {
+  renderWorkbench();
+  let rejectRetry!: (reason: Error) => void;
+  let validations = 0;
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation((message: any) => {
+    if (message.type === MESSAGE_TYPES.CHECK_ROUTES) return Promise.resolve(checkResponse());
+    validations += 1;
+    if (validations === 1) return Promise.reject(new Error("waking"));
+    return new Promise((_resolve, reject) => {
+      rejectRetry = reject;
+    });
+  });
+  setupRouteDebugger();
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")!.click();
+  await vi.waitFor(() => expect(validations).toBe(2));
+  document.querySelector<HTMLButtonElement>("#route-debugger-clear")!.click();
+  rejectRetry(new Error("stale"));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  expect(document.querySelector<HTMLElement>("#route-debugger-result")!.dataset.state).toBe(
+    "empty",
+  );
+});
+
 test.each(["resolve", "reject"])(
   "ignores a validation %s during the debounce after a rule edit",
   async (outcome) => {
