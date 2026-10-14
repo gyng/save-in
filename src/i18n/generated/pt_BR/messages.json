@@ -2029,9 +2029,6 @@
   "html_forCaseInsensitiveMatching": {
     "message": "para correspondência sem distinção entre maiúsculas e minúsculas."
   },
-  "html_forExplicitNewRules": {
-    "message": "em novas regras."
-  },
   "html_matcherClausesUse": {
     "message": "As cláusulas de comparação usam"
   },
@@ -2085,9 +2082,6 @@
   },
   "html_sourceUrlMatcherDescription": {
     "message": "Corresponde à URL da fonte salva."
-  },
-  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
-    "message": "Corresponde à extensão derivada de URL (nome legado). Use"
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Corresponde ao URL do quadro atual."
@@ -4581,5 +4575,14 @@
   },
   "routeActionMakeSaving": {
     "message": "Salvar em uma pasta"
+  },
+  "html_fileextMatcherDescription": {
+    "message": "Nome legado: lê uma extensão apenas no final da URL, então uma URL que termina em uma ?consulta não tem nenhuma. Use urlfileext: em novas regras; ele ignora a consulta."
+  },
+  "routeDebuggerFileextHint": {
+    "message": "fileext: lê apenas o final da URL e não encontra extensão quando ela termina em uma ?consulta. urlfileext: ignora a consulta."
+  },
+  "html_urlfileextMatcherDescription": {
+    "message": "Corresponde à extensão do arquivo no final do caminho da URL, ignorando qualquer ?consulta ou #fragmento."
   }
 }

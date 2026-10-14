@@ -638,9 +638,6 @@
   "html_forCaseInsensitiveMatching": {
     "message": "per la corrispondenza senza distinzione tra maiuscole e minuscole."
   },
-  "html_forExplicitNewRules": {
-    "message": "nelle nuove regole."
-  },
   "html_matcherClausesUse": {
     "message": "Le clausole di corrispondenza utilizzano"
   },
@@ -706,9 +703,6 @@
   },
   "html_sourceUrlMatcherDescription": {
     "message": "Corrisponde all'URL della sorgente salvata."
-  },
-  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
-    "message": "Corrisponde all'estensione derivata da URL (nome legacy). Usa"
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Corrisponde all'URL del frame corrente."
@@ -4581,5 +4575,14 @@
   },
   "routeActionMakeSaving": {
     "message": "Salva invece in una cartella"
+  },
+  "html_fileextMatcherDescription": {
+    "message": "Nome storico: legge un'estensione solo alla fine dell'URL, quindi un URL che termina con una ?query non ne ha. Usa urlfileext: nelle nuove regole; ignora la query."
+  },
+  "routeDebuggerFileextHint": {
+    "message": "fileext: legge solo la fine dell'URL e non trova alcuna estensione quando termina con una ?query. urlfileext: ignora la query."
+  },
+  "html_urlfileextMatcherDescription": {
+    "message": "Corrisponde all'estensione del file alla fine del percorso dell'URL, ignorando qualsiasi ?query o #frammento."
   }
 }

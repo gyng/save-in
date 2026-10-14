@@ -1607,9 +1607,6 @@
   "html_forCaseInsensitiveMatching": {
     "message": "用于不区分大小写的匹配。"
   },
-  "html_forExplicitNewRules": {
-    "message": "在新规则中。"
-  },
   "html_matcherClausesUse": {
     "message": "匹配子句使用"
   },
@@ -1663,9 +1660,6 @@
   },
   "html_sourceUrlMatcherDescription": {
     "message": "匹配待保存来源的 URL。"
-  },
-  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
-    "message": "匹配源自 URL 的扩展名（旧名称）。使用"
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "匹配当前框架 URL。"
@@ -4581,5 +4575,14 @@
   },
   "routeActionMakeSaving": {
     "message": "改为保存到文件夹"
+  },
+  "html_fileextMatcherDescription": {
+    "message": "旧名称：只读取 URL 最末尾的扩展名，因此以 ?查询 结尾的 URL 没有扩展名。新规则请使用 urlfileext:，它会忽略查询。"
+  },
+  "routeDebuggerFileextHint": {
+    "message": "fileext: 只读取 URL 的最末尾，因此 URL 以 ?查询 结尾时找不到扩展名。urlfileext: 会忽略查询。"
+  },
+  "html_urlfileextMatcherDescription": {
+    "message": "匹配 URL 路径末尾文件的扩展名，忽略任何 ?查询 或 #片段。"
   }
 }

@@ -1607,9 +1607,6 @@
   "html_forCaseInsensitiveMatching": {
     "message": "大文字と小文字を区別しないマッチングの場合。"
   },
-  "html_forExplicitNewRules": {
-    "message": "新しいルールで。"
-  },
   "html_matcherClausesUse": {
     "message": "マッチャー句が使用する"
   },
@@ -1663,9 +1660,6 @@
   },
   "html_sourceUrlMatcherDescription": {
     "message": "保存対象ソースの URL と一致します。"
-  },
-  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
-    "message": "URL 由来の拡張子（従来の名前）と一致します。使用する"
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "現在のフレーム URL と一致します。"
@@ -4581,5 +4575,14 @@
   },
   "routeActionMakeSaving": {
     "message": "代わりにフォルダーに保存"
+  },
+  "html_fileextMatcherDescription": {
+    "message": "従来の名前です。拡張子は URL の末尾だけから読み取るため、?クエリで終わる URL には拡張子がありません。新しいルールでは urlfileext: を使ってください。クエリを無視します。"
+  },
+  "routeDebuggerFileextHint": {
+    "message": "fileext: は URL の末尾だけを読み取るため、?クエリで終わる URL では拡張子が見つかりません。urlfileext: はクエリを無視します。"
+  },
+  "html_urlfileextMatcherDescription": {
+    "message": "URL のパスの末尾にあるファイルの拡張子と一致します。?クエリや #フラグメントは無視します。"
   }
 }

@@ -2029,9 +2029,6 @@
   "html_forCaseInsensitiveMatching": {
     "message": "für den Vergleich ohne Berücksichtigung der Groß-/Kleinschreibung."
   },
-  "html_forExplicitNewRules": {
-    "message": "in neuen Regeln."
-  },
   "html_matcherClausesUse": {
     "message": "Matcher-Klauseln verwenden"
   },
@@ -2085,9 +2082,6 @@
   },
   "html_sourceUrlMatcherDescription": {
     "message": "Entspricht der URL der gespeicherten Quelle."
-  },
-  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
-    "message": "Entspricht der von der URL abgeleiteten Erweiterung (veralteter Name). Verwenden Sie"
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Entspricht der aktuellen Frame-URL."
@@ -4581,5 +4575,14 @@
   },
   "routeActionMakeSaving": {
     "message": "Stattdessen in einen Ordner speichern"
+  },
+  "html_fileextMatcherDescription": {
+    "message": "Veralteter Name: liest eine Erweiterung nur ganz am Ende der URL, daher hat eine URL, die mit einer ?Abfrage endet, keine. Verwenden Sie in neuen Regeln urlfileext:; es ignoriert die Abfrage."
+  },
+  "routeDebuggerFileextHint": {
+    "message": "fileext: liest nur das Ende der URL und findet keine Erweiterung, wenn sie mit einer ?Abfrage endet. urlfileext: ignoriert die Abfrage."
+  },
+  "html_urlfileextMatcherDescription": {
+    "message": "Entspricht der Erweiterung der Datei am Ende des URL-Pfads und ignoriert eine ?Abfrage oder ein #Fragment."
   }
 }

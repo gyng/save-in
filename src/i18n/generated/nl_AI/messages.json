@@ -2029,9 +2029,6 @@
   "html_forCaseInsensitiveMatching": {
     "message": "voor hoofdletterongevoelige overeenkomsten."
   },
-  "html_forExplicitNewRules": {
-    "message": "bij nieuwe regels."
-  },
   "html_matcherClausesUse": {
     "message": "Matcherclausules gebruiken"
   },
@@ -2085,9 +2082,6 @@
   },
   "html_sourceUrlMatcherDescription": {
     "message": "Komt overeen met de URL van de opgeslagen bron."
-  },
-  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
-    "message": "Komt overeen met de van de URL afkomstige extensie (verouderde naam). Gebruik"
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Komt overeen met de huidige frame-URL."
@@ -4581,5 +4575,14 @@
   },
   "routeActionMakeSaving": {
     "message": "In plaats daarvan in een map opslaan"
+  },
+  "html_fileextMatcherDescription": {
+    "message": "Verouderde naam: leest een extensie alleen helemaal aan het einde van de URL, dus een URL die eindigt op een ?query heeft er geen. Gebruik in nieuwe regels urlfileext:; dat negeert de query."
+  },
+  "routeDebuggerFileextHint": {
+    "message": "fileext: leest alleen het einde van de URL en vindt geen extensie als die eindigt op een ?query. urlfileext: negeert de query."
+  },
+  "html_urlfileextMatcherDescription": {
+    "message": "Komt overeen met de extensie van het bestand aan het einde van het URL-pad en negeert een ?query of #fragment."
   }
 }

@@ -137,6 +137,12 @@ test("shows production rule and clause decisions and jumps back to their source"
                       matched: false,
                       attempts: [{ source: "sourceUrl", value: "pdf", status: "not-matched" }],
                     },
+                    {
+                      name: "fileext",
+                      pattern: "jpg",
+                      matched: false,
+                      attempts: [{ source: "sourceUrl", value: null, status: "missing" }],
+                    },
                   ],
                 },
                 {
@@ -209,6 +215,11 @@ test("shows production rule and clause decisions and jumps back to their source"
   );
   expect(result.textContent).toContain("Tested “pdf” from Source URL — matched.");
   expect(result.textContent).toContain("Tested “pdf” from Source URL — did not match.");
+  // Only the fileext: clause that found no extension points to urlfileext:.
+  const fileextHints = [...result.querySelectorAll(".route-debugger-clause-attempt")].filter(
+    (line) => line.textContent?.includes("urlfileext: ignores the query"),
+  );
+  expect(fileextHints).toHaveLength(1);
   expect(browser.i18n.getMessage).toHaveBeenCalledWith(
     "routeDebuggerAttemptMissing",
     expect.anything(),

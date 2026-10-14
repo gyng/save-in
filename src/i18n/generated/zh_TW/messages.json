@@ -1607,9 +1607,6 @@
   "html_forCaseInsensitiveMatching": {
     "message": "以進行不區分大小寫的比對。"
   },
-  "html_forExplicitNewRules": {
-    "message": "在新規則中。"
-  },
   "html_matcherClausesUse": {
     "message": "比對子句使用"
   },
@@ -1663,9 +1660,6 @@
   },
   "html_sourceUrlMatcherDescription": {
     "message": "比對待儲存來源的 URL。"
-  },
-  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
-    "message": "符合源自 URL 的副檔名（舊名稱）。使用"
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "符合目前框架 URL。"
@@ -4581,5 +4575,14 @@
   },
   "routeActionMakeSaving": {
     "message": "改為儲存到資料夾"
+  },
+  "html_fileextMatcherDescription": {
+    "message": "舊名稱：只讀取 URL 最末端的副檔名，因此以 ?查詢 結尾的 URL 沒有副檔名。新規則請使用 urlfileext:，它會忽略查詢。"
+  },
+  "routeDebuggerFileextHint": {
+    "message": "fileext: 只讀取 URL 的最末端，因此 URL 以 ?查詢 結尾時找不到副檔名。urlfileext: 會忽略查詢。"
+  },
+  "html_urlfileextMatcherDescription": {
+    "message": "比對 URL 路徑末端檔案的副檔名，忽略任何 ?查詢 或 #片段。"
   }
 }

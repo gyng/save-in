@@ -2029,9 +2029,6 @@
   "html_forCaseInsensitiveMatching": {
     "message": "för skiftlägesokänslig matchning."
   },
-  "html_forExplicitNewRules": {
-    "message": "i nya regler."
-  },
   "html_matcherClausesUse": {
     "message": "Matchningssatser använder"
   },
@@ -2085,9 +2082,6 @@
   },
   "html_sourceUrlMatcherDescription": {
     "message": "Matchar den sparade källans URL."
-  },
-  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
-    "message": "Matchar det URL-härledda tillägget (äldre namn). Använd"
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Matchar den aktuella ramens URL."
@@ -4581,5 +4575,14 @@
   },
   "routeActionMakeSaving": {
     "message": "Spara i en mapp i stället"
+  },
+  "html_fileextMatcherDescription": {
+    "message": "Äldre namn: läser en filändelse bara i slutet av URL:en, så en URL som slutar med en ?fråga har ingen. Använd urlfileext: i nya regler; den ignorerar frågan."
+  },
+  "routeDebuggerFileextHint": {
+    "message": "fileext: läser bara slutet av URL:en och hittar ingen filändelse när den slutar med en ?fråga. urlfileext: ignorerar frågan."
+  },
+  "html_urlfileextMatcherDescription": {
+    "message": "Matchar filändelsen för filen i slutet av URL-sökvägen och ignorerar en ?fråga eller ett #fragment."
   }
 }

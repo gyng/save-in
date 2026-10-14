@@ -2041,9 +2041,6 @@
   "html_forCaseInsensitiveMatching": {
     "message": "pour une correspondance insensible à la casse."
   },
-  "html_forExplicitNewRules": {
-    "message": "dans de nouvelles règles."
-  },
   "html_matcherClausesUse": {
     "message": "Les clauses de correspondance utilisent"
   },
@@ -2097,9 +2094,6 @@
   },
   "html_sourceUrlMatcherDescription": {
     "message": "Correspond à l’URL de la source enregistrée."
-  },
-  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
-    "message": "Correspond à l’extension dérivée de l’URL (ancien nom). Utilisez"
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Correspond à l’URL du cadre actuel."
@@ -4581,5 +4575,14 @@
   },
   "routeActionMakeSaving": {
     "message": "Enregistrer dans un dossier à la place"
+  },
+  "html_fileextMatcherDescription": {
+    "message": "Ancien nom : lit une extension uniquement à la toute fin de l’URL ; une URL qui se termine par une ?requête n’en a donc pas. Utilisez urlfileext: dans les nouvelles règles ; il ignore la requête."
+  },
+  "routeDebuggerFileextHint": {
+    "message": "fileext: ne lit que la toute fin de l’URL et ne trouve aucune extension lorsqu’elle se termine par une ?requête. urlfileext: ignore la requête."
+  },
+  "html_urlfileextMatcherDescription": {
+    "message": "Correspond à l’extension du fichier à la fin du chemin de l’URL, en ignorant toute ?requête ou tout #fragment."
   }
 }

@@ -1077,10 +1077,6 @@
     "message": "for case-insensitive matching.",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
-  "html_forExplicitNewRules": {
-    "message": "in new rules.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
-  },
   "html_matcherClausesUse": {
     "message": "Matcher clauses use",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
@@ -1180,10 +1176,6 @@
   "html_sourceUrlMatcherDescription": {
     "message": "Matches the saved source URL.",
     "description": "Description of the sourceurl routing matcher. Used in src/options/clauselist.html and src/options/options.html."
-  },
-  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
-    "message": "Matches the URL-derived extension (legacy name). Use",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Matches the current frame URL.",
@@ -5876,5 +5868,17 @@
   "routeActionMakeSaving": {
     "message": "Save to a folder instead",
     "description": "Rule actions menu item that converts an exclusion rule back into a saving rule with a destination. Used in src/options/rule-editor/rule-visual-editor.ts."
+  },
+  "html_fileextMatcherDescription": {
+    "message": "Legacy name: reads an extension only at the very end of the URL, so a URL ending in a ?query has none. Use urlfileext: in new rules; it ignores the query.",
+    "description": "Description of the legacy fileext: matcher in the routing-clause reference. fileext: and urlfileext: are rule syntax and must stay as written. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "routeDebuggerFileextHint": {
+    "message": "fileext: reads only the very end of the URL and finds no extension when it ends in a ?query. urlfileext: ignores the query.",
+    "description": "Hint shown in the route debugger under a fileext: condition that found no value. fileext: and urlfileext: are rule syntax and must stay as written. Used in src/options/route-debugger/route-debugger.ts."
+  },
+  "html_urlfileextMatcherDescription": {
+    "message": "Matches the extension of the file at the end of the URL path, ignoring any ?query or #fragment.",
+    "description": "Description of the urlfileext: routing matcher in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   }
 }

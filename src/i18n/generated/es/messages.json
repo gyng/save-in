@@ -2029,9 +2029,6 @@
   "html_forCaseInsensitiveMatching": {
     "message": "para coincidencias que no distinguen entre mayúsculas y minúsculas."
   },
-  "html_forExplicitNewRules": {
-    "message": "en nuevas reglas."
-  },
   "html_matcherClausesUse": {
     "message": "Las cláusulas de comparación usan"
   },
@@ -2085,9 +2082,6 @@
   },
   "html_sourceUrlMatcherDescription": {
     "message": "Coincide con la URL de la fuente guardada."
-  },
-  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
-    "message": "Coincide con la extensión derivada de la URL (nombre heredado). Use"
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Coincide con la URL del marco actual."
@@ -4581,5 +4575,14 @@
   },
   "routeActionMakeSaving": {
     "message": "Guardar en una carpeta en su lugar"
+  },
+  "html_fileextMatcherDescription": {
+    "message": "Nombre heredado: lee una extensión solo al final de la URL, por lo que una URL que termina en una ?consulta no tiene ninguna. Usa urlfileext: en las reglas nuevas; ignora la consulta."
+  },
+  "routeDebuggerFileextHint": {
+    "message": "fileext: solo lee el final de la URL y no encuentra extensión cuando termina en una ?consulta. urlfileext: ignora la consulta."
+  },
+  "html_urlfileextMatcherDescription": {
+    "message": "Coincide con la extensión del archivo al final de la ruta de la URL e ignora cualquier ?consulta o #fragmento."
   }
 }

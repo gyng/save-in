@@ -701,6 +701,21 @@ export const setupRouteDebugger = (): void => {
                   );
         appendText(decision, "route-debugger-clause-attempt", text);
       });
+      // fileext: reads the raw URL, so a ?query hides the extension; the
+      // path-based urlfileext: was added for exactly this and is easy to miss.
+      if (
+        clause.name === "fileext" &&
+        clause.attempts.every(({ status }) => status === "missing")
+      ) {
+        appendText(
+          decision,
+          "route-debugger-clause-attempt",
+          localize(
+            "routeDebuggerFileextHint",
+            "fileext: reads only the very end of the URL and finds no extension when it ends in a ?query. urlfileext: ignores the query.",
+          ),
+        );
+      }
       return decision;
     }
     appendText(

@@ -1607,9 +1607,6 @@
   "html_forCaseInsensitiveMatching": {
     "message": "대소문자를 구분하지 않는 일치를 위해."
   },
-  "html_forExplicitNewRules": {
-    "message": "을 사용하세요."
-  },
   "html_matcherClausesUse": {
     "message": "매처 절에는"
   },
@@ -1663,9 +1660,6 @@
   },
   "html_sourceUrlMatcherDescription": {
     "message": "저장할 소스의 URL과 일치합니다."
-  },
-  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
-    "message": "URL에서 파생된 확장자와 일치합니다(이전 이름). 새 규칙에서는"
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "현재 프레임 URL과 일치합니다."
@@ -4581,5 +4575,14 @@
   },
   "routeActionMakeSaving": {
     "message": "대신 폴더에 저장"
+  },
+  "html_fileextMatcherDescription": {
+    "message": "이전 이름: URL의 맨 끝에서만 확장자를 읽으므로 ?쿼리로 끝나는 URL에는 확장자가 없습니다. 새 규칙에서는 urlfileext:를 사용하세요. 쿼리를 무시합니다."
+  },
+  "routeDebuggerFileextHint": {
+    "message": "fileext:는 URL의 맨 끝만 읽으므로 ?쿼리로 끝나면 확장자를 찾지 못합니다. urlfileext:는 쿼리를 무시합니다."
+  },
+  "html_urlfileextMatcherDescription": {
+    "message": "URL 경로 끝에 있는 파일의 확장자와 일치하며 ?쿼리나 #프래그먼트는 무시합니다."
   }
 }
