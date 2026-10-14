@@ -115,6 +115,57 @@ describe("sanitisation", () => {
     );
   });
 
+  // Chrome refuses, on every OS, a component that starts or ends with "~"
+  // (e.g. Office's "~$Budget.xlsx" lock files, or editor "notes.txt~" backups).
+  describe("edge tildes", () => {
+    test.each([
+      ["~$Budget.xlsx", "_$Budget.xlsx"],
+      ["notes.txt~", "notes.txt_"],
+      ["~", "_"],
+      ["~~a~~", "__a__"],
+      ["a~b", "a~b"],
+      [" ~a. ", "_a"],
+      ["a~.", "a_"],
+    ])("replaces the edge tildes of %j", (value, expected) => {
+      expect(Path.sanitizeFilename(value, 255, true, true)).toBe(expected);
+    });
+
+    test("replaces a tilde that truncation leaves at the end", () => {
+      expect(Path.sanitizeFilename("abc~def", 4)).toBe("abc_");
+    });
+
+    test.each(["", "-", " ", "~", ".", "\u0085"])(
+      "never leaves a tilde, dot or whitespace at an edge with replacement %j",
+      (replacement) => {
+        options.replacementChar = replacement;
+        try {
+          for (const value of ["~a~", "~", "a~ ", "~.a", "~ a"]) {
+            const result = Path.sanitizeFilename(value, 255, true, true);
+            expect(result).not.toMatch(/^[\s\u0085.~]|[\s\u0085.~]$/u);
+            expect(Path.sanitizeFilename(result, 255, true, true)).toBe(result);
+          }
+        } finally {
+          options.replacementChar = "_";
+        }
+      },
+    );
+
+    test("uses the custom replacement character", () => {
+      options.replacementChar = "-";
+      try {
+        expect(Path.sanitizeFilename("~a~")).toBe("-a-");
+      } finally {
+        options.replacementChar = "_";
+      }
+    });
+
+    test("renames edge tildes in every path component", () => {
+      expect(new Path.Path("~/Pics~/~$Budget.xlsx").finalize()).toBe("_/Pics_/_$Budget.xlsx");
+      expect(new Path.Path("~/Pics").validate().valid).toBe(false);
+      expect(new Path.Path("Pics~").validate().valid).toBe(false);
+    });
+  });
+
   describe("reserved Windows device names", () => {
     test.each(["CON", "con", "PRN", "AUX", "NUL", "COM1", "com9", "LPT1", "lpt9"])(
       "prefixes the bare reserved name %s with the replacement character",
@@ -587,9 +638,13 @@ describe("Path.validate", () => {
     ["nas.local/Thumbs.db", "nas_local/_Thumbs.db"],
     ["CLOCK$/:year:", "_CLOCK$/:year:"],
     ["a\u0085b/؀Docs", "a_b/Docs"],
+    ["~/Pics~", "_/Pics_"],
+    ["~:year:~", "_:year:_"],
+    ["./~Archive~/x", "./_Archive_/x"],
   ])("accepts the stored path %j that 4.1.0 accepted as %j", (path, accepted) => {
     expect(new Path.Path(path).validate().valid).toBe(false);
     expect(Path.acceptStoredPath(path)).toEqual({ path: accepted, validation: { valid: true } });
+    expect(new Path.Path(accepted).finalize()).toBe(new Path.Path(path).finalize());
   });
 
   test.each(["Archive ", "<invalid>", "nas.local/a?b", "../escape", "./Photos/:domian:"])(

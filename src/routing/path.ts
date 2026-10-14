@@ -72,6 +72,10 @@ const RESERVED_SHELL_FILE_REGEX = /^(desktop\.ini|thumbs\.db)$/i;
 // suffix: a same-length edit cannot be undone by a later byte-limit
 // truncation, and the original extension stays readable.
 const SHELL_INTEGRATED_EXTENSION_REGEX = /\.(lnk|local|\{[^.]*\})$/i;
+// Chrome also refuses, on every OS, a component that starts or ends with "~"
+// (Office "~$name.xlsx" lock files, editor "name~" backups). Each edge tilde
+// is replaced rather than removed, so no other edge character is exposed.
+const EDGE_TILDES_REGEX = /^~+|~+$/g;
 const DELETE_AND_C1_CONTROLS_REGEX = /[\x7f-\x9f]/g;
 const SEPARATOR_REGEX_INCLUSIVE = /([/\\])/g;
 // A destination ending in a separator names a folder and keeps the download's
@@ -158,6 +162,12 @@ function trimLeadingWhitespace(value: string) {
   return value.replace(LEADING_WHITESPACE_REGEX, "");
 }
 
+function replaceEdgeTildes(value: string, replacement?: string) {
+  return value.replace(EDGE_TILDES_REGEX, (run) =>
+    replacementChar(replacement, "_").repeat(run.length),
+  );
+}
+
 function neutralizeReservedDeviceName(value: string, replacement?: string) {
   const baseName = value.split(".")[0] || value;
   if (!RESERVED_DEVICE_NAME_REGEX.test(baseName) && !RESERVED_SHELL_FILE_REGEX.test(value)) {
@@ -175,7 +185,7 @@ function defuseShellIntegratedExtension(value: string) {
 function neutralizeBrowserRefusals(value: string) {
   const controlsReplaced = value.replace(DELETE_AND_C1_CONTROLS_REGEX, () => replacementChar());
   return defuseShellIntegratedExtension(
-    neutralizeReservedDeviceName(removeUnsafeInvisibleChars(controlsReplaced)),
+    neutralizeReservedDeviceName(replaceEdgeTildes(removeUnsafeInvisibleChars(controlsReplaced))),
   );
 }
 
@@ -214,7 +224,11 @@ export function sanitizeFilename(
   const dotsHandled = leadingDotsForbidden
     ? trimLeadingWhitespace(replaceLeadingDots(edgeSafe))
     : edgeSafe;
-  const trimmed = trimTrailingDotsAndSpaces(dotsHandled);
+  // The user's replacement for an edge tilde may itself be whitespace; the
+  // final passes below catch one that is a dot or a tilde.
+  const trimmed = trimLeadingWhitespace(
+    trimTrailingDotsAndSpaces(replaceEdgeTildes(trimTrailingDotsAndSpaces(dotsHandled))),
+  );
   const truncated = preserveExtension
     ? truncatePreservingExtension(trimmed, max)
     : truncateIfLongerThan(trimmed, max);
@@ -233,7 +247,9 @@ export function sanitizeFilename(
   const boundedDeviceSafe = preserveExtension
     ? truncatePreservingExtension(deviceSafe, max)
     : truncateIfLongerThan(deviceSafe, max);
-  const result = trimTrailingDotsAndSpaces(boundedDeviceSafe);
+  // Truncation can leave a tilde at the end. "_" is the same length as "~",
+  // so this cannot exceed the limit or expose another edge character.
+  const result = replaceEdgeTildes(trimTrailingDotsAndSpaces(boundedDeviceSafe), "_");
   const leadingSafe = leadingDotsForbidden ? replaceLeadingDots(result, "_") : result;
   return defuseShellIntegratedExtension(leadingSafe) || "_";
 }
@@ -261,7 +277,8 @@ const EXPLICIT_RELATIVE_PREFIX_REGEX = /^\.[/\\]/;
 // but such a stored value must keep working rather than silently vanish from
 // the menu, so it is accepted as the sanitized path 4.1.0 actually saved to.
 // Any stored path likewise survives the later Chrome-refusal rules (C1 and
-// format characters, CLOCK$, desktop.ini, .lnk/.local), which 4.1.0 accepted.
+// format characters, edge tildes, CLOCK$, desktop.ini, .lnk/.local), which
+// 4.1.0 accepted.
 // Everything 4.1.0 already rejected stays an error, and an unknown variable
 // is a reported typo, not a component the browser would have repaired.
 export function acceptStoredPath(path: string): { path: string; validation: PathValidation } {
