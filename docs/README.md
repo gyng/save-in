@@ -15,6 +15,9 @@ these documents assume.
   than ordinary routing on purpose.
 - [Routing actions](using/ROUTING-ACTIONS.md) — terminal exclusions and the
   opt-in close-source-tab action, including ordering and automatic-save limits.
+- [When a file already exists](using/EXISTING-FILES.md) — unique names,
+  overwriting, and Firefox's Skip and Ask each time: how Save In detects an
+  existing file and what it cannot see.
 
 ## Integrating with Save In — [`integrating/`](integrating/)
 

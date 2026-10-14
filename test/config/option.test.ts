@@ -43,6 +43,7 @@ vi.mock("../../src/platform/chrome-detector.ts", () => ({
   get WEB_EXTENSION_CAPABILITIES() {
     return {
       conflictActionPrompt: mocks.currentBrowser === "CHROME",
+      conflictRenameDetection: mocks.currentBrowser === "FIREFOX",
       // Mirrors detectCapabilities: only Firefox validates a download filename
       // against its dangerous-extension list and rejects .url/.desktop (#207).
       shortcutFileExtensions: mocks.currentBrowser !== "FIREFOX",
@@ -331,19 +332,37 @@ describe("OptionsManagement", () => {
     const conflictKey = () =>
       OptionsManagement.OPTION_KEYS.find((k) => k.name === "conflictAction")! as LoadKey;
 
-    // Firefox never implemented the "prompt" conflict action and fails the
-    // download outright, which is what #89/#217 reported; Chrome has had it
-    // since 28. An imported profile must not carry prompt onto Firefox.
-    test("downgrades the Chrome-only 'prompt' to 'uniquify' on Firefox", () => {
+    // Firefox never implemented a native "prompt" and fails the download
+    // outright (#89/#217). Until Save In could emulate it, an imported Chrome
+    // "prompt" loaded as "uniquify" on Firefox; it now keeps the user's choice
+    // to be asked, carried out by rename detection.
+    test("keeps an imported 'prompt' on Firefox, where it is now emulated", () => {
       mocks.currentBrowser = "FIREFOX";
-      expect(conflictKey().onLoad("prompt")).toBe("uniquify");
-      expect(conflictKey().onLoad("overwrite")).toBe("overwrite");
+      expect(conflictKey().onLoad("prompt")).toBe("prompt");
     });
 
     test("keeps 'prompt' on Chrome", () => {
       mocks.currentBrowser = "CHROME";
       expect(conflictKey().onLoad("prompt")).toBe("prompt");
     });
+
+    // Skip needs Firefox's early rename; a Firefox profile imported into Chrome
+    // must keep saving rather than silently skip nothing or fail.
+    test("loads an imported 'skip' as 'uniquify' on Chrome and keeps it on Firefox", () => {
+      mocks.currentBrowser = "CHROME";
+      expect(conflictKey().onLoad("skip")).toBe("uniquify");
+      mocks.currentBrowser = "FIREFOX";
+      expect(conflictKey().onLoad("skip")).toBe("skip");
+    });
+
+    test.each(["FIREFOX", "CHROME"])(
+      "loads every pre-existing value unchanged on %s",
+      (browser) => {
+        mocks.currentBrowser = browser;
+        expect(conflictKey().onLoad("uniquify")).toBe("uniquify");
+        expect(conflictKey().onLoad("overwrite")).toBe("overwrite");
+      },
+    );
   });
 
   // Firefox 112 (bug 1815062 / CVE-2023-29542) moved the dangerous-extension

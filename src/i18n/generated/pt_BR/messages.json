@@ -502,6 +502,9 @@
   "historyStatusNoRuleMatch": {
     "message": "Nenhuma regra correspondente"
   },
+  "historyStatusConflictSkipped": {
+    "message": "Já existe"
+  },
   "genericUnknownError": {
     "message": "Erro desconhecido"
   },
@@ -993,6 +996,9 @@
   },
   "o_cDupePrompt": {
     "message": "Perguntar sempre"
+  },
+  "o_cDupeSkip": {
+    "message": "Ignorar"
   },
   "o_cDupeFilename": {
     "message": "Quando um arquivo já existe:"
@@ -4530,6 +4536,21 @@
   },
   "notificationPrivateRuleExcludedMessage": {
     "message": "Um item da navegação privativa não foi salvo porque uma regra de roteamento o excluiu."
+  },
+  "notificationConflictSkippedTitle": {
+    "message": "O arquivo já existe"
+  },
+  "notificationConflictSkippedMessage": {
+    "message": "$FILENAME$ não foi salvo porque já existe um arquivo com esse nome.",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictSkippedMessage": {
+    "message": "Um item da navegação privativa não foi salvo porque já existe um arquivo com esse nome."
   },
   "routeActionExclude": {
     "message": "Não salvar itens correspondentes"

@@ -1,4 +1,5 @@
 import { CONFLICT_ACTION, SHORTCUT_TYPES, type ConflictAction } from "../shared/constants.ts";
+import { isConflictActionAvailable } from "../shared/conflict-action.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import {
   CURRENT_BROWSER,
@@ -299,8 +300,11 @@ export const handleBackgroundE2EInspectCommand = async (
             : { browserVersion: CURRENT_BROWSER_VERSION }),
           capabilities: { ...WEB_EXTENSION_CAPABILITIES },
           // option-schema.ts downgrades a stored `prompt` through this same
-          // binding (#89, #217); reading it here keeps the two in step.
-          promptConflictAction: WEB_EXTENSION_CAPABILITIES.conflictActionPrompt
+          // check (#89, #217); reading it here keeps the two in step.
+          promptConflictAction: isConflictActionAvailable(
+            CONFLICT_ACTION.PROMPT,
+            WEB_EXTENSION_CAPABILITIES,
+          )
             ? CONFLICT_ACTION.PROMPT
             : CONFLICT_ACTION.UNIQUIFY,
           hasObjectUrl: typeof URL.createObjectURL === "function",

@@ -67,29 +67,47 @@ test("passes a non-string/number click-to-save value through unchanged", () => {
 // page reads raw storage.local, so without the same coercion here it displays a
 // value the browser cannot honour while the background already uses another —
 // and an <option> that applyBrowserCapabilityUi hid stays selected regardless.
-test("shows the conflict action Firefox actually uses for an imported prompt profile", () => {
-  setCurrentBrowser(BROWSERS.FIREFOX);
-  document.body.innerHTML = `<select id="conflictAction">
-    <option value="uniquify"></option><option value="overwrite"></option>
-    <option class="conflict-prompt-only" value="prompt"></option></select>`;
+const conflictSelect = (values: string[]) => {
+  document.body.innerHTML = `<select id="conflictAction">${values
+    .map((value) => `<option value="${value}"></option>`)
+    .join("")}</select>`;
+  return document.querySelector<HTMLSelectElement>("#conflictAction")!;
+};
+const showConflictAction = (stored: string) =>
   setOptionFieldValue(
     { name: "conflictAction", type: "VALUE", default: "uniquify" },
-    "prompt",
+    stored,
     schema,
   );
-  expect(document.querySelector<HTMLSelectElement>("#conflictAction")!.value).toBe("uniquify");
+
+// An imported Chrome "prompt" used to show as uniquify on Firefox; Firefox now
+// carries it out by emulation, so the page shows what the background uses.
+test("shows an imported prompt profile as prompt on Firefox, which emulates it", () => {
+  setCurrentBrowser(BROWSERS.FIREFOX);
+  const select = conflictSelect(["uniquify", "overwrite", "prompt", "skip"]);
+  showConflictAction("prompt");
+  expect(select.value).toBe("prompt");
 });
 
-test("keeps the prompt conflict action on Chrome, which implements it", () => {
+test("shows an imported Skip profile as uniquify on Chrome, which cannot skip", () => {
   setCurrentBrowser(BROWSERS.CHROME);
-  document.body.innerHTML = `<select id="conflictAction">
-    <option value="uniquify"></option><option value="prompt"></option></select>`;
-  setOptionFieldValue(
-    { name: "conflictAction", type: "VALUE", default: "uniquify" },
-    "prompt",
-    schema,
-  );
-  expect(document.querySelector<HTMLSelectElement>("#conflictAction")!.value).toBe("prompt");
+  const select = conflictSelect(["uniquify", "overwrite", "prompt"]);
+  showConflictAction("skip");
+  expect(select.value).toBe("uniquify");
+});
+
+test.each([
+  [BROWSERS.FIREFOX, "uniquify"],
+  [BROWSERS.FIREFOX, "overwrite"],
+  [BROWSERS.FIREFOX, "skip"],
+  [BROWSERS.CHROME, "uniquify"],
+  [BROWSERS.CHROME, "overwrite"],
+  [BROWSERS.CHROME, "prompt"],
+])("keeps the conflict action %s carries out: %s", (browser, stored) => {
+  setCurrentBrowser(browser);
+  const select = conflictSelect(["uniquify", "overwrite", "prompt", "skip"]);
+  showConflictAction(stored);
+  expect(select.value).toBe(stored);
 });
 
 test("shows the shortcut format Firefox actually uses for a rejected stored type", () => {

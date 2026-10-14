@@ -572,6 +572,9 @@
   "o_cDupePrompt": {
     "message": "매번 물어보세요"
   },
+  "o_cDupeSkip": {
+    "message": "건너뛰기"
+  },
   "o_cDupeFilename": {
     "message": "파일이 이미 존재하는 경우:"
   },
@@ -2447,6 +2450,9 @@
   },
   "historyStatusNoRuleMatch": {
     "message": "일치하는 규칙 없음"
+  },
+  "historyStatusConflictSkipped": {
+    "message": "이미 존재함"
   },
   "historyColumnInitiated": {
     "message": "시작"
@@ -4530,6 +4536,21 @@
   },
   "notificationPrivateRuleExcludedMessage": {
     "message": "라우팅 규칙에서 제외되어 비공개 브라우징 항목을 저장하지 않았습니다."
+  },
+  "notificationConflictSkippedTitle": {
+    "message": "파일이 이미 존재함"
+  },
+  "notificationConflictSkippedMessage": {
+    "message": "같은 이름의 파일이 이미 있어 $FILENAME$을(를) 저장하지 않았습니다.",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictSkippedMessage": {
+    "message": "같은 이름의 파일이 이미 있어 비공개 브라우징 항목을 저장하지 않았습니다."
   },
   "routeActionExclude": {
     "message": "일치하는 항목 저장 안 함"

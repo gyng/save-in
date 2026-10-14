@@ -278,6 +278,9 @@ describe("history row flatteners", () => {
     expect(statusLabel("moved")).toBe("Moved");
     expect(statusClass("moved")).toBe("status-moved");
     expect(statusClass("RULE_EXCLUDED")).toBe("status-excluded");
+    // Skipping an existing file is the user's choice, not a failure.
+    expect(statusLabel("CONFLICT_SKIPPED")).toBe("Already exists");
+    expect(statusClass("CONFLICT_SKIPPED")).toBe("status-excluded");
   });
 
   test("undone, moved, and excluded rows filter as deliberate outcomes, not as failures", () => {

@@ -572,6 +572,9 @@
   "o_cDupePrompt": {
     "message": "每次都询问"
   },
+  "o_cDupeSkip": {
+    "message": "跳过"
+  },
   "o_cDupeFilename": {
     "message": "当文件已经存在时："
   },
@@ -2447,6 +2450,9 @@
   },
   "historyStatusNoRuleMatch": {
     "message": "无匹配规则"
+  },
+  "historyStatusConflictSkipped": {
+    "message": "已存在"
   },
   "historyColumnInitiated": {
     "message": "开始"
@@ -4530,6 +4536,21 @@
   },
   "notificationPrivateRuleExcludedMessage": {
     "message": "由于路由规则将其排除，未保存一个隐私浏览项目。"
+  },
+  "notificationConflictSkippedTitle": {
+    "message": "文件已存在"
+  },
+  "notificationConflictSkippedMessage": {
+    "message": "由于已存在同名文件，未保存 $FILENAME$。",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictSkippedMessage": {
+    "message": "由于已存在同名文件，未保存一个隐私浏览项目。"
   },
   "routeActionExclude": {
     "message": "不保存匹配项"

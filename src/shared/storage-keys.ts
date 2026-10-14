@@ -21,6 +21,10 @@ export const NOTIFICATION_RECOVERY_SESSION_KEY = "siNotificationRecovery";
 export const FINAL_FILENAMES_SESSION_KEY = "siFinalFilenames";
 export const DEFERRED_ROUTES_SESSION_KEY = "siDeferredRoutes";
 export const ACTIVE_TRANSFERS_SESSION_KEY = "siActiveTransfers";
+// Download ids Save In is deliberately canceling because the browser renamed
+// them around an existing file. Holds only the id, the action, and a History
+// row id — never a URL, filename, or path.
+export const CONFLICT_CANCELS_SESSION_KEY = "siConflictCancels";
 export const SOURCE_PANEL_OPEN_SESSION_KEY = "sourcePanelOpen";
 // Bounded per-tab buffer of script-loaded media URLs the webRequest collector
 // observed, so an evicted service worker can rehydrate what it already saw.

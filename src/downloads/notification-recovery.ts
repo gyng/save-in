@@ -19,6 +19,7 @@ import { downloadPorts } from "./ports.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 import { abandonPendingHistoryMove, completePendingHistoryMove } from "./history-move.ts";
 import { releaseTerminalDownload } from "./terminal-download.ts";
+import { isDiscardedConflictDownload } from "./conflict-resolution.ts";
 
 const PENDING_RECOVERY_GRACE_MS = 10000;
 
@@ -174,6 +175,14 @@ const reconcileAdoptedDownloads = async (expected: NotificationRecovery) => {
     expected.adoptedDownloadIds.map(async (id) => {
       const initialRecord = downloadsState.records.get(id);
       if (!initialRecord?.adopted && !initialRecord?.pendingHistoryMove) return;
+      // Conflict recovery settles a deliberately discarded duplicate; its
+      // erased item would otherwise read as lost state here.
+      if (
+        initialRecord.conflictCheck &&
+        (await isDiscardedConflictDownload(id, initialRecord.conflictCheck))
+      ) {
+        return;
+      }
       let item:
         | {
             state?: string | undefined;

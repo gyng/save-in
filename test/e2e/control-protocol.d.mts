@@ -14,6 +14,7 @@ export interface E2EStoredOptionValues {
   browserDownloadFilter: string;
   browserDownloadPageDetails: boolean;
   closeTabOnSave: boolean;
+  conflictAction: "uniquify" | "overwrite" | "prompt" | "skip";
   contentClickToSave: boolean;
   contentClickToSaveBindings: string;
   contentClickToSaveCombo: string | number;
@@ -333,6 +334,7 @@ export interface InspectResult {
     downloadFilenameSuggestion: boolean;
     downloadDeltaFilename: boolean;
     conflictActionPrompt: boolean;
+    conflictRenameDetection: boolean;
     downloadRequestHeaders: boolean;
     notificationButtons: boolean;
     shortcutFileExtensions: boolean;

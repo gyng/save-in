@@ -618,6 +618,7 @@ test("service worker initialises cleanly", async () => {
     downloadFilenameSuggestion: true,
     downloadDeltaFilename: true,
     conflictActionPrompt: true,
+    conflictRenameDetection: false,
     downloadRequestHeaders: false,
     notificationButtons: true,
     shortcutFileExtensions: true,
@@ -3149,4 +3150,30 @@ test("history and the debug log record a self-contained download", async () => {
   expect(history.length).toBeGreaterThan(beforeHistory.length);
   expect(matchingHistory).toHaveLength(1);
   expect(matchingRequests).toHaveLength(1);
+});
+
+// Chrome names a download only in a later delta, often with its completion, so
+// it cannot cancel a renamed copy reliably and offers no Skip. A Firefox profile
+// imported with Skip must keep saving as before: a unique name beside the file.
+test("an imported Skip choice keeps saving with a unique name", async () => {
+  const directory = path.join(DOWNLOADS, "e2e");
+  fs.mkdirSync(directory, { recursive: true });
+  const stem = `imported-skip-${Date.now()}`;
+  fs.writeFileSync(path.join(directory, `${stem}.txt`), "original");
+  await control.options.set({ conflictAction: "skip" });
+
+  await control.background.startDownload({
+    content: "duplicate",
+    suggestedFilename: `${stem}.txt`,
+    pageUrl: "https://example.com/",
+  });
+  const downloads = await waitForDownloads(stem);
+  const completed = requireValue(
+    downloads.find((download) => download.state === "complete"),
+    "Imported Skip download did not complete",
+  );
+
+  expect(path.basename(completed.filename)).toBe(`${stem} (1).txt`);
+  expect(fs.readFileSync(path.join(directory, `${stem}.txt`), "utf8")).toBe("original");
+  expect(fs.readFileSync(completed.filename, "utf8")).toBe("duplicate");
 });

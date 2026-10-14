@@ -5,6 +5,8 @@
 import { normalizeKeyComboForDisplay } from "./options-logic.ts";
 import type { OptionSchema } from "./options-persistence.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../../platform/chrome-detector.ts";
+import { isConflictActionAvailable } from "../../shared/conflict-action.ts";
+import { isStringMember } from "../../shared/util.ts";
 import { LEGACY_REFERER_HEADER_FILTER } from "../../config/option-defaults.ts";
 import { resolveHistoryRetentionLimit } from "../../config/history-retention.ts";
 import {
@@ -34,9 +36,11 @@ const OPTION_FIELD_DISPLAY_TRANSFORMS: Record<
     typeof value === "string" || typeof value === "number"
       ? normalizeKeyComboForDisplay(value)
       : value,
-  // Firefox never implemented the prompt conflict action (#89, #217).
+  // Mirrors the schema: an action this browser cannot carry out shows as the
+  // default the background actually uses (#89, #217).
   conflictAction: (value: unknown) =>
-    value === CONFLICT_ACTION.PROMPT && !WEB_EXTENSION_CAPABILITIES.conflictActionPrompt
+    isStringMember(Object.values(CONFLICT_ACTION), value) &&
+    !isConflictActionAvailable(value, WEB_EXTENSION_CAPABILITIES)
       ? CONFLICT_ACTION.UNIQUIFY
       : value,
   // Firefox fails a download whose name ends in .url/.desktop outright (#207).

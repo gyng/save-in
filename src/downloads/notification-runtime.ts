@@ -22,6 +22,7 @@ export const ERROR_ICON_URL = "icons/ic_archive_black_128px.png";
 const EXTENSION_NOTIFICATION_DEBOUNCE_MS = 250;
 
 export const EXTENSION_NOTIFICATION_STREAMS = Object.freeze({
+  CONFLICT_SKIP: "conflict-skip",
   DOWNLOAD_FAILURE: "download-failure",
   EXTERNAL_DOWNLOAD_REJECTION: "external-download-rejection",
   LINK_PREFERRED: "link-preferred",

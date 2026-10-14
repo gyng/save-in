@@ -67,6 +67,7 @@ import {
   rememberDownloadsRoot,
 } from "./browser-last-used.ts";
 import { releaseTerminalDownload, waitForLateRouteCancellation } from "./terminal-download.ts";
+import { isDiscardedConflictDownload, nativeConflictAction } from "./conflict-resolution.ts";
 
 type HostDownloadItem = Parameters<
   Parameters<typeof webExtensionApi.downloads.onCreated.addListener>[0]
@@ -255,7 +256,7 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
         const replacementId = await webExtensionApi.downloads.download({
           url: browserDownloadUrl,
           filename,
-          conflictAction: options.conflictAction,
+          conflictAction: nativeConflictAction(),
         });
         setTimeout(() => cancelExpectedDownload(expected), 10000);
         bindHistoryDownloadId(
@@ -799,6 +800,14 @@ const handleDownloadChanged = async (downloadDelta: HostDownloadDelta): Promise<
   // persisted copy — that is how a mid-restart download keeps its notification.
   const record = await getTrackedDownload(downloadDelta.id);
   if (!record) return;
+  // A save canceled because the file already exists is not a failure, a
+  // cancellation or a completion: conflict-resolution.ts reports it itself.
+  if (
+    record.conflictCheck &&
+    (await isDiscardedConflictDownload(downloadDelta.id, record.conflictCheck))
+  ) {
+    return;
+  }
 
   if (record.observedBrowserDownload) {
     await handleObservedBrowserDownload(downloadDelta, record);

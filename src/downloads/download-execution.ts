@@ -67,6 +67,14 @@ import {
   updateActiveTransfer,
 } from "./active-transfers.ts";
 import { deliverSaveWebhook } from "./webhook-delivery.ts";
+import {
+  beginConflictCheck,
+  discardConflictingDownload,
+  hasNameConflict,
+  nativeConflictAction,
+  plannedConflictResolution,
+} from "./conflict-resolution.ts";
+import { proposedFilename } from "./browser-downloads.ts";
 import { notifyExclusiveRouteMiss, notifyRouteExclusion } from "./route-outcome-notification.ts";
 import {
   discardRoutingResolution,
@@ -310,6 +318,13 @@ export const executeBrowserDownload = async (
   // explicit downloads.download filename and cannot use HTTP retry, so the
   // restart filename map gains nothing by persisting it as a multi-MiB key.
   const persistFilenameKey = !isDataUrl(acquired.url);
+  // Skip and Firefox's emulated Ask act on the browser's own rename, so they
+  // apply only where Save In names the file itself and the user is not already
+  // choosing the location in a Save As dialog.
+  const conflictResolution =
+    prompt || WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion
+      ? null
+      : plannedConflictResolution();
   throwIfAborted(signal);
   await Promise.all(
     persistActivity
@@ -348,11 +363,13 @@ export const executeBrowserDownload = async (
     persistActivity,
   );
 
+  const conflictCheck = conflictResolution ? beginConflictCheck() : undefined;
   const expected = expectDownload(acquired.url, {
     url: state.info.url,
     pageUrl: state.info.pageUrl,
     filename,
-    conflictAction: options.conflictAction,
+    conflictAction: nativeConflictAction(),
+    ...(conflictCheck ? { conflictCheck: conflictCheck.token } : {}),
     viaFetch: acquired.source === "fetched",
     retried: false,
     allowOriginalUrlFallback,
@@ -372,7 +389,7 @@ export const executeBrowserDownload = async (
     const downloadOptions: Parameters<typeof webExtensionApi.downloads.download>[0] = {
       url: acquired.url,
       saveAs: prompt,
-      conflictAction: options.conflictAction,
+      conflictAction: nativeConflictAction(),
     };
     // An explicit Chrome downloads.download filename suppresses the server's
     // Content-Disposition name before onDeterminingFilename can route it.
@@ -392,6 +409,34 @@ export const executeBrowserDownload = async (
     else prepareRoutingResolution(state);
     const downloadId = await webExtensionApi.downloads.download(downloadOptions);
     cancelExpectedDownload(expected);
+    if (conflictCheck && conflictResolution) {
+      const log = (message: string, data?: unknown) => addDownloadLog(state, message, data);
+      if (await hasNameConflict(downloadId, filename, log)) {
+        await discardConflictingDownload(
+          downloadId,
+          { action: conflictResolution, ...(historyEntryId ? { historyEntryId } : {}) },
+          log,
+        );
+        conflictCheck.settle(true);
+        log(
+          conflictResolution === "ask"
+            ? "existing file found; asking where to save"
+            : "existing file found; save skipped",
+        );
+        if (conflictResolution === "ask") {
+          // Same acquisition, History row and routing; the dialog replaces the
+          // check, so the replacement cannot be renamed and asked about again.
+          return await executeBrowserDownload({ ...plan, prompt: true }, acquired, signal);
+        }
+        await releaseAcquiredDownload(acquired);
+        await historyPort
+          .setStatus(historyEntryId, "CONFLICT_SKIPPED")
+          .catch((error) => log("existing-file skip history failed", String(error)));
+        notifyConflictSkipped(plan, filename);
+        return { status: "skipped" };
+      }
+      conflictCheck.settle(false);
+    }
     if (acquired.ownedObjectUrl) {
       downloadRuntime.ownedObjectUrls.set(downloadId, acquired.ownedObjectUrl);
     }
@@ -402,7 +447,7 @@ export const executeBrowserDownload = async (
         url: state.info.url,
         pageUrl: state.info.pageUrl,
         filename: browserFilename || filename,
-        conflictAction: options.conflictAction,
+        conflictAction: nativeConflictAction(),
         viaFetch: acquired.source === "fetched",
         retried: false,
         allowOriginalUrlFallback,
@@ -485,6 +530,8 @@ export const executeBrowserDownload = async (
       return { status: "failed" };
     }
   } finally {
+    // Never leave this download's deltas waiting on a check that threw.
+    conflictCheck?.settle(false);
     const cleanupResults = await Promise.allSettled([
       ...(persistActivity
         ? [
@@ -526,6 +573,22 @@ export const executeBrowserDownload = async (
       }
     }
   }
+};
+
+// One coalesced notice per burst: a gallery saved twice must not raise one
+// notification per file. Gated like other "this was not saved" outcomes.
+const notifyConflictSkipped = (plan: DownloadPlan, filename: string): void => {
+  if (!options.notifyOnFailure || isSourceSidecar(plan.state)) return;
+  const privateContext = isPrivateDownloadState(plan.state);
+  createExtensionNotification(
+    getMessage("notificationConflictSkippedTitle"),
+    privateContext
+      ? getMessage("notificationPrivateConflictSkippedMessage")
+      : getMessage("notificationConflictSkippedMessage", [proposedFilename(filename)]),
+    false,
+    EXTENSION_NOTIFICATION_STREAMS.CONFLICT_SKIP,
+    { privateContext },
+  );
 };
 
 // Both of renameAndDownload's containment paths report a terminal failure the

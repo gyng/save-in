@@ -11,6 +11,7 @@ import {
 } from "../shared/constants.ts";
 import { isSelectableLocale, type SelectableLocale } from "../shared/generated-locales.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
+import { isConflictActionAvailable } from "../shared/conflict-action.ts";
 import { parseRules } from "../routing/router.ts";
 import {
   CONTENT_FEATURE_OPTION_DEFINITIONS,
@@ -127,12 +128,11 @@ export const OPTION_KEYS = defineOptions([
   {
     name: "conflictAction",
     type: OPTION_TYPES.VALUE,
-    // Imported profiles can carry Chrome's prompt mode onto Firefox, where it
-    // fails the download instead of asking (#89, #217).
+    // An imported profile can carry an action this browser cannot carry out.
+    // Firefox fails a native prompt outright (#89, #217) but Save In emulates
+    // it there; Skip needs the same rename detection, which Chrome lacks.
     onLoad: (v: ConflictAction) =>
-      v === CONFLICT_ACTION.PROMPT && !WEB_EXTENSION_CAPABILITIES.conflictActionPrompt
-        ? CONFLICT_ACTION.UNIQUIFY
-        : v,
+      isConflictActionAvailable(v, WEB_EXTENSION_CAPABILITIES) ? v : CONFLICT_ACTION.UNIQUIFY,
     validate: (value: unknown): value is ConflictAction =>
       isStringMember(Object.values(CONFLICT_ACTION), value),
     default: OPTION_DEFAULTS.conflictAction,

@@ -572,6 +572,9 @@
   "o_cDupePrompt": {
     "message": "每次都詢問"
   },
+  "o_cDupeSkip": {
+    "message": "略過"
+  },
   "o_cDupeFilename": {
     "message": "檔案已存在時："
   },
@@ -2447,6 +2450,9 @@
   },
   "historyStatusNoRuleMatch": {
     "message": "無相符規則"
+  },
+  "historyStatusConflictSkipped": {
+    "message": "檔案已存在"
   },
   "historyColumnInitiated": {
     "message": "開始時間"
@@ -4530,6 +4536,21 @@
   },
   "notificationPrivateRuleExcludedMessage": {
     "message": "由於路由規則將其排除，因此未儲存一個隱私瀏覽項目。"
+  },
+  "notificationConflictSkippedTitle": {
+    "message": "檔案已存在"
+  },
+  "notificationConflictSkippedMessage": {
+    "message": "由於已有同名檔案，因此未儲存 $FILENAME$。",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictSkippedMessage": {
+    "message": "由於已有同名檔案，因此未儲存一個隱私瀏覽項目。"
   },
   "routeActionExclude": {
     "message": "不儲存相符項目"

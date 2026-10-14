@@ -405,11 +405,13 @@ test("background event page initialises cleanly", async () => {
     downloadFilenameSuggestion: false,
     downloadDeltaFilename: false,
     conflictActionPrompt: false,
+    conflictRenameDetection: true,
     downloadRequestHeaders: true,
     notificationButtons: false,
     shortcutFileExtensions: false,
   });
-  expect(state.promptConflictAction).toBe("uniquify");
+  // No native prompt, but Save In emulates one from Firefox's rename.
+  expect(state.promptConflictAction).toBe("prompt");
   // Event pages keep a real DOM (unlike Chrome's service worker)...
   expect(state.hasObjectUrl).toBe(true);
   expect((await control.logs.get()).some((entry) => entry.message === "init failed")).toBe(false);
@@ -1812,4 +1814,48 @@ test("history and the debug log record a self-contained download", async () => {
   expect(history.length).toBeGreaterThan(beforeHistory.length);
   expect(matchingHistory).toHaveLength(1);
   expect(matchingRequests).toHaveLength(1);
+});
+
+// Firefox has no "skip" and no "prompt" conflict action. Save In reads the
+// "name(1).ext" Firefox picks for a file that already exists on disk — here one
+// the browser never downloaded — and discards that copy before it is kept.
+test("an existing file is skipped or asked about instead of saved again", async () => {
+  const directory = path.join(session.downloadDir, "e2e");
+  fs.mkdirSync(directory, { recursive: true });
+  const stamp = Date.now();
+  /** @param {string} prefix */
+  const filesNamed = (prefix) =>
+    fs.readdirSync(directory).filter((name) => name.startsWith(prefix));
+
+  const skipped = `exists-skip-${stamp}.txt`;
+  fs.writeFileSync(path.join(directory, skipped), "original");
+  await control.options.set({ conflictAction: "skip" });
+  await control.background.startDownload({
+    content: "duplicate",
+    suggestedFilename: skipped,
+    pageUrl: "https://example.com/",
+  });
+  await control.history.wait({ finalFullPath: `e2e/${skipped}`, status: "CONFLICT_SKIPPED" });
+  expect(filesNamed(`exists-skip-${stamp}`)).toEqual([skipped]);
+  expect(fs.readFileSync(path.join(directory, skipped), "utf8")).toBe("original");
+  // The discarded copy leaves no row in the browser's download list either.
+  expect(await control.downloads.search({ filenameRegex: `exists-skip-${stamp}` })).toEqual([]);
+
+  const asked = `exists-ask-${stamp}.txt`;
+  fs.writeFileSync(path.join(directory, asked), "original");
+  await control.options.set({ conflictAction: "prompt" });
+  const baseline = (await control.logs.get()).length;
+  await control.background.startDownload({
+    content: "duplicate",
+    suggestedFilename: asked,
+    pageUrl: "https://example.com/",
+  });
+  // Headless Firefox has no file picker: downloads.download({ saveAs: true })
+  // rejects outright (measured on 140 and 158). That refusal is the Save As
+  // replacement; a replacement without the dialog would have saved name(1).
+  const logs = await waitForLog(baseline, ["downloads.download failed"]);
+  const messages = logs.slice(baseline).map((entry) => entry.message);
+  expect(messages).toContain("existing file found; asking where to save");
+  expect(filesNamed(`exists-ask-${stamp}`)).toEqual([asked]);
+  expect(fs.readFileSync(path.join(directory, asked), "utf8")).toBe("original");
 });

@@ -25,6 +25,7 @@ import { backgroundRuntime, resetRuntimeDiagnostics } from "./runtime.ts";
 import { recoverNotificationState } from "../downloads/notification-recovery.ts";
 import { runBackgroundTask } from "./background-event-task.ts";
 import { recoverActiveTransfers } from "../downloads/active-transfers.ts";
+import { recoverConflictCancels } from "../downloads/conflict-resolution.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { rebuildMenus } from "./menu-rebuild.ts";
 import { MENU_IDS, QUICK_SAVE_COMMAND } from "../menus/menu-ids.ts";
@@ -64,17 +65,24 @@ const reloadConfigurationAndMenus = async (overrides?: Record<string, unknown>):
 };
 
 const recoverColdStartState = async (): Promise<void> => {
+  // Rebuild the in-memory download records from storage.session before any
+  // download event handler (which awaits backgroundRuntime.ready) touches them.
+  const hydrated = hydrateDownloads(downloadsState, extensionSessionStorage);
   await Promise.all([
-    // Rebuild the in-memory download records from storage.session before any
-    // download event handler (which awaits backgroundRuntime.ready) touches them.
-    hydrateDownloads(downloadsState, extensionSessionStorage),
+    hydrated,
     cleanupStaleRefererRule().catch((error) =>
       addLogEntry("Referer session rule cleanup failed", String(error)),
     ),
     recoverNotificationState(),
-    recoverActiveTransfers().then(async (records) => {
+    Promise.all([
+      recoverActiveTransfers(),
+      // A discarded existing-file duplicate is settled by its own marker; the
+      // transfer around it must not be reported as interrupted on top.
+      hydrated.then(() => recoverConflictCancels(setHistoryStatus, addLogEntry)),
+    ]).then(async ([records, settledByConflict]) => {
       await Promise.all(
         Object.entries(records).map(async ([historyId, record]) => {
+          if (settledByConflict.has(historyId)) return;
           if (record.requestId && OffscreenClient.canUse()) {
             await OffscreenClient.cancel(record.requestId).catch(() => {});
           }

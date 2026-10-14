@@ -204,6 +204,7 @@ export const createProtocolCodecs = () => {
     typeof value.capabilities.downloadFilenameSuggestion === "boolean" &&
     typeof value.capabilities.downloadDeltaFilename === "boolean" &&
     typeof value.capabilities.conflictActionPrompt === "boolean" &&
+    typeof value.capabilities.conflictRenameDetection === "boolean" &&
     typeof value.capabilities.downloadRequestHeaders === "boolean" &&
     typeof value.capabilities.notificationButtons === "boolean" &&
     typeof value.capabilities.shortcutFileExtensions === "boolean" &&

@@ -31,6 +31,7 @@ import { releaseTerminalDownload, runLateRouteCancellation } from "./terminal-do
 import { isPrivateDownloadState } from "./download-pipeline-state.ts";
 import { settleRoutingResolution } from "./routing-resolution.ts";
 import { historyRoutingPatch } from "./history-entry.ts";
+import { nativeConflictAction } from "./conflict-resolution.ts";
 
 const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
@@ -323,7 +324,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           return;
         }
         const filename = await routeBrowserDownload(Download, downloadItem);
-        suggest(filename ? { filename, conflictAction: options.conflictAction } : undefined);
+        suggest(filename ? { filename, conflictAction: nativeConflictAction() } : undefined);
         // Chrome is already answered, so this cannot delay the download. Record
         // that a rule applied: onCreated wrote the History row before this
         // listener ran and could only claim routed:false, and mergeDownload
@@ -365,7 +366,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           String(error),
         ),
       );
-      suggest({ filename: retryFilename, conflictAction: options.conflictAction });
+      suggest({ filename: retryFilename, conflictAction: nativeConflictAction() });
       return false;
     }
 
@@ -532,7 +533,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
             recoveredState.scratch.deferredRouteRequirement = false;
             const filename = Download.finalizeFullPath(recoveredState);
             await rememberResolvedFilename(recoveredState, filename);
-            suggest({ filename, conflictAction: options.conflictAction });
+            suggest({ filename, conflictAction: nativeConflictAction() });
           } catch (error) {
             addFilenameStateLog(recoveredState, "deferred route recovery failed", String(error));
             await rejectDeferredRoute(recoveredState);
@@ -610,7 +611,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           FINAL_FILENAMES_SESSION_KEY,
           (stored) => removeFilename(stored, recoveredUrl, recovered),
         );
-        suggest({ filename: recovered, conflictAction: options.conflictAction });
+        suggest({ filename: recovered, conflictAction: nativeConflictAction() });
       })().catch((error) => {
         addFilenameLog(downloadItem.incognito === true, "filename recovery failed", String(error));
         suggest();
@@ -671,7 +672,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         pendingState.scratch.deferredRouteRequirement = false;
         const filename = Download.finalizeFullPath(pendingState);
         await rememberResolvedFilename(pendingState, filename);
-        suggest({ filename, conflictAction: options.conflictAction });
+        suggest({ filename, conflictAction: nativeConflictAction() });
       })()
         .catch(async (error) => {
           // A failed re-evaluation cannot prove which rule won. Preserve the
@@ -698,13 +699,13 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
     const historyPatch = patchResolvedHistory(pendingState, filename);
     if (pendingState.scratch.deferredRoutingResolution) {
       void historyPatch.finally(() => {
-        suggest({ filename, conflictAction: options.conflictAction });
+        suggest({ filename, conflictAction: nativeConflictAction() });
         settleRoutingResolution(pendingState);
       });
       return true;
     }
     void historyPatch;
-    suggest({ filename, conflictAction: options.conflictAction });
+    suggest({ filename, conflictAction: nativeConflictAction() });
     settleRoutingResolution(pendingState);
     return false;
   });

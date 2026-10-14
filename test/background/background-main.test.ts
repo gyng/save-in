@@ -54,6 +54,13 @@ const activeTransferMocks = vi.hoisted(() => ({ recover: vi.fn(() => Promise.res
 vi.mock("../../src/downloads/active-transfers.ts", () => ({
   recoverActiveTransfers: activeTransferMocks.recover,
 }));
+const conflictRecoveryMocks = vi.hoisted(() => ({
+  recover: vi.fn(() => Promise.resolve(new Set<string>())),
+}));
+vi.mock("../../src/downloads/conflict-resolution.ts", async (importActual) => ({
+  ...(await importActual<typeof import("../../src/downloads/conflict-resolution.ts")>()),
+  recoverConflictCancels: conflictRecoveryMocks.recover,
+}));
 
 import type { CurrentTab } from "../../src/platform/current-tab.ts";
 import type { SaveInOptions } from "../../src/config/option-schema.ts";
@@ -372,6 +379,26 @@ describe("init", () => {
     expect(cancelDownload).toHaveBeenCalledWith(7);
     expect(setStatus).toHaveBeenCalledTimes(3);
     expect(setStatus).toHaveBeenCalledWith("first", "DOWNLOAD_PREPARATION_INTERRUPTED", 7);
+  });
+
+  // A Skip whose background died mid-discard is settled by its own marker as
+  // "already exists"; reporting its transfer as interrupted would overwrite it.
+  test("cold start leaves a History row settled by an existing-file skip alone", async () => {
+    await setupGlobals();
+    const SaveHistory = await import("../../src/background/history.ts");
+    const setStatus = vi.spyOn(SaveHistory, "setHistoryStatus").mockResolvedValue(undefined);
+    activeTransferMocks.recover.mockResolvedValueOnce({ skipped: {}, other: {} });
+    conflictRecoveryMocks.recover.mockResolvedValueOnce(new Set(["skipped"]));
+
+    await importIndex();
+    await Runtime.ready;
+
+    expect(setStatus).toHaveBeenCalledTimes(1);
+    expect(setStatus).toHaveBeenCalledWith("other", "DOWNLOAD_PREPARATION_INTERRUPTED", undefined);
+    // Recovery reads the hydrated download records, so it runs after hydration.
+    expect(downloadStateMocks.hydrate.mock.invocationCallOrder[0]).toBeLessThan(
+      conflictRecoveryMocks.recover.mock.invocationCallOrder[0]!,
+    );
   });
 
   test("loads options, then builds the full menu", async () => {

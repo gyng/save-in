@@ -15,6 +15,14 @@
   loads directly. Stream segments fetched by scripts are never saved, and
   candidates still need a matching automatic rule and count against the
   per-page limit.
+- On Firefox, **When a file already exists** can now **Skip** the save or
+  **Ask each time** (#94, #18, #217). Save In reads the `name(1).ext` Firefox
+  picks for a file already in the folder, cancels that copy, and either records
+  the save as **Already exists** or opens a Save As dialog for the original
+  name. A profile imported from Chrome with Ask each time, which used to save
+  under a unique name on Firefox, now asks. Chrome keeps its own dialog and
+  offers no Skip; an imported Skip saves under a unique name there. See
+  [When a file already exists](docs/using/EXISTING-FILES.md).
 - Click-to-save can bind the same mouse action to different keys, and the new
   `keys:` routing matcher sends each binding to its own folder, for example
   `keys: ^alt$` to `images/` and `keys: ^ctrl\+shift$` to `wallpapers/` (#15).

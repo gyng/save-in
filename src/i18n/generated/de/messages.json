@@ -502,6 +502,9 @@
   "historyStatusNoRuleMatch": {
     "message": "Keine passende Regel"
   },
+  "historyStatusConflictSkipped": {
+    "message": "Bereits vorhanden"
+  },
   "genericUnknownError": {
     "message": "Unbekannter Fehler"
   },
@@ -993,6 +996,9 @@
   },
   "o_cDupePrompt": {
     "message": "Jedes Mal nachfragen"
+  },
+  "o_cDupeSkip": {
+    "message": "Überspringen"
   },
   "o_cDupeFilename": {
     "message": "Wenn eine Datei bereits vorhanden ist:"
@@ -4530,6 +4536,21 @@
   },
   "notificationPrivateRuleExcludedMessage": {
     "message": "Ein Element aus einem privaten Fenster wurde nicht gespeichert, weil eine Routing-Regel es ausgeschlossen hat."
+  },
+  "notificationConflictSkippedTitle": {
+    "message": "Datei bereits vorhanden"
+  },
+  "notificationConflictSkippedMessage": {
+    "message": "$FILENAME$ wurde nicht gespeichert, weil bereits eine Datei mit diesem Namen vorhanden ist.",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictSkippedMessage": {
+    "message": "Ein Element aus einem privaten Fenster wurde nicht gespeichert, weil bereits eine Datei mit diesem Namen vorhanden ist."
   },
   "routeActionExclude": {
     "message": "Übereinstimmende Elemente nicht speichern"

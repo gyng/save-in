@@ -878,6 +878,9 @@
   "o_cDupePrompt": {
     "message": "Chiedi ogni volta"
   },
+  "o_cDupeSkip": {
+    "message": "Salta"
+  },
   "o_cDupeFilename": {
     "message": "Quando un file esiste già:"
   },
@@ -2214,6 +2217,9 @@
   },
   "historyStatusNoRuleMatch": {
     "message": "Nessuna regola corrispondente"
+  },
+  "historyStatusConflictSkipped": {
+    "message": "Esiste già"
   },
   "historyColumnInitiated": {
     "message": "Iniziato"
@@ -4530,6 +4536,21 @@
   },
   "notificationPrivateRuleExcludedMessage": {
     "message": "Un elemento di navigazione privata non è stato salvato perché una regola di instradamento lo ha escluso."
+  },
+  "notificationConflictSkippedTitle": {
+    "message": "Il file esiste già"
+  },
+  "notificationConflictSkippedMessage": {
+    "message": "$FILENAME$ non è stato salvato perché esiste già un file con quel nome.",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictSkippedMessage": {
+    "message": "Un elemento di navigazione privata non è stato salvato perché esiste già un file con quel nome."
   },
   "routeActionExclude": {
     "message": "Non salvare gli elementi corrispondenti"

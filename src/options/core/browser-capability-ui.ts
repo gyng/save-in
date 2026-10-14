@@ -8,21 +8,28 @@ import {
   WEB_EXTENSION_CAPABILITIES,
 } from "../../platform/chrome-detector.ts";
 import { updateTabContextControls } from "./tab-context-controls.ts";
+import { CONFLICT_ACTION, type ConflictAction } from "../../shared/constants.ts";
+import { isConflictActionAvailable } from "../../shared/conflict-action.ts";
 
 export const applyBrowserCapabilityUi = (): void => {
   document.querySelectorAll<HTMLElement>(".filename-suggestion-only").forEach((el) => {
     el.hidden = !WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion;
   });
-  // Only the "prompt" conflict action is Chrome-only; Firefox has never
-  // implemented it and fails the download outright. "uniquify"/"overwrite" work
-  // in both, so gate the option rather than the whole control. Hidden alone
-  // leaves an <option> selectable, so disable it too.
-  document.querySelectorAll<HTMLElement>(".conflict-prompt-only").forEach((el) => {
-    el.hidden = !WEB_EXTENSION_CAPABILITIES.conflictActionPrompt;
-    if (el instanceof HTMLOptionElement) {
-      el.disabled = !WEB_EXTENSION_CAPABILITIES.conflictActionPrompt;
-    }
-  });
+  // "uniquify"/"overwrite" work in both browsers. "prompt" is native on Chrome
+  // and emulated on Firefox; "skip" needs Firefox's rename detection. Gate each
+  // option rather than the whole control. Hidden alone leaves an <option>
+  // selectable, so disable it too.
+  const conflictOptions: Array<[string, ConflictAction]> = [
+    [".conflict-prompt-only", CONFLICT_ACTION.PROMPT],
+    [".conflict-skip-only", CONFLICT_ACTION.SKIP],
+  ];
+  for (const [selector, action] of conflictOptions) {
+    const available = isConflictActionAvailable(action, WEB_EXTENSION_CAPABILITIES);
+    document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
+      el.hidden = !available;
+      if (el instanceof HTMLOptionElement) el.disabled = !available;
+    });
+  }
   // Firefox fails a download outright when the filename ends in a shortcut
   // extension it treats as dangerous, so .url and .desktop formats cannot be
   // offered there at all (#207). Same shape as the conflict action above:

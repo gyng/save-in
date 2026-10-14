@@ -502,6 +502,9 @@
   "historyStatusNoRuleMatch": {
     "message": "Aucune règle correspondante"
   },
+  "historyStatusConflictSkipped": {
+    "message": "Existe déjà"
+  },
   "genericUnknownError": {
     "message": "Erreur inconnue"
   },
@@ -1005,6 +1008,9 @@
   },
   "o_cDupePrompt": {
     "message": "Demander à chaque fois"
+  },
+  "o_cDupeSkip": {
+    "message": "Ignorer"
   },
   "o_cDupeFilename": {
     "message": "Lorsqu’un fichier existe déjà :"
@@ -4530,6 +4536,21 @@
   },
   "notificationPrivateRuleExcludedMessage": {
     "message": "Un élément de navigation privée n’a pas été enregistré, car une règle de routage l’a exclu."
+  },
+  "notificationConflictSkippedTitle": {
+    "message": "Le fichier existe déjà"
+  },
+  "notificationConflictSkippedMessage": {
+    "message": "$FILENAME$ n’a pas été enregistré, car un fichier portant ce nom existe déjà.",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictSkippedMessage": {
+    "message": "Un élément de navigation privée n’a pas été enregistré, car un fichier portant ce nom existe déjà."
   },
   "routeActionExclude": {
     "message": "Ne pas enregistrer les éléments correspondants"

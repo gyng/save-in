@@ -149,6 +149,24 @@
     "message": "A private browsing item was not saved because a routing rule excluded it.",
     "description": "Privacy-preserving notification body after an interactive private save matches a terminal exclude: true routing rule, including a Chrome final-filename match. Do not identify the item. Used in src/downloads/route-outcome-notification.ts."
   },
+  "notificationConflictSkippedTitle": {
+    "message": "File already exists",
+    "description": "Notification title when a save was skipped because the destination folder already has a file with that name and 'When a file already exists:' is set to Skip. Used in src/downloads/download-execution.ts."
+  },
+  "notificationConflictSkippedMessage": {
+    "message": "$FILENAME$ was not saved because a file with that name already exists.",
+    "description": "Notification body when a save was skipped because the destination folder already has a file with that name. FILENAME is the file name without its folder. Used in src/downloads/download-execution.ts.",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictSkippedMessage": {
+    "message": "A private browsing item was not saved because a file with that name already exists.",
+    "description": "Privacy-preserving notification body when a private save was skipped because the destination folder already has a file with that name. Do not identify the item. Used in src/downloads/download-execution.ts."
+  },
   "routeActionExclude": {
     "message": "Do not save matching items",
     "description": "Action label for adding or displaying an exclude: true routing rule. Used in src/options/options.html, src/options/rule-editor/rule-visual-editor.ts, src/options/route-debugger/route-debugger.ts, and src/options/clauselist.html."
@@ -1448,6 +1466,10 @@
   "o_cDupePrompt": {
     "message": "Ask each time",
     "description": "Option control label or related help text. Used in src/options/options.html."
+  },
+  "o_cDupeSkip": {
+    "message": "Skip",
+    "description": "Option in the 'When a file already exists:' select (Firefox only): do not save the item at all when a file with the same name is already in the destination folder. Used in src/options/options.html."
   },
   "o_cDupeFilename": {
     "message": "When a file already exists:",
@@ -3514,6 +3536,10 @@
   "historyStatusNoRuleMatch": {
     "message": "No matching rule",
     "description": "History status badge for a browser download that did not match a routing rule. Used in src/options/history-view.ts."
+  },
+  "historyStatusConflictSkipped": {
+    "message": "Already exists",
+    "description": "History status badge for a save that was skipped because the destination folder already had a file with that name. Used in src/options/history/history-model.ts."
   },
   "webMcpStatusRegistering": {
     "message": "Registering…",

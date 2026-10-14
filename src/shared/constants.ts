@@ -122,6 +122,9 @@ export const CONFLICT_ACTION = {
   UNIQUIFY: "uniquify",
   OVERWRITE: "overwrite",
   PROMPT: "prompt",
+  // Save In's own action: the browser API has no "skip", so it is carried out
+  // by detecting the browser's rename and canceling (downloads/conflict-resolution.ts).
+  SKIP: "skip",
 } as const;
 export type ConflictAction = (typeof CONFLICT_ACTION)[keyof typeof CONFLICT_ACTION];
 

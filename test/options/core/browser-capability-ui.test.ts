@@ -8,6 +8,7 @@ beforeEach(() => {
       <option value="uniquify">Create a unique name</option>
       <option value="overwrite">Overwrite</option>
       <option class="conflict-prompt-only" value="prompt">Ask each time</option>
+      <option class="conflict-skip-only" value="skip">Skip</option>
     </select>
     <select id="shortcutType">
       <option value="HTML_REDIRECT">HTML redirect</option>
@@ -30,18 +31,25 @@ afterEach(() => {
 const conflictAction = () => document.querySelector<HTMLSelectElement>("#conflictAction")!;
 const promptOption = () => document.querySelector<HTMLOptionElement>(".conflict-prompt-only")!;
 
-// Firefox supports uniquify/overwrite; only "prompt" is unimplemented there.
-test("Firefox keeps the conflict action select usable without the prompt option", () => {
+const skipOption = () => document.querySelector<HTMLOptionElement>(".conflict-skip-only")!;
+
+// Firefox has no native prompt, but Save In emulates it and Skip through the
+// rename Firefox reports for an existing file.
+test("Firefox offers the emulated prompt and Skip conflict actions", () => {
   setCurrentBrowser(BROWSERS.FIREFOX);
 
   applyBrowserCapabilityUi();
 
   expect(conflictAction().disabled).toBe(false);
-  expect(promptOption().hidden).toBe(true);
-  expect(promptOption().disabled).toBe(true);
+  expect(promptOption().hidden).toBe(false);
+  expect(promptOption().disabled).toBe(false);
+  expect(skipOption().hidden).toBe(false);
+  expect(skipOption().disabled).toBe(false);
 });
 
-test("Chrome offers the prompt conflict action", () => {
+// Chrome reports its rename too late to cancel reliably, so it keeps only its
+// native prompt.
+test("Chrome offers the native prompt but not Skip", () => {
   setCurrentBrowser(BROWSERS.CHROME);
 
   applyBrowserCapabilityUi();
@@ -49,6 +57,9 @@ test("Chrome offers the prompt conflict action", () => {
   expect(conflictAction().disabled).toBe(false);
   expect(promptOption().hidden).toBe(false);
   expect(promptOption().disabled).toBe(false);
+  // Hidden alone leaves an <option> selectable.
+  expect(skipOption().hidden).toBe(true);
+  expect(skipOption().disabled).toBe(true);
 });
 
 const shortcutOptions = () => [

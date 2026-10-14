@@ -502,6 +502,9 @@
   "historyStatusNoRuleMatch": {
     "message": "Ingen matchande regel"
   },
+  "historyStatusConflictSkipped": {
+    "message": "Finns redan"
+  },
   "genericUnknownError": {
     "message": "Okänt fel"
   },
@@ -993,6 +996,9 @@
   },
   "o_cDupePrompt": {
     "message": "Fråga varje gång"
+  },
+  "o_cDupeSkip": {
+    "message": "Hoppa över"
   },
   "o_cDupeFilename": {
     "message": "När en fil redan finns:"
@@ -4530,6 +4536,21 @@
   },
   "notificationPrivateRuleExcludedMessage": {
     "message": "Ett objekt från privat surfning sparades inte eftersom en routningsregel uteslöt det."
+  },
+  "notificationConflictSkippedTitle": {
+    "message": "Filen finns redan"
+  },
+  "notificationConflictSkippedMessage": {
+    "message": "$FILENAME$ sparades inte eftersom en fil med det namnet redan finns.",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictSkippedMessage": {
+    "message": "Ett objekt från privat surfning sparades inte eftersom en fil med det namnet redan finns."
   },
   "routeActionExclude": {
     "message": "Spara inte matchande objekt"

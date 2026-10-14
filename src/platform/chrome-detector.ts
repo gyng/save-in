@@ -12,6 +12,7 @@ export type WebExtensionCapabilities = {
   downloadFilenameSuggestion: boolean;
   downloadDeltaFilename: boolean;
   conflictActionPrompt: boolean;
+  conflictRenameDetection: boolean;
   downloadRequestHeaders: boolean;
   notificationButtons: boolean;
   menuItemIcons: boolean;
@@ -26,6 +27,7 @@ export let WEB_EXTENSION_CAPABILITIES: WebExtensionCapabilities = {
   downloadFilenameSuggestion: false,
   downloadDeltaFilename: false,
   conflictActionPrompt: false,
+  conflictRenameDetection: false,
   downloadRequestHeaders: false,
   notificationButtons: false,
   menuItemIcons: false,
@@ -59,6 +61,12 @@ export const detectCapabilities = (currentBrowser: string): WebExtensionCapabili
   // never implemented it and fails the download outright, which is what #89
   // and #217 reported. The schema downgrades an imported prompt on Firefox.
   conflictActionPrompt: currentBrowser === BROWSERS.CHROME,
+  // Firefox names the item in its uniquified "name(N).ext" form before
+  // downloads.download resolves (measured on 140 and 158), so Save In can see a
+  // conflict with any file on disk and cancel. Chrome reports its name only in a
+  // later onChanged delta, often together with completion, so it gets neither
+  // Skip nor an emulated prompt — it has a native one.
+  conflictRenameDetection: currentBrowser === BROWSERS.FIREFOX,
   // Chrome rejects Referer in downloads.DownloadOptions as an unsafe header.
   downloadRequestHeaders: currentBrowser === BROWSERS.FIREFOX,
   // Firefox's notifications.create rejects the buttons property outright

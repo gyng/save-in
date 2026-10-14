@@ -38,7 +38,8 @@ export const OptionsManagement: OptionsManagementApi = {
   // One-line human descriptions, surfaced by the GET_SCHEMA API so an agent (or
   // a human reading the schema) knows what each option does
   OPTION_DESCRIPTIONS: {
-    conflictAction: "Filename-collision behaviour: uniquify, overwrite, or prompt (Chrome only).",
+    conflictAction:
+      "Filename-collision behaviour: uniquify, overwrite, prompt (emulated on Firefox), or skip (Firefox only).",
     contentClickToSave: "Enable click-to-save: hold the modifier and click media to save it.",
     contentClickToSaveBindings:
       "Versioned click-to-save gesture bindings; blank profiles use the legacy combo and button.",

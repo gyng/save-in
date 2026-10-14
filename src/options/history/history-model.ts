@@ -211,6 +211,7 @@ export const statusLabel = (
     FIREFOX_REROUTE_FAILED: ["historyStatusRoutingFailed", "Routing failed"],
     RULE_NO_MATCH: ["historyStatusNoRuleMatch", "No matching rule"],
     RULE_EXCLUDED: ["routeActionExcluded", "Excluded by routing rule"],
+    CONFLICT_SKIPPED: ["historyStatusConflictSkipped", "Already exists"],
   };
   const known = knownStatuses[status];
   if (known) return getMessage(known[0]) || known[1];
@@ -226,6 +227,7 @@ export const statusClass = (status: string): string => {
     return "status-pending";
   }
   // Deliberate user or routing-policy outcomes, not errors: distinct from the failure styling
+  if (status === "CONFLICT_SKIPPED") return "status-excluded";
   if (status === "undone" || status === "moved" || status === "RULE_EXCLUDED") {
     return status === "undone"
       ? "status-undone"

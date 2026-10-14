@@ -2,7 +2,7 @@ import { getSession, updateSession, updateSessionStrict } from "../shared/sessio
 import type { SessionWriteState } from "../shared/session-state.ts";
 import type { StorageReader, StorageWriter } from "../shared/storage-types.ts";
 import { DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
-import type { ConflictAction } from "../shared/constants.ts";
+import type { BrowserConflictAction } from "../shared/conflict-action.ts";
 import type { SourceSidecarRequest } from "./download-types.ts";
 import { isDataUrl } from "../shared/data-url.ts";
 import { shouldPersistActivity } from "../config/options-data.ts";
@@ -21,7 +21,10 @@ export type DownloadRecord = {
   pageUrl?: string | undefined;
   filename?: string | undefined;
   currentFilename?: string | undefined;
-  conflictAction?: ConflictAction | undefined;
+  conflictAction?: BrowserConflictAction | undefined;
+  // Names the existing-file check this download waits on (conflict-resolution.ts);
+  // its deltas are held until that check decides whether the save stands.
+  conflictCheck?: string | undefined;
   viaFetch?: boolean | undefined;
   retried?: boolean | undefined;
   allowOriginalUrlFallback?: boolean | undefined;
@@ -130,6 +133,7 @@ function normalizeDownloadRecord(value: unknown): PersistedDownloadRecord | null
     "currentFilename",
     "historyEntryId",
     "offscreenRequestId",
+    "conflictCheck",
   ] as const;
   const booleans = [
     "viaFetch",

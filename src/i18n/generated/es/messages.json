@@ -502,6 +502,9 @@
   "historyStatusNoRuleMatch": {
     "message": "Ninguna regla coincide"
   },
+  "historyStatusConflictSkipped": {
+    "message": "Ya existe"
+  },
   "genericUnknownError": {
     "message": "Error desconocido"
   },
@@ -993,6 +996,9 @@
   },
   "o_cDupePrompt": {
     "message": "Preguntar cada vez"
+  },
+  "o_cDupeSkip": {
+    "message": "Omitir"
   },
   "o_cDupeFilename": {
     "message": "Cuando ya existe un archivo:"
@@ -4530,6 +4536,21 @@
   },
   "notificationPrivateRuleExcludedMessage": {
     "message": "No se guardó un elemento de navegación privada porque una regla de enrutamiento lo excluyó."
+  },
+  "notificationConflictSkippedTitle": {
+    "message": "El archivo ya existe"
+  },
+  "notificationConflictSkippedMessage": {
+    "message": "$FILENAME$ no se guardó porque ya existe un archivo con ese nombre.",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictSkippedMessage": {
+    "message": "No se guardó un elemento de navegación privada porque ya existe un archivo con ese nombre."
   },
   "routeActionExclude": {
     "message": "No guardar los elementos coincidentes"

@@ -572,6 +572,9 @@
   "o_cDupePrompt": {
     "message": "毎回尋ねる"
   },
+  "o_cDupeSkip": {
+    "message": "スキップ"
+  },
   "o_cDupeFilename": {
     "message": "ファイルがすでに存在する場合:"
   },
@@ -2447,6 +2450,9 @@
   },
   "historyStatusNoRuleMatch": {
     "message": "一致するルールなし"
+  },
+  "historyStatusConflictSkipped": {
+    "message": "既に存在"
   },
   "historyColumnInitiated": {
     "message": "開始"
@@ -4530,6 +4536,21 @@
   },
   "notificationPrivateRuleExcludedMessage": {
     "message": "プライベートブラウジングの項目は、ルーティングルールで除外されたため保存されませんでした。"
+  },
+  "notificationConflictSkippedTitle": {
+    "message": "ファイルはすでに存在します"
+  },
+  "notificationConflictSkippedMessage": {
+    "message": "同じ名前のファイルがすでに存在するため、$FILENAME$ は保存されませんでした。",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictSkippedMessage": {
+    "message": "同じ名前のファイルがすでに存在するため、プライベートブラウジングの項目は保存されませんでした。"
   },
   "routeActionExclude": {
     "message": "一致する項目を保存しない"

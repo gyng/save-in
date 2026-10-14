@@ -502,6 +502,9 @@
   "historyStatusNoRuleMatch": {
     "message": "Geen overeenkomende regel"
   },
+  "historyStatusConflictSkipped": {
+    "message": "Bestaat al"
+  },
   "genericUnknownError": {
     "message": "Onbekende fout"
   },
@@ -993,6 +996,9 @@
   },
   "o_cDupePrompt": {
     "message": "Elke keer vragen"
+  },
+  "o_cDupeSkip": {
+    "message": "Overslaan"
   },
   "o_cDupeFilename": {
     "message": "Wanneer er al een bestand bestaat:"
@@ -4530,6 +4536,21 @@
   },
   "notificationPrivateRuleExcludedMessage": {
     "message": "Een item uit privénavigatie is niet opgeslagen omdat een routeringsregel het heeft uitgesloten."
+  },
+  "notificationConflictSkippedTitle": {
+    "message": "Bestand bestaat al"
+  },
+  "notificationConflictSkippedMessage": {
+    "message": "$FILENAME$ is niet opgeslagen omdat er al een bestand met die naam bestaat.",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictSkippedMessage": {
+    "message": "Een item uit privénavigatie is niet opgeslagen omdat er al een bestand met die naam bestaat."
   },
   "routeActionExclude": {
     "message": "Overeenkomende items niet opslaan"
