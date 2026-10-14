@@ -627,41 +627,49 @@ const setupClickToSave = (
 const setupAutoDownload = (options: ResolvedAutoDownloadOptions, dedup: AutoDownloadDedup) => {
   const controller = new AbortController();
   const retryTimers = new Set<number>();
-  const pendingResolvers = new Set<(result: AutoDownloadSendResult) => void>();
-  const send = (
-    candidate: AutomaticRoutingCandidate,
-    retries = 2,
-  ): Promise<AutoDownloadSendResult> =>
+  // A send is in flight from sendMessage until its callback. Teardown cannot
+  // tell whether the background already launched such a send, so it reports
+  // "interrupted" (the dedup slot stays held); one waiting on a retry timer
+  // was never delivered and is reported "skipped".
+  type PendingSend = { inFlight: boolean; resolve: (result: AutoDownloadSendResult) => void };
+  const pendingSends = new Set<PendingSend>();
+  const send = (candidate: AutomaticRoutingCandidate): Promise<AutoDownloadSendResult> =>
     new Promise((resolve) => {
       if (controller.signal.aborted) {
         resolve("skipped");
         return;
       }
-      pendingResolvers.add(resolve);
+      const pending: PendingSend = { inFlight: false, resolve };
+      pendingSends.add(pending);
       const finish = (result: AutoDownloadSendResult) => {
-        pendingResolvers.delete(resolve);
+        pendingSends.delete(pending);
         resolve(result);
       };
-      try {
-        chrome.runtime.sendMessage(
-          { type: "AUTO_DOWNLOAD_SOURCE", body: candidate },
-          (response) => {
-            const failed = Boolean(chrome.runtime.lastError);
-            if (failed && retries > 0 && !controller.signal.aborted) {
-              const timer = window.setTimeout(() => {
-                retryTimers.delete(timer);
-                void send(candidate, retries - 1).then(finish);
-              }, 300);
-              retryTimers.add(timer);
-              return;
-            }
-            const status = response?.body?.status;
-            finish(["started", "skipped", "failed"].includes(status) ? status : "skipped");
-          },
-        );
-      } catch {
-        finish("skipped");
-      }
+      const attempt = (retries: number) => {
+        try {
+          pending.inFlight = true;
+          chrome.runtime.sendMessage(
+            { type: "AUTO_DOWNLOAD_SOURCE", body: candidate },
+            (response) => {
+              pending.inFlight = false;
+              const failed = Boolean(chrome.runtime.lastError);
+              if (failed && retries > 0 && !controller.signal.aborted) {
+                const timer = window.setTimeout(() => {
+                  retryTimers.delete(timer);
+                  attempt(retries - 1);
+                }, 300);
+                retryTimers.add(timer);
+                return;
+              }
+              const status = response?.body?.status;
+              finish(["started", "skipped", "failed"].includes(status) ? status : "skipped");
+            },
+          );
+        } catch {
+          finish("skipped");
+        }
+      };
+      attempt(2);
     });
 
   // The per-page limit is a silent stop otherwise: nothing tells the user
@@ -701,8 +709,8 @@ const setupAutoDownload = (options: ResolvedAutoDownloadOptions, dedup: AutoDown
     discovery.stop();
     retryTimers.forEach((timer) => window.clearTimeout(timer));
     retryTimers.clear();
-    pendingResolvers.forEach((resolve) => resolve("skipped"));
-    pendingResolvers.clear();
+    pendingSends.forEach(({ inFlight, resolve }) => resolve(inFlight ? "interrupted" : "skipped"));
+    pendingSends.clear();
   };
 };
 

@@ -707,6 +707,54 @@ describe("content.js initialisation", () => {
     );
   });
 
+  test.each([
+    ["holds the slot of a send still in flight", false, 1],
+    ["re-sends a source whose retry was never delivered", true, 2],
+  ] as const)("a disable-list-only remount %s", async (_name, failFirstDelivery, expectedSends) => {
+    vi.useFakeTimers();
+    vi.resetModules();
+    document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';
+    let deliveries = 0;
+    global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
+      if ((message as any)?.type !== "AUTO_DOWNLOAD_SOURCE") {
+        callback?.();
+        return;
+      }
+      deliveries += 1;
+      // The first delivery either stays unanswered (the background may be
+      // launching it) or fails, leaving only a retry timer pending.
+      if (deliveries === 1 && failFirstDelivery) {
+        (global.chrome.runtime as any).lastError = { message: "worker starting" };
+        callback?.();
+        delete (global.chrome.runtime as any).lastError;
+      } else if (deliveries > 1) {
+        callback?.({ type: "AUTO_DOWNLOAD_SOURCE", body: { status: "started" } });
+      }
+    }) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn();
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({
+        autoDownloadEnabled: true,
+        autoDownloadLive: true,
+        filenamePatterns:
+          "context: ^auto$\npageurl: ^http://localhost/\nsourceurl: automatic\\.png$\ninto: automatic/",
+      }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+    await import("../../src/content/content.ts");
+    await vi.runAllTicks();
+    expect(deliveries).toBe(1);
+
+    pushContentOptions({ perSiteDisableList: "*://unrelated.example/*" });
+    await vi.advanceTimersByTimeAsync(0);
+    // The remounted instance's live rescan of the same image decides
+    // whether the carried-over dedup still holds the source.
+    document.querySelector("img")?.setAttribute("src", "https://cdn.test/automatic.png");
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(deliveries).toBe(expectedSends);
+    pushContentOptions({ autoDownloadEnabled: false });
+  });
+
   test("removing the site from the disable list resumes automatic saves without a reload", async () => {
     vi.resetModules();
     document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';

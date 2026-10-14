@@ -547,9 +547,10 @@ test("a send force-skipped at teardown returns its dedup slot", async () => {
   await vi.waitFor(() => expect(send).toHaveBeenCalledOnce());
   expect(dedup.seen.size).toBe(1);
 
-  // Teardown force-skips the in-flight delivery; the shifted candidate never
-  // reached a download, so its slot must return like the still-queued ones,
-  // or a disable-list-only remount's rescan would skip it forever.
+  // Teardown force-skips a send that was never delivered (its retry timer was
+  // cancelled), so its slot must return like the still-queued ones, or a
+  // disable-list-only remount's rescan would skip it forever. A send still in
+  // flight settles as "interrupted" instead and keeps its slot.
   controller.stop();
   resolveSend("skipped");
   await vi.waitFor(() => expect(dedup.seen.size).toBe(0));

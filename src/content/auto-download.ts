@@ -25,7 +25,9 @@ import {
   isDataUrl,
 } from "../shared/data-url.ts";
 
-export type AutoDownloadSendResult = "started" | "skipped" | "failed";
+// "interrupted" is local to the content script: teardown settled a send whose
+// delivery outcome is unknown, so its once-per-visit slot stays held.
+export type AutoDownloadSendResult = "started" | "skipped" | "failed" | "interrupted";
 
 // The once-per-visit dedup set and its consumed budget (seen.size) outlive a
 // discovery instance: a disable-list edit remounts discovery, and a fresh set
@@ -197,9 +199,9 @@ export const setupAutoDownloadDiscovery = (
         }
         try {
           const result = await options.send(candidate);
-          // A started save holds its once-per-visit slot, and so does a source
-          // that exhausted its failure retries. A skip never consumed the
-          // candidate and can be offered again.
+          // A started or interrupted save holds its once-per-visit slot, and
+          // so does a source that exhausted its failure retries. A skip never
+          // consumed the candidate and can be offered again.
           if (result === "failed") recordFailure(seenKey);
           else if (result === "skipped") releaseSlot(seenKey);
         } catch {
