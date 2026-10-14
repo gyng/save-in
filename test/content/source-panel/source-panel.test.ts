@@ -15,6 +15,7 @@ import {
   setSourcePanelOpen,
   toggleSourcePanel,
 } from "../../../src/content/source-panel.ts";
+import { cleanupPanelHost } from "../../../src/content/source-panel-host.ts";
 import { SOURCE_PANEL_RESOURCE_TIMING_LIMIT } from "../../../src/content/source-panel-model.ts";
 import { SCRIPT_MEDIA_SOURCE_LIMIT } from "../../../src/shared/page-source.ts";
 import { createSourcePanelCopy } from "../../../src/shared/source-panel-copy.ts";
@@ -2332,6 +2333,57 @@ describe("Page Sources panel interactions", () => {
     expect(order[0]).toContain("cat.jpg");
     expect(order[1]).toContain("dog.jpg");
     expect(shadow.querySelector(".selection-count")?.textContent).toBe("0 selected");
+  });
+
+  test("closing the panel stops the remaining batch saves", async () => {
+    document.body.innerHTML = `<img src="one.jpg"><img src="two.jpg"><img src="three.jpg">`;
+    let finishFirst: (started: boolean) => void = () => {};
+    const sendDownload = vi.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          finishFirst = resolve;
+        }),
+    );
+    toggleSourcePanel(sendDownload, { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    [...shadow.querySelectorAll<HTMLButtonElement>(".selection-bar button")]
+      .find(({ textContent }) => textContent === "Select filtered")!
+      .click();
+    shadow.querySelector<HTMLButtonElement>(".batch-save")!.click();
+    await vi.waitFor(() => expect(sendDownload).toHaveBeenCalledOnce());
+
+    shadow.querySelector<HTMLButtonElement>(".close")!.click();
+    finishFirst(true);
+    await vi.waitFor(() =>
+      expect(shadow.querySelector(".selection-count")?.textContent).toBe("2 selected"),
+    );
+    expect(sendDownload).toHaveBeenCalledOnce();
+  });
+
+  test("a panel torn down without closing stops the remaining batch saves", async () => {
+    document.body.innerHTML = `<img src="one.jpg"><img src="two.jpg">`;
+    let finishFirst: (started: boolean) => void = () => {};
+    const sendDownload = vi.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          finishFirst = resolve;
+        }),
+    );
+    toggleSourcePanel(sendDownload, { includeBackgrounds: false, live: false });
+    const host = getSourcePanelHostForTesting()!;
+    const shadow = host.shadowRoot!;
+    [...shadow.querySelectorAll<HTMLButtonElement>(".selection-bar button")]
+      .find(({ textContent }) => textContent === "Select filtered")!
+      .click();
+    shadow.querySelector<HTMLButtonElement>(".batch-save")!.click();
+    await vi.waitFor(() => expect(sendDownload).toHaveBeenCalledOnce());
+
+    cleanupPanelHost(host);
+    finishFirst(true);
+    await vi.waitFor(() =>
+      expect(shadow.querySelector(".selection-count")?.textContent).toBe("1 selected"),
+    );
+    expect(sendDownload).toHaveBeenCalledOnce();
   });
 
   test("paints one checkbox state across rows while dragging", () => {

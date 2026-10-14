@@ -91,6 +91,12 @@ export const wirePanelSelection = (ctx: SourcePanelContext): void => {
   };
   let selectionPaint: SelectionPaint | null = null;
   let cancelBatchConfirmation: (() => void) | undefined;
+  // Closing the panel abandons the rest of a running batch: saves must not
+  // keep starting from a panel the user dismissed. The close animation can be
+  // undone by reopening, so the stopped batch still settles the selection UI
+  // and leaves the unattempted sources selected.
+  const panelTeardown = new AbortController();
+  const batchStopped = () => panelTeardown.signal.aborted || ctx.host.classList.contains("closing");
   const clearSelectionPaint = () => {
     const origin = selectionPaint?.origin;
     selectionPaint = null;
@@ -194,6 +200,10 @@ export const wirePanelSelection = (ctx: SourcePanelContext): void => {
     let started = 0;
     const failed: PageSource[] = [];
     for (const [index, source] of sources.entries()) {
+      if (batchStopped()) {
+        failed.push(...sources.slice(index));
+        break;
+      }
       saveSelected.textContent = formatSourcePanelCopy(
         ctx.copy.batchSavingTemplate,
         SOURCE_PANEL_COPY_VALUE_SLOT,
@@ -243,5 +253,6 @@ export const wirePanelSelection = (ctx: SourcePanelContext): void => {
   ctx.cleanupTasks.push(() => {
     clearSelectionPaint();
     cancelBatchConfirmation?.();
+    panelTeardown.abort();
   });
 };
