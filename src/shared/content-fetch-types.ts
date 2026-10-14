@@ -37,6 +37,19 @@ export type OffscreenBlobReleaseRequest = {
   requestId: string;
 };
 
+// The worker relays base64 port chunks unchanged; the document decodes them.
+export type OffscreenBlobAppendRequest = {
+  type: typeof MESSAGE_TYPES.OFFSCREEN_BLOB_APPEND;
+  requestId: string;
+  data: string;
+};
+
+export type OffscreenBlobCompleteRequest = {
+  type: typeof MESSAGE_TYPES.OFFSCREEN_BLOB_COMPLETE;
+  requestId: string;
+  mime: string;
+};
+
 export type OffscreenFetchResponse = {
   blobUrl?: string;
   hash?: string;
@@ -78,6 +91,20 @@ export const isOffscreenBlobReleaseRequest = (
   isRecord(value) &&
   value.type === MESSAGE_TYPES.OFFSCREEN_BLOB_RELEASE &&
   typeof value.requestId === "string";
+
+export const isOffscreenBlobAppendRequest = (value: unknown): value is OffscreenBlobAppendRequest =>
+  isRecord(value) &&
+  value.type === MESSAGE_TYPES.OFFSCREEN_BLOB_APPEND &&
+  typeof value.requestId === "string" &&
+  typeof value.data === "string";
+
+export const isOffscreenBlobCompleteRequest = (
+  value: unknown,
+): value is OffscreenBlobCompleteRequest =>
+  isRecord(value) &&
+  value.type === MESSAGE_TYPES.OFFSCREEN_BLOB_COMPLETE &&
+  typeof value.requestId === "string" &&
+  typeof value.mime === "string";
 
 export const isOffscreenFetchResponse = (value: unknown): value is OffscreenFetchResponse =>
   isRecord(value) &&

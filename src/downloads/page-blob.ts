@@ -8,6 +8,7 @@ import {
 import { Sha256 } from "../shared/sha256.ts";
 import type { ContentFetchResult } from "../shared/content-fetch-types.ts";
 import { mimeToExtension } from "../routing/variable.ts";
+import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { makeUrlFromBlob } from "./content-fetch.ts";
 import type { DownloadPipelineState } from "./download-types.ts";
 
@@ -20,7 +21,7 @@ type PageBlobTarget = { tabId: number; frameId: number; url: string };
 export const readPageBlob = (
   { tabId, frameId, url }: PageBlobTarget,
   signal?: AbortSignal,
-  onChunk?: (bytes: Uint8Array<ArrayBuffer>) => void | Promise<void>,
+  onChunk?: (bytes: Uint8Array<ArrayBuffer>, data: string) => void | Promise<void>,
 ): Promise<PageBlobMetadata> =>
   new Promise((resolve, reject) => {
     if (signal?.aborted) {
@@ -89,7 +90,10 @@ export const readPageBlob = (
           throw new Error("Invalid blob length");
         }
         received += binary.length;
-        await onChunk(Uint8Array.from(binary, (character) => character.charCodeAt(0)));
+        await onChunk(
+          Uint8Array.from(binary, (character) => character.charCodeAt(0)),
+          data,
+        );
       } else if (metadata !== undefined && type === "done" && received === metadata.size) {
         cleanup();
         resolve(metadata);
@@ -119,6 +123,23 @@ const loadPageBlob = async (
 ): Promise<ContentFetchResult> => {
   const chunks: Uint8Array<ArrayBuffer>[] = [];
   const sha256 = hash ? new Sha256() : undefined;
+  if (OffscreenClient.canUse()) {
+    // Chrome's worker has no object URLs, and a whole-file data URL would
+    // copy the blob again at 4/3 size into one string. Assemble it in the
+    // offscreen document, as fetched downloads are.
+    const offscreenRequestId = crypto.randomUUID();
+    try {
+      const { mime } = await readPageBlob(target, signal, (bytes, data) => {
+        sha256?.update(bytes);
+        return OffscreenClient.appendBlob(offscreenRequestId, data);
+      });
+      const downloadUrl = await OffscreenClient.completeBlob(offscreenRequestId, mime);
+      return { downloadUrl, sha256: sha256?.hex() ?? "", offscreenRequestId };
+    } catch (error) {
+      void OffscreenClient.cancel(offscreenRequestId).catch(() => {});
+      throw error;
+    }
+  }
   const { mime } = await readPageBlob(target, signal, (bytes) => {
     sha256?.update(bytes);
     chunks.push(bytes);

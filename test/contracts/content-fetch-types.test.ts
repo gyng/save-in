@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
 
 import {
+  isOffscreenBlobAppendRequest,
+  isOffscreenBlobCompleteRequest,
   isOffscreenBlobReleaseRequest,
   isOffscreenFetchCancelRequest,
   isOffscreenFetchRequest,
@@ -80,5 +82,38 @@ describe("offscreen message runtime validation", () => {
     { error: "HTTP 403", finalUrl: 42 },
   ])("rejects malformed fetch response %#", (value) => {
     expect(isOffscreenFetchResponse(value)).toBe(false);
+  });
+});
+
+describe("offscreen blob assembly validation", () => {
+  test("accepts relayed chunks and completion requests", () => {
+    expect(
+      isOffscreenBlobAppendRequest({ type: "OFFSCREEN_BLOB_APPEND", requestId: "r", data: "AA==" }),
+    ).toBe(true);
+    expect(
+      isOffscreenBlobCompleteRequest({
+        type: "OFFSCREEN_BLOB_COMPLETE",
+        requestId: "r",
+        mime: "image/png",
+      }),
+    ).toBe(true);
+  });
+
+  test.each([
+    null,
+    { type: "OFFSCREEN_BLOB_APPEND", requestId: "r" },
+    { type: "OFFSCREEN_BLOB_APPEND", requestId: 1, data: "" },
+    { type: "OFFSCREEN_BLOB_COMPLETE", requestId: "r", data: "" },
+  ])("rejects malformed append request %#", (value) => {
+    expect(isOffscreenBlobAppendRequest(value)).toBe(false);
+  });
+
+  test.each([
+    null,
+    { type: "OFFSCREEN_BLOB_COMPLETE", requestId: "r" },
+    { type: "OFFSCREEN_BLOB_COMPLETE", requestId: 1, mime: "" },
+    { type: "OFFSCREEN_BLOB_APPEND", requestId: "r", mime: "" },
+  ])("rejects malformed completion request %#", (value) => {
+    expect(isOffscreenBlobCompleteRequest(value)).toBe(false);
   });
 });

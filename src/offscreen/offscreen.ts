@@ -9,6 +9,8 @@
 // for both the filename and the save rather than fetched again by the worker.
 
 import {
+  isOffscreenBlobAppendRequest,
+  isOffscreenBlobCompleteRequest,
   isOffscreenFetchCancelRequest,
   isOffscreenBlobReleaseRequest,
   isOffscreenFetchRequest,
@@ -25,6 +27,7 @@ import { runPrompt } from "../platform/prompt-api.ts";
 
 const activeFetches = new Map<string, AbortController>();
 const blobUrls = new Map<string, string>();
+const assemblingBlobs = new Map<string, Uint8Array<ArrayBuffer>[]>();
 
 // The service worker cannot observe redirect hops itself, so an HTTP failure
 // reports the redirected final URL back for Referer-rule extension (#193).
@@ -57,11 +60,31 @@ chrome.runtime.onMessage.addListener(
     if (isOffscreenFetchCancelRequest(message)) {
       const controller = activeFetches.get(message.requestId);
       controller?.abort();
-      sendResponse({ canceled: Boolean(controller) || releaseBlob(message.requestId) });
+      const assembling = assemblingBlobs.delete(message.requestId);
+      sendResponse({
+        canceled: Boolean(controller) || assembling || releaseBlob(message.requestId),
+      });
       return false;
     }
     if (isOffscreenBlobReleaseRequest(message)) {
       sendResponse({ canceled: releaseBlob(message.requestId) });
+      return false;
+    }
+    if (isOffscreenBlobAppendRequest(message)) {
+      const parts = assemblingBlobs.get(message.requestId) ?? [];
+      assemblingBlobs.set(message.requestId, parts);
+      const binary = atob(message.data);
+      parts.push(Uint8Array.from(binary, (character) => character.charCodeAt(0)));
+      sendResponse({ canceled: false });
+      return false;
+    }
+    if (isOffscreenBlobCompleteRequest(message)) {
+      const parts = assemblingBlobs.get(message.requestId) ?? [];
+      assemblingBlobs.delete(message.requestId);
+      releaseBlob(message.requestId);
+      const blobUrl = URL.createObjectURL(new Blob(parts, { type: message.mime }));
+      blobUrls.set(message.requestId, blobUrl);
+      sendResponse({ blobUrl });
       return false;
     }
     if (isOffscreenPromptRequest(message)) {

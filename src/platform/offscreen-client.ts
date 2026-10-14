@@ -22,6 +22,8 @@ type OffscreenClientApi = {
   ) => Promise<ContentFetchResult>;
   cancel: (requestId: string) => Promise<unknown>;
   release: (requestId: string) => Promise<unknown>;
+  appendBlob: (requestId: string, data: string) => Promise<void>;
+  completeBlob: (requestId: string, mime: string) => Promise<string>;
   prompt: (input: string) => Promise<string | null>;
 };
 
@@ -131,6 +133,31 @@ export const OffscreenClient: OffscreenClientApi = {
 
   release: (requestId) =>
     chrome.runtime.sendMessage({ type: MESSAGE_TYPES.OFFSCREEN_BLOB_RELEASE, requestId }),
+
+  // Callers await each append before sending the next, which bounds the
+  // worker's queue to one chunk.
+  appendBlob: (requestId, data) =>
+    OffscreenClient.ensure()
+      .then(() =>
+        chrome.runtime.sendMessage({ type: MESSAGE_TYPES.OFFSCREEN_BLOB_APPEND, requestId, data }),
+      )
+      .then(() => undefined),
+
+  completeBlob: (requestId, mime) =>
+    OffscreenClient.ensure()
+      .then(() =>
+        chrome.runtime.sendMessage({
+          type: MESSAGE_TYPES.OFFSCREEN_BLOB_COMPLETE,
+          requestId,
+          mime,
+        }),
+      )
+      .then((res: unknown) => {
+        if (!isOffscreenFetchResponse(res) || !res.blobUrl) {
+          throw new Error("offscreen blob assembly failed");
+        }
+        return res.blobUrl;
+      }),
 
   prompt: (input) =>
     OffscreenClient.ensure()

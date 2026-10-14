@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { servePageBlob } from "../../src/content/page-blob.ts";
 import { preparePageBlob, readPageBlob } from "../../src/downloads/page-blob.ts";
 import type { DownloadPipelineState } from "../../src/downloads/download-types.ts";
+import { OffscreenClient } from "../../src/platform/offscreen-client.ts";
 import {
   PAGE_BLOB_CHUNK_BYTES,
   PAGE_BLOB_PORT,
@@ -323,6 +324,52 @@ describe("page-owned blob transfer", () => {
 
     expect(content.downloadUrl).toBe("data:image/png;base64,eA==");
     expect(content.ownedObjectUrl).toBeUndefined();
+  });
+
+  test("assembles Chrome worker bytes in the offscreen document, not a data URL", async () => {
+    const bytes = Uint8Array.from({ length: PAGE_BLOB_CHUNK_BYTES + 5 }, (_, i) => i % 11);
+    stubPageBlob(bytes);
+    const state = makeBlobState();
+    await preparePageBlob(state);
+    vi.spyOn(OffscreenClient, "canUse").mockReturnValue(true);
+    const appended: string[] = [];
+    vi.spyOn(OffscreenClient, "appendBlob").mockImplementation(async (_id, data) => {
+      appended.push(data);
+    });
+    const complete = vi
+      .spyOn(OffscreenClient, "completeBlob")
+      .mockResolvedValue("blob:chrome-extension://id/assembled");
+    const load = state.info.loadContent;
+    if (!load) throw new Error("loader missing");
+
+    const content = await load("request", true);
+
+    expect(content).toEqual({
+      downloadUrl: "blob:chrome-extension://id/assembled",
+      sha256: createHash("sha256").update(bytes).digest("hex"),
+      offscreenRequestId: complete.mock.calls[0]![0],
+    });
+    expect(complete).toHaveBeenCalledWith(expect.any(String), "image/png");
+    expect(
+      appended.map((data) => Uint8Array.from(atob(data), (c) => c.charCodeAt(0)).length),
+    ).toEqual([PAGE_BLOB_CHUNK_BYTES, 5]);
+    const plain = await load("request", false);
+    expect(plain.sha256).toBe("");
+  });
+
+  test("discards a partly assembled offscreen copy when the transfer fails", async () => {
+    stubPageBlob("x");
+    const state = makeBlobState();
+    await preparePageBlob(state);
+    vi.spyOn(OffscreenClient, "canUse").mockReturnValue(true);
+    vi.spyOn(OffscreenClient, "appendBlob").mockRejectedValue(new Error("offscreen gone"));
+    const cancel = vi.spyOn(OffscreenClient, "cancel").mockRejectedValue(new Error("closed"));
+    const load = state.info.loadContent;
+    if (!load) throw new Error("loader missing");
+
+    await expect(load("request", false)).rejects.toThrow("offscreen gone");
+
+    expect(cancel).toHaveBeenCalledOnce();
   });
 
   test("abandons on-demand bytes canceled during the transfer", async () => {

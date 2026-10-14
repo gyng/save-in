@@ -1,6 +1,7 @@
 // The offscreen document's message contract: HTTP failures carry the status
 // and redirected final URL so the background can extend Referer protection
 // and retry (#193).
+import { resolveObjectURL } from "node:buffer";
 import "../../src/offscreen/offscreen.ts";
 
 type OffscreenListener = (
@@ -83,6 +84,36 @@ test("reports HTTP failure status and final URL for Referer extension", async ()
   });
   // The failure body must not keep its connection alive across a retry.
   expect(cancel).toHaveBeenCalled();
+});
+
+test("assembles relayed page-blob chunks into one releasable object URL", async () => {
+  const dispatch = (message: object) => {
+    const sendResponse = vi.fn();
+    capturedListener()(message, {} as chrome.runtime.MessageSender, sendResponse);
+    return sendResponse.mock.calls[0]![0] as unknown;
+  };
+  dispatch({ type: "OFFSCREEN_BLOB_APPEND", requestId: "blob", data: btoa("ab") });
+  dispatch({ type: "OFFSCREEN_BLOB_APPEND", requestId: "blob", data: btoa("c") });
+  dispatch({ type: "OFFSCREEN_BLOB_APPEND", requestId: "dropped", data: btoa("x") });
+  expect(dispatch({ type: "OFFSCREEN_FETCH_CANCEL", requestId: "dropped" })).toEqual({
+    canceled: true,
+  });
+
+  const { blobUrl } = dispatch({
+    type: "OFFSCREEN_BLOB_COMPLETE",
+    requestId: "blob",
+    mime: "image/png",
+  }) as { blobUrl: string };
+  const empty = dispatch({ type: "OFFSCREEN_BLOB_COMPLETE", requestId: "dropped", mime: "" });
+
+  const blob = resolveObjectURL(blobUrl);
+  expect(blob?.type).toBe("image/png");
+  expect(await blob?.text()).toBe("abc");
+  expect(await resolveObjectURL((empty as { blobUrl: string }).blobUrl)?.text()).toBe("");
+  expect(dispatch({ type: "OFFSCREEN_BLOB_RELEASE", requestId: "blob" })).toEqual({
+    canceled: true,
+  });
+  expect(resolveObjectURL(blobUrl)).toBeUndefined();
 });
 
 test("omits an empty final URL and keeps plain errors unchanged", async () => {
