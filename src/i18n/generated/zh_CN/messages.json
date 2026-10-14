@@ -3371,6 +3371,9 @@
   "restoreDefaultsFailure": {
     "message": "无法恢复默认设置。"
   },
+  "restoreDefaultsReloadNeeded": {
+    "message": "已恢复默认设置。重新加载页面即可显示。"
+  },
   "referenceCaption": {
     "message": "参考"
   },

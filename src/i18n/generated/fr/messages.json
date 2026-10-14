@@ -3371,6 +3371,9 @@
   "restoreDefaultsFailure": {
     "message": "Impossible de restaurer les paramètres par défaut."
   },
+  "restoreDefaultsReloadNeeded": {
+    "message": "Paramètres par défaut restaurés. Rechargez la page pour les afficher."
+  },
   "referenceCaption": {
     "message": "Référence"
   },

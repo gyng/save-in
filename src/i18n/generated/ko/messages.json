@@ -3371,6 +3371,9 @@
   "restoreDefaultsFailure": {
     "message": "기본 설정을 복원하지 못했습니다."
   },
+  "restoreDefaultsReloadNeeded": {
+    "message": "기본 설정을 복원했습니다. 표시하려면 페이지를 다시 로드하세요."
+  },
   "referenceCaption": {
     "message": "참조"
   },

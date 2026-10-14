@@ -87,7 +87,20 @@ export const setupResetOptions = ({
       const names = await getOptionNames();
       await webExtensionApi.storage.local.remove(names);
       await sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.OPTIONS_LOADED });
+    } catch {
+      renderResetStatus(
+        localize("restoreDefaultsFailure") || "Could not restore default settings.",
+        true,
+      );
+      button.disabled = false;
+      return;
+    }
 
+    // The defaults are stored and live from here on. A failure to refresh the
+    // controls must not be reported as a failed reset, but the page now shows
+    // values that are no longer in effect, so it says how to see the real ones.
+    markSavedNow();
+    try {
       // Reset clears storage directly rather than saving values, so it reports
       // no changes and never reaches the page-load reload that options.ts asks
       // for on a webmcpEnabled change. webmcpEnabled does go back to its
@@ -98,12 +111,12 @@ export const setupResetOptions = ({
       // here would take the success message with it.
       await restoreOptions();
       updateErrors();
-      markSavedNow();
       renderResetStatus(localize("restoreDefaultsSuccess") || "Default settings restored.", false);
     } catch {
       renderResetStatus(
-        localize("restoreDefaultsFailure") || "Could not restore default settings.",
-        true,
+        localize("restoreDefaultsReloadNeeded") ||
+          "Default settings restored. Reload the page to show them.",
+        false,
       );
     } finally {
       button.disabled = false;

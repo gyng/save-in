@@ -3371,6 +3371,9 @@
   "restoreDefaultsFailure": {
     "message": "無法還原預設設定。"
   },
+  "restoreDefaultsReloadNeeded": {
+    "message": "已還原預設設定。重新載入頁面即可顯示。"
+  },
   "referenceCaption": {
     "message": "參考"
   },

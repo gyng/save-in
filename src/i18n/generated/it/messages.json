@@ -3371,6 +3371,9 @@
   "restoreDefaultsFailure": {
     "message": "Impossibile ripristinare le impostazioni predefinite."
   },
+  "restoreDefaultsReloadNeeded": {
+    "message": "Impostazioni predefinite ripristinate. Ricarica la pagina per visualizzarle."
+  },
   "referenceCaption": {
     "message": "Riferimento"
   },

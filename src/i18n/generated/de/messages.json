@@ -3371,6 +3371,9 @@
   "restoreDefaultsFailure": {
     "message": "Standardeinstellungen konnten nicht wiederhergestellt werden."
   },
+  "restoreDefaultsReloadNeeded": {
+    "message": "Standardeinstellungen wiederhergestellt. Laden Sie die Seite neu, um sie anzuzeigen."
+  },
   "referenceCaption": {
     "message": "Referenz"
   },

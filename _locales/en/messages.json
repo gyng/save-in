@@ -4963,6 +4963,10 @@
     "message": "Could not restore default settings.",
     "description": "Error shown when restoring default settings fails. Used in src/options/reset-options.ts."
   },
+  "restoreDefaultsReloadNeeded": {
+    "message": "Default settings restored. Reload the page to show them.",
+    "description": "Shown after default settings were saved but the settings page could not refresh its controls, so they still show the old values. Used in src/options/core/reset-options.ts."
+  },
   "referenceCaption": {
     "message": "Reference",
     "description": "Fallback accessible caption for a variable or clause reference table. Used in src/options/reference-page.ts."

@@ -3371,6 +3371,9 @@
   "restoreDefaultsFailure": {
     "message": "De standaardinstellingen konden niet worden hersteld."
   },
+  "restoreDefaultsReloadNeeded": {
+    "message": "Standaardinstellingen hersteld. Herlaad de pagina om ze te tonen."
+  },
   "referenceCaption": {
     "message": "Referentie"
   },

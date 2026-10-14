@@ -3371,6 +3371,9 @@
   "restoreDefaultsFailure": {
     "message": "Det gick inte att återställa standardinställningarna."
   },
+  "restoreDefaultsReloadNeeded": {
+    "message": "Standardinställningarna har återställts. Läs in sidan igen för att visa dem."
+  },
   "referenceCaption": {
     "message": "Referens"
   },

@@ -885,7 +885,7 @@ describe("variables preview", () => {
 
 describe("reset options", () => {
   test.each(["success", "failure"] as const)(
-    "waits for controls to reload before reporting reset %s",
+    "waits for controls to reload before reporting a stored reset whose refresh hits %s",
     async (outcome) => {
       document.body.innerHTML =
         '<button id="reset"></button><div id="settings-reset-status"></div>';
@@ -915,7 +915,8 @@ describe("reset options", () => {
       expect(button.disabled).toBe(true);
       expect(status.textContent).toBe("");
       expect(updateErrors).not.toHaveBeenCalled();
-      expect(markSaved).not.toHaveBeenCalled();
+      // The defaults are already stored, whatever the control refresh does.
+      expect(markSaved).toHaveBeenCalledOnce();
 
       if (outcome === "success") resolveRestore();
       else rejectRestore(new Error("reload failed"));
@@ -923,10 +924,11 @@ describe("reset options", () => {
       expect(status.textContent).toBe(
         outcome === "success"
           ? "Default settings restored."
-          : "Could not restore default settings.",
+          : "Default settings restored. Reload the page to show them.",
       );
+      expect(status.classList).not.toContain("feedback-error");
       expect(updateErrors).toHaveBeenCalledTimes(outcome === "success" ? 1 : 0);
-      expect(markSaved).toHaveBeenCalledTimes(outcome === "success" ? 1 : 0);
+      expect(markSaved).toHaveBeenCalledOnce();
     },
   );
 

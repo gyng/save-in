@@ -3371,6 +3371,9 @@
   "restoreDefaultsFailure": {
     "message": "No se pudieron restaurar los ajustes predeterminados."
   },
+  "restoreDefaultsReloadNeeded": {
+    "message": "Se restauraron los ajustes predeterminados. Recargue la página para verlos."
+  },
   "referenceCaption": {
     "message": "Referencia"
   },

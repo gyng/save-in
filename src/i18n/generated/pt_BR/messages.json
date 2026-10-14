@@ -3371,6 +3371,9 @@
   "restoreDefaultsFailure": {
     "message": "Não foi possível restaurar as configurações padrão."
   },
+  "restoreDefaultsReloadNeeded": {
+    "message": "Configurações padrão restauradas. Recarregue a página para exibi-las."
+  },
   "referenceCaption": {
     "message": "Referência"
   },

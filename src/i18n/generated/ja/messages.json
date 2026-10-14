@@ -3371,6 +3371,9 @@
   "restoreDefaultsFailure": {
     "message": "既定の設定を復元できませんでした。"
   },
+  "restoreDefaultsReloadNeeded": {
+    "message": "既定の設定を復元しました。表示するにはページを再読み込みしてください。"
+  },
   "referenceCaption": {
     "message": "リファレンス"
   },
