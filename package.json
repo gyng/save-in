@@ -63,7 +63,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
     "@fast-check/vitest": "^0.5.0",
-    "@types/chrome": "^0.2.2",
+    "@types/chrome": "^0.2.9",
     "@types/firefox-webext-browser": "^143.0.1",
     "@vitest/coverage-v8": "5.0.3",
     "acorn": "8.19.0",
