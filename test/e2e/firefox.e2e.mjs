@@ -1570,6 +1570,13 @@ into: e2e/script-media-auto-firefox/:filename:`,
       { description: "Firefox script-media option save acknowledgement" },
     );
     expect(await control.options.get("sourcePanelScriptMedia")).toBe(true);
+    // The background restores the shared open state to the tab, through its
+    // own queue, when the tab finishes loading, becomes active, or its content
+    // script announces itself. Those restores are not ordered with this test's
+    // direct open message, so one that read the closed state first can close
+    // the panel after it opened. Writing the open state before the tab exists
+    // makes every restore agree with the open message.
+    await control.storage.session.set({ sourcePanelOpen: true });
     const tab = await control.tabs.create({ url: pageUrl, active: true });
     const ready = await control.tabs.wait(
       tab.id === undefined ? { urlIncludes: pageMatch } : { id: tab.id },
@@ -1627,7 +1634,6 @@ into: e2e/script-media-auto-firefox/:filename:`,
           document.body.append(frame);
         })`,
       ),
-      control.storage.session.set({ sourcePanelOpen: true }),
       control.tabs.sendMessage(tabId, { type: "SET_SOURCE_PANEL", body: { open: true } }),
     ]);
     await waitForPageCondition(
