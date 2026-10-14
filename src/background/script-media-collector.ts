@@ -122,7 +122,10 @@ const tabOperations = new Map<number, Promise<void>>();
 // otherwise read as whole files. It holds only the browser's opaque document
 // ids, bounded per tab, and lives until the tab closes. Privacy follows the
 // buffer's rule: only a public tab's ids are mirrored to storage.session.
-type StreamDocuments = { private: boolean; docs: string[] };
+// `unattributed` notes stream evidence from a frame below the first level,
+// whose top-level page the browser does not name; one flag covers every such
+// frame, so they never compete with pages for the bounded list.
+type StreamDocuments = { private: boolean; docs: string[]; unattributed?: true };
 const streamDocuments = new Map<number, StreamDocuments>();
 // A tab rarely keeps more than a few stream pages in its back/forward cache;
 // forgetting the oldest only gives up the extra caution for that page.
@@ -323,11 +326,26 @@ const hydrateStreamDocuments = (stored: unknown): void => {
   if (!stored || typeof stored !== "object") return;
   for (const [tabKey, docs] of Object.entries(stored as Record<string, unknown>)) {
     const tabId = Number(tabKey);
-    if (!Number.isInteger(tabId) || !Array.isArray(docs)) continue;
-    const valid = docs
+    if (!Number.isInteger(tabId)) continue;
+    // A bare list, or { docs, unattributed: true } when a nested frame showed
+    // a stream.
+    const flagged =
+      docs !== null &&
+      typeof docs === "object" &&
+      !Array.isArray(docs) &&
+      Reflect.get(docs, "unattributed") === true;
+    const list: unknown = flagged ? Reflect.get(docs as object, "docs") : docs;
+    if (!Array.isArray(list)) continue;
+    const valid = list
       .filter((doc): doc is string => typeof doc === "string")
       .slice(-SCRIPT_MEDIA_STREAM_DOCUMENT_LIMIT);
-    if (valid.length) streamDocuments.set(tabId, { private: false, docs: valid });
+    if (valid.length || flagged) {
+      streamDocuments.set(tabId, {
+        private: false,
+        docs: valid,
+        ...(flagged ? { unattributed: true as const } : {}),
+      });
+    }
   }
 };
 
@@ -345,9 +363,12 @@ const persist = async (): Promise<void> => {
       ...(media.opaque ? { opaque: true as const } : {}),
     }));
   }
-  const documents: Record<string, string[]> = {};
+  const documents: Record<string, string[] | { docs: string[]; unattributed: true }> = {};
   for (const [tabId, entry] of streamDocuments) {
-    if (!entry.private) documents[String(tabId)] = entry.docs;
+    if (entry.private) continue;
+    documents[String(tabId)] = entry.unattributed
+      ? { docs: entry.docs, unattributed: true }
+      : entry.docs;
   }
   try {
     await storage.set({
@@ -428,12 +449,21 @@ const evictOldest = (map: Map<string, BufferedMedia>): void => {
   map.delete(victim);
 };
 
-const rememberStreamDocument = (tabId: number, doc: string, privateContext: boolean): void => {
-  const docs = streamDocuments.get(tabId)?.docs.filter((known) => known !== doc) ?? [];
-  docs.push(doc);
+// A page id joins the bounded list; evidence the browser attributes to no page
+// (a frame below the first level) only sets the tab's flag.
+const rememberStreamDocument = (
+  tabId: number,
+  doc: string | undefined,
+  privateContext: boolean,
+): void => {
+  const known = streamDocuments.get(tabId);
+  const docs = known?.docs.filter((id) => id !== doc) ?? [];
+  if (doc !== undefined) docs.push(doc);
+  const unattributed = doc === undefined || known?.unattributed === true;
   streamDocuments.set(tabId, {
     private: privateContext,
     docs: docs.slice(-SCRIPT_MEDIA_STREAM_DOCUMENT_LIMIT),
+    ...(unattributed ? { unattributed: true as const } : {}),
   });
 };
 
@@ -450,9 +480,10 @@ const tabHasStream = (
   doc: string | undefined,
 ): boolean => {
   if ([...map.values()].some(isStreamEvidence)) return true;
-  const docs = streamDocuments.get(tabId)?.docs;
-  if (!docs) return false;
-  return doc === undefined || docs.includes(doc);
+  const remembered = streamDocuments.get(tabId);
+  if (!remembered) return false;
+  if (doc !== undefined) return remembered.docs.includes(doc);
+  return remembered.docs.length > 0 || remembered.unattributed === true;
 };
 
 const record = (
@@ -509,12 +540,11 @@ const record = (
   };
   map.set(url, media);
   // A stream in a frame below the first level has no top-level document, and
-  // neither will its segments after a back/forward restore. Remembering the
-  // frame's own document still marks the tab, so those unattributed loads
-  // are presumed segments (tabHasStream).
-  const evidenceDoc = doc ?? frameDoc;
-  if (evidenceDoc !== undefined && isStreamEvidence(media)) {
-    rememberStreamDocument(tabId, evidenceDoc, privateContext);
+  // neither will its segments after a back/forward restore. A frame the
+  // browser does name still marks the tab, so those unattributed loads are
+  // presumed segments (tabHasStream).
+  if (isStreamEvidence(media) && (doc !== undefined || frameDoc !== undefined)) {
+    rememberStreamDocument(tabId, doc, privateContext);
   }
   while (map.size > SCRIPT_MEDIA_SOURCE_LIMIT) evictOldest(map);
 

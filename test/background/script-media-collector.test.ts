@@ -1512,6 +1512,52 @@ describe("stream evidence across a back/forward restore", () => {
     expect(await adopted(mod, SEGMENT, restoredA)).toBe(false);
   });
 
+  test("keeps a stream page remembered however many nested frames show streams", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    visitA(listener!, "https://a.example/hls/master.m3u8");
+    leaveForB(listener!);
+    // Page B's nested frame loads a playlist in eight successive documents.
+    for (let index = 0; index < 8; index += 1) {
+      listener!({
+        tabId: 7,
+        frameId: 20 + index,
+        parentFrameId: 4,
+        documentId: `F${index}`,
+        url: `https://ads.example/${index}/master.m3u8`,
+        type: "xmlhttprequest",
+        timeStamp: 11 + index,
+      });
+    }
+    listener!({ ...top, url: "https://c.example/", type: "main_frame", timeStamp: 30 });
+    segmentOf(listener!, "A");
+
+    expect(await adopted(mod, SEGMENT, restoredA)).toBe(false);
+  });
+
+  test("persists and rehydrates a nested frame's stream evidence as a flag", async () => {
+    const { listener } = await setup(AUTO_ON);
+    const deep = { tabId: 7, frameId: 9, parentFrameId: 4, documentId: "F" };
+    listener!({ ...top, url: "https://a.example/watch", type: "main_frame", timeStamp: 1 });
+    listener!({ ...deep, url: "https://a.example/hls/master.m3u8", type: "media", timeStamp: 2 });
+    await vi.waitFor(() =>
+      expect(browser.storage.session.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY]: { "7": { docs: [], unattributed: true } },
+        }),
+      ),
+    );
+
+    const { mod, listener: restarted } = await setup(AUTO_ON);
+    vi.mocked(browser.storage.session.get).mockResolvedValue({
+      [SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY]: {
+        "7": { docs: [], unattributed: true },
+        "8": { docs: "not a list", unattributed: true },
+      },
+    });
+    restarted!({ ...deep, url: SEGMENT, type: "media", timeStamp: 20 });
+    expect(await adopted(mod, SEGMENT, { start: 15 })).toBe(false);
+  });
+
   test("still adopts a whole file on a restored page that showed no stream", async () => {
     const { mod, listener } = await setup(AUTO_ON);
     listener!({ ...top, url: "https://c.example/", type: "main_frame", timeStamp: 1 });
