@@ -6,6 +6,7 @@ import {
   Notifier,
   options,
   loadNotification,
+  seedInheritedPending,
   setupGlobals,
 } from "./session.fixture.ts";
 
@@ -36,7 +37,7 @@ describe("undo on the success notification", () => {
   });
 
   const completeOwnDownload = async (item: Record<string, unknown> = {}) => {
-    sessionStore.siPendingDownloads = 1;
+    seedInheritedPending(sessionStore, 1);
     await onCreated({
       id: 7,
       byExtensionId: "save-in",

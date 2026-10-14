@@ -1,4 +1,9 @@
-import { options, loadNotification, setupGlobals } from "./session.fixture.ts";
+import {
+  options,
+  loadNotification,
+  seedInheritedPending,
+  setupGlobals,
+} from "./session.fixture.ts";
 
 // The outcome webhooks are wired into the same onChanged listener the
 // notifications use, so they are proved the same way: through the real handler,
@@ -27,7 +32,7 @@ describe("download outcome webhooks", () => {
   };
 
   const startTracked = async (item: Record<string, any>, record: Record<string, any> = {}) => {
-    sessionStore.siPendingDownloads = 1;
+    seedInheritedPending(sessionStore, 1);
     await onCreated(Object.assign({ byExtensionId: "save-in" }, item));
     if (Object.keys(record).length) {
       const downloads = await import("../../../src/downloads/download-execution.ts");

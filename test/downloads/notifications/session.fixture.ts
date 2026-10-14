@@ -117,6 +117,21 @@ const adoptedIds = (store: Record<string, any>) =>
     .filter((id) => store.siDownloads[id] && store.siDownloads[id].adopted)
     .map(Number);
 
+// What a worker inherits when its predecessor died between incrementing the
+// pending counter and its downloads.onCreated event: the counter plus the
+// recovery lease that alone lets onCreated adopt an unclaimed item.
+const seedInheritedPending = (store: Record<string, any>, count: number) => {
+  store.siPendingDownloads = count;
+  store.siNotificationRecovery = {
+    version: 1,
+    token: "inherited",
+    deadline: Date.now() + 10_000,
+    pendingDownloads: count,
+    privatePendingDownloads: 0,
+    adoptedDownloadIds: [],
+  };
+};
+
 const setupGlobals = (sessionStore: Record<string, any>, searchResults: (query: any) => any) => {
   // downloadState.records is a module singleton; clear the in-memory mirror and
   // the memoized hydration so each test rebuilds the records from its own
@@ -192,5 +207,6 @@ export {
   loadNotification,
   makeSessionMock,
   adoptedIds,
+  seedInheritedPending,
   setupGlobals,
 };

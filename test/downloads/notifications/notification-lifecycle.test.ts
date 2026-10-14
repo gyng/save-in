@@ -10,6 +10,7 @@ import {
   Runtime,
   loadNotification,
   adoptedIds,
+  seedInheritedPending,
   setupGlobals,
 } from "./session.fixture.ts";
 
@@ -51,7 +52,7 @@ describe("download lifecycle notifications", () => {
   test("tracks a download recorded via the persisted pending flag", async () => {
     // The in-memory expectDownload counter was lost with the old worker;
     // the session flag written before downloads.download() takes over
-    sessionStore.siPendingDownloads = 1;
+    seedInheritedPending(sessionStore, 1);
 
     await onCreated({
       id: 7,
@@ -62,6 +63,63 @@ describe("download lifecycle notifications", () => {
 
     expect(sessionStore.siPendingDownloads).toBe(0);
     expect(adoptedIds(sessionStore)).toEqual([7]);
+  });
+
+  test("does not adopt an unrelated download while this worker's own save is in flight", async () => {
+    // No restart happened: the counter is raised only by a save this worker is
+    // still handing to downloads.download (on Firefox, through its Save As
+    // dialog). A download the user starts meanwhile is not Save In's.
+    options.trackBrowserDownloads = true;
+    sessionStore.siPendingDownloads = 1;
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry").mockReturnValue("h-browser");
+
+    await onCreated({ id: 70, filename: "C:\\dl\\theirs.png", url: "https://y/theirs.png" });
+
+    expect(adoptedIds(sessionStore)).toEqual([]);
+    expect(sessionStore.siDownloads[70]).toMatchObject({ observedBrowserDownload: true });
+    expect(history.addHistoryEntry).toHaveBeenCalledWith(
+      expect.objectContaining({ mechanism: "browser-download" }),
+      { privateContext: false },
+    );
+    expect(sessionStore.siPendingDownloads).toBe(1);
+  });
+
+  test("an event that lost the race to its own start record spends no inherited slot", async () => {
+    seedInheritedPending(sessionStore, 1);
+    const { mergeTrackedDownload } = await import("../../../src/downloads/expected-downloads.ts");
+    // executeBrowserDownload dropped its expectation and recorded the item in
+    // the same task, before this worker's onCreated handler ran.
+    await mergeTrackedDownload(71, { adopted: true, filename: "own.png" });
+
+    await onCreated({ id: 71, filename: "C:\\dl\\own.png", url: "https://x/own.png" });
+
+    expect(sessionStore.siPendingDownloads).toBe(1);
+    expect(sessionStore.siNotificationRecovery).toMatchObject({ pendingDownloads: 1 });
+    expect(sessionStore.siDownloads[71]).toMatchObject({ filename: "own.png" });
+    expect(sessionStore.siDownloads[71]).not.toHaveProperty("currentFilename");
+  });
+
+  test("an inherited lease adopts no more items than it inherited", async () => {
+    // The lease inherited one request; the second count is this worker's own.
+    seedInheritedPending(sessionStore, 1);
+    sessionStore.siPendingDownloads = 2;
+
+    await onCreated({ id: 72, filename: "C:\\dl\\a.png", url: "https://x/a.png" });
+    await onCreated({ id: 73, filename: "C:\\dl\\b.png", url: "https://x/b.png" });
+
+    expect(adoptedIds(sessionStore)).toEqual([72]);
+    expect(sessionStore.siPendingDownloads).toBe(1);
+    expect(sessionStore.siNotificationRecovery).toMatchObject({ pendingDownloads: 0 });
+  });
+
+  test("an inherited lease adopts nothing once the counter is already settled", async () => {
+    seedInheritedPending(sessionStore, 1);
+    sessionStore.siPendingDownloads = 0;
+
+    await onCreated({ id: 74, filename: "C:\\dl\\a.png", url: "https://x/a.png" });
+
+    expect(adoptedIds(sessionStore)).toEqual([]);
   });
 
   test("puts a webhook diagnostic from a completed save in the download log", async () => {
@@ -80,7 +138,7 @@ describe("download lifecycle notifications", () => {
       data_collection: [],
     } as any);
     const { mergeTrackedDownload } = await import("../../../src/downloads/expected-downloads.ts");
-    sessionStore.siPendingDownloads = 1;
+    seedInheritedPending(sessionStore, 1);
     await onCreated({ id: 61, filename: "C:\\dl\\a.png", url: "https://x/a.png" });
     await mergeTrackedDownload(61, { webhookEligible: true });
 
@@ -144,7 +202,7 @@ describe("download lifecycle notifications", () => {
 
   test("fails closed when public and isolated private requests overlap across restart", async () => {
     options.trackBrowserDownloads = true;
-    sessionStore.siPendingDownloads = 1;
+    seedInheritedPending(sessionStore, 1);
     sessionStore.siPrivatePendingDownloads = 1;
 
     await onCreated({
@@ -647,7 +705,7 @@ describe("download lifecycle notifications", () => {
   test("recovers every download created after one restart (counter, not boolean)", async () => {
     // Two downloads were in flight when the worker died; the old boolean flag
     // tracked only the first, silently dropping the second's notifications
-    sessionStore.siPendingDownloads = 2;
+    seedInheritedPending(sessionStore, 2);
 
     await onCreated({
       id: 7,
@@ -670,7 +728,7 @@ describe("download lifecycle notifications", () => {
     // A stale siPendingDownloads (a requested download that never actually
     // created) must not cause an unrelated download — a manual save or another
     // extension's — to be tracked as ours and fire a spurious notification
-    sessionStore.siPendingDownloads = 1;
+    seedInheritedPending(sessionStore, 1);
 
     await onCreated({
       id: 500,
@@ -684,7 +742,7 @@ describe("download lifecycle notifications", () => {
   });
 
   test("notifies on completion and untracks", async () => {
-    sessionStore.siPendingDownloads = 1;
+    seedInheritedPending(sessionStore, 1);
     await onCreated({
       id: 7,
       byExtensionId: "save-in",
@@ -824,7 +882,7 @@ describe("download lifecycle notifications", () => {
     // Adoption is a field on the DownloadState record, persisted to siDownloads,
     // so a completion that arrives after the worker restarted (the in-memory
     // mirror wiped) still recognises the download as ours and notifies
-    sessionStore.siPendingDownloads = 1;
+    seedInheritedPending(sessionStore, 1);
     await onCreated({
       id: 7,
       byExtensionId: "save-in",
@@ -861,7 +919,7 @@ describe("download lifecycle notifications", () => {
   });
 
   test("does not crash on failure deltas for entries missing a filename", async () => {
-    sessionStore.siPendingDownloads = 1;
+    seedInheritedPending(sessionStore, 1);
     await onCreated({ id: 7, byExtensionId: "save-in", url: "https://x/p.png" }); // no filename yet
 
     await expect(
@@ -884,7 +942,7 @@ describe("download lifecycle notifications", () => {
   });
 
   test("picks the filename up from Chrome's delta", async () => {
-    sessionStore.siPendingDownloads = 1;
+    seedInheritedPending(sessionStore, 1);
     await onCreated({ id: 7, byExtensionId: "save-in", url: "https://x/p.png" }); // Chrome: no filename yet
 
     await onChanged({ id: 7, filename: {} }); // delta without a current filename
@@ -900,7 +958,7 @@ describe("download lifecycle notifications", () => {
   // The browser reports an absolute on-disk path, which is backslash-separated
   // on Windows; the notification names the file, not where it landed.
   test("names the file from a Windows path the browser reports", async () => {
-    sessionStore.siPendingDownloads = 1;
+    seedInheritedPending(sessionStore, 1);
     await onCreated({ id: 8, byExtensionId: "save-in", url: "https://x/cat.png" });
 
     await onChanged({ id: 8, filename: { current: "C:\\Users\\me\\Downloads\\pics\\cat.png" } });
@@ -913,7 +971,7 @@ describe("download lifecycle notifications", () => {
   });
 
   test("clears the success notification after notifyDuration", async () => {
-    sessionStore.siPendingDownloads = 1;
+    seedInheritedPending(sessionStore, 1);
     await onCreated({
       id: 7,
       byExtensionId: "save-in",

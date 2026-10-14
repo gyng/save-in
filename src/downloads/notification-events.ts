@@ -14,14 +14,14 @@ import {
 import { isPrivateDownloadRecord } from "./download-state.ts";
 import type { DownloadRecord } from "./download-state.ts";
 import type { HistoryEntry } from "../shared/history-types.ts";
-import { sessionWriteState } from "./download-state-instances.ts";
-import { getSession, normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
+import { downloadsState } from "./download-state-instances.ts";
+import { getSession, normalizeSessionCounter } from "../shared/session-state.ts";
+import { claimInheritedPendingDownload } from "./notification-recovery.ts";
 import { options, shouldPersistActivity } from "../config/options-data.ts";
 import { deliverDownloadOutcomeWebhook } from "./webhook-delivery.ts";
 import { BROWSER_DOWNLOAD_CONTEXT } from "../shared/constants.ts";
 import {
   BROWSER_LAST_USED_NOTICE_SESSION_KEY,
-  PENDING_DOWNLOADS_SESSION_KEY,
   PRIVATE_PENDING_DOWNLOADS_SESSION_KEY,
 } from "../shared/storage-keys.ts";
 import {
@@ -166,14 +166,11 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
     return;
   }
 
-  // The in-memory counter is lost if the MV3 service worker restarted
-  // between requesting the download and this event. siPendingDownloads is a
-  // COUNTER (not a boolean) so several downloads created after one restart
-  // are all recovered — a boolean dropped every one past the first.
-  const res = await getSession(extensionSessionStorage, [
-    PENDING_DOWNLOADS_SESSION_KEY,
-    PRIVATE_PENDING_DOWNLOADS_SESSION_KEY,
-  ]);
+  // executeBrowserDownload records its own item as adopted in the same task
+  // that drops its expectation, so an event that lost that race is already
+  // claimed and must not spend an inherited restart slot or be re-tracked.
+  if (downloadsState.records.get(item.id)?.adopted === true) return;
+
   // Chrome strips both Incognito and extension ownership from our download's
   // onCreated item. If an isolated private request survived a worker restart,
   // every unclaimed item is ambiguous until the short recovery lease expires.
@@ -181,22 +178,24 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
   // public request into the private slot and then adopt the private one.
   if (
     CURRENT_BROWSER === BROWSERS.CHROME &&
-    normalizeSessionCounter(res[PRIVATE_PENDING_DOWNLOADS_SESSION_KEY]) > 0
+    normalizeSessionCounter(
+      (await getSession(extensionSessionStorage, PRIVATE_PENDING_DOWNLOADS_SESSION_KEY))[
+        PRIVATE_PENDING_DOWNLOADS_SESSION_KEY
+      ],
+    ) > 0
   ) {
     return;
   }
-  if (normalizeSessionCounter(res[PENDING_DOWNLOADS_SESSION_KEY]) > 0) {
+  // The expectation list is lost if the MV3 service worker restarted between
+  // requesting the download and this event. The recovery lease is a COUNTER
+  // (not a boolean) so several downloads created after one restart are all
+  // recovered — a boolean dropped every one past the first.
+  if (await claimInheritedPendingDownload()) {
     await mergeTrackedDownload(item.id, {
       adopted: true,
       currentFilename: item.filename,
       url: item.url,
     });
-    await updateSession<number>(
-      sessionWriteState,
-      extensionSessionStorage,
-      PENDING_DOWNLOADS_SESSION_KEY,
-      (n) => Math.max(0, normalizeSessionCounter(n) - 1),
-    );
     return;
   }
 

@@ -81,12 +81,36 @@ type PendingRecoveryCounter =
       field: "privatePendingDownloads";
     };
 
+// Every read-modify-write of a pending counter and the lease shares the
+// counter's session write queue, so recovery and event-time claims serialize.
+const queueOnPendingCounter = <T>(
+  key: PendingRecoveryCounter["key"],
+  fallback: T,
+  task: () => Promise<T>,
+): Promise<T> => {
+  const prior = sessionWriteState.queues.get(key) ?? Promise.resolve();
+  // The read inside the task can reject, and this promise is both awaited by
+  // its caller and parked in the shared queue. Contain it exactly as
+  // updateSession does: skip the write, record the failure, settle — so the
+  // rejection neither fails the caller nor is chained onto by the next write.
+  const settled = prior.then(task).catch((error: unknown) => {
+    recordPersistenceFailure({ area: "session", operation: "update", key }, error);
+    return fallback;
+  });
+  sessionWriteState.queues.set(key, settled);
+  void settled.finally(() => {
+    if (sessionWriteState.queues.get(key) === settled) {
+      sessionWriteState.queues.delete(key);
+    }
+  });
+  return settled;
+};
+
 const queuePendingRecovery = (
   expected: NotificationRecovery,
   counter: PendingRecoveryCounter,
-): Promise<void> => {
-  const prior = sessionWriteState.queues.get(counter.key) ?? Promise.resolve();
-  const queued = prior.then(async () => {
+): Promise<void> =>
+  queueOnPendingCounter(counter.key, undefined, async () => {
     const [pendingStored, current] = await Promise.all([
       // The read half of this read-modify-write, so it must not degrade to {}:
       // the count is the minuend, and rebasing it onto nothing subtracts the
@@ -105,21 +129,32 @@ const queuePendingRecovery = (
       `${counter.key},${NOTIFICATION_RECOVERY_SESSION_KEY}`,
     );
   });
-  // The read above can now reject, and this promise is both awaited by the
-  // recovery flow and parked in the shared queue. Contain it exactly as
-  // updateSession does: skip the write, record the failure, settle — so the
-  // rejection neither fails recovery nor is chained onto by the next write.
-  const settled = queued.catch((error: unknown) => {
-    recordPersistenceFailure({ area: "session", operation: "update", key: counter.key }, error);
+
+// The public counter also counts requests this worker started, which the
+// in-memory expected-download list already claims. Only a request inherited
+// from a worker that died mid-handoff is unknowable here, and the lease holds
+// exactly that number; outside it an unclaimed item is not ours.
+export const claimInheritedPendingDownload = (): Promise<boolean> =>
+  queueOnPendingCounter(PENDING_DOWNLOADS_SESSION_KEY, false, async () => {
+    const [pendingStored, current] = await Promise.all([
+      readSessionToUpdate(extensionSessionStorage, PENDING_DOWNLOADS_SESSION_KEY),
+      readRecovery(),
+    ]);
+    const pending = normalizeSessionCounter(pendingStored[PENDING_DOWNLOADS_SESSION_KEY]);
+    if (!current || current.pendingDownloads === 0 || pending === 0) return false;
+    await setSession(
+      extensionSessionStorage,
+      {
+        [PENDING_DOWNLOADS_SESSION_KEY]: pending - 1,
+        [NOTIFICATION_RECOVERY_SESSION_KEY]: {
+          ...current,
+          pendingDownloads: current.pendingDownloads - 1,
+        },
+      },
+      `${PENDING_DOWNLOADS_SESSION_KEY},${NOTIFICATION_RECOVERY_SESSION_KEY}`,
+    );
+    return true;
   });
-  sessionWriteState.queues.set(counter.key, settled);
-  void settled.finally(() => {
-    if (sessionWriteState.queues.get(counter.key) === settled) {
-      sessionWriteState.queues.delete(counter.key);
-    }
-  });
-  return settled;
-};
 
 const queueAllPendingRecovery = async (expected: NotificationRecovery): Promise<void> => {
   // Serialize the two writes because both also update the shared lease record.

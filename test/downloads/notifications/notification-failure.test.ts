@@ -5,6 +5,7 @@ import {
   Log,
   loadNotification,
   adoptedIds,
+  seedInheritedPending,
   setupGlobals,
 } from "./session.fixture.ts";
 
@@ -212,7 +213,7 @@ describe("automatic fetch fallback gating", () => {
     onCreated = createdHandler;
     onChanged = changedHandler;
 
-    sessionStore.siPendingDownloads = 1;
+    seedInheritedPending(sessionStore, 1);
     await onCreated({
       id: 7,
       byExtensionId: "save-in",

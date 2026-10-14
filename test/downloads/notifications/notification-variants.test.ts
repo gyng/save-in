@@ -8,6 +8,7 @@ import {
   retryHolder,
   loadNotification,
   adoptedIds,
+  seedInheritedPending,
   setupGlobals,
 } from "./session.fixture.ts";
 
@@ -35,7 +36,7 @@ describe("notification variants", () => {
   };
 
   const startTracked = async (item: Record<string, any>) => {
-    sessionStore.siPendingDownloads = 1;
+    seedInheritedPending(sessionStore, 1);
     await onCreated(Object.assign({ byExtensionId: "save-in" }, item));
   };
 
