@@ -59,7 +59,8 @@ export const detectCapabilities = (currentBrowser: string): WebExtensionCapabili
   downloadDeltaFilename: currentBrowser === BROWSERS.CHROME,
   // Chrome has supported the "prompt" conflict action since 28; Firefox has
   // never implemented it and fails the download outright, which is what #89
-  // and #217 reported. The schema downgrades an imported prompt on Firefox.
+  // and #217 reported. Save In emulates prompt on Firefox through rename
+  // detection instead (see conflictRenameDetection).
   conflictActionPrompt: currentBrowser === BROWSERS.CHROME,
   // Firefox names the item in its uniquified "name(N).ext" form before
   // downloads.download resolves (measured on 140 and 158), so Save In can see a
