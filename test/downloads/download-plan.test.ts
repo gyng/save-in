@@ -364,6 +364,31 @@ describe("fetch rewrite", () => {
     expect(state.info.protectedFetchReferer).toBe("https://gallery.example/view");
   });
 
+  test("names a rewritten page blob after the fetched URL, not the discarded blob", async () => {
+    fetchMatch("routed/:filename:", "https://mirror.example/orig.png");
+    const state = makeState({
+      scratch: { syntheticSuggestedFilename: true },
+      info: { url: "blob:https://page.example/uuid", suggestedFilename: "uuid.png" },
+    });
+
+    const plan = await Download.resolveDownloadPlan(state);
+
+    expect(state.info.suggestedFilename).toBeUndefined();
+    expect(state.info.initialFilename).toBe("orig.png");
+    expect(plan?.finalFullPath).toBe("downloads/routed/orig.png");
+  });
+
+  test("keeps a page-supplied suggested name across a fetch rewrite", async () => {
+    fetchMatch("routed/:filename:", "https://mirror.example/orig.png");
+    const state = makeState({
+      info: { url: "https://cdn.example/small.png", suggestedFilename: "chosen.png" },
+    });
+
+    const plan = await Download.resolveDownloadPlan(state);
+
+    expect(plan?.finalFullPath).toBe("downloads/routed/chosen.png");
+  });
+
   test("falls back to the rewritten URL as the name when it has no path filename", async () => {
     fetchMatch("routed/:naivefilename:", "https://mirror.example/");
     const state = makeState({ info: { url: "https://cdn.example/small.png" } });

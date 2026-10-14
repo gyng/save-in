@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { servePageBlob } from "../../src/content/page-blob.ts";
-import { readPageBlob } from "../../src/downloads/page-blob.ts";
+import { preparePageBlob, readPageBlob } from "../../src/downloads/page-blob.ts";
+import type { DownloadPipelineState } from "../../src/downloads/download-types.ts";
 import {
   PAGE_BLOB_CHUNK_BYTES,
   PAGE_BLOB_PORT,
@@ -171,6 +172,23 @@ describe("page-owned blob transfer", () => {
     );
     client.onMessage.emit({ type: "chunk", data: "A".repeat(PAGE_BLOB_CHUNK_BYTES * 2) }, client);
     await result;
+  });
+
+  test("marks a MIME-derived name as synthetic so a fetch rewrite can drop it", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("x", { headers: { "Content-Type": "image/png" } })),
+    );
+    const state: DownloadPipelineState = {
+      path: { finalize: () => "", toString: () => "" },
+      scratch: {},
+      info: { url, currentTab: { id: 12 } },
+    };
+
+    await preparePageBlob(state);
+
+    expect(state.info.suggestedFilename).toBe("image-id.png");
+    expect(state.scratch.syntheticSuggestedFilename).toBe(true);
   });
 
   test("refuses a caller outside this extension", async () => {

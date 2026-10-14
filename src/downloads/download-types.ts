@@ -43,6 +43,9 @@ export type DownloadScratch = {
   deferredRouteRequirement?: boolean | undefined;
   deferredRoutingResolution?: true | undefined;
   sourceSidecar?: SourceSidecarRequest | undefined;
+  // suggestedFilename was derived from the fetched resource, not supplied by
+  // the page, so a fetch: rewrite must not carry it to the new URL.
+  syntheticSuggestedFilename?: true | undefined;
 };
 
 export type DownloadPipelineState = {

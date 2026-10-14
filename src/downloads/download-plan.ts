@@ -116,6 +116,10 @@ export const applyFetchRewrite = async (
   if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
     downloadRuntime.movePendingState(state, rewrittenUrl);
   }
+  if (state.scratch.syntheticSuggestedFilename) {
+    delete state.info.suggestedFilename;
+    delete state.scratch.syntheticSuggestedFilename;
+  }
   state.info = retargetDownloadInfo(state.info, rewrittenUrl);
   resolveRefererState(state);
 };

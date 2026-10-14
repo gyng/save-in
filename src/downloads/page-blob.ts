@@ -132,6 +132,7 @@ export const preparePageBlob = (state: DownloadPipelineState): Promise<void> | u
     const extension = mimeToExtension(content.blob.type);
     if (!info.suggestedFilename && extension) {
       info.suggestedFilename = `${url.slice(url.lastIndexOf("/") + 1)}.${extension}`;
+      state.scratch.syntheticSuggestedFilename = true;
     }
   });
 };
