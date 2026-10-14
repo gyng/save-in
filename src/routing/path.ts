@@ -72,6 +72,7 @@ const RESERVED_SHELL_FILE_REGEX = /^(desktop\.ini|thumbs\.db)$/i;
 // suffix: a same-length edit cannot be undone by a later byte-limit
 // truncation, and the original extension stays readable.
 const SHELL_INTEGRATED_EXTENSION_REGEX = /\.(lnk|local|\{[^.]*\})$/i;
+const DELETE_AND_C1_CONTROLS_REGEX = /[\x7f-\x9f]/g;
 const SEPARATOR_REGEX_INCLUSIVE = /([/\\])/g;
 // A destination ending in a separator names a folder and keeps the download's
 // own name. It must accept every separator the line above splits on, or the
@@ -170,6 +171,14 @@ function defuseShellIntegratedExtension(value: string) {
   return value.replace(SHELL_INTEGRATED_EXTENSION_REGEX, (extension) => `_${extension.slice(1)}`);
 }
 
+// Only the rules added after 4.1.0; see acceptStoredPath.
+function neutralizeBrowserRefusals(value: string) {
+  const controlsReplaced = value.replace(DELETE_AND_C1_CONTROLS_REGEX, () => replacementChar());
+  return defuseShellIntegratedExtension(
+    neutralizeReservedDeviceName(removeUnsafeInvisibleChars(controlsReplaced)),
+  );
+}
+
 export function sanitizeFilename(
   value: null,
   max?: number,
@@ -251,21 +260,28 @@ const EXPLICIT_RELATIVE_PREFIX_REGEX = /^\.[/\\]/;
 // paths can hold e.g. "./Archive " or "./.hidden". Validation is stricter now,
 // but such a stored value must keep working rather than silently vanish from
 // the menu, so it is accepted as the sanitized path 4.1.0 actually saved to.
-// An unknown variable stays an error: that is a reported typo, not a component
-// the browser would have repaired.
+// Any stored path likewise survives the later Chrome-refusal rules (C1 and
+// format characters, CLOCK$, desktop.ini, .lnk/.local), which 4.1.0 accepted.
+// Everything 4.1.0 already rejected stays an error, and an unknown variable
+// is a reported typo, not a component the browser would have repaired.
 export function acceptStoredPath(path: string): { path: string; validation: PathValidation } {
   const validation = new Path(path).validate();
   if (validation.valid || validation.error !== undefined) return { path, validation };
-  if (!EXPLICIT_RELATIVE_PREFIX_REGEX.test(path)) return { path, validation };
+  const relative = EXPLICIT_RELATIVE_PREFIX_REGEX.test(path);
   const buf = parsePathStr(path);
-  const sanitized = buf
+  const candidate = buf
     .map((item, index) => {
-      if (index === 0 || item.type !== PATH_SEGMENT_TYPES.STRING) return item.val;
+      if (item.type !== PATH_SEGMENT_TYPES.STRING) return item.val;
+      if (!relative) return neutralizeBrowserRefusals(item.val);
+      if (index === 0) return item.val;
       const startsComponent = buf[index - 1]?.type === PATH_SEGMENT_TYPES.SEPARATOR;
       return sanitizeFilename(item.val, 0, startsComponent);
     })
     .join("");
-  return { path: sanitized, validation: new Path(sanitized).validate() };
+  const candidateValidation = new Path(candidate).validate();
+  return candidateValidation.valid
+    ? { path: candidate, validation: candidateValidation }
+    : { path, validation };
 }
 
 export function parsePathStr(pathInput: PathInput = "") {

@@ -574,7 +574,16 @@ describe("Path.validate", () => {
     expect(new Path.Path(accepted).finalize()).toBe(new Path.Path(path).finalize());
   });
 
-  test.each(["Archive ", "../escape", "./Photos/:domian:"])(
+  test.each([
+    ["nas.local/Thumbs.db", "nas_local/_Thumbs.db"],
+    ["CLOCK$/:year:", "_CLOCK$/:year:"],
+    ["a\u0085b/؀Docs", "a_b/Docs"],
+  ])("accepts the stored path %j that 4.1.0 accepted as %j", (path, accepted) => {
+    expect(new Path.Path(path).validate().valid).toBe(false);
+    expect(Path.acceptStoredPath(path)).toEqual({ path: accepted, validation: { valid: true } });
+  });
+
+  test.each(["Archive ", "<invalid>", "nas.local/a?b", "../escape", "./Photos/:domian:"])(
     "keeps rejecting %j, which 4.1.0 also rejected or reports as a typo",
     (path) => {
       const accepted = Path.acceptStoredPath(path);
