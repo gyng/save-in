@@ -46,6 +46,8 @@ jobs:
       - name: Stage bundled extension
         run: npm run stage:bundled
 
+      - uses: ./.github/actions/current-firefox
+
       - name: Unit, type, lint, and browser gates
         run: |
           npm run test:coverage

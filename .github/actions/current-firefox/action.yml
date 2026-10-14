@@ -1,0 +1,23 @@
+name: Current Firefox
+description: Download a pinned current Firefox for the e2e gates and export FIREFOX_PATH.
+
+# The runner image ships Firefox 157, whose WebDriver BiDi refuses
+# input.performActions on extension pages ("privileged scope"); 158 fixed it.
+# Both the CI and release gates use this action so they cannot drift apart.
+# Drop it, and its uses, once the image ships 158 or later.
+runs:
+  using: composite
+  steps:
+    - name: Download Firefox 158
+      shell: bash
+      run: |
+        dir="$RUNNER_TEMP/save-in-current-firefox"
+        mkdir -p "$dir"
+        curl --fail --location --retry 3 \
+          https://archive.mozilla.org/pub/firefox/releases/158.0/linux-x86_64/en-US/firefox-158.0.tar.xz \
+          --output "$dir/firefox.tar.xz"
+        echo "9549b054ec4cf85f50f6a19d8c6fb79580312e71ebc4ec2cb217ec9af09dc12a  $dir/firefox.tar.xz" \
+          | sha256sum --check --strict
+        tar -xJf "$dir/firefox.tar.xz" -C "$dir"
+        "$dir/firefox/firefox" --version
+        echo "FIREFOX_PATH=$dir/firefox/firefox" >> "$GITHUB_ENV"

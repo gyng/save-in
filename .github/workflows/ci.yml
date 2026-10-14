@@ -90,26 +90,13 @@ jobs:
           cache: npm
       - name: Install pinned dependencies
         run: npm ci
-      # The runner image ships Firefox 157, whose WebDriver BiDi refuses
-      # input.performActions on extension pages ("privileged scope"); 158
-      # fixed it. Drop this download once the image ships 158 or later.
-      - name: Download current Firefox
-        run: |
-          mkdir -p /tmp/save-in-current-firefox
-          curl --fail --location --retry 3 \
-            https://archive.mozilla.org/pub/firefox/releases/158.0/linux-x86_64/en-US/firefox-158.0.tar.xz \
-            --output /tmp/save-in-current-firefox/firefox.tar.xz
-          echo "9549b054ec4cf85f50f6a19d8c6fb79580312e71ebc4ec2cb217ec9af09dc12a  /tmp/save-in-current-firefox/firefox.tar.xz" \
-            | sha256sum --check --strict
-          tar -xJf /tmp/save-in-current-firefox/firefox.tar.xz -C /tmp/save-in-current-firefox
+      - uses: ./.github/actions/current-firefox
       - name: Record browser versions
         run: |
           google-chrome --version
-          /tmp/save-in-current-firefox/firefox/firefox --version
+          "$FIREFOX_PATH" --version
       - name: Chrome and Firefox e2e
         id: e2e
-        env:
-          FIREFOX_PATH: /tmp/save-in-current-firefox/firefox/firefox
         # GitHub's 2-vCPU runners cannot reliably start both browser lifecycle
         # suites while their memory cases compete for the same machine. Keep the
         # browsers serial here, as they are in the release gate. Retry a whole
