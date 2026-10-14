@@ -4,6 +4,18 @@ import { createHash } from "node:crypto";
 import { expect } from "vitest";
 import { closeLocal, decodeString, listenLocal, requireValue } from "./helpers.mjs";
 
+const png = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a9FEAAAAASUVORK5CYII=",
+  "base64",
+);
+
+/** @param {Buffer} content */
+const blobImageScript = (content) => `<script>
+  document.querySelector('#image').src = URL.createObjectURL(new Blob([
+    Uint8Array.from(atob('${content.toString("base64")}'), c => c.charCodeAt(0))
+  ], {type: 'image/png'}));
+</script>`;
+
 /**
  * @param {{
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
@@ -11,20 +23,25 @@ import { closeLocal, decodeString, listenLocal, requireValue } from "./helpers.m
  * }} adapters
  */
 export const runPageBlobScenario = async ({ control, evaluatePage }) => {
-  const png = Buffer.from(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a9FEAAAAASUVORK5CYII=",
-    "base64",
-  );
   // Trailing bytes keep the PNG displayable while exercising several port chunks.
   const content = Buffer.concat([png, Buffer.alloc(150_000, 7)]);
   const hash = createHash("sha256").update(content).digest("hex");
+  // A cross-origin iframe owns its own blob, which only that frame can read.
+  const frameContent = Buffer.concat([png, Buffer.alloc(70_000, 9)]);
+  const frameHash = createHash("sha256").update(frameContent).digest("hex");
+  const frameServer = http.createServer((_request, response) => {
+    response.writeHead(200, { "Content-Type": "text/html" });
+    response.end(`<img id="image">${blobImageScript(frameContent)}<script>
+      parent.postMessage(document.querySelector('#image').src, '*');
+    </script>`);
+  });
+  const framePort = await listenLocal(frameServer);
+  const frameUrl = `http://127.0.0.1:${framePort}/child-blob`;
   const server = http.createServer((_request, response) => {
     response.writeHead(200, { "Content-Type": "text/html" });
-    response.end(`<img id="image"><script>
-      document.querySelector('#image').src = URL.createObjectURL(new Blob([
-        Uint8Array.from(atob('${content.toString("base64")}'), c => c.charCodeAt(0))
-      ], {type: 'image/png'}));
-    </script>`);
+    response.end(`<img id="image">${blobImageScript(content)}<script>
+      addEventListener('message', (event) => { document.body.dataset.frameBlob = event.data; });
+    </script><iframe src="${frameUrl}"></iframe>`);
   });
   const port = await listenLocal(server);
   const pageUrl = `http://127.0.0.1:${port}/page-blob`;
@@ -70,8 +87,36 @@ export const runPageBlobScenario = async ({ control, evaluatePage }) => {
         `fetch(document.querySelector('#image').src).then(r => r.blob()).then(b => b.size)`,
       ),
     ).toBe(content.length);
+
+    // The frame announces itself only after its own script posted the URL.
+    const frameId = await control.tabs.waitFrame({ id: tabId, urlIncludes: "/child-blob" });
+    const frameBlobUrl = decodeString(
+      await evaluatePage(pageUrl, "document.body.dataset.frameBlob"),
+    );
+    await control.background.clickContextMenu({
+      info: {
+        menuItemId: "save-in-0",
+        frameId,
+        frameUrl,
+        pageUrl,
+        srcUrl: frameBlobUrl,
+        mediaType: "image",
+      },
+      tab: { id: tabId, url: pageUrl, title: "Page blob" },
+    });
+    const frameRows = await control.downloads.wait({
+      filenameIncludes: `${frameHash}-`,
+      minimumComplete: 1,
+      timeoutMs: 10000,
+    });
+    const frameSaved = requireValue(
+      frameRows.find((row) => row.state === "complete"),
+      "Subframe blob download missing",
+    );
+    expect(fs.readFileSync(frameSaved.filename)).toEqual(frameContent);
   } finally {
     if (tabId !== undefined) await control.tabs.remove(tabId).catch(() => {});
     await closeLocal(server);
+    await closeLocal(frameServer);
   }
 };

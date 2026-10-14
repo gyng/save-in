@@ -32,6 +32,8 @@ const bundleFiles = [
   "offscreen.js.map",
   "options.js",
   "options.js.map",
+  "page-blob.js",
+  "page-blob.js.map",
   "reference-page.js",
   "reference-page.js.map",
   ...(expectE2EControl ? ["e2e-control.js", "e2e-control.js.map"] : []),
@@ -129,6 +131,10 @@ const stageBundledPackage = () => {
   ) {
     throw new Error("Unexpected content panel shadow mode");
   }
+  const pageBlobBundle = fs.readFileSync(path.join(bundleDir, "page-blob.js"), "utf8");
+  if (pageBlobBundle.includes("SAVE_IN_E2E_FRAME_READY") !== expectE2EControl) {
+    throw new Error("Unexpected page-blob frame announcement surface");
+  }
 
   // 2. Stage only declared runtime assets. Original TypeScript and editable
   // design sources belong in the separate AMO source attachment, not in the
@@ -161,6 +167,7 @@ const stageBundledPackage = () => {
     service_worker: "background.sw.js",
   };
   manifest.content_scripts[0].js = ["content.js"];
+  manifest.content_scripts[1].js = ["page-blob.js"];
   fs.writeFileSync(path.join(out, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
 
   // 5. Rewrite the entry pages to load their single bundle instead of the many

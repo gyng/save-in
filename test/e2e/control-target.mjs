@@ -4,3 +4,4 @@ export const CONTROL_FUNCTION =
 export const CONTROL_READY_EXPRESSION =
   'document.readyState === "complete" && typeof globalThis.__saveInE2EControl === "function"';
 export const CONTENT_READY_MESSAGE_TYPE = "SAVE_IN_E2E_CONTENT_READY";
+export const FRAME_READY_MESSAGE_TYPE = "SAVE_IN_E2E_FRAME_READY";

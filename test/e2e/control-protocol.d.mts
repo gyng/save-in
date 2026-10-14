@@ -391,6 +391,7 @@ export type ControlRequest =
   | { operation: "tabs.reload"; id: number }
   | { operation: "tabs.remove"; ids: number | number[] }
   | { operation: "tabs.sendMessage"; id: number; message: Record<string, unknown> }
+  | { operation: "tabs.waitFrame"; id: number; urlIncludes: string; timeoutMs?: number }
   | { operation: "windows.create"; properties: chrome.windows.CreateData }
   | { operation: "windows.remove"; id: number }
   | { operation: "notifications.getAll" }
@@ -440,6 +441,7 @@ export interface ControlResultMap {
   "tabs.reload": null;
   "tabs.remove": null;
   "tabs.sendMessage": unknown;
+  "tabs.waitFrame": number;
   "windows.create": WindowEntry;
   "windows.remove": null;
   "notifications.getAll": Record<string, unknown>;

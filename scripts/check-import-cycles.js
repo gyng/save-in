@@ -393,6 +393,7 @@ const listenerOwners = new Set([
   "src/downloads/filename-listener.ts",
   "src/downloads/notification.ts",
   "src/entries/offscreen.ts",
+  "src/entries/page-blob.ts",
   "src/offscreen/offscreen.ts",
   "src/options/core/options.ts",
   "src/options/ui/permissions-banner.ts",

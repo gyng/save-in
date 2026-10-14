@@ -55,6 +55,21 @@ check(
   JSON.stringify(manifest.content_scripts?.[0]?.js) === JSON.stringify(["content.js"]),
   "manifest content script template must target content.js",
 );
+check(
+  JSON.stringify(manifest.content_scripts?.[1]) ===
+    JSON.stringify({
+      matches: ["<all_urls>"],
+      js: ["page-blob.js"],
+      all_frames: true,
+      match_about_blank: true,
+      match_origin_as_fallback: true,
+    }),
+  "manifest must serve page blobs, and only page blobs, from every frame",
+);
+check(
+  manifest.content_scripts?.[0]?.all_frames !== true,
+  "the full content script must stay out of subframes",
+);
 
 const optionsHtml = read("src/options/options.html");
 check(
@@ -254,6 +269,7 @@ for (const name of [
   "background.js",
   "background.sw.js",
   "content.js",
+  "page-blob.js",
   "options.js",
   "offscreen.js",
   "src/options/options.html",

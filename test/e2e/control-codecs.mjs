@@ -138,6 +138,9 @@ export const decodeControlResult = (request, value) => {
     case "tabs.sendMessage":
       valid = true;
       break;
+    case "tabs.waitFrame":
+      valid = typeof value === "number" && Number.isSafeInteger(value) && value > 0;
+      break;
     case "notifications.clear":
     case "offscreen.hasDocument":
       valid = typeof value === "boolean";

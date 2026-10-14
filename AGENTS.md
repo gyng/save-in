@@ -12,8 +12,9 @@ the deeper contracts it links to throughout.
 **The code is ESM + TypeScript, shipped as readable, non-minified bundles.**
 `config/rolldown.config.mjs` transpiles and scope-hoists each target into one file under
 `dist/bundled/`. Production entries live in `src/entries/` for background,
-options, offscreen, and reference-page targets; the content script is bundled
-directly from `src/content/content.ts`. `background.e2e.ts` imports the
+options, offscreen, reference-page, and the all-frames page-blob content
+script; the main content script is bundled directly from
+`src/content/content.ts`. `background.e2e.ts` imports the
 production background entry and adds the browser-test command only to e2e
 builds.
 
@@ -63,7 +64,9 @@ Execution contexts:
   feature directories): menus, download pipeline, messaging hub.
 - **Content script** (`src/content/content.ts`): runs in every page;
   click-to-save and service-worker prewarming. Has no polyfill — uses
-  callback-style `chrome.*` APIs, which work in both browsers.
+  callback-style `chrome.*` APIs, which work in both browsers. Top frame
+  only; `src/entries/page-blob.ts` is the separate, minimal script that runs
+  in every frame to serve page-owned `blob:` bytes to the background.
 - **Options page** (`src/options/*`): talks to the background exclusively
   via `runtime.sendMessage` (never `getBackgroundPage()`, which MV3 lacks).
 - **Offscreen document** (`src/offscreen/offscreen.ts`, `src/offscreen.html`):

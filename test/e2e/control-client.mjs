@@ -4,6 +4,7 @@ import {
   CONTENT_READY_MESSAGE_TYPE,
   CONTROL_FUNCTION,
   CONTROL_PAGE_PATH,
+  FRAME_READY_MESSAGE_TYPE,
 } from "./control-target.mjs";
 
 /** @typedef {import("./control-protocol.mjs").ControlOperation} ControlOperation */
@@ -129,6 +130,13 @@ export const dispatchControlRequest = async (
         );
       case "tabs.sendMessage":
         return typeof value.id === "number" && isRecord(value.message);
+      case "tabs.waitFrame":
+        return (
+          typeof value.id === "number" &&
+          typeof value.urlIncludes === "string" &&
+          value.urlIncludes.length > 0 &&
+          hasOptionalTimeout(value, "timeoutMs")
+        );
       case "windows.create":
         return isRecord(value.properties);
       case "windows.remove":
@@ -358,6 +366,45 @@ export const dispatchControlRequest = async (
       browserApi.storage.onChanged.addListener(onChanged);
       timeout.addEventListener("abort", onTimeout, { once: true });
       void check().catch((error) => finish(() => reject(error)));
+    });
+
+  // Only a frame's own message reveals its extension frame ID. Listen first,
+  // then ask loaded frames to announce; a frame still loading announces itself.
+  /** @param {{id: number, urlIncludes: string, timeoutMs?: number}} match */
+  const waitForFrame = ({ id, urlIncludes, timeoutMs = 8000 }) =>
+    new Promise((resolve, reject) => {
+      const timeout = AbortSignal.timeout(timeoutMs);
+      let settled = false;
+      /** @param {() => void} callback */
+      const finish = (callback) => {
+        if (settled) return;
+        settled = true;
+        browserApi.runtime.onMessage.removeListener(onMessage);
+        timeout.removeEventListener("abort", onTimeout);
+        callback();
+      };
+      /** @param {unknown} message @param {chrome.runtime.MessageSender} sender */
+      const onMessage = (message, sender) => {
+        if (
+          !isRecord(message) ||
+          message.type !== FRAME_READY_MESSAGE_TYPE ||
+          sender.tab?.id !== id ||
+          typeof sender.frameId !== "number" ||
+          !sender.url?.includes(urlIncludes)
+        ) {
+          return;
+        }
+        const { frameId } = sender;
+        finish(() => resolve(frameId));
+      };
+      const onTimeout = () =>
+        finish(() =>
+          reject(new Error(`Timed out waiting for frame: ${JSON.stringify({ id, urlIncludes })}`)),
+        );
+      browserApi.runtime.onMessage.addListener(onMessage);
+      timeout.addEventListener("abort", onTimeout, { once: true });
+      // No frame answers this broadcast; each one replies by announcing.
+      browserApi.tabs.sendMessage(id, { type: FRAME_READY_MESSAGE_TYPE }).catch(() => {});
     });
 
   /** @param {{id?: number, urlIncludes?: string, status?: string, timeoutMs?: number}} match */
@@ -745,6 +792,9 @@ export const dispatchControlRequest = async (
       case "tabs.sendMessage":
         result = await sendToTab(request.id, request.message);
         break;
+      case "tabs.waitFrame":
+        result = await waitForFrame(request);
+        break;
       case "windows.create":
         result = await browserApi.windows.create(request.properties);
         break;
@@ -846,6 +896,7 @@ export const controlRetryMode = (request) => {
       "downloads.waitReleased",
       "tabs.query",
       "tabs.wait",
+      "tabs.waitFrame",
       "notifications.getAll",
       "dnr.getSessionRules",
       "offscreen.hasDocument",
@@ -1106,6 +1157,9 @@ export const createE2EControlClient = ({ callFunction }) => {
       remove: (ids) => call({ operation: "tabs.remove", ids }),
       /** @param {number} id @param {Record<string, unknown>} message */
       sendMessage: (id, message) => call({ operation: "tabs.sendMessage", id, message }),
+      /** @param {{id: number, urlIncludes: string, timeoutMs?: number}} match */
+      waitFrame: (match) =>
+        call({ operation: "tabs.waitFrame", ...match }, (match.timeoutMs ?? 8000) + 2000),
       /** @param {number} id */
       waitContentReady: async (id) => {
         const response = await call({

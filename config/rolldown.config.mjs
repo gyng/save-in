@@ -93,6 +93,22 @@ export default defineConfig([
       sourcemap: true,
     },
   },
+  // The all-frames page-blob server is a second isolated content script.
+  {
+    input: "src/entries/page-blob.ts",
+    transform: {
+      define: {
+        SAVE_IN_CONTENT_E2E: JSON.stringify(e2eBuild),
+      },
+    },
+    output: {
+      file: `${bundleDir}/page-blob.js`,
+      format: "iife",
+      name: "__saveInPageBlob",
+      minify: false,
+      sourcemap: true,
+    },
+  },
   {
     input: "src/entries/reference-page.ts",
     output: {
