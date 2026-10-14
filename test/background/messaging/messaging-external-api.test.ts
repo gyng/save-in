@@ -8,8 +8,10 @@ import {
   onMessage,
   onMessageExternal,
   setupGlobals,
+  trackedTab,
   waitForCall,
 } from "./messaging.fixture.ts";
+import { setCurrentTab } from "../../../src/platform/current-tab.ts";
 
 beforeEach(() => setupGlobals());
 
@@ -145,6 +147,109 @@ describe("external DOWNLOAD API v1", () => {
     await waitForCall(sendResponse);
     expect(ExternalDownloadRejections.record).not.toHaveBeenCalled();
     expect(Notifier.reportExternalDownloadRejection).not.toHaveBeenCalled();
+  });
+
+  describe("private tabs", () => {
+    const privateTab = {
+      id: 5,
+      title: "Private",
+      url: "https://private.example/",
+      incognito: true,
+    };
+    const errorBody = (error: string) => ({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: { status: MESSAGE_TYPES.ERROR, error, message: expect.any(String), version: 1 },
+    });
+
+    test("refuses a private active tab without echoing its URL", async () => {
+      vi.mocked(global.browser.tabs.query).mockResolvedValueOnce([privateTab] as any);
+      const sendResponse = vi.fn();
+
+      expect(
+        onMessageExternal(
+          download({ target: "activeTab" }),
+          { id: "trusted-extension" },
+          sendResponse,
+        ),
+      ).toBe(true);
+      await waitForCall(sendResponse);
+
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+      expect(sendResponse).toHaveBeenCalledWith(errorBody("BAD_REQUEST"));
+      expect(JSON.stringify(sendResponse.mock.calls)).not.toContain("private.example");
+    });
+
+    test("does not attribute a tabless request to a private tracked tab", async () => {
+      setCurrentTab(privateTab);
+      const sendResponse = vi.fn();
+
+      onMessageExternal(
+        download({ url: "https://x/f.png" }),
+        { id: "trusted-extension" },
+        sendResponse,
+      );
+      await waitForCall(sendResponse);
+
+      expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.currentTab).toBeNull();
+    });
+
+    test("still attributes a tabless request to a regular tracked tab", async () => {
+      const sendResponse = vi.fn();
+
+      onMessageExternal(
+        download({ url: "https://x/f.png" }),
+        { id: "trusted-extension" },
+        sendResponse,
+      );
+      await waitForCall(sendResponse);
+
+      expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.currentTab).toBe(
+        trackedTab,
+      );
+    });
+
+    test("refuses a blob URL that is not tied to the caller's tab", async () => {
+      const sendResponse = vi.fn();
+
+      onMessageExternal(
+        download({ url: "BLOB:https://x/0b8c" }),
+        { id: "trusted-extension" },
+        sendResponse,
+      );
+      await waitForCall(sendResponse);
+
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+      expect(sendResponse).toHaveBeenCalledWith(errorBody("INVALID_URL"));
+    });
+
+    test("accepts a blob URL that is the selected active tab's page", async () => {
+      const activeTab = { id: 7, url: "blob:https://x/0b8c", incognito: false };
+      vi.mocked(global.browser.tabs.query).mockResolvedValueOnce([activeTab] as any);
+      const sendResponse = vi.fn();
+
+      onMessageExternal(
+        download({ target: "activeTab" }),
+        { id: "trusted-extension" },
+        sendResponse,
+      );
+      await waitForCall(sendResponse);
+
+      expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.currentTab).toBe(activeTab);
+    });
+
+    test("accepts a blob URL from the caller's own tab", async () => {
+      const callerTab = { id: 6, url: "https://x/", incognito: false };
+      const sendResponse = vi.fn();
+
+      onMessageExternal(
+        download({ url: "blob:https://x/0b8c" }),
+        { id: "trusted-extension", tab: callerTab },
+        sendResponse,
+      );
+      await waitForCall(sendResponse);
+
+      expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.currentTab).toBe(callerTab);
+    });
   });
 
   test("matches external extension ids as trimmed, exact allowlist lines", async () => {

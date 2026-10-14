@@ -435,6 +435,7 @@ export const handleDownloadMessage = (
   sender: MessageSender,
   sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.DOWNLOAD>>,
   internal = false,
+  external = false,
 ): Promise<void> | void => {
   const requestBody = request.body || {};
   const { url: requestedUrl, target, comment } = requestBody;
@@ -448,11 +449,17 @@ export const handleDownloadMessage = (
       type: MESSAGE_TYPES.DOWNLOAD,
       body: { status: MESSAGE_TYPES.ERROR, error, message, version },
     });
+  // Allowing an integration grants downloads, not private-tab access: an
+  // external caller never borrows a private tab it did not send from.
+  const ambientTab = (): CurrentTab | null =>
+    external && currentTab?.incognito === true ? null : currentTab;
   const launch = (
     url: string,
-    resolvedTab: CurrentTab | null = (sender && sender.tab) || currentTab,
+    selectedTab?: CurrentTab,
     postSaveActionTab: CurrentTab | null = internal ? sender.tab || null : null,
   ): Promise<void> | void => {
+    const tabTied = Boolean(selectedTab || sender.tab);
+    const resolvedTab = selectedTab || sender.tab || ambientTab();
     if (!isValidDownloadUrl(url)) {
       fail(API_ERRORS.INVALID_URL, "URL must be http(s), ftp, data or blob");
       return;
@@ -461,6 +468,13 @@ export const handleDownloadMessage = (
     // pipeline correlates pending saves by exact string, so a caller's
     // non-canonical spelling must not become the correlation key.
     url = withUrl(url, (parsed) => parsed.href, url);
+    // A blob URL is readable only through the document that created it. An
+    // external caller tied to no tab names no such document, and the ambient
+    // tab is merely whichever page the user last focused.
+    if (external && !tabTied && url.startsWith("blob:")) {
+      fail(API_ERRORS.INVALID_URL, "A blob URL must come from the calling tab");
+      return;
+    }
 
     // The external DOWNLOAD API may omit info
     const info = requestBody.info || {};
@@ -585,7 +599,9 @@ export const handleDownloadMessage = (
     .query({ active: true, lastFocusedWindow: true })
     .then((tabs) => {
       const tab = tabs[0];
-      if (!tab || !tab.url) {
+      // A private active tab answers exactly like a missing one, so the caller
+      // learns neither its URL nor that a private window has focus.
+      if (!tab || !tab.url || (external && tab.incognito === true)) {
         fail(API_ERRORS.BAD_REQUEST, "No active tab with a URL was found");
         return;
       }
