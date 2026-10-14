@@ -628,6 +628,10 @@ describe("Path.validate", () => {
     ["./con.txt", "./_con.txt"],
     ["./../up", "./_/up"],
     [".\\bad?name/:year:", "./bad_name/:year:"],
+    // Only the component with a real edge problem changes.
+    ["./Pics - :date:/Archive ", "./Pics - :date:/Archive"],
+    ["./a~:date:/CON:date:/b ", "./a~:date:/CON:date:/b"],
+    ["./:year:\u200b\u200b", "./:year:"],
   ])("accepts the stored 4.1.0 relative path %j as %j", (path, accepted) => {
     expect(Path.acceptStoredPath(path)).toEqual({ path: accepted, validation: { valid: true } });
     // Exactly what 4.1.0 saved to, since it sanitized these components at download time.
@@ -646,6 +650,23 @@ describe("Path.validate", () => {
     expect(Path.acceptStoredPath(path)).toEqual({ path: accepted, validation: { valid: true } });
     expect(new Path.Path(accepted).finalize()).toBe(new Path.Path(path).finalize());
   });
+
+  test.each(["Pics~:date:", ":date:~x", "./a~:date:", "Pics - :date:", "Pics.:date:", ":date: x"])(
+    "accepts %j as written, whose edge characters sit inside a component",
+    (path) => {
+      // finalize() joins a component before sanitizing it, so a tilde, space,
+      // or dot beside a variable is never at an edge.
+      expect(new Path.Path(path).validate()).toEqual({ valid: true });
+      expect(Path.acceptStoredPath(path).path).toBe(path);
+    },
+  );
+
+  test.each(["a/~:date:", ":date:~", "Pics :date:/ x"])(
+    "still rejects %j, whose edge character starts or ends a component",
+    (path) => {
+      expect(new Path.Path(path).validate().valid).toBe(false);
+    },
+  );
 
   test.each(["Archive ", "<invalid>", "nas.local/a?b", "../escape", "./Photos/:domian:"])(
     "keeps rejecting %j, which 4.1.0 also rejected or reports as a typo",

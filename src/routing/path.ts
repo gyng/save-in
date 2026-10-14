@@ -281,6 +281,27 @@ const EXPLICIT_RELATIVE_PREFIX_REGEX = /^\.[/\\]/;
 // 4.1.0 accepted.
 // Everything 4.1.0 already rejected stays an error, and an unknown variable
 // is a reported typo, not a component the browser would have repaired.
+// A STRING segment beside a variable is only part of a component, and the
+// edge rules (whitespace, dots, tildes, reserved names) apply to the component
+// finalize() joins, not to the segment. Pad the sides that do not touch a
+// separator with a letter that completes no reserved name or extension, so a
+// rule fires only at a real component edge.
+const COMPONENT_PAD = "x";
+function withinComponent(
+  buf: PathSegment[],
+  index: number,
+  value: string,
+  transform: (value: string) => string,
+): string {
+  const touchesEdge = (neighbour: PathSegment | undefined) =>
+    neighbour === undefined || neighbour.type === PATH_SEGMENT_TYPES.SEPARATOR;
+  const before = touchesEdge(buf[index - 1]) ? "" : COMPONENT_PAD;
+  const after = touchesEdge(buf[index + 1]) ? "" : COMPONENT_PAD;
+  // No rule rewrites an interior "x", so the pads come back where they went.
+  const transformed = transform(`${before}${value}${after}`);
+  return transformed.slice(before.length, transformed.length - after.length);
+}
+
 export function acceptStoredPath(path: string): { path: string; validation: PathValidation } {
   const validation = new Path(path).validate();
   if (validation.valid || validation.error !== undefined) return { path, validation };
@@ -289,10 +310,9 @@ export function acceptStoredPath(path: string): { path: string; validation: Path
   const candidate = buf
     .map((item, index) => {
       if (item.type !== PATH_SEGMENT_TYPES.STRING) return item.val;
-      if (!relative) return neutralizeBrowserRefusals(item.val);
+      if (!relative) return withinComponent(buf, index, item.val, neutralizeBrowserRefusals);
       if (index === 0) return item.val;
-      const startsComponent = buf[index - 1]?.type === PATH_SEGMENT_TYPES.SEPARATOR;
-      return sanitizeFilename(item.val, 0, startsComponent);
+      return withinComponent(buf, index, item.val, (value) => sanitizeFilename(value));
     })
     .join("");
   const candidateValidation = new Path(candidate).validate();
@@ -417,7 +437,10 @@ export class Path {
       // The Downloads-root marker is valid, but does not exempt the rest of
       // an explicitly relative path from variable and filename validation.
       if (index === 0 && item.val === ".") continue;
-      if (item.type === PATH_SEGMENT_TYPES.STRING && sanitizeFilename(item.val) !== item.val) {
+      if (
+        item.type === PATH_SEGMENT_TYPES.STRING &&
+        withinComponent(this.buf, index, item.val, (value) => sanitizeFilename(value)) !== item.val
+      ) {
         return {
           valid: false,
           message: routingPorts.getMessage("rulePathInvalidCharacter"),
