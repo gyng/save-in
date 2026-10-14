@@ -24,6 +24,12 @@ export const BrowserDownloadRouting: {
   route: (item: BrowserDownloadItem) => Promise<string | null>;
 } = { route: async () => null };
 
+// data: links stay out (#152), measured on Firefox 140 and 158. The download
+// is local, so it is already complete when this handler reaches cancel() ("is
+// already complete"), even for an 18-byte payload. Rerouting it would mean
+// deleting a file the browser has already finished, and possibly opened.
+// downloads.download also refuses a data: URL ("Access denied"); only an
+// object URL would work.
 export const isReroutableBrowserDownload = (item: BrowserDownloadItem): boolean => {
   try {
     const protocol = new URL(item.finalUrl || item.url).protocol;
