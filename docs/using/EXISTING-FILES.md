@@ -38,6 +38,10 @@ and either skips the save or opens the Save As dialog for the original name.
 - Only saves Save In names itself are checked. Ordinary browser downloads,
   saves where you already get a Save As dialog, and retries after a network
   failure keep the browser's behavior.
+- For saves to the top of Downloads, Firefox may open the dialog in the folder
+  you used last. Check the folder before you save: saving there leaves the
+  existing file alone and puts the new one in that other folder. Saves to a
+  folder inside Downloads always open in that folder.
 - A name Firefox shortens or cleans up for another reason, for example a very
   long name that leaves no room for `(1)`, is not treated as a conflict. The
   save then completes under Firefox's unique name, as with Create a unique name.

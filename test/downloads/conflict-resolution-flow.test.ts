@@ -176,6 +176,29 @@ describe("Ask each time, emulated on Firefox", () => {
     expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
   });
 
+  // Firefox opens the dialog in its last-used folder for a name without a
+  // separator, but rejects "./name" as an illegal filename (measured on 140
+  // and 158), so a save to the top of Downloads cannot pin the folder.
+  test.each([
+    [".", "file.png"],
+    ["Images", "Images/file.png"],
+  ])("asks with the requested name for folder %s", async (folder, filename) => {
+    vi.mocked(global.browser.downloads.download)
+      .mockResolvedValueOnce(101)
+      .mockResolvedValueOnce(102);
+
+    await Download.renameAndDownload(makeState({ path: { finalize: () => folder } }));
+
+    expect(
+      vi
+        .mocked(global.browser.downloads.download)
+        .mock.calls.map(([request]: any) => [request.saveAs, request.filename]),
+    ).toEqual([
+      [false, filename],
+      [true, filename],
+    ]);
+  });
+
   test("dismissing the dialog cancels the save without fetching or asking again", async () => {
     vi.mocked(global.browser.downloads.download).mockImplementation(async (request: any) => {
       if (request.saveAs) throw new Error("Download canceled by the user");
