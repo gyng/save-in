@@ -553,6 +553,18 @@
   "notificationPrivateFailureTitle": {
     "message": "Não foi possível salvar um item da navegação privativa."
   },
+  "pageBlobReloadPage": {
+    "message": "Não foi possível acessar a página que contém este arquivo. Recarregue a página e tente novamente."
+  },
+  "pageBlobUnavailable": {
+    "message": "A página não tem mais este arquivo. Ele pode ter sido removido ou ser uma transmissão de vídeo, que não pode ser salva."
+  },
+  "pageBlobTimedOut": {
+    "message": "A página demorou demais para fornecer este arquivo."
+  },
+  "pageBlobCopyFailed": {
+    "message": "Não foi possível copiar este arquivo da página."
+  },
   "notificationUndoSave": {
     "message": "Desfazer salvamento"
   },

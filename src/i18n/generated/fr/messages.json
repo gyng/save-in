@@ -553,6 +553,18 @@
   "notificationPrivateFailureTitle": {
     "message": "Un élément de navigation privée n’a pas pu être enregistré."
   },
+  "pageBlobReloadPage": {
+    "message": "Impossible de joindre la page qui contient ce fichier. Rechargez la page et réessayez."
+  },
+  "pageBlobUnavailable": {
+    "message": "La page ne contient plus ce fichier. Il a peut-être été supprimé, ou il s’agit d’un flux vidéo, qui ne peut pas être enregistré."
+  },
+  "pageBlobTimedOut": {
+    "message": "La page a mis trop de temps à fournir ce fichier."
+  },
+  "pageBlobCopyFailed": {
+    "message": "Impossible de copier ce fichier depuis la page."
+  },
   "notificationUndoSave": {
     "message": "Annuler l’enregistrement"
   },

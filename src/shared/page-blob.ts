@@ -3,6 +3,8 @@
 export const PAGE_BLOB_PORT = "SAVE_IN_PAGE_BLOB";
 export const PAGE_BLOB_CHUNK_BYTES = 64 * 1024;
 export const PAGE_BLOB_TIMEOUT_MS = 30_000;
+// An "error" message's reason when the page's blob itself cannot be read.
+export const PAGE_BLOB_UNAVAILABLE = "unavailable";
 
 export const isPageBlobUrl = (value: string, origin?: string): boolean => {
   try {

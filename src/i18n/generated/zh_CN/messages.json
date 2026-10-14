@@ -131,6 +131,18 @@
   "notificationPrivateFailureTitle": {
     "message": "无法保存隐私浏览项目。"
   },
+  "pageBlobReloadPage": {
+    "message": "无法连接到包含此文件的页面。请重新加载页面后重试。"
+  },
+  "pageBlobUnavailable": {
+    "message": "页面中已不再有此文件。它可能已被移除，或者是无法保存的视频流。"
+  },
+  "pageBlobTimedOut": {
+    "message": "页面提供此文件的时间过长。"
+  },
+  "pageBlobCopyFailed": {
+    "message": "无法从页面复制此文件。"
+  },
   "notificationUndoSave": {
     "message": "撤销保存"
   },

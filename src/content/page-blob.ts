@@ -3,7 +3,15 @@ import {
   PAGE_BLOB_CHUNK_BYTES,
   PAGE_BLOB_PORT,
   PAGE_BLOB_TIMEOUT_MS,
+  PAGE_BLOB_UNAVAILABLE,
 } from "../shared/page-blob.ts";
+
+// A revoked blob and a MediaSource URL both fail here; the page still holds
+// neither as readable bytes, so reloading cannot help.
+class UnreadableBlob extends Error {}
+const unreadable = (error: unknown): never => {
+  throw new UnreadableBlob(String(error));
+};
 
 export const servePageBlob = (port: chrome.runtime.Port): void => {
   if (port.name !== PAGE_BLOB_PORT) return;
@@ -54,8 +62,9 @@ export const servePageBlob = (port: chrome.runtime.Port): void => {
       // Fetch in the isolated content script: Firefox's background principal
       // cannot read the page's blob, even with host permission. Never revoke
       // the original URL; the page still owns and displays it.
-      const response = await fetch(url, { signal: controller.signal, credentials: "omit" });
-      const content = await response.blob();
+      const content = await fetch(url, { signal: controller.signal, credentials: "omit" })
+        .then((response) => response.blob())
+        .catch(unreadable);
       if (closed) return;
       blob = content;
       reply({ type: "metadata", size: blob.size, mime: blob.type });
@@ -65,7 +74,10 @@ export const servePageBlob = (port: chrome.runtime.Port): void => {
         return;
       }
       const bytes = new Uint8Array(
-        await blob.slice(offset, offset + PAGE_BLOB_CHUNK_BYTES).arrayBuffer(),
+        await blob
+          .slice(offset, offset + PAGE_BLOB_CHUNK_BYTES)
+          .arrayBuffer()
+          .catch(unreadable),
       );
       if (closed) return;
       offset += bytes.length;
@@ -83,8 +95,20 @@ export const servePageBlob = (port: chrome.runtime.Port): void => {
     }
     busy = true;
     resetTimeout();
-    void read(message).catch(() => {
-      if (!closed) close();
+    void read(message).catch((error: unknown) => {
+      if (closed) return;
+      // The background can only explain a failure this script reports; a bare
+      // disconnect means no current content script answered. It disconnects
+      // on receipt, so the report never races this side's own disconnect.
+      cleanup();
+      try {
+        port.postMessage({
+          type: "error",
+          ...(error instanceof UnreadableBlob ? { reason: PAGE_BLOB_UNAVAILABLE } : {}),
+        });
+      } catch {
+        port.disconnect();
+      }
     });
   };
   port.onMessage.addListener(onMessage);

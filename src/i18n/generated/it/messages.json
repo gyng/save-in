@@ -107,6 +107,18 @@
   "notificationPrivateFailureTitle": {
     "message": "Non è stato possibile salvare un elemento di navigazione privata."
   },
+  "pageBlobReloadPage": {
+    "message": "Impossibile raggiungere la pagina che contiene questo file. Ricarica la pagina e riprova."
+  },
+  "pageBlobUnavailable": {
+    "message": "La pagina non contiene più questo file. Potrebbe essere stato rimosso oppure essere un flusso video, che non può essere salvato."
+  },
+  "pageBlobTimedOut": {
+    "message": "La pagina ha impiegato troppo tempo a fornire questo file."
+  },
+  "pageBlobCopyFailed": {
+    "message": "Impossibile copiare questo file dalla pagina."
+  },
   "notificationUndoSave": {
     "message": "Annulla salvataggio"
   },

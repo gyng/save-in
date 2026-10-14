@@ -56,6 +56,10 @@ const messagesOfType = (port: TestPort, type: string) =>
       typeof message === "object" && message !== null && Reflect.get(message, "type") === type,
   );
 
+// toThrow compares an Error's message only, so match the cause explicitly.
+const copyFailed = (cause: string) =>
+  expect.objectContaining({ message: "Translated<pageBlobCopyFailed>", cause });
+
 describe("page-owned blob transfer", () => {
   const url = "blob:https://page.test/image-id";
   const target = { tabId: 12, frameId: 0, url };
@@ -87,6 +91,7 @@ describe("page-owned blob transfer", () => {
       pair.client.disconnect();
       pair.server.disconnect();
     }
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
     vi.useRealTimers();
   });
@@ -142,14 +147,17 @@ describe("page-owned blob transfer", () => {
     "does not fetch a nonlocal source: %s",
     async (source) => {
       vi.stubGlobal("fetch", vi.fn());
-      await expect(readPageBlob({ ...target, url: source })).rejects.toThrow("no longer available");
+      await expect(readPageBlob({ ...target, url: source })).rejects.toThrow(
+        copyFailed("Page refused the blob request"),
+      );
       expect(fetch).not.toHaveBeenCalled();
     },
   );
 
   test("rejects a revoked blob and releases the port", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Network error")));
-    await expect(readPageBlob(target)).rejects.toThrow("no longer available");
+    // Reloading cannot restore a blob the page itself revoked.
+    await expect(readPageBlob(target)).rejects.toThrow("Translated<pageBlobUnavailable>");
     expect(pairs[0]!.client.onMessage.hasListeners()).toBe(false);
     expect(pairs[0]!.server.onMessage.hasListeners()).toBe(false);
   });
@@ -185,10 +193,26 @@ describe("page-owned blob transfer", () => {
     expect(pairs[0]!.server.onMessage.hasListeners()).toBe(false);
   });
 
+  test("asks for a reload when no current content script answers", async () => {
+    connectToClient();
+    client.postMessage.mockImplementation(() => {});
+    const result = expect(readPageBlob(target)).rejects.toThrow("Translated<pageBlobReloadPage>");
+    client.onDisconnect.emit(client);
+    await result;
+  });
+
+  test("reports a blob that becomes unreadable mid-transfer as unavailable", async () => {
+    stubPageBlob(new Uint8Array(PAGE_BLOB_CHUNK_BYTES + 1));
+    vi.spyOn(Blob.prototype, "arrayBuffer").mockRejectedValue(new Error("NotReadableError"));
+    await expect(readPageBlob(target, undefined, () => {})).rejects.toThrow(
+      "Translated<pageBlobUnavailable>",
+    );
+  });
+
   test("fails a silent or stale content script after a bounded wait", async () => {
     vi.useFakeTimers();
     connectToClient();
-    const result = expect(readPageBlob(target)).rejects.toThrow("timed out");
+    const result = expect(readPageBlob(target)).rejects.toThrow("Translated<pageBlobTimedOut>");
     await vi.advanceTimersByTimeAsync(PAGE_BLOB_TIMEOUT_MS);
     await result;
     expect(client.onMessage.hasListeners()).toBe(false);
@@ -213,16 +237,18 @@ describe("page-owned blob transfer", () => {
       { type: "metadata", size: 1, mime: "x".repeat(256) },
       "Invalid blob metadata",
     ],
-    ["a chunk before metadata", { type: "chunk", data: "AA==" }, "Incomplete"],
+    ["a chunk before metadata", { type: "chunk", data: "AA==" }, "Incomplete page image transfer"],
   ])("rejects %s", async (_name, message, error) => {
     connectToClient();
-    const result = expect(readPageBlob(target, undefined, () => {})).rejects.toThrow(error);
+    const result = expect(readPageBlob(target, undefined, () => {})).rejects.toThrow(
+      copyFailed(error),
+    );
     client.onMessage.emit(message, client);
     await result;
   });
 
   test.each([
-    ["an incomplete response", [{ type: "done" }], "Incomplete"],
+    ["an incomplete response", [{ type: "done" }], "Incomplete page image transfer"],
     ["a chunk past the declared size", [{ type: "chunk", data: "AAAA" }], "Invalid blob length"],
     ["an empty chunk", [{ type: "chunk", data: "" }], "Invalid blob length"],
     ["a non-string chunk", [{ type: "chunk", data: 1 }], "Invalid blob chunk"],
@@ -233,7 +259,9 @@ describe("page-owned blob transfer", () => {
     ],
   ])("rejects %s before constructing a download", async (_name, messages, error) => {
     connectToClient();
-    const result = expect(readPageBlob(target, undefined, () => {})).rejects.toThrow(error);
+    const result = expect(readPageBlob(target, undefined, () => {})).rejects.toThrow(
+      copyFailed(error),
+    );
     client.onMessage.emit({ type: "metadata", size: 2, mime: "image/png" }, client);
     for (const message of messages) client.onMessage.emit(message, client);
     await result;
@@ -245,7 +273,7 @@ describe("page-owned blob transfer", () => {
     let settled = false;
     const result = readPageBlob(target).finally(() => (settled = true));
     client.onMessage.emit({ type: "chunk", data: "AA==" }, client);
-    await expect(result).rejects.toThrow("Incomplete");
+    await expect(result).rejects.toThrow(copyFailed("Incomplete page image transfer"));
     expect(settled).toBe(true);
   });
 

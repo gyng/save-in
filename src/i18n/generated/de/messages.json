@@ -553,6 +553,18 @@
   "notificationPrivateFailureTitle": {
     "message": "Ein Element aus einem privaten Fenster konnte nicht gespeichert werden."
   },
+  "pageBlobReloadPage": {
+    "message": "Die Seite mit dieser Datei ist nicht erreichbar. Laden Sie die Seite neu und versuchen Sie es erneut."
+  },
+  "pageBlobUnavailable": {
+    "message": "Die Seite stellt diese Datei nicht mehr bereit. Sie wurde möglicherweise entfernt oder ist ein Videostream, der nicht gespeichert werden kann."
+  },
+  "pageBlobTimedOut": {
+    "message": "Die Seite hat zu lange gebraucht, um diese Datei bereitzustellen."
+  },
+  "pageBlobCopyFailed": {
+    "message": "Diese Datei konnte nicht von der Seite kopiert werden."
+  },
   "notificationUndoSave": {
     "message": "Speichern rückgängig machen"
   },

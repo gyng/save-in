@@ -131,6 +131,18 @@
   "notificationPrivateFailureTitle": {
     "message": "プライベートブラウジングの項目を保存できませんでした。"
   },
+  "pageBlobReloadPage": {
+    "message": "このファイルを持つページに接続できませんでした。ページを再読み込みしてから、もう一度お試しください。"
+  },
+  "pageBlobUnavailable": {
+    "message": "ページにこのファイルがなくなりました。削除されたか、保存できない動画ストリームの可能性があります。"
+  },
+  "pageBlobTimedOut": {
+    "message": "ページがこのファイルを提供するまでに時間がかかりすぎました。"
+  },
+  "pageBlobCopyFailed": {
+    "message": "ページからこのファイルをコピーできませんでした。"
+  },
   "notificationUndoSave": {
     "message": "保存を取り消す"
   },

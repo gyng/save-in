@@ -131,6 +131,18 @@
   "notificationPrivateFailureTitle": {
     "message": "無法儲存隱私瀏覽項目。"
   },
+  "pageBlobReloadPage": {
+    "message": "無法連線到包含此檔案的頁面。請重新載入頁面後再試一次。"
+  },
+  "pageBlobUnavailable": {
+    "message": "頁面中已不再有此檔案。它可能已被移除，或是無法儲存的影片串流。"
+  },
+  "pageBlobTimedOut": {
+    "message": "頁面提供此檔案的時間過長。"
+  },
+  "pageBlobCopyFailed": {
+    "message": "無法從頁面複製此檔案。"
+  },
   "notificationUndoSave": {
     "message": "復原儲存"
   },

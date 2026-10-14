@@ -93,6 +93,22 @@
     "message": "A private browsing item could not be saved.",
     "description": "Non-identifying notification title for a failed private browsing download. It must not include the filename, path, or URL. Used in src/downloads/notification-events.ts and src/downloads/notification.ts."
   },
+  "pageBlobReloadPage": {
+    "message": "Couldn't reach the page that has this file. Reload the page and try again.",
+    "description": "Failure notification body when a file the page created (a blob: URL) can't be requested because the page's Save In script isn't answering, usually because the page was opened before Save In was installed or updated. Used in src/downloads/page-blob.ts."
+  },
+  "pageBlobUnavailable": {
+    "message": "The page no longer has this file. It may have been removed, or it may be a video stream, which can't be saved.",
+    "description": "Failure notification body when the page's own file (a blob: URL) can no longer be read, because the page discarded it or it is a streaming video. Reloading does not help. Used in src/downloads/page-blob.ts."
+  },
+  "pageBlobTimedOut": {
+    "message": "The page took too long to provide this file.",
+    "description": "Failure notification body when copying a file the page created (a blob: URL) stops responding. Used in src/downloads/page-blob.ts."
+  },
+  "pageBlobCopyFailed": {
+    "message": "Couldn't copy this file from the page.",
+    "description": "Failure notification body when copying a file the page created (a blob: URL) fails for any other reason. Used in src/downloads/page-blob.ts."
+  },
   "notificationUndoSave": {
     "message": "Undo save",
     "description": "Button on the success notification that removes the just-saved file and marks its history entry as undone. Chrome only; Firefox notifications cannot carry buttons. Used in src/downloads/notification-events.ts."

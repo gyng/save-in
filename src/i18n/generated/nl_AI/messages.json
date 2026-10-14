@@ -553,6 +553,18 @@
   "notificationPrivateFailureTitle": {
     "message": "Een item uit privénavigatie kon niet worden opgeslagen."
   },
+  "pageBlobReloadPage": {
+    "message": "De pagina met dit bestand is niet bereikbaar. Herlaad de pagina en probeer het opnieuw."
+  },
+  "pageBlobUnavailable": {
+    "message": "De pagina heeft dit bestand niet meer. Het is mogelijk verwijderd, of het is een videostream, die niet kan worden opgeslagen."
+  },
+  "pageBlobTimedOut": {
+    "message": "Het duurde te lang voordat de pagina dit bestand leverde."
+  },
+  "pageBlobCopyFailed": {
+    "message": "Dit bestand kon niet van de pagina worden gekopieerd."
+  },
   "notificationUndoSave": {
     "message": "Opslaan ongedaan maken"
   },

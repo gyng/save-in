@@ -553,6 +553,18 @@
   "notificationPrivateFailureTitle": {
     "message": "No se pudo guardar un elemento de navegación privada."
   },
+  "pageBlobReloadPage": {
+    "message": "No se pudo contactar con la página que contiene este archivo. Recargue la página e inténtelo de nuevo."
+  },
+  "pageBlobUnavailable": {
+    "message": "La página ya no tiene este archivo. Es posible que se haya eliminado o que sea una transmisión de vídeo, que no se puede guardar."
+  },
+  "pageBlobTimedOut": {
+    "message": "La página tardó demasiado en proporcionar este archivo."
+  },
+  "pageBlobCopyFailed": {
+    "message": "No se pudo copiar este archivo desde la página."
+  },
   "notificationUndoSave": {
     "message": "Deshacer guardado"
   },

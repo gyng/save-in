@@ -4,7 +4,9 @@ import {
   PAGE_BLOB_CHUNK_BYTES,
   PAGE_BLOB_PORT,
   PAGE_BLOB_TIMEOUT_MS,
+  PAGE_BLOB_UNAVAILABLE,
 } from "../shared/page-blob.ts";
+import { getMessage } from "../platform/localization.ts";
 import { Sha256 } from "../shared/sha256.ts";
 import type { ContentFetchResult } from "../shared/content-fetch-types.ts";
 import { mimeToExtension } from "../routing/variable.ts";
@@ -15,6 +17,10 @@ import type { DownloadPipelineState } from "./download-types.ts";
 export type PageBlobMetadata = { size: number; mime: string };
 
 type PageBlobTarget = { tabId: number; frameId: number; url: string };
+
+// The detail stays on cause for the log; the user sees what they can do.
+const copyFailed = (detail: string) =>
+  new Error(getMessage("pageBlobCopyFailed"), { cause: detail });
 
 // Without onChunk only the metadata is read: the content script fetches its
 // own blob locally, and no bytes cross the port until a save needs them.
@@ -46,19 +52,26 @@ export const readPageBlob = (
     const onAbort = () => fail(signal?.reason);
     const onDisconnect = () => {
       void webExtensionApi.runtime.lastError;
-      fail(new Error("Page image is no longer available. Reload the page and try again."));
+      // Chrome reports a frame without a listener as an immediate disconnect;
+      // so does a content script left from before an extension update.
+      fail(new Error(getMessage("pageBlobReloadPage")));
     };
     const request = (message: object) => {
       clearTimeout(timer);
       timer = setTimeout(
-        () => fail(new Error("Page image transfer timed out")),
+        () => fail(new Error(getMessage("pageBlobTimedOut"))),
         PAGE_BLOB_TIMEOUT_MS,
       );
       port.postMessage(message);
     };
     const receive = async (message: unknown) => {
-      if (!message || typeof message !== "object") throw new Error("Invalid blob response");
+      if (!message || typeof message !== "object") throw copyFailed("Invalid blob response");
       const type: unknown = Reflect.get(message, "type");
+      if (type === "error") {
+        throw Reflect.get(message, "reason") === PAGE_BLOB_UNAVAILABLE
+          ? new Error(getMessage("pageBlobUnavailable"))
+          : copyFailed("Page refused the blob request");
+      }
       if (metadata === undefined && type === "metadata") {
         const length: unknown = Reflect.get(message, "size");
         const contentType: unknown = Reflect.get(message, "mime");
@@ -69,7 +82,7 @@ export const readPageBlob = (
           typeof contentType !== "string" ||
           contentType.length > 255
         )
-          throw new Error("Invalid blob metadata");
+          throw copyFailed("Invalid blob metadata");
         metadata = { size: length, mime: contentType };
         if (!onChunk) {
           cleanup();
@@ -79,7 +92,7 @@ export const readPageBlob = (
       } else if (onChunk && metadata !== undefined && type === "chunk") {
         const data: unknown = Reflect.get(message, "data");
         if (typeof data !== "string" || data.length > Math.ceil(PAGE_BLOB_CHUNK_BYTES / 3) * 4) {
-          throw new Error("Invalid blob chunk");
+          throw copyFailed("Invalid blob chunk");
         }
         const binary = atob(data);
         if (
@@ -87,7 +100,7 @@ export const readPageBlob = (
           binary.length > PAGE_BLOB_CHUNK_BYTES ||
           received + binary.length > metadata.size
         ) {
-          throw new Error("Invalid blob length");
+          throw copyFailed("Invalid blob length");
         }
         received += binary.length;
         await onChunk(
@@ -98,7 +111,7 @@ export const readPageBlob = (
         cleanup();
         resolve(metadata);
         return;
-      } else throw new Error("Incomplete page image transfer");
+      } else throw copyFailed("Incomplete page image transfer");
       request({ type: "read" });
     };
     // One request is outstanding at a time, so a chunk is fully consumed

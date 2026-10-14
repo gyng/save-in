@@ -553,6 +553,18 @@
   "notificationPrivateFailureTitle": {
     "message": "Det gick inte att spara ett objekt från privat surfning."
   },
+  "pageBlobReloadPage": {
+    "message": "Det gick inte att nå sidan som har filen. Läs in sidan igen och försök på nytt."
+  },
+  "pageBlobUnavailable": {
+    "message": "Sidan har inte längre filen. Den kan ha tagits bort, eller så är den en videoström, som inte kan sparas."
+  },
+  "pageBlobTimedOut": {
+    "message": "Det tog för lång tid för sidan att tillhandahålla filen."
+  },
+  "pageBlobCopyFailed": {
+    "message": "Det gick inte att kopiera filen från sidan."
+  },
   "notificationUndoSave": {
     "message": "Ångra sparning"
   },
