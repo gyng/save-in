@@ -145,6 +145,10 @@ export const retryViaFetch = async (
       // this provisional one, and a missing field there fails closed — for a
       // retried PUBLIC save that silently drops an otherwise-eligible webhook.
       webhookEligible: record.webhookEligible === true && privateContext !== true,
+      // The replacement reports its outcome under the id the save event used.
+      // A replacement is viaFetch and never retried again, so the failed
+      // download is always the original here.
+      webhookDownloadId: downloadId,
     });
     await Promise.all(
       persistActivity
@@ -200,6 +204,7 @@ export const retryViaFetch = async (
         viaFetch: true,
         adopted: true,
         saveAsPrompted: false,
+        webhookDownloadId: downloadId,
         ...(offscreenRequestId ? { offscreenRequestId } : {}),
       }),
     );

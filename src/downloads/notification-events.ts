@@ -662,7 +662,8 @@ const notifyDownloadFailure = async (
 // Automatic fallback chain: network/server failures get one retry through the
 // background fetch before the user sees a failure. A retry keeps the record's
 // history entry and hands the download back to the pipeline, so nothing is
-// reported yet; anything else is final.
+// reported yet — not even to a webhook, whose receiver would otherwise see a
+// failure followed by the replacement's completion; anything else is final.
 const handleFailedDownload = async (
   downloadDelta: HostDownloadDelta,
   record: DownloadRecord,
@@ -691,6 +692,13 @@ const handleFailedDownload = async (
   } else {
     await recordHistoryStatus(downloadDelta.id, errorName || "failed");
   }
+  void deliverDownloadOutcomeWebhook(
+    options,
+    record,
+    downloadDelta.id,
+    { status: "failed", reason: errorName || "failed" },
+    { add: (message, data) => addDownloadLog(record, message, data) },
+  );
   await notifyDownloadFailure(downloadDelta, record, filename, failed, notify);
   await abandonPendingHistoryMove(downloadDelta.id);
 };
@@ -821,20 +829,13 @@ const handleDownloadChanged = async (downloadDelta: HostDownloadDelta): Promise<
   // save event they are a side effect and never gate the download: fullFilename
   // is the resolved on-disk path, which is the whole reason a receiver waits for
   // this rather than acting on the save event.
+  // A failure is reported from handleFailedDownload, once no retry took it over.
   if (completed) {
     void deliverDownloadOutcomeWebhook(
       options,
       record,
       downloadDelta.id,
       { status: "complete", path: fullFilename },
-      { add: (message, data) => addDownloadLog(record, message, data) },
-    );
-  } else if (isFromSelf && failed && !isUserCancelled) {
-    void deliverDownloadOutcomeWebhook(
-      options,
-      record,
-      downloadDelta.id,
-      { status: "failed", reason: downloadFailureReason(failed) || "failed" },
       { add: (message, data) => addDownloadLog(record, message, data) },
     );
   }

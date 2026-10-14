@@ -296,6 +296,10 @@ describe("state service instances", () => {
                 downloadId: 12,
               },
             },
+            16: { webhookDownloadId: 7 },
+            17: { webhookDownloadId: -1 },
+            18: { webhookDownloadId: "7" },
+            19: { webhookDownloadId: 1.5 },
             nope: { adopted: true },
             8: "not-a-record",
           },
@@ -336,6 +340,10 @@ describe("state service instances", () => {
           },
         },
       ],
+      [16, { webhookDownloadId: 7 }],
+      [17, {}],
+      [18, {}],
+      [19, {}],
     ]);
   });
 

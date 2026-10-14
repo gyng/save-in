@@ -316,11 +316,13 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
       sourceSidecar: true,
       historyEntryId: "h-test",
       webhookEligible: false,
+      webhookDownloadId: 101,
     });
     expect(downloadState.records.get(202)).toMatchObject({
       adopted: true,
       sourceSidecar: true,
       viaFetch: true,
+      webhookDownloadId: 101,
     });
   });
 
@@ -344,6 +346,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
       pendingSourceSidecar: { sourceUrl: "https://x/source.png" },
       historyEntryId: "h-test",
       webhookEligible: false,
+      webhookDownloadId: 101,
     });
   });
 
@@ -367,6 +370,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
       historyEntryId: "h-test",
       pendingHistoryMove,
       webhookEligible: false,
+      webhookDownloadId: 101,
     });
   });
 

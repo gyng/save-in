@@ -42,6 +42,11 @@ export type DownloadRecord = {
   // privacy state. Private records exist only under the explicit persistence
   // opt-in, but the decision still fails closed when older records lack it.
   webhookEligible?: boolean | undefined;
+  // The id this download's webhook events carry. A fetch retry's replacement is
+  // a new browser download, but the receiver matched the save event to the
+  // original id; absent means the record's own id, which is what every record
+  // written before retries carried it, and every non-retry record, should mean.
+  webhookDownloadId?: number | undefined;
   pendingSourceSidecar?: SourceSidecarRequest | undefined;
   historyEntryId?: string | undefined;
   offscreenRequestId?: string | undefined;
@@ -149,6 +154,13 @@ function normalizeDownloadRecord(value: unknown): PersistedDownloadRecord | null
     if (typeof value[key] === "boolean") record[key] = value[key];
   });
   if (value.privateContext === true) record.privateContext = true;
+  if (
+    typeof value.webhookDownloadId === "number" &&
+    Number.isSafeInteger(value.webhookDownloadId) &&
+    value.webhookDownloadId >= 0
+  ) {
+    record.webhookDownloadId = value.webhookDownloadId;
+  }
   if (
     value.conflictAction === "uniquify" ||
     value.conflictAction === "overwrite" ||

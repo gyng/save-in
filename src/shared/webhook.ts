@@ -32,7 +32,8 @@ export type SaveWebhookSource = {
 // asked for more than one of them gets no other way to join them: the URL is
 // not a key, and saving the same URL twice would be two indistinguishable
 // pairs. It is the browser's download id, which both the save path and the
-// completion delta already hold.
+// completion delta already hold; a fetch retry's replacement carries the
+// original's id on its record so its outcome still joins the save event.
 export type SaveWebhookPayload = {
   version: 1;
   event: "save";

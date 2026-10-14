@@ -181,10 +181,13 @@ export const deliverDownloadOutcomeWebhook = async (
     return;
   }
 
+  // A fetch retry's replacement answers for the original download, whose id
+  // the save event already gave the receiver to match on.
+  const id = record.webhookDownloadId ?? downloadId;
   const payload =
     outcome.status === "complete"
-      ? createCompleteWebhookPayload({ id: downloadId, url, path: outcome.path })
-      : createFailedWebhookPayload({ id: downloadId, url, reason: outcome.reason });
+      ? createCompleteWebhookPayload({ id, url, path: outcome.path })
+      : createFailedWebhookPayload({ id, url, reason: outcome.reason });
 
   await postToEndpoints(endpoints, payload, policy, log);
 };

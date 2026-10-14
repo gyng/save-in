@@ -1,4 +1,5 @@
 import {
+  retryHolder,
   options,
   loadNotification,
   seedInheritedPending,
@@ -84,5 +85,64 @@ describe("download outcome webhooks", () => {
     });
 
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+  // A failure Save In retries is not the outcome: the replacement still has
+  // one to report, under the id the save event used.
+  test("sends no failed event for a failure the fetch retry takes over", async () => {
+    await install({ webhookOnFailed: true });
+    retryHolder.retry = vi.fn(() => Promise.resolve(true));
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+    await startTracked(
+      { id: 7, filename: "/dl/pic.png", url: "https://x/p.png" },
+      { webhookEligible: true, adopted: true, url: "https://x/p.png" },
+    );
+
+    await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
+
+    expect(retryHolder.retry).toHaveBeenCalledWith(7);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  test("sends the failed event once the retry declines the failure", async () => {
+    await install({ webhookOnFailed: true });
+    retryHolder.retry = vi.fn(() => Promise.resolve(false));
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+    await startTracked(
+      { id: 7, filename: "/dl/pic.png", url: "https://x/p.png" },
+      { webhookEligible: true, adopted: true, url: "https://x/p.png" },
+    );
+
+    await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    expect(bodies(fetchMock)[0]).toMatchObject({
+      event: "failed",
+      id: 7,
+      reason: "NETWORK_FAILED",
+    });
+  });
+
+  test("reports a retry replacement's outcome under the original download id", async () => {
+    await install({ webhookOnFailed: true });
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+    await startTracked(
+      { id: 9, filename: "/dl/pic.png", url: "blob:replacement" },
+      {
+        webhookEligible: true,
+        adopted: true,
+        viaFetch: true,
+        url: "https://x/p.png",
+        webhookDownloadId: 7,
+      },
+    );
+
+    await onChanged({
+      id: 9,
+      state: { previous: "in_progress", current: "complete" },
+      filename: { current: "/dl/pic.png" },
+    });
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    expect(bodies(fetchMock)[0]).toMatchObject({ event: "complete", id: 7 });
   });
 });
