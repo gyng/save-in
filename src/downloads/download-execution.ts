@@ -95,6 +95,7 @@ const retainedDownloadSnapshot = (state: DownloadPipelineState): DownloadPipelin
   const info = { ...state.info };
   delete info.headPromise;
   delete info.contentPromise;
+  delete info.loadContent;
   delete info.counterPromise;
   delete info.abortSignal;
   delete info.onContentFetchStart;
@@ -233,6 +234,15 @@ export const acquireDownloadUrl = async (
       URL.revokeObjectURL(content.ownedObjectUrl);
     }
     state.info.contentPromise = undefined;
+  }
+  if (state.info.loadContent) {
+    const content = await state.info.loadContent(requestId ?? crypto.randomUUID(), false);
+    return {
+      url: content.downloadUrl,
+      source: "fetched",
+      ownedObjectUrl: content.ownedObjectUrl,
+      offscreenRequestId: content.offscreenRequestId,
+    };
   }
   const url = requireDownloadUrl(state);
   // Firefox's downloads.download rejects data: URLs — its shortcut/object-URL

@@ -384,18 +384,24 @@ export const resolveContent = (opts: RoutingDownloadInfo) => {
   if (opts.contentPromise) {
     return opts.contentPromise;
   }
-  if (opts.contentFetchDisabled) return Promise.resolve(null);
+  const load = opts.loadContent;
+  if (!load && opts.contentFetchDisabled) return Promise.resolve(null);
   const requestId = crypto.randomUUID();
   const url = opts.url;
   opts.contentPromise = url
     ? Promise.resolve(opts.onContentFetchStart?.(requestId)).then(() =>
-        routingPorts.resolveContent(
-          url,
-          opts.currentTab?.incognito === true,
-          opts.abortSignal,
-          requestId,
-          opts.protectedFetchReferer,
-        ),
+        load
+          ? load(requestId, true).catch((error: unknown) => {
+              if (opts.abortSignal?.aborted) throw error;
+              return null;
+            })
+          : routingPorts.resolveContent(
+              url,
+              opts.currentTab?.incognito === true,
+              opts.abortSignal,
+              requestId,
+              opts.protectedFetchReferer,
+            ),
       )
     : Promise.resolve(null);
   return opts.contentPromise;

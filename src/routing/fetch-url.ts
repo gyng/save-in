@@ -13,6 +13,7 @@ export const retargetDownloadInfo = <Info extends RoutingDownloadInfo>(info: Inf
     headPromise,
     resolvedHead,
     contentPromise,
+    loadContent,
     sha256,
     mime,
     mimeExtension,

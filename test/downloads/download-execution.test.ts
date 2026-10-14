@@ -1,4 +1,5 @@
 // Focused execution coverage extracted from the pipeline suite.
+import { resolveObjectURL } from "node:buffer";
 import { DOWNLOAD_TYPES } from "../../src/shared/constants.ts";
 import {
   backgroundRuntime,
@@ -25,6 +26,42 @@ import {
   Variable,
 } from "./download-flow.fixture.ts";
 import { discardRoutingResolution } from "../../src/downloads/routing-resolution.ts";
+import { installHostProperty, webExtensionEvent } from "../support/webextension-host.fixture.ts";
+
+// A content script that owns one blob and answers the page-blob port protocol.
+const servePageOwnedBlob = (bytes: Uint8Array, mime: string) => {
+  const reads = vi.fn();
+  installHostProperty(
+    global.browser.tabs,
+    "connect",
+    vi.fn(() => {
+      const onMessage = webExtensionEvent<[unknown]>();
+      let offset = 0;
+      return {
+        onMessage,
+        onDisconnect: webExtensionEvent(),
+        disconnect: vi.fn(),
+        postMessage: vi.fn((message: { type: string }) =>
+          queueMicrotask(() => {
+            if (message.type === "open") {
+              onMessage.emit({ type: "metadata", size: bytes.length, mime });
+              return;
+            }
+            reads();
+            if (offset === bytes.length) {
+              onMessage.emit({ type: "done" });
+              return;
+            }
+            const chunk = bytes.subarray(offset, offset + 1024);
+            offset += chunk.length;
+            onMessage.emit({ type: "chunk", data: btoa(String.fromCharCode(...chunk)) });
+          }),
+        ),
+      };
+    }),
+  );
+  return reads;
+};
 
 const startFilenameResolvedLaunch = async (state: ReturnType<typeof makeState>) => {
   const launch = Download.renameAndDownload(state);
@@ -115,6 +152,48 @@ describe("renameAndDownload: terminal exclusion", () => {
     await expect(Download.renameAndDownload(makeState())).resolves.toEqual({ status: "skipped" });
 
     expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
+  });
+});
+
+describe("renameAndDownload: page-owned blobs", () => {
+  const pageBlobState = () =>
+    makeState({ info: { url: "blob:https://page.example/uuid", currentTab: { id: 4 } } });
+
+  test("an excluded page blob transfers no bytes and leaves no History row", async () => {
+    const reads = servePageOwnedBlob(new Uint8Array(4096), "image/png");
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      outcome: "exclude",
+      rule: options.filenamePatterns[0]!,
+      destination: null,
+      fetch: null,
+      rename: null,
+      tabAction: null,
+    });
+
+    await expect(Download.renameAndDownload(pageBlobState())).resolves.toEqual({
+      status: "skipped",
+    });
+
+    expect(reads).not.toHaveBeenCalled();
+    expect(SaveHistory.addHistoryEntry).not.toHaveBeenCalled();
+    expect(downloaded).not.toHaveBeenCalled();
+    expect(ActiveTransfers.cancelActiveTransfer("h-test")).toBe(false);
+  });
+
+  test("a matched page blob is transferred after routing and downloaded as a local copy", async () => {
+    const bytes = Uint8Array.from({ length: 3000 }, (_, i) => i % 13);
+    const reads = servePageOwnedBlob(bytes, "image/png");
+
+    await Download.renameAndDownload(pageBlobState());
+
+    expect(reads).toHaveBeenCalledTimes(4);
+    const [[request]] = vi.mocked(global.browser.downloads.download).mock.calls as any;
+    expect(request.url).toMatch(/^blob:nodedata:/);
+    const saved = resolveObjectURL(request.url);
+    expect(saved?.type).toBe("image/png");
+    expect(new Uint8Array(await saved!.arrayBuffer())).toEqual(bytes);
+    expect(request.filename).toBe("downloads/uuid.png");
   });
 });
 

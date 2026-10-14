@@ -19,6 +19,7 @@ test("retargets resource metadata without mutating or dropping the save context"
     resolvedHead: { contentType: "image/png", finalUrl: context.sourceUrl },
     headPromise: Promise.resolve({ contentType: "image/png", finalUrl: context.sourceUrl }),
     contentPromise: Promise.resolve(null),
+    loadContent: () => Promise.resolve({ sha256: "", downloadUrl: "blob:old" }),
     sha256: "old-hash",
     mime: "image/png",
     mimeExtension: "png",

@@ -11,6 +11,9 @@ export type LazyDownloadMetadata<Content extends ContentFetchResult = ContentFet
   resolvedHead?: HeadMetadata | undefined;
   contentPromise?: Promise<Content | null> | undefined;
   sha256?: string | undefined;
+  // Bytes only their owner can read (a page-owned blob) are pulled on demand,
+  // so a save routing excludes or leaves unmatched never transfers them.
+  loadContent?: ((requestId: string, hash: boolean) => Promise<Content>) | undefined;
   // Chrome uses this sanitized value only around exact extension-owned
   // metadata/content requests; it is not serialized into persisted state.
   protectedFetchReferer?: string | undefined;

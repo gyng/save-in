@@ -1189,6 +1189,37 @@ describe(":sha256: (async content hash)", () => {
     await expect(Variable.resolveContent({})).resolves.toBeNull();
   });
 
+  test("hashes owner-supplied bytes through their loader, even with URL fetches disabled", async () => {
+    global.fetch = vi.fn() as any;
+    const onContentFetchStart = vi.fn();
+    const loadContent = vi.fn(async () => ({ sha256: "abcdef0123456789", downloadUrl: "blob:x" }));
+    const info = {
+      url: "blob:https://page.test/id",
+      contentFetchDisabled: true,
+      loadContent,
+      onContentFetchStart,
+    };
+
+    const out = (await Variable.applyVariables(new Path.Path(":sha256:"), info)).finalize();
+
+    expect(out).toBe("abcdef012345");
+    expect(loadContent).toHaveBeenCalledWith(onContentFetchStart.mock.calls[0]![0], true);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  test("a failed owner load yields no hash unless the save was canceled", async () => {
+    const failing = {
+      url: "blob:https://page.test/id",
+      loadContent: () => Promise.reject(new Error("gone")),
+    };
+    await expect(Variable.resolveContent(failing)).resolves.toBeNull();
+
+    const controller = new AbortController();
+    controller.abort(new Error("Canceled"));
+    const canceled = { ...failing, contentPromise: undefined, abortSignal: controller.signal };
+    await expect(Variable.resolveContent(canceled)).rejects.toThrow("gone");
+  });
+
   test("preview mode reuses a hash retained from the completed download", async () => {
     mockBody("abc");
     const info = { url: "https://x/a" };
