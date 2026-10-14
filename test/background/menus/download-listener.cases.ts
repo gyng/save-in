@@ -369,6 +369,28 @@ describe("addDownloadListener", () => {
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
   });
 
+  test("keeps a private-only Last used enabled across a static menu rebuild", async () => {
+    Reflect.deleteProperty(global.browser.contextMenus, "onShown");
+    Menus.addDownloadListener();
+    await Menus.setLastUsed("private/path", { title: "Private folder" }, true);
+
+    Menus.addLastUsed(["link"]);
+
+    expect(global.browser.contextMenus.create).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: Menus.IDS.LAST_USED, enabled: true }),
+    );
+  });
+
+  test("leaves a dynamic Last used rebuild to the shown context", async () => {
+    await Menus.setLastUsed("private/path", { title: "Private folder" }, true);
+
+    Menus.addLastUsed(["link"]);
+
+    expect(global.browser.contextMenus.create).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: Menus.IDS.LAST_USED, enabled: false }),
+    );
+  });
+
   test("falls back when a dynamic menu event has no listener registrar", async () => {
     Object.defineProperty(global.browser.contextMenus, "onShown", {
       configurable: true,

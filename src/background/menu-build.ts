@@ -60,6 +60,9 @@ export const menuState: {
   lastUsedMeta: LastUsedMeta | null;
   privateLastUsedPath: string | null;
   privateLastUsedMeta: LastUsedMeta | null;
+  // Without contextMenus.onShown (Chrome) one Last used item serves regular and
+  // private menus alike, so a private destination alone must keep it enabled.
+  staticLastUsedMenu: boolean;
   recentDestinations: RecentDestination[];
   pathMappings: Record<string | number, MenuPathMapping>;
 } = {
@@ -67,6 +70,7 @@ export const menuState: {
   lastUsedMeta: null,
   privateLastUsedPath: null,
   privateLastUsedMeta: null,
+  staticLastUsedMenu: false,
   recentDestinations: [],
   pathMappings: {},
 };
@@ -126,6 +130,9 @@ export const enablePrivateLastUsedMenu = (): Promise<void> => {
     enabled: Boolean(regular.path || menuState.privateLastUsedPath),
   });
 };
+
+const staticPrivateLastUsed = (): boolean =>
+  menuState.staticLastUsedMenu && Boolean(menuState.privateLastUsedPath);
 
 // The dynamic-default menu checkbox flips the effective Quick save destination
 // at runtime. Mirroring it to storage.local (the same area options load from)
@@ -481,7 +488,7 @@ export const addLastUsed = (contexts: readonly MenuContext[]) => {
     {
       id: MENU_IDS.LAST_USED,
       title: setAccesskey(lastUsedTitle, options.keyLastUsed),
-      enabled: Boolean(lastUsed.path),
+      enabled: Boolean(lastUsed.path) || staticPrivateLastUsed(),
       contexts: asMenuContexts(contexts),
       parentId: MENU_IDS.ROOT,
     },

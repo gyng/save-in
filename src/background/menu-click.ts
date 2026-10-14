@@ -568,6 +568,7 @@ export const addDownloadListener = () => {
     }),
   );
   dynamicLastUsedMenu = registerDynamicLastUsedMenu();
+  menuState.staticLastUsedMenu = !dynamicLastUsedMenu;
   webExtensionApi.windows.onRemoved.addListener((windowId) => {
     for (const invocation of activePrivateMenuInvocations) {
       if (invocation.windowId === undefined || invocation.windowId === windowId) {
