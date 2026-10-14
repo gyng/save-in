@@ -490,8 +490,14 @@ const handleObservedBrowserDownload = async (
       const [item] = await webExtensionApi.downloads.search({ id: downloadDelta.id });
       const bytes = item && (item.fileSize > 0 ? item.fileSize : item.totalBytes);
       fileSize = bytes !== undefined && bytes > 0 ? bytes : undefined;
+      // Chrome writes the row in onCreated, before it has chosen a filename,
+      // and the delta that names the file can be handled after this one. The
+      // finished item is authoritative, so a complete row never lacks its path.
+      if (item?.filename && item.filename !== (currentFilename || record.currentFilename)) {
+        await historyPort.patch(record.historyEntryId, { finalFullPath: item.filename });
+      }
     } catch {
-      // Completion remains valid when size lookup is unavailable.
+      // Completion remains valid when the lookup is unavailable.
     }
   }
   // onCreated wrote this row before onDeterminingFilename had decided anything,

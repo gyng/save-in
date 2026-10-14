@@ -560,6 +560,37 @@ describe("download lifecycle notifications", () => {
     expect(patch).toHaveBeenCalledWith("h-routed", { routed: true });
   });
 
+  test("records a browser download's final path from the finished item", async () => {
+    options.trackBrowserDownloads = true;
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry").mockReturnValue("h-unnamed");
+    vi.spyOn(history, "setHistoryDownloadId").mockResolvedValue(undefined);
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
+    const patch = vi.spyOn(history, "patchHistoryEntry").mockResolvedValue(undefined);
+
+    // Chrome creates the item before choosing its filename, and the delta that
+    // names it has not been handled when the completion arrives.
+    await onCreated({ id: 46, filename: "", url: "https://cdn.example/named.bin" });
+    vi.mocked(global.browser.downloads.search).mockResolvedValueOnce([
+      { id: 46, fileSize: 10, filename: "C:\\Downloads\\sorted\\named.bin" } as any,
+    ]);
+    await onChanged({ id: 46, state: { current: "complete", previous: "in_progress" } });
+
+    expect(patch).toHaveBeenCalledWith("h-unnamed", {
+      finalFullPath: "C:\\Downloads\\sorted\\named.bin",
+    });
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-unnamed", "complete", 46, 10);
+
+    // A path the row already holds is not written again.
+    patch.mockClear();
+    await onCreated({ id: 47, filename: "C:\\Downloads\\known.bin", url: "https://cdn.example/k" });
+    vi.mocked(global.browser.downloads.search).mockResolvedValueOnce([
+      { id: 47, fileSize: 10, filename: "C:\\Downloads\\known.bin" } as any,
+    ]);
+    await onChanged({ id: 47, state: { current: "complete", previous: "in_progress" } });
+    expect(patch).not.toHaveBeenCalled();
+  });
+
   test("does not retain ordinary downloads from private browsing by default", async () => {
     options.trackBrowserDownloads = true;
     const history = await import("../../../src/background/history.ts");
