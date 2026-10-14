@@ -37,11 +37,13 @@ export type AutoDownloadDedup = {
   limitNotified: boolean;
   excluded?: Set<string> | undefined;
   excludedPageUrl?: string | undefined;
+  failedAttempts?: Map<string, number> | undefined;
 };
 export const createAutoDownloadDedup = (): AutoDownloadDedup => ({
   seen: new Set<string>(),
   limitNotified: false,
   excluded: new Set<string>(),
+  failedAttempts: new Map<string, number>(),
 });
 
 export type AutoDownloadDiscoveryOptions = {
@@ -83,6 +85,11 @@ const LIVE_SCAN_DEBOUNCE_MS = 200;
 const LIVE_SCAN_MAX_WAIT_MS = 1000;
 const LIVE_SCAN_ROOT_LIMIT = 64;
 const AUTO_EXCLUSION_CACHE_LIMIT = 1024;
+// A "failed" launch may be transient, so it earns one re-offer. A source that
+// keeps failing must then hold its slot: releasing it every time re-sent it on
+// each live rescan, outside the per-page budget, with a failure notice each time.
+const AUTO_FAILED_RETRY_LIMIT = 1;
+const AUTO_FAILED_ATTEMPT_LIMIT = 1024;
 const MUTABLE_AUTOMATIC_MATCHERS = new Set(["css", "mediatype", "pagetitle", "sourcekind"]);
 
 const hasMutableAutomaticEvidence = (rule: readonly { name: string }[]): boolean =>
@@ -107,6 +114,8 @@ export const setupAutoDownloadDiscovery = (
   const seen = dedup.seen;
   const excluded = dedup.excluded ?? new Set<string>();
   dedup.excluded = excluded;
+  const failedAttempts = dedup.failedAttempts ?? new Map<string, number>();
+  dedup.failedAttempts = failedAttempts;
   const queue: AutomaticRoutingCandidate[] = [];
   const noResourceTimings: ResourceTimingByUrl = new Map();
 
@@ -148,6 +157,15 @@ export const setupAutoDownloadDiscovery = (
     seen.delete(seenKey);
     dedup.limitNotified = false;
   };
+  const recordFailure = (seenKey: string) => {
+    const previous = failedAttempts.get(seenKey);
+    // Once the attempt map is full, an unknown source gets no retry rather
+    // than evicting another source's count and restarting its budget.
+    if (previous === undefined && failedAttempts.size >= AUTO_FAILED_ATTEMPT_LIMIT) return;
+    const attempts = (previous ?? 0) + 1;
+    failedAttempts.set(seenKey, attempts);
+    if (attempts <= AUTO_FAILED_RETRY_LIMIT) releaseSlot(seenKey);
+  };
   const idleWaiters = new Set<() => void>();
   const maxPerPage = normalizeAutoDownloadLimit(options.maxPerPage);
   let stopped = false;
@@ -179,9 +197,11 @@ export const setupAutoDownloadDiscovery = (
         }
         try {
           const result = await options.send(candidate);
-          // Only a started save holds its once-per-visit slot. A terminal
-          // non-start never consumed the candidate and can be offered again.
-          if (result !== "started") releaseSlot(seenKey);
+          // A started save holds its once-per-visit slot, and so does a source
+          // that exhausted its failure retries. A skip never consumed the
+          // candidate and can be offered again.
+          if (result === "failed") recordFailure(seenKey);
+          else if (result === "skipped") releaseSlot(seenKey);
         } catch {
           // Keep observing across a reloaded extension context or one rejected
           // automatic download; neither consumed the candidate.

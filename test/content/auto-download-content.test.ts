@@ -1,9 +1,12 @@
 // @vitest-environment jsdom
 import {
+  createAutoDownloadDedup,
   setupAutoDownloadDiscovery as rawSetupAutoDownloadDiscovery,
+  type AutoDownloadDedup,
   type AutoDownloadDiscoveryOptions,
   type AutoDownloadSendResult,
 } from "../../src/content/auto-download.ts";
+import type { AutomaticRoutingCandidate } from "../../src/automation/automatic-routing.ts";
 import { Sha256 } from "../../src/shared/sha256.ts";
 
 // Link adoption, the phase-B channel toggles, and the disable-list predicate
@@ -302,23 +305,95 @@ describe("automatic source discovery", () => {
     controller.stop();
   });
 
-  test("a failed send frees its dedup slot and is re-offered on the next scan", async () => {
+  test("a failed send is re-offered once, then holds its slot", async () => {
     document.body.innerHTML = '<img src="https://cdn.test/cat.png">';
-    const results: AutoDownloadSendResult[] = ["failed", "started"];
-    let index = 0;
-    const send = vi.fn(() => Promise.resolve(results[index++] ?? "started"));
+    const send = vi.fn(() => Promise.resolve<AutoDownloadSendResult>("failed"));
     const controller = setupAutoDownloadDiscovery({ rules, live: false, maxPerPage: 20, send });
     await controller.idle();
     expect(send).toHaveBeenCalledOnce();
 
-    // The terminal "failed" result returned the once-per-visit slot, so a later
-    // rescan re-offers the same source instead of skipping it forever.
+    // Contract: one "failed" result returns the slot so a transient failure is
+    // retried on the next scan. A second failure keeps the slot (and its
+    // per-page budget), so a persistently failing source is not re-sent — and
+    // its failure re-notified — on every later rescan.
     controller.scan();
     await controller.idle();
     expect(send).toHaveBeenCalledTimes(2);
     expect(send).toHaveBeenLastCalledWith(
       expect.objectContaining({ sourceUrl: "https://cdn.test/cat.png" }),
     );
+    controller.scan();
+    controller.scan();
+    await controller.idle();
+    expect(send).toHaveBeenCalledTimes(2);
+    controller.stop();
+  });
+
+  test("a held failed source counts against the per-page limit across a remount", async () => {
+    document.body.innerHTML =
+      '<img src="https://cdn.test/one.png"><img src="https://cdn.test/two.png">';
+    const dedup = createAutoDownloadDedup();
+    const send = vi.fn((candidate: AutomaticRoutingCandidate) =>
+      Promise.resolve<AutoDownloadSendResult>(
+        candidate.sourceUrl.endsWith("one.png") ? "failed" : "started",
+      ),
+    );
+    const onLimitReached = vi.fn();
+    const options = { rules, live: false, maxPerPage: 1, send, onLimitReached, dedup };
+    const first = setupAutoDownloadDiscovery(options);
+    await first.idle();
+    first.scan();
+    await first.idle();
+    first.stop();
+    const second = setupAutoDownloadDiscovery(options);
+    await second.idle();
+    expect(send.mock.calls.map(([candidate]) => candidate.sourceUrl)).toEqual([
+      "https://cdn.test/one.png",
+      "https://cdn.test/one.png",
+    ]);
+    expect(onLimitReached).toHaveBeenCalled();
+    second.stop();
+  });
+
+  test("a full failure-attempt map gives an unknown failing source no retry", async () => {
+    document.body.innerHTML = '<img src="https://cdn.test/cat.png">';
+    const dedup = createAutoDownloadDedup();
+    dedup.failedAttempts = new Map(
+      Array.from({ length: 1024 }, (_, index) => [`https://cdn.test/${index}.png`, 1]),
+    );
+    const send = vi.fn(() => Promise.resolve<AutoDownloadSendResult>("failed"));
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 20,
+      send,
+      dedup,
+    });
+    await controller.idle();
+    controller.scan();
+    await controller.idle();
+    expect(send).toHaveBeenCalledOnce();
+    expect(dedup.failedAttempts.size).toBe(1024);
+    controller.stop();
+  });
+
+  test("a caller-built dedup without a failure map still bounds retries", async () => {
+    document.body.innerHTML = '<img src="https://cdn.test/cat.png">';
+    const dedup: AutoDownloadDedup = { seen: new Set(), limitNotified: false };
+    const send = vi.fn(() => Promise.resolve<AutoDownloadSendResult>("failed"));
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 20,
+      send,
+      dedup,
+    });
+    await controller.idle();
+    controller.scan();
+    await controller.idle();
+    controller.scan();
+    await controller.idle();
+    expect(send).toHaveBeenCalledTimes(2);
     controller.stop();
   });
 
