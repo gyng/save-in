@@ -196,12 +196,12 @@ test("leaves split routing behavior alone when the legacy mode is already off", 
 });
 
 test("decides an http webhook endpoint by the policy the same write leaves in place", async () => {
-  const storage = { get: vi.fn(), set: vi.fn(async () => undefined) };
+  let stored: Record<string, unknown> = {};
+  const storage = { get: vi.fn(async () => stored), set: vi.fn(async () => undefined) };
   const apply = (config: Record<string, unknown>) =>
     applyConfigSerialized({ queue: Promise.resolve() }, storage, config, undefined, vi.fn());
 
   // Untrusted configuration naming a plaintext endpoint without asking for one.
-  options.webhookAllowInsecure = false;
   expect(await apply({ webhookUrl: "http://hooks.example/save" })).toEqual({
     applied: {},
     rejected: [{ name: "webhookUrl", reason: "invalid value" }],
@@ -216,12 +216,15 @@ test("decides an http webhook endpoint by the policy the same write leaves in pl
     rejected: [],
   });
 
-  // And when the flag is already stored rather than named again.
-  options.webhookAllowInsecure = true;
+  // And when the flag is already stored rather than named again -- read from
+  // storage, because a worker woken by this message has not loaded options yet.
+  options.webhookAllowInsecure = false;
+  stored = { webhookAllowInsecure: true };
   expect(await apply({ webhookUrl: "http://hooks.example/save" })).toEqual({
     applied: { webhookUrl: "http://hooks.example/save" },
     rejected: [],
   });
+  expect(storage.get).toHaveBeenLastCalledWith("webhookAllowInsecure");
 
   // Allowing http is not allowing everything.
   expect(await apply({ webhookUrl: "ftp://hooks.example/save" })).toEqual({
@@ -229,10 +232,20 @@ test("decides an http webhook endpoint by the policy the same write leaves in pl
     rejected: [{ name: "webhookUrl", reason: "invalid value" }],
   });
 
+  // A malformed stored flag is not an allowance.
+  stored = { webhookAllowInsecure: "true" };
+  expect(await apply({ webhookUrl: "http://hooks.example/save" })).toEqual({
+    applied: {},
+    rejected: [{ name: "webhookUrl", reason: "invalid value" }],
+  });
+
   // Tightening the setting is never the write that fails, whatever is stored.
+  stored = { webhookAllowInsecure: true };
+  storage.get.mockClear();
   expect(await apply({ webhookAllowInsecure: false })).toEqual({
     applied: { webhookAllowInsecure: false },
     rejected: [],
   });
-  options.webhookAllowInsecure = false;
+  // A write that names no endpoint does not read the stored flag.
+  expect(storage.get).not.toHaveBeenCalled();
 });

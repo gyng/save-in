@@ -14,7 +14,7 @@ test("keeps every webhook option disabled or privacy-minimal by default", () => 
 });
 
 test("normalizes a valid HTTPS endpoint and rejects unsafe endpoints", async () => {
-  const storage = { get: vi.fn(), set: vi.fn(async () => {}) };
+  const storage = { get: vi.fn(async () => ({})), set: vi.fn(async () => {}) };
   const reset = vi.fn(async () => {});
 
   await expect(
@@ -50,7 +50,7 @@ test("normalizes a valid HTTPS endpoint and rejects unsafe endpoints", async () 
 // non-HTTPS endpoint out of storage has to hold for every line, not just a
 // value that happens to be one line.
 test("accepts a list of endpoints and rejects one that names an unusable line", async () => {
-  const storage = { get: vi.fn(), set: vi.fn(async () => {}) };
+  const storage = { get: vi.fn(async () => ({})), set: vi.fn(async () => {}) };
   const reset = vi.fn(async () => {});
   const apply = (webhookUrl: string) =>
     applyConfigSerialized({ queue: Promise.resolve() }, storage, { webhookUrl }, undefined, reset);

@@ -1,5 +1,4 @@
 import { OptionsManagement } from "../config/option.ts";
-import { options } from "../config/options-data.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import { parseAutoDownloadRules } from "../automation/auto-download-rules.ts";
 import { parseWebhookEndpoints } from "../shared/webhook.ts";
@@ -14,6 +13,8 @@ type ConfigStorage = {
   get(keys: string | string[]): Promise<Record<string, unknown>>;
   set(values: Record<string, unknown>): Promise<void>;
 };
+
+const WEBHOOK_ALLOW_INSECURE = "webhookAllowInsecure";
 
 const equalStoredValue = (left: unknown, right: unknown): boolean =>
   JSON.stringify(left) === JSON.stringify(right);
@@ -46,18 +47,28 @@ const expandLegacyRouteExclusive = (config: Record<string, unknown>): Record<str
 // touch. Reading it from the same config that carries the endpoints is what
 // makes importing a profile atomic: allowing plaintext and naming a plaintext
 // endpoint in one write is accepted, and naming one without allowing it is not.
-const webhookPolicyFor = (config: Record<string, unknown>) => ({
-  allowInsecure:
-    typeof config.webhookAllowInsecure === "boolean"
-      ? config.webhookAllowInsecure
-      : options.webhookAllowInsecure,
-});
+// The untouched flag comes from storage rather than the live options: APPLY_CONFIG
+// stays outside the init gate so a failed init can still be repaired, and a
+// worker woken by this message has not loaded its options yet.
+const webhookPolicyFor = async (config: Record<string, unknown>, storage: ConfigStorage) => {
+  if (typeof config.webhookAllowInsecure === "boolean") {
+    return { allowInsecure: config.webhookAllowInsecure };
+  }
+  if (!Object.hasOwn(config, "webhookUrl")) {
+    return { allowInsecure: false };
+  }
+  const stored = await storage.get(WEBHOOK_ALLOW_INSECURE);
+  return { allowInsecure: stored[WEBHOOK_ALLOW_INSECURE] === true };
+};
 
-const validateConfig = (rawConfig: Record<string, unknown>): ConfigApplyResult => {
+const validateConfig = async (
+  rawConfig: Record<string, unknown>,
+  storage: ConfigStorage,
+): Promise<ConfigApplyResult> => {
   const config = expandLegacyRouteExclusive(rawConfig);
   const applied: Record<string, unknown> = {};
   const rejected: ConfigApplyResult["rejected"] = [];
-  const webhookPolicy = webhookPolicyFor(config);
+  const webhookPolicy = await webhookPolicyFor(config, storage);
 
   Object.keys(config).forEach((name) => {
     const key = OptionsManagement.OPTION_KEYS.find((definition) => definition.name === name);
@@ -136,7 +147,7 @@ export const applyConfigSerialized = (
   const task = state.queue
     .catch(() => {})
     .then(async () => {
-      const { applied, rejected } = validateConfig(config);
+      const { applied, rejected } = await validateConfig(config, storage);
       const names = Object.keys(applied);
       if (expected && names.length) {
         const current = await storage.get(Object.keys(expected));
