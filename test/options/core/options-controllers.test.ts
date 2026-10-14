@@ -198,6 +198,45 @@ describe("settings transfer", () => {
     expect(restoreSettings).toHaveBeenCalledOnce();
   });
 
+  test.each([
+    ["webmcpEnabled", true],
+    ["uiLocale", true],
+    ["enabled", false],
+  ])(
+    "after reporting the import, reloads the page only for a page-load option (%s)",
+    async (name, reloads) => {
+      importMarkup();
+      vi.spyOn(window, "prompt").mockReturnValue(JSON.stringify({ [name]: false }));
+      const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
+      const applied = { [name]: false };
+      const acceptApplied = vi.fn(() => [{ name, before: true, after: false }]);
+      const restoreSettings = restore();
+      const requestPageReload = vi.fn(() => {
+        expect(alert).toHaveBeenCalledWith("Settings loaded.");
+      });
+      setupSettingsTransfer({
+        getSchema: () => Promise.resolve({ keys: [{ name }] }),
+        getStored: vi.fn(),
+        apply: vi.fn().mockResolvedValue({
+          type: MESSAGE_TYPES.APPLY_CONFIG_RESULT,
+          body: { version: 1, applied, rejected: [] },
+        }),
+        restore: restoreSettings,
+        acceptApplied,
+        requestPageReload,
+      });
+
+      document.querySelector<HTMLButtonElement>("#settings-import")!.click();
+
+      await vi.waitFor(() => expect(alert).toHaveBeenCalled());
+      expect(acceptApplied).toHaveBeenCalledWith(applied);
+      expect(acceptApplied.mock.invocationCallOrder[0]!).toBeLessThan(
+        restoreSettings.mock.invocationCallOrder[0]!,
+      );
+      expect(requestPageReload).toHaveBeenCalledTimes(reloads ? 1 : 0);
+    },
+  );
+
   test("lets an older imported click shortcut replace existing gesture bindings", async () => {
     importMarkup();
     vi.spyOn(window, "prompt").mockReturnValue(

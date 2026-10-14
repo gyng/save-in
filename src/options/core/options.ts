@@ -200,6 +200,8 @@ const setupSettingsTransferPanel = (): void => {
     restore: restoreOptions,
     confirmChanges: confirmHistoryRetentionChanges,
     onHistoryRetentionLowered: () => void renderHistory(),
+    acceptApplied: optionsPersistence.acceptExternal,
+    requestPageReload: () => optionPageReload.request(),
   });
 };
 

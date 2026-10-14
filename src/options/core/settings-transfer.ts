@@ -5,6 +5,7 @@ import { cssSelectorErrors } from "./css-selector-validation.ts";
 import type { SavedChange } from "./options-persistence.ts";
 import { lowersHistoryRetention } from "../history/history-retention-model.ts";
 import { resolveHistoryRetentionLimit } from "../../config/history-retention.ts";
+import { changesNeedPageReload } from "./deferred-page-reload.ts";
 
 type OptionSchema = { keys: Array<{ name: string }> };
 
@@ -20,6 +21,13 @@ type SettingsTransferDependencies = {
   // Called after a successful apply that included a confirmed retention
   // lowering, so History drops the rows storage already pruned.
   onHistoryRetentionLowered?: () => void;
+  // Records the applied values as the page's known baseline and returns what
+  // actually changed. It must run before `restore`, which would otherwise
+  // absorb the change silently.
+  acceptApplied?: (applied: Record<string, unknown>) => SavedChange[];
+  // An import is the other path besides autosave that can change a page-load
+  // option (uiLocale, webmcpEnabled), so it needs the same reload.
+  requestPageReload?: () => void;
 };
 
 export const setupSettingsTransfer = (dependencies: SettingsTransferDependencies) => {
@@ -84,6 +92,7 @@ export const setupSettingsTransfer = (dependencies: SettingsTransferDependencies
       }
 
       const response = assertApplyAcknowledged(await dependencies.apply(settings));
+      const changes = dependencies.acceptApplied?.(response.body.applied) ?? [];
       await dependencies.restore();
       if (confirmedRetentionLowering) dependencies.onHistoryRetentionLowered?.();
       const rejected = response.body.rejected;
@@ -92,6 +101,8 @@ export const setupSettingsTransfer = (dependencies: SettingsTransferDependencies
           ? `Settings loaded with ${rejected.length} rejected value(s).`
           : "Settings loaded.",
       );
+      // After the alert, so the report is not lost to the reload.
+      if (changesNeedPageReload(changes)) dependencies.requestPageReload?.();
     });
   });
 };
