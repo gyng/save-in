@@ -5,7 +5,7 @@ import { getDownload, mergeDownload } from "./download-state.ts";
 import { backfillDownloadStartTime } from "./undo-download.ts";
 import type { DownloadRecordUpdate } from "./download-state.ts";
 import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
-import { DOWNLOAD_TYPES } from "../shared/constants.ts";
+import { CONFLICT_ACTION, DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { getDownloadHeaders, getFetchReferer } from "./headers.ts";
 import {
@@ -400,7 +400,14 @@ export const executeBrowserDownload = async (
     const downloadOptions: Parameters<typeof webExtensionApi.downloads.download>[0] = {
       url: acquired.url,
       saveAs: prompt,
-      conflictAction: nativeConflictAction(),
+      // Firefox seeds its picker with the name its conflict action resolves,
+      // so uniquify would propose name(1).ext for the file Ask is about. With
+      // overwrite it proposes the original name, and the picker itself asks
+      // before replacing. Only this request: the retry record keeps the
+      // native action, because a retry has no dialog to confirm anything.
+      conflictAction: plan.askAboutExistingFile
+        ? CONFLICT_ACTION.OVERWRITE
+        : nativeConflictAction(),
     };
     // An explicit Chrome downloads.download filename suppresses the server's
     // Content-Disposition name before onDeterminingFilename can route it.
@@ -437,7 +444,11 @@ export const executeBrowserDownload = async (
         if (conflictResolution === "ask") {
           // Same acquisition, History row and routing; the dialog replaces the
           // check, so the replacement cannot be renamed and asked about again.
-          return await executeBrowserDownload({ ...plan, prompt: true }, acquired, signal);
+          return await executeBrowserDownload(
+            { ...plan, prompt: true, askAboutExistingFile: true },
+            acquired,
+            signal,
+          );
         }
         await releaseAcquiredDownload(acquired);
         await historyPort

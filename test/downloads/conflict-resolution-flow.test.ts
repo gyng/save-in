@@ -2,6 +2,7 @@
 // emulated Ask and Skip, and every path that must save exactly as before.
 import {
   Download,
+  downloadState,
   makeState,
   Notifier,
   options,
@@ -160,8 +161,12 @@ describe("Ask each time, emulated on Firefox", () => {
       url: first.url,
       filename: first.filename,
       saveAs: true,
-      conflictAction: "uniquify",
+      // Uniquify would make Firefox's picker propose name(1).ext, since the
+      // file is known to exist; the picker itself confirms the replacement.
+      conflictAction: "overwrite",
     });
+    // A later network retry has no dialog, so it must never overwrite.
+    expect(downloadState.records.get(102)?.conflictAction).toBe("uniquify");
     expect(global.browser.downloads.erase).toHaveBeenCalledWith({ id: 101 });
     // The dialog replaces the check, so the replacement is never re-examined.
     expect(global.browser.downloads.download).toHaveBeenCalledTimes(2);

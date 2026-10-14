@@ -62,6 +62,8 @@ export type DownloadPlan = {
   finalFullPath: string;
   prompt: boolean;
   historyEntryId: string | null;
+  // Firefox's emulated Ask: the Save As dialog for a file known to exist.
+  askAboutExistingFile?: true | undefined;
 };
 
 export type AcquiredDownload = {

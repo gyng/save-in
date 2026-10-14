@@ -23,6 +23,9 @@ and either skips the save or opens the Save As dialog for the original name.
 - A skipped save appears in History as **Already exists** and is not sent to
   webhooks. Its notice follows **Notify when a download fails**; private
   saves get a notice that does not name the file.
+- The Save As dialog suggests the original name, not `name(1).ext`. Keeping
+  it replaces the existing file once your system's file dialog asks you to
+  confirm; type another name to keep both files.
 - Closing the Save As dialog without saving ends the save. History shows it
   as **Canceled**, and no failure is reported.
 - A very small file can finish before the cancel. Save In then deletes the
