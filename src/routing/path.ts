@@ -49,7 +49,10 @@ export type PathFinalizeOptions = {
 // These regexes are exported because they define the platform-neutral path
 // policy; callers should normally use the sanitizing functions below.
 const SPECIAL_CHARACTERS_REGEX = new RegExp(FORBIDDEN_FILENAME_CHARS.source, "g");
-const INVISIBLE_CHARACTERS_REGEX = new RegExp(UNSAFE_INVISIBLE_FILENAME_CHARS.source, "g");
+const INVISIBLE_CHARACTERS_REGEX = new RegExp(
+  UNSAFE_INVISIBLE_FILENAME_CHARS.source,
+  `${UNSAFE_INVISIBLE_FILENAME_CHARS.flags}g`,
+);
 const BAD_LEADING_CHARACTERS = /^[./\\]/g;
 // Browsers strip whitespace from the edges of a path component, so a component
 // left edged with it is silently altered or dropped instead of being saved

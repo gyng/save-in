@@ -211,17 +211,21 @@ export type ClickType = (typeof CLICK_TYPES)[keyof typeof CLICK_TYPES];
 
 // Characters invalid in a filename/path segment (Windows as the lowest common
 // denominator). One source of truth for Path's sanitizer and the option schema's
-// replacementChar validator. No flags — callers add `g` where needed.
-// eslint-disable-next-line no-control-regex -- control chars \x00-\x1f are intentionally forbidden
-export const FORBIDDEN_FILENAME_CHARS = /[<>:"/\\|?*\x00-\x1f]/;
+// replacementChar validator. No flags — callers add `g` where needed. Every
+// control character counts, C1 and DEL included: Chrome's downloads API refuses
+// any Unicode Cc character with "Invalid filename".
+// eslint-disable-next-line no-control-regex -- control chars are intentionally forbidden
+export const FORBIDDEN_FILENAME_CHARS = /[<>:"/\\|?*\x00-\x1f\x7f-\x9f]/;
 
-// Format controls and variation selectors are legal on some filesystems but
-// can make downloads fail or produce deceptive/inaccessible names in browser
-// filename APIs (#220). The surrogate-pair alternative covers two supplemental
-// blocks that share a high surrogate, without requiring mutable RegExp flags:
-// the tags block (U+E0000-U+E007F, \udc00-\udc7f), whose characters render as
-// nothing and can hide text inside an innocuous-looking server filename, and
-// the variation selectors (U+E0100-U+E01EF, \udd00-\uddef).
+// Format controls (all of Unicode Cf), noncharacters and variation selectors
+// are legal on some filesystems, but Chrome's downloads API refuses Cf and
+// noncharacters as "Invalid filename", and they make deceptive or inaccessible
+// names besides (#220). Cf covers the bidi controls, zero-width joiners and the
+// tags block, whose characters render as nothing and can hide text inside an
+// innocuous-looking server filename; the rest of the tags block (U+E0000-
+// U+E007F, partly unassigned) is listed explicitly. Variation selectors are
+// not Cf but still render as nothing. The `u` flag is part of the contract:
+// callers that derive a global copy must keep it.
 export const UNSAFE_INVISIBLE_FILENAME_CHARS =
   // eslint-disable-next-line no-misleading-character-class -- combining variation selectors are intentionally matched as code points
-  /[\u00ad\u061c\u180e\u200b-\u200f\u202a-\u202e\u2060-\u2064\u2066-\u206f\ufeff\ufe00-\ufe0f]|\udb40[\udc00-\udc7f\udd00-\uddef]/;
+  /[\p{Cf}\p{Noncharacter_Code_Point}\u180e\ufe00-\ufe0f\u{e0000}-\u{e007f}\u{e0100}-\u{e01ef}]/u;

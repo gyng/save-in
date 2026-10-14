@@ -99,12 +99,15 @@ describe("sanitisation", () => {
 
     // U+0085 is Unicode White_Space, which browsers trim, but not JS `\s`.
     test.each(["", "-"])(
-      "treats NEXT LINE as edge whitespace with replacement %j",
+      "never leaves NEXT LINE at an edge or before a dot with replacement %j",
       (replacement) => {
         options.replacementChar = replacement;
         try {
-          expect(Path.sanitizeFilename("\u0085name\u0085", 0, false)).toBe("name");
-          expect(Path.sanitizeFilename("\u0085.config")).not.toMatch(/^[\s\u0085.]/u);
+          for (const value of ["\u0085name\u0085", "\u0085.config"]) {
+            const result = Path.sanitizeFilename(value);
+            expect(result).not.toMatch(/^[\s\u0085.]|[\s\u0085.]$/u);
+            expect(result).toContain(value.replaceAll("\u0085", "").replace(/^\./, ""));
+          }
         } finally {
           options.replacementChar = "_";
         }
@@ -282,6 +285,32 @@ describe("sanitizeFilename", () => {
 
   test("strips control characters", () => {
     expect(Path.sanitizeFilename("a\x01b\x1fc", 0, false)).toBe("a_b_c");
+  });
+
+  // Chrome's downloads API refuses every Cc, Cf and noncharacter code point
+  // with "Invalid filename", not only the C0 controls and common invisibles.
+  test("replaces DEL and C1 controls like the C0 controls", () => {
+    expect(Path.sanitizeFilename("a\x7fb\x80c\u0085d\x9fe", 0, false)).toBe("a_b_c_d_e");
+  });
+
+  test.each([
+    "؀",
+    "؅",
+    "۝",
+    "܏",
+    "࣢",
+    "￹",
+    "￻",
+    "\u{110bd}",
+    "\u{1d173}",
+    "﷐",
+    "﷯",
+    "￾",
+    "￿",
+    "\u{1fffe}",
+    "\u{10ffff}",
+  ])("removes the format or noncharacter code point %j", (character) => {
+    expect(Path.sanitizeFilename(`a${character}b`, 0, false)).toBe("ab");
   });
 
   test("removes invisible format controls and variation selectors", () => {
