@@ -18,6 +18,42 @@
   and invalid filename components. Valid relative paths remain supported.
 - Fixed an autosave queue race that could leave the latest value waiting after
   the previous save finished.
+- Filenames and folders now avoid every name Chrome refuses: control, format
+  and noncharacter code points are removed, a tilde at the start or end of a
+  name becomes `_`, and reserved names such as `CLOCK$`, `desktop.ini`, and
+  `.lnk`/`.local` endings are renamed on every system (`nas.local` saves as
+  `nas_local`). Stored menu, Quick save, and Last used folders that 4.1.0
+  accepted keep working.
+- Fixed menu folders that place a space, dot, or tilde beside a variable, such
+  as `Pics - :date:`, being rejected as invalid.
+- Fixed a variable, capture, or `././` route that expands to `.` producing a
+  `./` inside a menu folder, which Chrome refused.
+- Routing patterns match against the first 4,096 characters of a value, and
+  the editor warns about stacked unbounded wildcards that can make matching
+  slow.
+- Page `blob:` images, including those in subframes, now save on Chrome
+  through the offscreen document, transfer only when routing needs their
+  bytes, and report the actual cause when a save fails. A fetch-rewritten blob
+  is named after its new URL.
+- Retried downloads now send one webhook outcome under the original download
+  id instead of a `failed` event followed by an unmatched `complete`.
+- Automatic Page Sources discovery runs in idle-time slices, stops re-sending
+  a source that keeps failing, and no longer leaks scans or slots when the
+  page changes or the panel closes. A batch save stops when the panel closes.
+- After Chrome updates, disables, or removes Save In, a page that is still
+  open stops intercepting click-to-save gestures.
+- Private browsing: external downloads never target a private tab, Chrome's
+  private Last used is disabled when private browsing ends and survives menu
+  rebuilds, and restart recovery adopts only downloads it can attribute.
+- The failure Save As prompt now follows Chrome routing and stays out of
+  browser-download History.
+- Rule editor fixes: converting a rule without a matcher to or from an
+  exclusion no longer changes the next rule, deleting a rule keeps a section
+  comment beside it, and condition labels count correctly after `disabled:`.
+- History offers only configured folders as move destinations. WebMCP tools
+  stop working as soon as agent access is turned off. Importing a setting that
+  applies on page load reloads Options, and an unsaved webhook endpoint edit
+  survives closing the page.
 
 # 4.1.0
 
