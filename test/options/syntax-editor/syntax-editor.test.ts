@@ -7,6 +7,12 @@ import {
   SYNTAX_EDITOR_LINE_SELECTED_EVENT,
 } from "../../../src/options/syntax-editor/syntax-editor.ts";
 
+// Read a CSSStyleDeclaration member so its methods keep the real receiver.
+const bound = (target: CSSStyleDeclaration, property: PropertyKey): unknown => {
+  const value: unknown = Reflect.get(target, property, target);
+  return typeof value === "function" ? value.bind(target) : value;
+};
+
 describe("syntax editor surface", () => {
   afterEach(() => {
     document.body.innerHTML = "";
@@ -225,6 +231,31 @@ describe("syntax editor surface", () => {
     expect(document.querySelector<HTMLElement>(".syntax-editor-tooltip")?.textContent).toContain(
       "Bad destination",
     );
+  });
+
+  test("places a caret tooltip by an assumed 16px font when none is computed", () => {
+    document.body.innerHTML = '<textarea id="paths">first\nsecond</textarea>';
+    const textarea = document.querySelector("textarea")!;
+    createSyntaxEditor(textarea, "directories");
+    setSyntaxEditorDiagnostics(textarea, [
+      { start: 6, end: 12, line: 2, column: 0, message: "Bad destination", severity: "warning" },
+    ]);
+    const real = window.getComputedStyle.bind(window);
+    vi.spyOn(window, "getComputedStyle").mockImplementation((element) => {
+      const computed = real(element);
+      if (element !== textarea) return computed;
+      return new Proxy(computed, {
+        get: (target, property) => (property === "fontSize" ? "" : bound(target, property)),
+      });
+    });
+
+    // jsdom lays nothing out, so the probe measures 0 and the font decides.
+    textarea.setSelectionRange(8, 8);
+    textarea.dispatchEvent(new MouseEvent("click"));
+    const tooltip = document.querySelector<HTMLElement>('[role="tooltip"]')!;
+    expect(tooltip.hidden).toBe(false);
+    expect(tooltip.style.left).not.toContain("NaN");
+    vi.restoreAllMocks();
   });
 
   test("handles caret, keyboard, visibility, and scroll states", () => {

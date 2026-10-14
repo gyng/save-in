@@ -6,6 +6,12 @@ const { pathVariableStrategy, caretCoordinates, attachAutocomplete, setupRouting
 
 const VARIABLES = [":date:", ":day:", ":pagetitle:"];
 
+// Read a CSSStyleDeclaration member so its methods keep the real receiver.
+const bound = (target: CSSStyleDeclaration, property: PropertyKey): unknown => {
+  const value: unknown = Reflect.get(target, property, target);
+  return typeof value === "function" ? value.bind(target) : value;
+};
+
 describe("caretCoordinates", () => {
   afterEach(() => {
     document.body.innerHTML = "";
@@ -24,6 +30,24 @@ describe("caretCoordinates", () => {
     expect(coords.height).toBeGreaterThan(0);
     // only the textarea remains — the hidden mirror div was removed
     expect(document.querySelectorAll("div").length).toBe(0);
+  });
+
+  test("falls back to a 16px line when no line height or font size is computed", () => {
+    // Firefox reports empty computed styles inside a hidden frame.
+    document.body.innerHTML = '<textarea id="ta">x</textarea>';
+    const ta = document.getElementById("ta") as HTMLTextAreaElement;
+    const real = window.getComputedStyle.bind(window);
+    vi.spyOn(window, "getComputedStyle").mockImplementation((element) => {
+      const computed = real(element);
+      if (element !== ta) return computed;
+      return new Proxy(computed, {
+        get: (target, property) =>
+          property === "lineHeight" || property === "fontSize" ? "" : bound(target, property),
+      });
+    });
+
+    expect(caretCoordinates(ta, 1).height).toBe(16);
+    vi.restoreAllMocks();
   });
 
   test("also measures single-line inputs", () => {

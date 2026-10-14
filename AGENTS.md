@@ -254,7 +254,7 @@ browsers before reporting it as confirmed.
 
 ## Iteration workflow
 
-- `npm install`: install the development dependencies with Node 24 or newer.
+- `npm install`: install the development dependencies with Node 24.15 or newer.
 - `npm run fmt:check` and `npm run fmt`: check or apply repository formatting.
 - `npm test` and `npm run test:watch`: sandbox-safe unit tests.
   `npm run test:integration` runs tests that require loopback listeners or child
@@ -492,7 +492,7 @@ vitest specifics (`test/**/*.test.ts`, typed; `tsc` covers them):
 - When the user asks for repository changes, commit the completed, verified
   work before handing it back unless they explicitly ask to leave it uncommitted.
   Stage only task-related changes when the worktree contains unrelated edits.
-- No extension runtime dependencies. Build tooling targets Node ≥ 24 and uses
+- No extension runtime dependencies. Build tooling targets Node ≥ 24.15 and uses
   JSZip only to canonicalize `web-ext` archives for reproducible bytes.
 - Editable SVG icon sources and regenerated runtime rasters live under `icons/`.
   Shipped icon files must be referenced explicitly by the manifest or runtime.

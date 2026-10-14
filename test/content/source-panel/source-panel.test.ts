@@ -785,6 +785,20 @@ describe("Page Sources panel interactions", () => {
     expect(document.activeElement).toBe(pageButton);
   });
 
+  test("leaves focus alone on close when an SVG element held it before opening", () => {
+    vi.useFakeTimers();
+    document.body.insertAdjacentHTML("beforeend", '<svg tabindex="0"></svg>');
+    const graphic = document.querySelector("svg")!;
+    graphic.focus();
+    expect(document.activeElement).toBe(graphic);
+    const options = { includeBackgrounds: false, live: false };
+
+    toggleSourcePanel(vi.fn(), options);
+    expect(setSourcePanelOpen(false, vi.fn(), options)).toBe(false);
+
+    expect(document.activeElement).not.toBe(graphic);
+  });
+
   test("restores page focus when background state closes the panel", () => {
     vi.useFakeTimers();
     const pageButton = document.createElement("button");
