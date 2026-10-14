@@ -281,13 +281,17 @@ describe("history row flatteners", () => {
     // Skipping an existing file is the user's choice, not a failure.
     expect(statusLabel("CONFLICT_SKIPPED")).toBe("Already exists");
     expect(statusClass("CONFLICT_SKIPPED")).toBe("status-excluded");
+    // So is closing a Save As dialog or stopping a save.
+    expect(statusClass("USER_CANCELED")).toBe("status-canceled");
   });
 
-  test("undone, moved, and excluded rows filter as deliberate outcomes, not as failures", () => {
+  test("deliberate outcomes filter on their own, not as failures", () => {
     const entries = [
       { id: "a", status: "undone", timestamp: "2024-01-01T00:00:00Z" },
       { id: "m", status: "moved", timestamp: "2024-01-01T00:00:00Z" },
       { id: "x", status: "RULE_EXCLUDED", timestamp: "2024-01-01T00:00:00Z" },
+      { id: "s", status: "CONFLICT_SKIPPED", timestamp: "2024-01-01T00:00:00Z" },
+      { id: "c", status: "USER_CANCELED", timestamp: "2024-01-01T00:00:00Z" },
       { id: "b", status: "SERVER_FORBIDDEN", timestamp: "2024-01-01T00:00:00Z" },
     ];
     expect(paginateHistory(entries, { statusFilter: "failed" }).matchCount).toBe(1);

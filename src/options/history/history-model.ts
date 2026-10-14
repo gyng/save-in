@@ -161,17 +161,22 @@ const historyMatchesQuery = (entry: HistoryEntry, query: string): boolean => {
   );
 };
 
+// Outcomes the user or their rules chose. They are neither saved nor failed:
+// neutral badges, and never under the Failed filter.
+const DELIBERATE_STATUS_CLASSES = new Map([
+  ["undone", "status-undone"],
+  ["moved", "status-moved"],
+  ["RULE_EXCLUDED", "status-excluded"],
+  ["CONFLICT_SKIPPED", "status-excluded"],
+  ["USER_CANCELED", "status-canceled"],
+]);
+
 const historyMatchesStatus = (entry: HistoryEntry, statusFilter: string): boolean => {
   const status = historyStatus(entry);
   return statusFilter === "failed"
-    ? // Every non-terminal-success status except the deliberate user
-      // actions (undo, move): browser error names (SERVER_FORBIDDEN, …)
-      // have no enumerable list.
-      status !== "complete" &&
-        status !== "pending" &&
-        status !== "undone" &&
-        status !== "moved" &&
-        status !== "RULE_EXCLUDED"
+    ? // Every other status: browser error names (SERVER_FORBIDDEN, …) have no
+      // enumerable list.
+      status !== "complete" && status !== "pending" && !DELIBERATE_STATUS_CLASSES.has(status)
     : status === statusFilter;
 };
 
@@ -227,15 +232,7 @@ export const statusClass = (status: string): string => {
     return "status-pending";
   }
   // Deliberate user or routing-policy outcomes, not errors: distinct from the failure styling
-  if (status === "CONFLICT_SKIPPED") return "status-excluded";
-  if (status === "undone" || status === "moved" || status === "RULE_EXCLUDED") {
-    return status === "undone"
-      ? "status-undone"
-      : status === "moved"
-        ? "status-moved"
-        : "status-excluded";
-  }
-  return "status-fail";
+  return DELIBERATE_STATUS_CLASSES.get(status) ?? "status-fail";
 };
 
 // Flatten an entry into the fields the table shows and sorts/filters on
