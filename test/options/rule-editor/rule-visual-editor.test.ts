@@ -586,6 +586,18 @@ describe("routing visual editor", () => {
     expect(jpg?.disabled).toBe(false);
   });
 
+  test("numbers conditions that follow a leading disabled clause from one", () => {
+    element<HTMLTextAreaElement>("#filenamePatterns").value =
+      "disabled: true\nfilename: a\npageurl: b\ninto: x/";
+    setupRuleVisualEditor({ matchers: ["filename", "pageurl"] });
+
+    expect(
+      [...document.querySelectorAll<HTMLInputElement>(".rule-clause-name")].map((input) =>
+        input.getAttribute("aria-label"),
+      ),
+    ).toEqual(["Rule 1, condition 1: matcher", "Rule 1, condition 2: matcher"]);
+  });
+
   test("closes add and rule menus when clicking outside or pressing Escape", () => {
     setupRuleVisualEditor({ matchers: ["filename"] });
     const addMenu = element<HTMLDetailsElement>(".rule-add-menu");

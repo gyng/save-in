@@ -407,7 +407,9 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
 
     const conditionNumber =
       clause.kind === "matcher"
-        ? rule.clauses.slice(0, clause.index + 1).filter((item) => item.kind === "matcher").length
+        ? rule.clauses
+            .slice(0, rule.clauses.indexOf(clause) + 1)
+            .filter((item) => item.kind === "matcher").length
         : undefined;
     if (clause.kind === "matcher" && conditionNumber !== undefined && clause.name !== "css") {
       row.append(createMatcherInput(rule, clause, conditionNumber));
