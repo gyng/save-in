@@ -809,6 +809,37 @@ describe("automatic source discovery", () => {
     vi.unstubAllGlobals();
   });
 
+  test("routes nothing when discovery stops while a scan's last slice runs", () => {
+    document.body.innerHTML = '<img src="https://cdn.test/reentrant.png"><i class="tile"></i>';
+    const dedup = createAutoDownloadDedup();
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    let discovery: ReturnType<typeof setupAutoDownloadDiscovery> | undefined;
+    let pageDisabled = true;
+    const styles = vi.spyOn(window, "getComputedStyle").mockImplementation(() => {
+      discovery?.stop();
+      return { backgroundImage: "none" } as CSSStyleDeclaration;
+    });
+    discovery = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 20,
+      includeBackgrounds: true,
+      // Hold the initial scan back so the reentrant one is the first to route.
+      isPageDisabled: () => pageDisabled,
+      dedup,
+      send,
+    });
+    pageDisabled = false;
+    // The synchronous first slice is not yet cancellable, so stopping
+    // inside it still reaches completion.
+    discovery.scan();
+
+    expect(styles).toHaveBeenCalled();
+    expect(dedup.seen.size).toBe(0);
+    expect(send).not.toHaveBeenCalled();
+    styles.mockRestore();
+  });
+
   test("rescans the document when a link stops being a stylesheet", async () => {
     vi.useFakeTimers();
     const stylesheet = document.createElement("link");

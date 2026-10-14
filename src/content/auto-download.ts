@@ -331,6 +331,9 @@ export const setupAutoDownloadDiscovery = (
   };
 
   const route = (candidates: readonly PageSourceCandidate[]) => {
+    // A scan settling after stop() must not claim slots in the dedup a
+    // remounted discovery inherits, for a queue nothing will drain.
+    if (stopped) return;
     const pageUrl = `${window.location}`;
     if (dedup.excludedPageUrl !== pageUrl) {
       excluded.clear();
