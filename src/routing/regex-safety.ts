@@ -38,9 +38,166 @@ const trailingDelimiterIsExcluded = (body: string): boolean => {
   return !/\s/.test(delimiter);
 };
 
+// A wildcard reports the characters it can never consume.
+type Wildcard = (character: string) => boolean;
+type AlternationFrame = { start: Wildcard[]; ends: Wildcard[][] };
+
+const CONTROL_ESCAPES: Record<string, string> = { n: "\n", r: "\r", t: "\t", f: "\f", v: "\v" };
+// Applied only where the scan already found the token they describe, so they
+// always match it.
+const ESCAPE_REGEX =
+  /^\\(?:[pP]\{[^}]*\}|u\{([0-9a-fA-F]+)\}|u([0-9a-fA-F]{4})|x([0-9a-fA-F]{2})|c([A-Za-z])|k<[^>]*>|\d+|([^]))/;
+const GROUP_PREFIX_REGEX = /\((?:\?(?::|=|!|<=|<!|<[^>]*>))?/y;
+const QUANTIFIER_REGEX = /^(?:([*+?])|\{(\d+)(,(\d*))?\})\??/;
+const ANCHORED_START_REGEX =
+  /^(?:\^|(?:[^\\[\](){}.*+?^$|]|\\(?:[^A-Za-z0-9]|[nrtfv]|u[0-9a-fA-F]{4}|x[0-9a-fA-F]{2}))(?![*?]|\{0[,}]))/;
+
+const readQuantifier = (source: string, index: number) => {
+  const match = QUANTIFIER_REGEX.exec(source.slice(index));
+  if (!match) return { min: 1, unbounded: false, end: index };
+  const [text, symbol, minimum, comma, maximum] = match;
+  return {
+    min: symbol === "*" || symbol === "?" ? 0 : symbol === "+" ? 1 : Number(minimum),
+    unbounded: symbol === "*" || symbol === "+" || (comma !== undefined && maximum === ""),
+    end: index + text.length,
+  };
+};
+
+const longestChain = (chains: Wildcard[][]): Wildcard[] =>
+  chains.reduce((longest, chain) => (chain.length > longest.length ? chain : longest));
+
+type Atom = { length: number; literal?: string; wildcard?: Wildcard };
+
+const decodeEscape = (
+  length: number,
+  braced: string | undefined,
+  unicode: string | undefined,
+  hex: string | undefined,
+  control: string | undefined,
+  other: string | undefined,
+): Atom => {
+  if (braced !== undefined) return { length, literal: String.fromCodePoint(parseInt(braced, 16)) };
+  const code = unicode ?? hex;
+  if (code !== undefined) return { length, literal: String.fromCharCode(parseInt(code, 16)) };
+  if (control !== undefined)
+    return { length, literal: String.fromCharCode(control.charCodeAt(0) % 32) };
+  if (other === "S") return { length, wildcard: (character) => /\s/.test(character) };
+  if (other === "D") return { length, wildcard: (character) => /\d/.test(character) };
+  if (other === "W") return { length, wildcard: (character) => /\w/.test(character) };
+  const controlEscape = other === undefined ? undefined : CONTROL_ESCAPES[other];
+  if (controlEscape !== undefined) return { length, literal: controlEscape };
+  if (other !== undefined && !/[A-Za-z0-9]/.test(other)) return { length, literal: other };
+  return { length };
+};
+
+const escapedAtom = (source: string, index: number): Atom => {
+  // A replacer receives the match without the nullable result exec returns.
+  let atom: Atom = { length: 1 };
+  source
+    .slice(index)
+    .replace(
+      ESCAPE_REGEX,
+      (
+        text: string,
+        braced: string | undefined,
+        unicode: string | undefined,
+        hex: string | undefined,
+        control: string | undefined,
+        other: string | undefined,
+      ) => {
+        atom = decodeEscape(text.length, braced, unicode, hex, control, other);
+        return text;
+      },
+    );
+  return atom;
+};
+
+// Unbounded wildcards that can each go on consuming what the previous one
+// could compound: failing `.*\/.*x` tries every split of the input between
+// them, so k such wildcards cost O(n^k) from one start position, and an
+// unanchored search tries O(n) start positions. A required literal that a
+// pending wildcard excludes (the `/` in `[^/]*\/[^/]*`) ends that wildcard's
+// reach. Returns the resulting polynomial degree, conservatively approximated.
+const backtrackingDegree = ({ source, flags }: RegExp): number => {
+  const classFlags = flags.replace(/[gy]/g, "");
+  const anyCharacter = new RegExp(".", classFlags);
+  const dot: Wildcard = (character) => !anyCharacter.test(character);
+  let frame: AlternationFrame = { start: [], ends: [] };
+  const parents: AlternationFrame[] = [];
+  let chain: Wildcard[] = [];
+  let longest = 0;
+  let topLevelAlternation = false;
+  let index = 0;
+  while (index < source.length) {
+    const token = source.charAt(index);
+    if (token === "(") {
+      parents.push(frame);
+      frame = { start: chain, ends: [] };
+      GROUP_PREFIX_REGEX.lastIndex = index;
+      GROUP_PREFIX_REGEX.test(source);
+      index = GROUP_PREFIX_REGEX.lastIndex;
+      continue;
+    }
+    if (token === "|") {
+      topLevelAlternation ||= parents.length === 0;
+      frame.ends.push(chain);
+      chain = frame.start;
+      index += 1;
+      continue;
+    }
+    // A valid RegExp source closes only groups it opened; see the loop below.
+    const parent = token === ")" ? parents.pop() : undefined;
+    if (parent) {
+      const closed = frame;
+      frame = parent;
+      chain = longestChain([...closed.ends, chain]);
+      const quantifier = readQuantifier(source, index + 1);
+      if (quantifier.min === 0) chain = longestChain([closed.start, chain]);
+      index = quantifier.end;
+      continue;
+    }
+    if (token === "^" || token === "$") {
+      index += 1;
+      continue;
+    }
+    let atom: Atom = {
+      length: 1,
+      literal: token,
+    };
+    if (token === "\\") {
+      atom = escapedAtom(source, index);
+    } else if (token === "[") {
+      let end = index + 1;
+      while (source.charAt(end) !== "]") end += source.charAt(end) === "\\" ? 2 : 1;
+      atom = { length: end + 1 - index };
+      if (source.charAt(index + 1) === "^") {
+        // A negated class excludes exactly what the same class un-negated matches.
+        const excluded = new RegExp(`[${source.slice(index + 2, end)}]`, classFlags);
+        atom.wildcard = (character) => excluded.test(character);
+      }
+    } else if (token === ".") {
+      atom = { length: 1, wildcard: dot };
+    }
+    const quantifier = readQuantifier(source, index + atom.length);
+    const { literal, wildcard } = atom;
+    if (wildcard && quantifier.unbounded) {
+      chain = [...chain, wildcard];
+      longest = Math.max(longest, chain.length);
+    } else if (literal !== undefined && quantifier.min > 0) {
+      chain = chain.filter((pending) => !pending(literal));
+    }
+    index = quantifier.end;
+  }
+  const anchored = !topLevelAlternation && ANCHORED_START_REGEX.test(source);
+  return longest + (anchored ? 0 : 1);
+};
+
 // Conservative, linear structural check for the patterns most likely to
-// backtrack catastrophically on long URLs or filenames. Local authoring uses
-// this as a warning; untrusted external validation treats it as a hard gate.
+// backtrack catastrophically on long URLs or filenames. Rule parsing reports a
+// failure only as a warning, so stored and imported rules keep loading and
+// running; matchers bound the input they test instead, which keeps a
+// degree-two pattern cheap but not a degree-three one. External VALIDATE
+// traces refuse to run a pattern their own stricter isSafeExternalRegex rejects.
 export const isSafeRoutingRegex = (regex: RegExp | string): boolean => {
   if (typeof regex === "string") return true;
   const { source } = regex;
@@ -114,5 +271,5 @@ export const isSafeRoutingRegex = (regex: RegExp | string): boolean => {
       current.hasQuantifier = true;
     }
   }
-  return true;
+  return backtrackingDegree(regex) < 3;
 };
