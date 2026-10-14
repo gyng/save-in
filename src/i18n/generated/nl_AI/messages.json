@@ -710,7 +710,7 @@
     "message": "Paginagegevens van het geopende tabblad gebruiken"
   },
   "o_cBrowserDownloadPageDetailsHelp": {
-    "message": "Routeringsregels kunnen de paginatitel en pagina-URL vergelijken wanneer precies één geopend tabblad de pagina toont waar een browserdownload vandaan komt. Tabbladen voor privénavigatie worden nooit gebruikt."
+    "message": "Routeringsregels kunnen de paginatitel en pagina-URL vergelijken wanneer precies één geopend tabblad de pagina toont waar een browserdownload vandaan komt. Tabbladen voor privénavigatie worden nooit gebruikt. Paginaregels boven je regels voor browserdownloads kunnen dan ook op deze downloads van toepassing worden."
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla-bug 1245652"

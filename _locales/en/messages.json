@@ -556,7 +556,7 @@
     "description": "Checkbox that gives routing rules the title and address of the open tab a browser download came from. Applies to Chrome routing and the Firefox reroute. Used in src/options/options.html."
   },
   "o_cBrowserDownloadPageDetailsHelp": {
-    "message": "Routing rules can match the page title and page URL when exactly one open tab shows the page a browser download came from. Private browsing tabs are never used.",
+    "message": "Routing rules can match the page title and page URL when exactly one open tab shows the page a browser download came from. Private browsing tabs are never used. Page rules above your browser-download rules can start matching these downloads.",
     "description": "Help text under the checkbox that gives browser downloads page details (o_cBrowserDownloadPageDetails). A download is attributed to a tab only when its referring address equals that one tab's address. Used in src/options/options.html."
   },
   "o_lFirefoxFilenameApiBug": {

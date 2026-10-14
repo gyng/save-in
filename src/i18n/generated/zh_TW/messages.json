@@ -285,7 +285,7 @@
     "message": "使用已開啟分頁的頁面資訊"
   },
   "o_cBrowserDownloadPageDetailsHelp": {
-    "message": "當恰好只有一個已開啟的分頁顯示瀏覽器下載的來源頁面時，路由規則可以比對頁面標題和頁面 URL。絕不使用隱私瀏覽分頁。"
+    "message": "當恰好只有一個已開啟的分頁顯示瀏覽器下載的來源頁面時，路由規則可以比對頁面標題和頁面 URL。絕不使用隱私瀏覽分頁。位於瀏覽器下載規則之上的頁面規則可能會開始比對這些下載。"
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla Bug 1245652"

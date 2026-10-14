@@ -273,7 +273,7 @@
     "message": "Usa i dettagli della pagina dalla scheda aperta"
   },
   "o_cBrowserDownloadPageDetailsHelp": {
-    "message": "Le regole di routing possono confrontare titolo e URL della pagina quando esattamente una scheda aperta mostra la pagina da cui proviene un download del browser. Le schede di navigazione privata non vengono mai usate."
+    "message": "Le regole di routing possono confrontare titolo e URL della pagina quando esattamente una scheda aperta mostra la pagina da cui proviene un download del browser. Le schede di navigazione privata non vengono mai usate. Le regole di pagina poste sopra le regole per i download del browser possono iniziare a corrispondere a questi download."
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Bug Mozilla 1245652"

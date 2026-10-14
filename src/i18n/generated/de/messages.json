@@ -710,7 +710,7 @@
     "message": "Seitendetails aus dem geöffneten Tab verwenden"
   },
   "o_cBrowserDownloadPageDetailsHelp": {
-    "message": "Routing-Regeln können Seitentitel und Seiten-URL abgleichen, wenn genau ein geöffneter Tab die Seite zeigt, von der ein Browser-Download stammt. Tabs beim privaten Surfen werden nie verwendet."
+    "message": "Routing-Regeln können Seitentitel und Seiten-URL abgleichen, wenn genau ein geöffneter Tab die Seite zeigt, von der ein Browser-Download stammt. Tabs beim privaten Surfen werden nie verwendet. Seitenregeln oberhalb Ihrer Regeln für Browser-Downloads können dann auch diese Downloads erfassen."
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla-Fehler 1245652"

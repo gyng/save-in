@@ -710,7 +710,7 @@
     "message": "Usar detalhes da página da guia aberta"
   },
   "o_cBrowserDownloadPageDetailsHelp": {
-    "message": "As regras de roteamento podem comparar o título e a URL da página quando exatamente uma guia aberta mostra a página de onde veio um download do navegador. Guias de navegação privativa nunca são usadas."
+    "message": "As regras de roteamento podem comparar o título e a URL da página quando exatamente uma guia aberta mostra a página de onde veio um download do navegador. Guias de navegação privativa nunca são usadas. Regras de página acima das suas regras de downloads do navegador podem passar a corresponder a esses downloads."
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Bug Mozilla 1245652"

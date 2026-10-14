@@ -285,7 +285,7 @@
     "message": "使用已打开标签页的页面信息"
   },
   "o_cBrowserDownloadPageDetailsHelp": {
-    "message": "当恰好只有一个已打开的标签页显示浏览器下载的来源页面时，路由规则可以匹配页面标题和页面 URL。从不使用隐私浏览标签页。"
+    "message": "当恰好只有一个已打开的标签页显示浏览器下载的来源页面时，路由规则可以匹配页面标题和页面 URL。从不使用隐私浏览标签页。位于浏览器下载规则之上的页面规则可能会开始匹配这些下载。"
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla Bug 1245652"

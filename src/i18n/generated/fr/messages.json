@@ -722,7 +722,7 @@
     "message": "Utiliser les détails de la page de l’onglet ouvert"
   },
   "o_cBrowserDownloadPageDetailsHelp": {
-    "message": "Les règles de routage peuvent utiliser le titre et l’URL de la page lorsqu’un seul onglet ouvert affiche la page d’où provient un téléchargement du navigateur. Les onglets de navigation privée ne sont jamais utilisés."
+    "message": "Les règles de routage peuvent utiliser le titre et l’URL de la page lorsqu’un seul onglet ouvert affiche la page d’où provient un téléchargement du navigateur. Les onglets de navigation privée ne sont jamais utilisés. Les règles de page placées au-dessus de vos règles de téléchargements du navigateur peuvent alors s’appliquer à ces téléchargements."
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Bogue Mozilla 1245652"

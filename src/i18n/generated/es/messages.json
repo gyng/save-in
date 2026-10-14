@@ -710,7 +710,7 @@
     "message": "Usar los detalles de la página de la pestaña abierta"
   },
   "o_cBrowserDownloadPageDetailsHelp": {
-    "message": "Las reglas de enrutamiento pueden comparar el título y la URL de la página cuando exactamente una pestaña abierta muestra la página de la que procede una descarga del navegador. Nunca se usan pestañas de navegación privada."
+    "message": "Las reglas de enrutamiento pueden comparar el título y la URL de la página cuando exactamente una pestaña abierta muestra la página de la que procede una descarga del navegador. Nunca se usan pestañas de navegación privada. Las reglas de página situadas por encima de tus reglas de descargas del navegador pueden empezar a aplicarse a estas descargas."
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Error de Mozilla 1245652"

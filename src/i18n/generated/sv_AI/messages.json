@@ -710,7 +710,7 @@
     "message": "Använd siduppgifter från den öppna fliken"
   },
   "o_cBrowserDownloadPageDetailsHelp": {
-    "message": "Routningsregler kan matcha sidrubrik och sid-URL när exakt en öppen flik visar sidan som en webbläsarnedladdning kom från. Flikar för privat surfning används aldrig."
+    "message": "Routningsregler kan matcha sidrubrik och sid-URL när exakt en öppen flik visar sidan som en webbläsarnedladdning kom från. Flikar för privat surfning används aldrig. Sidregler ovanför dina regler för webbläsarnedladdningar kan då också börja matcha de här nedladdningarna."
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla bugg 1245652"
