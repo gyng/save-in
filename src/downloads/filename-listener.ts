@@ -26,7 +26,7 @@ import { isWireDownloadState, type WireDownloadState } from "../shared/message-p
 import { fromWireDownloadState, toWireDownloadState } from "./wire-state.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 import { notifyExclusiveRouteMiss, notifyRouteExclusion } from "./route-outcome-notification.ts";
-import { getTrackedDownload } from "./expected-downloads.ts";
+import { getTrackedDownload, takeUnroutedDownload } from "./expected-downloads.ts";
 import { releaseTerminalDownload, runLateRouteCancellation } from "./terminal-download.ts";
 import { isPrivateDownloadState } from "./download-pipeline-state.ts";
 import { settleRoutingResolution } from "./routing-resolution.ts";
@@ -468,6 +468,13 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
     if (pendingUrl && pendingQueue?.length === 0) Download.pendingStates.delete(pendingUrl);
 
     if (!pendingState || !pendingState.path) {
+      if (
+        initiatedBySaveIn &&
+        takeUnroutedDownload(downloadItem.id, [downloadItem.url, downloadItem.finalUrl])
+      ) {
+        suggest();
+        return false;
+      }
       void (async () => {
         if (backgroundRuntime.ready) await backgroundRuntime.ready.catch(() => {});
         const [filenameResult, deferredResult] = await Promise.all([

@@ -21,8 +21,12 @@ type ExpectedDownload = {
 };
 const expectedDownloads: ExpectedDownload[] = [];
 
+export type UnroutedDownload = { url: string; downloadId?: number };
+const unroutedDownloads = new Set<UnroutedDownload>();
+
 export const resetExpectedDownloads = (): void => {
   expectedDownloads.length = 0;
+  unroutedDownloads.clear();
 };
 
 // Recovery of adopted and pending records is owned by notification-recovery.ts.
@@ -58,3 +62,40 @@ export const findExpectedDownload = (
   expectedDownloads.find(
     (expected) => expected.url == null || expected.url === url || expected.url === finalUrl,
   );
+
+// Save In's own failure Save As prompt is a bare downloads.download with no
+// pipeline state. Chrome still reports it as ours, so without this mark its
+// onDeterminingFilename event reads as a save whose route did not hold and is
+// cancelled when unmatched saves are skipped. The prompt may resolve before or
+// after that event, so the mark matches its URL until the id is known.
+export const allowUnroutedDownload = (url: string): UnroutedDownload => {
+  const unrouted: UnroutedDownload = { url };
+  unroutedDownloads.add(unrouted);
+  return unrouted;
+};
+
+// downloadId is undefined when downloads.download rejected: no event follows.
+export const settleUnroutedDownload = (
+  unrouted: UnroutedDownload,
+  downloadId: number | undefined,
+): void => {
+  if (downloadId === undefined) unroutedDownloads.delete(unrouted);
+  else if (unroutedDownloads.has(unrouted)) unrouted.downloadId = downloadId;
+};
+
+export const takeUnroutedDownload = (
+  downloadId: number | undefined,
+  urls: readonly (string | undefined)[],
+): boolean => {
+  for (const unrouted of unroutedDownloads) {
+    if (
+      unrouted.downloadId === undefined
+        ? urls.includes(unrouted.url)
+        : unrouted.downloadId === downloadId
+    ) {
+      unroutedDownloads.delete(unrouted);
+      return true;
+    }
+  }
+  return false;
+};

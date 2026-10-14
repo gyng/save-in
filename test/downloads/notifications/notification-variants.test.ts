@@ -57,6 +57,53 @@ describe("notification variants", () => {
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
   });
 
+  test("lets Chrome's filename listener pass the failure Save As prompt through", async () => {
+    await install({ notifyOnFailure: false, promptOnFailure: true, notifyDuration: 1000 });
+    await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
+    vi.mocked(global.browser.downloads.download).mockResolvedValueOnce(99);
+    const { takeUnroutedDownload } = await import("../../../src/downloads/expected-downloads.ts");
+
+    await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
+
+    // Once the id is known, only that download is passed through.
+    expect(takeUnroutedDownload(98, ["https://x/p.png"])).toBe(false);
+    expect(takeUnroutedDownload(99, [])).toBe(true);
+    expect(takeUnroutedDownload(99, [])).toBe(false);
+  });
+
+  test("passes the failure prompt through when its filename event precedes the id", async () => {
+    await install({ notifyOnFailure: false, promptOnFailure: true, notifyDuration: 1000 });
+    await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
+    const { takeUnroutedDownload } = await import("../../../src/downloads/expected-downloads.ts");
+    const passedThrough: boolean[] = [];
+    vi.mocked(global.browser.downloads.download).mockImplementationOnce(async () => {
+      passedThrough.push(takeUnroutedDownload(99, ["https://x/other.png", "https://x/p.png"]));
+      return 99;
+    });
+
+    await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
+
+    expect(passedThrough).toEqual([true]);
+    expect(takeUnroutedDownload(99, ["https://x/p.png"])).toBe(false);
+  });
+
+  test("leaves no pass-through behind for a rejected or Firefox failure prompt", async () => {
+    await install({ notifyOnFailure: false, promptOnFailure: true, notifyDuration: 1000 });
+    await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
+    vi.mocked(global.browser.downloads.download).mockRejectedValueOnce(new Error("prompt failed"));
+    const { takeUnroutedDownload } = await import("../../../src/downloads/expected-downloads.ts");
+
+    await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
+    expect(takeUnroutedDownload(undefined, ["https://x/p.png"])).toBe(false);
+
+    // Firefox has no filename listener to pass through.
+    browserState.current = "FIREFOX";
+    await startTracked({ id: 8, filename: "/dl/pic.png", url: "https://x/p.png" });
+    await onChanged({ id: 8, error: { current: "NETWORK_FAILED" } });
+    expect(global.browser.downloads.download).toHaveBeenCalledTimes(2);
+    expect(takeUnroutedDownload(undefined, ["https://x/p.png"])).toBe(false);
+  });
+
   test("promptOnFailure skips partial records without an original URL", async () => {
     await install({ notifyOnFailure: false, promptOnFailure: true, notifyDuration: 1000 });
     await startTracked({ id: 7, filename: "/dl/pic.png" });

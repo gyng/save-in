@@ -1027,6 +1027,40 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     expect(suggest).toHaveBeenCalledWith();
   });
 
+  test("passes Save In's failure Save As prompt through when unmatched saves are skipped", async () => {
+    freshOptions.routeSkipUnmatched = true;
+    const { allowUnroutedDownload } = await import("../../src/downloads/expected-downloads.ts");
+    allowUnroutedDownload("https://x/failed.png");
+    const suggest = vi.fn();
+
+    const returned = listener(
+      {
+        id: 5,
+        byExtensionId: "self-extension-id",
+        filename: "failed.png",
+        url: "https://x/failed.png",
+      },
+      suggest,
+    );
+
+    // Answered synchronously, so the route-miss cancellation never runs.
+    expect(returned).toBe(false);
+    expect(suggest).toHaveBeenCalledWith();
+    expect(global.browser.notifications.create).not.toHaveBeenCalled();
+    // The mark is single-use: a later same-URL save is judged normally.
+    expect(
+      listener(
+        {
+          id: 6,
+          byExtensionId: "self-extension-id",
+          filename: "failed.png",
+          url: "https://x/failed.png",
+        },
+        vi.fn(),
+      ),
+    ).toBe(true);
+  });
+
   test("falls back to default naming for malformed persisted filename maps", async () => {
     sessionStore.siFinalFilenames = {
       version: 1,

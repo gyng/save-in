@@ -22,6 +22,7 @@ vi.mock("../../../src/platform/chrome-detector.ts", () => ({
   get WEB_EXTENSION_CAPABILITIES() {
     return {
       downloadDeltaFilename: browserState.current === "CHROME",
+      downloadFilenameSuggestion: browserState.current === "CHROME",
       // Mirrors production: the Undo button is Chrome-only enhancement
       notificationButtons: browserState.current === "CHROME",
     };

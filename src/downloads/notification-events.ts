@@ -4,12 +4,14 @@ import { getMessage } from "../platform/localization.ts";
 // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/notifications
 
 import {
+  allowUnroutedDownload,
   cancelExpectedDownload,
   expectDownload,
   findExpectedDownload,
   getTrackedDownload,
   mergeTrackedDownload,
   removeTrackedDownload,
+  settleUnroutedDownload,
 } from "./expected-downloads.ts";
 import { isPrivateDownloadRecord } from "./download-state.ts";
 import type { DownloadRecord } from "./download-state.ts";
@@ -629,11 +631,16 @@ const notifyDownloadFailure = async (
         incognito: isPrivateDownloadRecord(record),
       }),
     );
+    const unrouted = WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion
+      ? allowUnroutedDownload(record.url)
+      : undefined;
+    let promptId: number | undefined;
     try {
-      await webExtensionApi.downloads.download(downloadOptions);
+      promptId = await webExtensionApi.downloads.download(downloadOptions);
     } catch (error) {
       addDownloadLog(record, "failure Save As download failed", String(error));
     }
+    if (unrouted) settleUnroutedDownload(unrouted, promptId);
   }
 
   if (backgroundRuntime.debug && !isPrivateDownloadRecord(record)) {
