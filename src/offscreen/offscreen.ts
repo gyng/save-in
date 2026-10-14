@@ -28,6 +28,19 @@ import { runPrompt } from "../platform/prompt-api.ts";
 const activeFetches = new Map<string, AbortController>();
 const blobUrls = new Map<string, string>();
 const assemblingBlobs = new Map<string, Uint8Array<ArrayBuffer>[]>();
+// The worker awaits this document before sending each chunk, so a save
+// canceled during that await delivers its chunk after the cancel. Without a
+// record of the cancel, that chunk would start an assembly nothing releases.
+// Request IDs are random UUIDs, so the bound only has to outlast one append.
+const CANCELED_ASSEMBLY_LIMIT = 256;
+const canceledAssemblies = new Set<string>();
+
+const rememberCanceled = (requestId: string): void => {
+  canceledAssemblies.add(requestId);
+  if (canceledAssemblies.size <= CANCELED_ASSEMBLY_LIMIT) return;
+  const [oldest] = canceledAssemblies;
+  if (oldest !== undefined) canceledAssemblies.delete(oldest);
+};
 
 // The service worker cannot observe redirect hops itself, so an HTTP failure
 // reports the redirected final URL back for Referer-rule extension (#193).
@@ -61,6 +74,7 @@ chrome.runtime.onMessage.addListener(
       const controller = activeFetches.get(message.requestId);
       controller?.abort();
       const assembling = assemblingBlobs.delete(message.requestId);
+      rememberCanceled(message.requestId);
       sendResponse({
         canceled: Boolean(controller) || assembling || releaseBlob(message.requestId),
       });
@@ -71,6 +85,10 @@ chrome.runtime.onMessage.addListener(
       return false;
     }
     if (isOffscreenBlobAppendRequest(message)) {
+      if (canceledAssemblies.has(message.requestId)) {
+        sendResponse({ canceled: true });
+        return false;
+      }
       const parts = assemblingBlobs.get(message.requestId) ?? [];
       assemblingBlobs.set(message.requestId, parts);
       const binary = atob(message.data);
@@ -79,6 +97,10 @@ chrome.runtime.onMessage.addListener(
       return false;
     }
     if (isOffscreenBlobCompleteRequest(message)) {
+      if (canceledAssemblies.has(message.requestId)) {
+        sendResponse({ error: "offscreen blob assembly canceled" });
+        return false;
+      }
       const parts = assemblingBlobs.get(message.requestId) ?? [];
       assemblingBlobs.delete(message.requestId);
       releaseBlob(message.requestId);

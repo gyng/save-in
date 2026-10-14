@@ -86,12 +86,13 @@ test("reports HTTP failure status and final URL for Referer extension", async ()
   expect(cancel).toHaveBeenCalled();
 });
 
+const dispatch = (message: object): unknown => {
+  const sendResponse = vi.fn();
+  capturedListener()(message, {} as chrome.runtime.MessageSender, sendResponse);
+  return sendResponse.mock.calls[0]![0] as unknown;
+};
+
 test("assembles relayed page-blob chunks into one releasable object URL", async () => {
-  const dispatch = (message: object) => {
-    const sendResponse = vi.fn();
-    capturedListener()(message, {} as chrome.runtime.MessageSender, sendResponse);
-    return sendResponse.mock.calls[0]![0] as unknown;
-  };
   dispatch({ type: "OFFSCREEN_BLOB_APPEND", requestId: "blob", data: btoa("ab") });
   dispatch({ type: "OFFSCREEN_BLOB_APPEND", requestId: "blob", data: btoa("c") });
   dispatch({ type: "OFFSCREEN_BLOB_APPEND", requestId: "dropped", data: btoa("x") });
@@ -104,16 +105,46 @@ test("assembles relayed page-blob chunks into one releasable object URL", async 
     requestId: "blob",
     mime: "image/png",
   }) as { blobUrl: string };
-  const empty = dispatch({ type: "OFFSCREEN_BLOB_COMPLETE", requestId: "dropped", mime: "" });
+  expect(dispatch({ type: "OFFSCREEN_BLOB_COMPLETE", requestId: "dropped", mime: "" })).toEqual({
+    error: "offscreen blob assembly canceled",
+  });
 
   const blob = resolveObjectURL(blobUrl);
   expect(blob?.type).toBe("image/png");
   expect(await blob?.text()).toBe("abc");
-  expect(await resolveObjectURL((empty as { blobUrl: string }).blobUrl)?.text()).toBe("");
   expect(dispatch({ type: "OFFSCREEN_BLOB_RELEASE", requestId: "blob" })).toEqual({
     canceled: true,
   });
   expect(resolveObjectURL(blobUrl)).toBeUndefined();
+});
+
+// The worker awaits the offscreen document before each append, so a save
+// canceled during that await delivers its chunk after the cancel.
+test("drops a page-blob chunk that arrives after its assembly was canceled", () => {
+  dispatch({ type: "OFFSCREEN_BLOB_APPEND", requestId: "late", data: btoa("a") });
+  dispatch({ type: "OFFSCREEN_FETCH_CANCEL", requestId: "late" });
+
+  expect(dispatch({ type: "OFFSCREEN_BLOB_APPEND", requestId: "late", data: btoa("b") })).toEqual({
+    canceled: true,
+  });
+  expect(dispatch({ type: "OFFSCREEN_FETCH_CANCEL", requestId: "late" })).toEqual({
+    canceled: false,
+  });
+});
+
+test("forgets the oldest canceled assembly once the bound is reached", () => {
+  dispatch({ type: "OFFSCREEN_FETCH_CANCEL", requestId: "oldest" });
+  for (let index = 0; index < 256; index += 1) {
+    dispatch({ type: "OFFSCREEN_FETCH_CANCEL", requestId: `newer-${index}` });
+  }
+
+  expect(dispatch({ type: "OFFSCREEN_BLOB_APPEND", requestId: "oldest", data: btoa("a") })).toEqual(
+    { canceled: false },
+  );
+  expect(
+    dispatch({ type: "OFFSCREEN_BLOB_APPEND", requestId: "newer-255", data: btoa("a") }),
+  ).toEqual({ canceled: true });
+  dispatch({ type: "OFFSCREEN_FETCH_CANCEL", requestId: "oldest" });
 });
 
 test("omits an empty final URL and keeps plain errors unchanged", async () => {
