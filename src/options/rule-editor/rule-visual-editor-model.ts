@@ -470,12 +470,19 @@ export const duplicateRoutingRule = (source: string, ruleIndex: number): string 
 export const deleteRoutingRule = (source: string, ruleIndex: number): string => {
   const { units, unit } = editableRule(source, ruleIndex);
   if (units.length === 1) return `${source.slice(0, unit.start)}${source.slice(unit.end)}`;
+  // A comment set apart from both rules by blank lines, such as a section
+  // header, belongs to neither, so only the blank lines beside the deleted rule
+  // go with it.
   const next = units[ruleIndex + 1];
-  if (next) return `${source.slice(0, unit.start)}${source.slice(next.start)}`;
+  if (next) {
+    const gap = source.slice(unit.end, next.start).replace(/^[ \t]*\r?\n(?:[ \t]*\r?\n)*/, "");
+    return `${source.slice(0, unit.start)}${gap}${source.slice(next.start)}`;
+  }
   // No `next` and more than one unit means this is the last rule, so the
   // preceding slice is non-empty.
   const previous = lastOf(units.slice(0, ruleIndex));
-  return `${source.slice(0, previous.end)}${source.slice(unit.end)}`;
+  const gap = source.slice(previous.end, unit.start).replace(/(?:\r?\n[ \t]*)*$/, "");
+  return `${source.slice(0, previous.end)}${gap}${source.slice(unit.end)}`;
 };
 
 export const moveRoutingRule = (source: string, from: number, to: number): string => {

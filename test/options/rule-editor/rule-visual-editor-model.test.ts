@@ -362,6 +362,12 @@ describe("routing visual editor model", () => {
     );
   });
 
+  test("keeps a detached section comment when deleting the rule beside it", () => {
+    const sections = "filename: a\ninto: A\n\n// ==== Images ====\n\nfilename: b\ninto: B\n";
+    expect(deleteRoutingRule(sections, 0)).toBe("// ==== Images ====\n\nfilename: b\ninto: B\n");
+    expect(deleteRoutingRule(sections, 1)).toBe("filename: a\ninto: A\n\n// ==== Images ====\n");
+  });
+
   test("moves rules while carrying attached comments and preserving rule text", () => {
     expect(moveRoutingRule(source, 0, 1)).toBe(
       [
