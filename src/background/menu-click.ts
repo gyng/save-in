@@ -582,6 +582,9 @@ export const addDownloadListener = () => {
         const windows = await webExtensionApi.windows.getAll();
         if (windows.some((window) => window.incognito)) return;
         await clearPrivateLastUsed();
+        // A static item was enabled for the private destination just cleared;
+        // nothing else resets it before the next rebuild.
+        if (!dynamicLastUsedMenu && lastUsedMenuExists()) await updateLastUsedMenu();
       }),
     );
   });

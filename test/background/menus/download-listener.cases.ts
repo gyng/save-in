@@ -439,6 +439,48 @@ describe("addDownloadListener", () => {
     expect(global.browser.storage.session.remove).toHaveBeenCalledWith("siPrivateLastUsed");
   });
 
+  test("disables a static private-only Last used after the final private window closes", async () => {
+    Reflect.deleteProperty(global.browser.contextMenus, "onShown");
+    Menus.addDownloadListener();
+    await Menus.setLastUsed("private/path", { title: "Private folder" }, true);
+    const removed = vi.mocked(global.browser.windows.onRemoved.addListener).mock.calls.at(-1)![0];
+    vi.mocked(global.browser.contextMenus.update).mockClear();
+    delete Runtime.ready;
+
+    await removed(7);
+
+    expect(global.browser.contextMenus.update).toHaveBeenCalledWith(Menus.IDS.LAST_USED, {
+      title: expect.any(String),
+      enabled: false,
+    });
+  });
+
+  test("does not update a hidden static Last used when private browsing ends", async () => {
+    options.routeHideFolderChoices = true;
+    Reflect.deleteProperty(global.browser.contextMenus, "onShown");
+    Menus.addDownloadListener();
+    await Menus.setLastUsed("private/path", { title: "Private folder" }, true);
+    const removed = vi.mocked(global.browser.windows.onRemoved.addListener).mock.calls.at(-1)![0];
+    vi.mocked(global.browser.contextMenus.update).mockClear();
+    delete Runtime.ready;
+
+    await removed(7);
+
+    expect(Menus.state.privateLastUsedPath).toBeNull();
+    expect(global.browser.contextMenus.update).not.toHaveBeenCalled();
+  });
+
+  test("leaves dynamic Last used to the shown context when private browsing ends", async () => {
+    await Menus.setLastUsed("private/path", { title: "Private folder" }, true);
+    const removed = vi.mocked(global.browser.windows.onRemoved.addListener).mock.calls[0]![0];
+    vi.mocked(global.browser.contextMenus.update).mockClear();
+    delete Runtime.ready;
+
+    await removed(7);
+
+    expect(global.browser.contextMenus.update).not.toHaveBeenCalled();
+  });
+
   test("skips window enumeration when no private Last used state exists", async () => {
     const removed = vi.mocked(global.browser.windows.onRemoved.addListener).mock.calls[0]![0];
 
