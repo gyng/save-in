@@ -298,6 +298,8 @@ describe("history row flatteners", () => {
     expect(paginateHistory(entries, { statusFilter: "undone" }).matchCount).toBe(1);
     expect(paginateHistory(entries, { statusFilter: "moved" }).matchCount).toBe(1);
     expect(paginateHistory(entries, { statusFilter: "RULE_EXCLUDED" }).matchCount).toBe(1);
+    expect(paginateHistory(entries, { statusFilter: "CONFLICT_SKIPPED" }).matchCount).toBe(1);
+    expect(paginateHistory(entries, { statusFilter: "USER_CANCELED" }).matchCount).toBe(1);
   });
 
   test("row flattens an entry to its table fields", () => {
