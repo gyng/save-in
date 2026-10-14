@@ -805,9 +805,10 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
         "mime: ^application/octet-stream$\nreferrerdomain: ^127\\.0\\.0\\.1$\ninto: browser-routed/:filename:",
     });
     const created = await control.tabs.create({ url: pageUrl });
-    await control.tabs.wait(
-      created.id === undefined ? { urlIncludes: target } : { id: created.id },
-    );
+    await control.tabs.wait({
+      ...(created.id === undefined ? {} : { id: created.id }),
+      urlIncludes: target,
+    });
     await session.evaluateInTab(target, `document.querySelector("#native").click()`);
 
     const rows = await waitForDownloads("browser-routed");
@@ -851,10 +852,12 @@ test("click-to-save rejects synthetic input and handles trusted single, double, 
     });
 
     const created = await control.tabs.create({ url: pageUrl });
-    if (created.id !== undefined) await control.tabs.wait({ id: created.id });
-    const fixtureTab = (await control.tabs.query()).find((candidate) =>
-      candidate.url?.includes(targetUrl),
-    );
+    // Firefox reports the new tab's initial about:blank as complete, so an
+    // id-only wait can return before the fixture URL is visible.
+    const fixtureTab = await control.tabs.wait({
+      ...(created.id === undefined ? {} : { id: created.id }),
+      urlIncludes: targetUrl,
+    });
     const fixtureTabId = requireValue(fixtureTab?.id, "click-to-save fixture tab missing");
     await control.tabs.waitContentReady(fixtureTabId);
 
@@ -1211,9 +1214,10 @@ sourceurl: \\.png$
 into: e2e/automatic-firefox/:filename:`,
     });
     const created = await control.tabs.create({ url: pageUrl });
-    await control.tabs.wait(
-      created.id === undefined ? { urlIncludes: target } : { id: created.id },
-    );
+    await control.tabs.wait({
+      ...(created.id === undefined ? {} : { id: created.id }),
+      urlIncludes: target,
+    });
     const completed = await control.downloads.wait({
       filenameIncludes: "automatic-firefox",
       minimumComplete: 2,
@@ -1290,9 +1294,10 @@ sourceurl: bg\\.png$
 into: e2e/automatic-phase-b-firefox/:filename:`,
     });
     const created = await control.tabs.create({ url: pageUrl });
-    await control.tabs.wait(
-      created.id === undefined ? { urlIncludes: target } : { id: created.id },
-    );
+    await control.tabs.wait({
+      ...(created.id === undefined ? {} : { id: created.id }),
+      urlIncludes: target,
+    });
     const completed = await control.downloads.wait({
       filenameIncludes: "automatic-phase-b-firefox",
       minimumComplete: 2,
@@ -1345,9 +1350,10 @@ sourceurl: ^data:image/png
 into: e2e/automatic-phase-c-firefox/inline.:mimeext:`,
     });
     const created = await control.tabs.create({ url: pageUrl });
-    await control.tabs.wait(
-      created.id === undefined ? { urlIncludes: target } : { id: created.id },
-    );
+    await control.tabs.wait({
+      ...(created.id === undefined ? {} : { id: created.id }),
+      urlIncludes: target,
+    });
     const completed = await control.downloads.wait({
       filenameIncludes: "automatic-phase-c-firefox",
       minimumComplete: 1,

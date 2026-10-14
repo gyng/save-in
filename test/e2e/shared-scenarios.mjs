@@ -842,7 +842,7 @@ export const runRoutingActionsScenario = async ({ control, waitForDownloads, fil
     const url = `http://127.0.0.1:${port}/routing-actions/${filename}`;
     const created = await control.tabs.create({ url });
     if (created.id === undefined) throw new Error("Routing-action fixture tab has no ID");
-    const tab = await control.tabs.wait({ id: created.id });
+    const tab = await control.tabs.wait({ id: created.id, urlIncludes: url });
     tabId = tab.id;
     if (tab.id === undefined || tab.index === undefined || tab.windowId === undefined) {
       throw new Error("Routing-action fixture tab is incomplete");
@@ -1130,7 +1130,7 @@ into: routed/:linktitle:/:linkdownload:/`,
     });
     const created = await control.tabs.create({ url: pageUrl, active: true });
     tabId = created.id;
-    await control.tabs.wait(tabId === undefined ? { urlIncludes: target } : { id: tabId });
+    await control.tabs.wait({ ...(tabId === undefined ? {} : { id: tabId }), urlIncludes: target });
     const tab = (await control.tabs.query()).find((candidate) => candidate.url?.includes(target));
     if (tab?.id === undefined) throw new Error("Link metadata fixture tab missing");
     await control.tabs.waitContentReady(tab.id);
@@ -1300,7 +1300,7 @@ export const runTabStripScenario = async ({ control, waitForDownloads, filename 
   try {
     const created = await control.tabs.create({ url });
     if (created.id === undefined) throw new Error("Tab-strip fixture tab has no ID");
-    const tab = await control.tabs.wait({ id: created.id });
+    const tab = await control.tabs.wait({ id: created.id, urlIncludes: url });
     tabId = tab.id;
     if (tab.id === undefined || tab.index === undefined || tab.windowId === undefined) {
       throw new Error("Tab-strip fixture tab is incomplete");
@@ -1396,7 +1396,7 @@ into: e2e/css-auto-traversal-order-${browserLabel}/:filename:`,
     ]);
     const created = await control.tabs.create({ url: pageUrl, active: true });
     tabId = created.id;
-    await control.tabs.wait(tabId === undefined ? { urlIncludes: target } : { id: tabId });
+    await control.tabs.wait({ ...(tabId === undefined ? {} : { id: tabId }), urlIncludes: target });
     await evaluatePage(target, "document.readyState === 'complete'");
     const automatic = await control.downloads.wait({
       filenameIncludes: `css-auto-${browserLabel}`,
@@ -1517,7 +1517,7 @@ export const runDownloadAttributeRoutingScenario = async ({
     });
     const created = await control.tabs.create({ url: pageUrl, active: true });
     tabId = created.id;
-    await control.tabs.wait(tabId === undefined ? { urlIncludes: target } : { id: tabId });
+    await control.tabs.wait({ ...(tabId === undefined ? {} : { id: tabId }), urlIncludes: target });
     await evaluatePage(target, `document.querySelector("#attr").click(); true`);
 
     // The Chrome suite waits by regex and the Firefox suite by substring, so
