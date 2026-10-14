@@ -574,6 +574,18 @@ describe("routing visual editor", () => {
     expect(document.querySelector('[data-rule-action="toggle-close-tab"]')).not.toBeNull();
   });
 
+  test("offers no exclusion for a rule without a matcher", () => {
+    element<HTMLTextAreaElement>("#filenamePatterns").value =
+      "into: draft/\n\nfilename: \\.jpg$\ninto: images/";
+    setupRuleVisualEditor({ matchers: ["filename"] });
+
+    const [draft, jpg] = document.querySelectorAll<HTMLButtonElement>(
+      '[data-rule-action="toggle-exclude"]',
+    );
+    expect(draft?.disabled).toBe(true);
+    expect(jpg?.disabled).toBe(false);
+  });
+
   test("closes add and rule menus when clicking outside or pressing Escape", () => {
     setupRuleVisualEditor({ matchers: ["filename"] });
     const addMenu = element<HTMLDetailsElement>(".rule-add-menu");

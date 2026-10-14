@@ -10,6 +10,7 @@ import {
   parseVisualRoutingRules,
   setRoutingRuleEnabled,
   setRoutingRuleName,
+  canExcludeRoutingRule,
   setRoutingRuleExcluded,
   setRoutingRulePostSaveAction,
   updateRoutingClause,
@@ -219,6 +220,18 @@ describe("routing visual editor model", () => {
     // Already excluded is a no-op.
     expect(setRoutingRuleExcluded("filename: jpg\nexclude: true", 0, true)).toBe(
       "filename: jpg\nexclude: true",
+    );
+  });
+
+  test("leaves a rule without a matcher, and the rule after it, unchanged", () => {
+    // Stripping into: from a matcherless rule deleted the whole rule, and the
+    // conversion then re-read the next rule at the same index and excluded it.
+    const matcherless = "into: draft/\n\nfilename: \\.jpg$\ninto: images/\n";
+    expect(canExcludeRoutingRule(matcherless, 0)).toBe(false);
+    expect(canExcludeRoutingRule(matcherless, 1)).toBe(true);
+    expect(setRoutingRuleExcluded(matcherless, 0, true)).toBe(matcherless);
+    expect(setRoutingRuleExcluded("filename: a\n\ninto: last/", 1, true)).toBe(
+      "filename: a\n\ninto: last/",
     );
   });
 

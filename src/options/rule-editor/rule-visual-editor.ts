@@ -763,7 +763,8 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
         : localize("routeActionMakeExclusion", "Exclude matching items"),
       "toggle-exclude",
     );
-    excludeToggle.disabled = !rule.editable;
+    excludeToggle.disabled =
+      !rule.editable || (!exclusion && !rule.clauses.some((clause) => clause.kind === "matcher"));
     excludeToggle.addEventListener("click", () => {
       commit(setRoutingRuleExcluded(textarea.value, rule.index, !exclusion));
       closeActions();

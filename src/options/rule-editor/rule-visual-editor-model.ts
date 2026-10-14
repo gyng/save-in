@@ -418,6 +418,14 @@ const isExcludeIncompatible = (clause: RoutingClauseNode): boolean =>
   clause.clauseKind === "rename" ||
   (clause.clauseKind === "action" && clause.name === "after");
 
+// An exclusion needs a matcher to be valid. Without one, stripping the last
+// incompatible clause deletes the whole rule, and the re-read by index would
+// then rewrite the rule that followed it.
+export const canExcludeRoutingRule = (source: string, ruleIndex: number): boolean =>
+  editableRule(source, ruleIndex).unit.rule.clauses.some(
+    (clause) => clause.clauseKind === "matcher",
+  );
+
 export const setRoutingRuleExcluded = (
   source: string,
   ruleIndex: number,
@@ -425,6 +433,7 @@ export const setRoutingRuleExcluded = (
 ): string => {
   let next = source;
   if (excluded) {
+    if (!canExcludeRoutingRule(source, ruleIndex)) return source;
     // Delete incompatible clauses one at a time, re-parsing between each so the
     // shifting offsets stay valid, then add the terminal exclude clause.
     for (;;) {
