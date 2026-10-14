@@ -169,12 +169,25 @@ const setContentOption = <Name extends ContentOptionName>(
   target[name] = value;
 };
 
+// Chrome keeps an orphaned content script's listeners running after the
+// extension is updated, disabled, or removed, and every runtime call then
+// throws "Extension context invalidated". Its runtime id disappears with the
+// context, which separates that state from a transient send failure that a
+// retry or a WAKE_WARM prewarm recovers. releaseInvalidatedContext is
+// declared with the module state it releases.
+const releaseIfContextInvalidated = (): boolean => {
+  if (chrome.runtime?.id) return false;
+  releaseInvalidatedContext();
+  return true;
+};
+
 const warmBackground = () => {
   try {
     // Reading lastError stops Chrome logging an unchecked error.
     chrome.runtime.sendMessage({ type: "WAKE_WARM" }, () => chrome.runtime.lastError);
   } catch {
     // Extension context invalidated while the page remained alive.
+    releaseIfContextInvalidated();
   }
 };
 
@@ -201,7 +214,7 @@ const sendRuntimeDownload = (
     try {
       chrome.runtime.sendMessage({ type: "DOWNLOAD", body }, (response) => {
         if (chrome.runtime.lastError) {
-          if (retries > 0 && !lifecycle?.signal.aborted) {
+          if (retries > 0 && !lifecycle?.signal.aborted && !releaseIfContextInvalidated()) {
             const timer = window.setTimeout(() => {
               lifecycle?.retryTimers.delete(timer);
               void sendRuntimeDownload(body, retries - 1, lifecycle).then(resolve);
@@ -217,6 +230,7 @@ const sendRuntimeDownload = (
     } catch {
       // Extension context invalidated while the page remained alive.
       resolve(false);
+      releaseIfContextInvalidated();
     }
   });
 
@@ -377,6 +391,7 @@ const setupClickToSave = (
             stopLongPressInputTracking();
             return;
           }
+          if (releaseIfInvalidated()) return;
           longReleaseSuppression.arm();
           sendClickDownload(binding, source, linkMetadata);
         },
@@ -386,6 +401,21 @@ const setupClickToSave = (
     longPress?.cancel();
     longPressKeyCodes = [];
     stopLongPressInputTracking();
+  };
+  const teardown = () => {
+    controller.abort();
+    cancelLongPress();
+    if (ownsLongReleaseSuppression) longReleaseSuppression.clear();
+    retryTimers.forEach((timer) => window.clearTimeout(timer));
+    retryTimers.clear();
+  };
+  // Checked before a gesture is claimed: an orphaned script that cancels the
+  // page's input but can no longer save would break the page until reload.
+  const releaseIfInvalidated = (): boolean => {
+    if (chrome.runtime?.id) return false;
+    teardown();
+    releaseInvalidatedContext();
+    return true;
   };
 
   const eventKeyCode = (e: KeyboardEvent) => {
@@ -445,7 +475,7 @@ const setupClickToSave = (
   window.addEventListener(
     "mousedown",
     (e) => {
-      if (!acceptInput(e)) return;
+      if (!acceptInput(e) || releaseIfInvalidated()) return;
       // Every new press clears any follow-up suppression a previous matched
       // gesture armed and any completed-double marker; a new primary press
       // also clears a completed-long marker. This must run before isDisabled()
@@ -613,13 +643,7 @@ const setupClickToSave = (
     window.addEventListener("click", suppressCompletedLongClick, listenerOptions);
   }
 
-  return () => {
-    controller.abort();
-    cancelLongPress();
-    if (ownsLongReleaseSuppression) longReleaseSuppression.clear();
-    retryTimers.forEach((timer) => window.clearTimeout(timer));
-    retryTimers.clear();
-  };
+  return teardown;
 };
 
 const setupAutoDownload = (options: ResolvedAutoDownloadOptions, dedup: AutoDownloadDedup) => {
@@ -651,6 +675,10 @@ const setupAutoDownload = (options: ResolvedAutoDownloadOptions, dedup: AutoDown
             (response) => {
               pending.inFlight = false;
               const failed = Boolean(chrome.runtime.lastError);
+              if (failed && releaseIfContextInvalidated()) {
+                finish("skipped");
+                return;
+              }
               if (failed && retries > 0 && !controller.signal.aborted) {
                 const timer = window.setTimeout(() => {
                   retryTimers.delete(timer);
@@ -665,6 +693,7 @@ const setupAutoDownload = (options: ResolvedAutoDownloadOptions, dedup: AutoDown
           );
         } catch {
           finish("skipped");
+          releaseIfContextInvalidated();
         }
       };
       attempt(2);
@@ -894,6 +923,55 @@ const applyOptions = (next: ContentOptions) => {
   announceSourcePanelReady();
 };
 
+let sourcePanelRoutingCache:
+  | { patterns: string; rules: RoutingRule[]; hasCssSelectors: boolean }
+  | undefined;
+const sourcePanelRouting = () => {
+  const patterns = currentOptions.filenamePatterns;
+  if (sourcePanelRoutingCache?.patterns === patterns) return sourcePanelRoutingCache;
+  const rules = parseRulesCollecting(patterns).rules;
+  sourcePanelRoutingCache = {
+    patterns,
+    rules,
+    hasCssSelectors: cssSelectorsForRules(rules).length > 0,
+  };
+  return sourcePanelRoutingCache;
+};
+const sendDownload = (source: PageSource) => {
+  const { rules, hasCssSelectors } = sourcePanelRouting();
+  return sendRuntimeDownload({
+    url: source.url,
+    info: {
+      pageUrl: `${window.location}`,
+      srcUrl: source.url,
+      sourceKind: source.kind,
+      ...(hasCssSelectors
+        ? {
+            matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
+              sourceOriginElements(source),
+              rules,
+            ),
+          }
+        : {}),
+    },
+  });
+};
+
+// Hoisted: the send helpers above call it before this state is declared.
+// Declared before any import-time code that could reach it.
+function releaseInvalidatedContext(): void {
+  removeClickToSave?.();
+  removeClickToSave = null;
+  removeAutoDownload?.();
+  removeAutoDownload = null;
+  // Nothing can save for a completed hold any more, so its pending release
+  // click belongs to the page.
+  pageLongReleaseSuppression.clear();
+  removePageLongReleaseListeners();
+  // The panel's buttons and live observer can no longer reach the extension.
+  setSourcePanelOpen(false, sendDownload);
+}
+
 const changedDuringRead = new Set<string>();
 let lastContextLinkMetadata: ContextLinkMetadata | null = null;
 
@@ -939,39 +1017,6 @@ try {
 }
 
 try {
-  let sourcePanelRoutingCache:
-    | { patterns: string; rules: RoutingRule[]; hasCssSelectors: boolean }
-    | undefined;
-  const sourcePanelRouting = () => {
-    const patterns = currentOptions.filenamePatterns;
-    if (sourcePanelRoutingCache?.patterns === patterns) return sourcePanelRoutingCache;
-    const rules = parseRulesCollecting(patterns).rules;
-    sourcePanelRoutingCache = {
-      patterns,
-      rules,
-      hasCssSelectors: cssSelectorsForRules(rules).length > 0,
-    };
-    return sourcePanelRoutingCache;
-  };
-  const sendDownload = (source: PageSource) => {
-    const { rules, hasCssSelectors } = sourcePanelRouting();
-    return sendRuntimeDownload({
-      url: source.url,
-      info: {
-        pageUrl: `${window.location}`,
-        srcUrl: source.url,
-        sourceKind: source.kind,
-        ...(hasCssSelectors
-          ? {
-              matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
-                sourceOriginElements(source),
-                rules,
-              ),
-            }
-          : {}),
-      },
-    });
-  };
   const createAutomaticRule = ({ url, kind }: PageSource): Promise<void> =>
     new Promise((resolve) => {
       try {
