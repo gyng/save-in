@@ -122,6 +122,17 @@ Not features — release hygiene that gates the close-out of everything above.
   `storage.session` so a worker restart can rehydrate, and merges them into
   whichever Page Sources panel is open.
 
+## Landed after 4.1.0 (unreleased)
+
+- Manual saves acquire page-owned `blob:` images and files (#218, MangaDex),
+  formerly a non-goal. The page-blob content script that runs in every frame
+  streams the bytes to the background in bounded chunks over a port that only
+  Save In's own background may open, only for blobs of its own page, and only
+  once routing needs them; Chrome assembles them in the offscreen document.
+  A revoked blob or a `MediaSource` stream still cannot be recovered.
+- Click-to-save bindings may share a gesture with different keys, and the
+  `keys:` matcher routes each binding to its own folder (#15).
+
 ## Gated: Firefox cancel-and-redownload verdict
 
 The experimental mode is `routeBrowserDownloadsFirefox`
@@ -169,10 +180,6 @@ needed — the verdict reads issue reports against those records.
   classifiable extension carries no media signal, and adopting it turns
   every page's navigation into download candidates — unbounded noise for
   no expressible rule.
-- `blob:` acquisition: page-minted object URLs cannot be resolved outside
-  their page, so adoption requires a chunked content-to-background byte
-  protocol with its own size, privacy, and lifetime rules. Revisit only
-  with a concrete streaming design and demonstrated demand.
 - Variable-modifier syntax (e.g. `:pagetitle|slug:`): changes the token
   grammar every editor surface parses; the `rename:` clause shape covers
   the demonstrated asks without touching it.
