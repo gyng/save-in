@@ -285,6 +285,17 @@ export const acquireDownloadUrl = async (
   return { url, source: "direct", ownedObjectUrl };
 };
 
+// Firefox rejects downloads.download with exactly this message when the user
+// closes its Save As picker (ext-downloads.js createTarget, 140 through 158).
+// Chrome resolves first and reports the dismissal as a USER_CANCELED delta.
+const FIREFOX_SAVE_AS_DISMISSED = "Download canceled by the user";
+
+const isSaveAsDialogDismissal = (error: unknown): boolean =>
+  typeof error === "object" &&
+  error !== null &&
+  "message" in error &&
+  error.message === FIREFOX_SAVE_AS_DISMISSED;
+
 export const executeBrowserDownload = async (
   plan: DownloadPlan,
   acquired: AcquiredDownload,
@@ -505,6 +516,14 @@ export const executeBrowserDownload = async (
     cancelExpectedDownload(expected);
     await releaseAcquiredDownload(acquired);
     if (signal?.aborted) {
+      downloadRuntime.forgetPendingState(state);
+      await historyPort.setStatus(historyEntryId, "USER_CANCELED");
+      return { status: "skipped" };
+    }
+    if (prompt && isSaveAsDialogDismissal(e)) {
+      // The user's answer, not an API failure: fetching the file to ask again
+      // would reopen the dialog they just closed and then report a failure.
+      addDownloadLog(state, "Save As dialog dismissed");
       downloadRuntime.forgetPendingState(state);
       await historyPort.setStatus(historyEntryId, "USER_CANCELED");
       return { status: "skipped" };

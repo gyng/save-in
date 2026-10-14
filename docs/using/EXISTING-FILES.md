@@ -23,6 +23,8 @@ and either skips the save or opens the Save As dialog for the original name.
 - A skipped save appears in History as **Already exists** and is not sent to
   webhooks. Its notice follows **Notify when a download fails**; private
   saves get a notice that does not name the file.
+- Closing the Save As dialog without saving ends the save. History shows it
+  as **Canceled**, and no failure is reported.
 - A very small file can finish before the cancel. Save In then deletes the
   `name(1).ext` copy, so only your original file remains.
 - Firefox picks the name after the download has started, so a skipped direct

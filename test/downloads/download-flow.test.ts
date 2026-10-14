@@ -129,6 +129,46 @@ describe("pipeline stages", () => {
     expect(fetchSpy).not.toHaveBeenCalledWith(state.info.url, { credentials: "include" });
   });
 
+  // Firefox rejects downloads.download with this exact message when the user
+  // dismisses the Save As picker (ext-downloads.js, 140 and 158).
+  test("a dismissed Firefox Save As dialog is a cancel, not a failure to fall back from", async () => {
+    setCurrentBrowser("FIREFOX");
+    options.prompt = true;
+    vi.mocked(global.browser.downloads.download).mockRejectedValue(
+      new Error("Download canceled by the user"),
+    );
+
+    await expect(Download.renameAndDownload(makeState())).resolves.toEqual({ status: "skipped" });
+
+    expect(global.browser.downloads.download).toHaveBeenCalledOnce();
+    // Only the metadata HEAD; the file itself is never fetched.
+    expect(
+      vi.mocked(global.fetch).mock.calls.filter(([, init]) => init?.method !== "HEAD"),
+    ).toEqual([]);
+    expect(vi.mocked(SaveHistory.setHistoryStatus).mock.calls.map((call) => call[1])).toEqual([
+      "USER_CANCELED",
+    ]);
+    expect(Notifier.reportDownloadFailure).not.toHaveBeenCalled();
+  });
+
+  test("a prompted save the downloads API genuinely rejects still falls back to fetch", async () => {
+    setCurrentBrowser("FIREFOX");
+    options.prompt = true;
+    vi.mocked(global.browser.downloads.download)
+      .mockRejectedValueOnce(new Error("filename must not contain illegal characters"))
+      .mockResolvedValueOnce(102);
+
+    await expect(Download.renameAndDownload(makeState())).resolves.toEqual({
+      status: "started",
+      downloadId: 102,
+    });
+
+    expect(
+      vi.mocked(global.fetch).mock.calls.filter(([, init]) => init?.method !== "HEAD"),
+    ).toHaveLength(1);
+    expect(global.browser.downloads.download).toHaveBeenCalledTimes(2);
+  });
+
   test("protects Firefox metadata but keeps the redirect-safe native download (#193)", async () => {
     setCurrentBrowser("FIREFOX");
     options.setRefererHeader = true;

@@ -26,6 +26,10 @@
   under a unique name on Firefox, now asks. Chrome keeps its own dialog and
   offers no Skip; an imported Skip saves under a unique name there. See
   [When a file already exists](docs/using/EXISTING-FILES.md).
+- Fixed closing a Save As dialog on Firefox without saving. Save In used to
+  treat it as a failed download, fetch the whole file, open a second dialog and
+  then report **Download failed**. The save now ends at once and appears in
+  History as **Canceled**.
 - Click-to-save can bind the same mouse action to different keys, and the new
   `keys:` routing matcher sends each binding to its own folder, for example
   `keys: ^alt$` to `images/` and `keys: ^ctrl\+shift$` to `wallpapers/` (#15).

@@ -170,6 +170,26 @@ describe("Ask each time, emulated on Firefox", () => {
     expect(statuses()).toEqual([]);
     expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
   });
+
+  test("dismissing the dialog cancels the save without fetching or asking again", async () => {
+    vi.mocked(global.browser.downloads.download).mockImplementation(async (request: any) => {
+      if (request.saveAs) throw new Error("Download canceled by the user");
+      return 101;
+    });
+
+    await expect(Download.renameAndDownload(makeState())).resolves.toEqual({ status: "skipped" });
+
+    expect(
+      vi
+        .mocked(global.browser.downloads.download)
+        .mock.calls.map(([request]: any) => request.saveAs),
+    ).toEqual([false, true]);
+    expect(
+      vi.mocked(global.fetch).mock.calls.filter(([, init]) => init?.method !== "HEAD"),
+    ).toEqual([]);
+    expect(statuses()).toEqual(["USER_CANCELED"]);
+    expect(Notifier.reportDownloadFailure).not.toHaveBeenCalled();
+  });
 });
 
 describe("saves exactly as before", () => {
