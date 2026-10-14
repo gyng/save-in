@@ -208,6 +208,50 @@ test("waits for Firefox to publish a newly created browsing context", async () =
   client.close();
 });
 
+test("finds a tab that navigated to the wanted URL after the first tree read", async () => {
+  const socket = new FakeSocket();
+  let treeReads = 0;
+  socket.send.mockImplementation((serialized) => {
+    const packet = JSON.parse(String(serialized)) as { id: number; method: string };
+    if (packet.method === "browsingContext.getTree") treeReads += 1;
+    const result =
+      packet.method === "browsingContext.getTree"
+        ? { contexts: [{ context: "tab", url: "about:blank", children: [] }] }
+        : packet.method === "script.evaluate"
+          ? { type: "success", result: { type: "string", value: "complete" } }
+          : {};
+    socket.dispatchEvent(
+      new MessageEvent("message", {
+        data: JSON.stringify({ id: packet.id, type: "success", result }),
+      }),
+    );
+  });
+  const client = new FirefoxBidi(socket as unknown as WebSocket);
+
+  const evaluated = client.evaluate("example.test/page", "document.readyState", 2000);
+  await vi.waitFor(() => expect(treeReads).toBe(1));
+
+  // The tab already existed at about:blank, so no contextCreated follows; its
+  // navigation to the wanted page is what must settle the wait.
+  socket.dispatchEvent(
+    new MessageEvent("message", {
+      data: JSON.stringify({
+        method: "browsingContext.domContentLoaded",
+        params: {
+          context: "tab",
+          navigation: "n1",
+          timestamp: 1,
+          url: "https://example.test/page",
+        },
+      }),
+    }),
+  );
+
+  await expect(evaluated).resolves.toBe("complete");
+  expect(treeReads).toBe(1);
+  client.close();
+});
+
 test("rejects a pending context wait when the client closes", async () => {
   const socket = new FakeSocket();
   let treeReads = 0;

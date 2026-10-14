@@ -252,7 +252,16 @@ class FirefoxBidi {
       const watcher = {
         /** @param {string} method @param {unknown} params */
         handleEvent: (method, params) => {
-          if (settled || method !== "browsingContext.contextCreated") return;
+          // A tab created at about:blank reaches the wanted URL by navigating,
+          // which publishes no new context. Its DOMContentLoaded does carry
+          // the URL, and by then the new document is the one evaluated.
+          if (
+            settled ||
+            (method !== "browsingContext.contextCreated" &&
+              method !== "browsingContext.domContentLoaded")
+          ) {
+            return;
+          }
           const info = contextEventInfo(params);
           if (info?.context && info.url?.includes(urlSubstr)) {
             settled = true;
@@ -288,7 +297,11 @@ class FirefoxBidi {
 
   async ensureLifecycleEvents() {
     this.lifecycleEventsReady ??= this.send("session.subscribe", {
-      events: ["browsingContext.contextCreated", "browsingContext.contextDestroyed"],
+      events: [
+        "browsingContext.contextCreated",
+        "browsingContext.contextDestroyed",
+        "browsingContext.domContentLoaded",
+      ],
     }).then(() => undefined);
     await this.lifecycleEventsReady;
   }
