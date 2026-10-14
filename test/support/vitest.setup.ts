@@ -31,5 +31,12 @@ if (typeof document !== "undefined") {
     },
     setItem: (key, value) => values.set(key, String(value)),
   };
-  installHostProperty(globalThis, "localStorage", storage);
+  // Vitest 5's jsdom exposes localStorage as a getter-only accessor, so
+  // replace the property rather than assigning through it.
+  Object.defineProperty(globalThis, "localStorage", {
+    configurable: true,
+    enumerable: true,
+    value: storage,
+    writable: true,
+  });
 }

@@ -62,10 +62,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
-    "@fast-check/vitest": "^0.4.1",
+    "@fast-check/vitest": "^0.5.0",
     "@types/chrome": "^0.2.2",
     "@types/firefox-webext-browser": "^143.0.1",
-    "@vitest/coverage-v8": "4.1.11",
+    "@vitest/coverage-v8": "5.0.3",
     "acorn": "8.19.0",
     "fast-check": "^4.10.2",
     "jsdom": "^29.1.1",
@@ -75,7 +75,7 @@
     "oxlint-tsgolint": "^7.0.2003",
     "rolldown": "^1.2.13",
     "typescript": "^7.0.2",
-    "vitest": "4.1.11",
+    "vitest": "5.0.3",
     "web-ext": "^10.7.0"
   },
   "overrides": {

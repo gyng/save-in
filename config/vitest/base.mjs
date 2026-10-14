@@ -25,6 +25,9 @@ export default defineConfig({
     // escape hatch for measured environments.
     maxWorkers,
     globals: true,
+    // Vitest 5 clears mock call history before every test by default. Suites
+    // here capture listeners a module registered on import, once per file.
+    clearMocks: false,
     environment: "node",
     environmentOptions: {
       jsdom: {

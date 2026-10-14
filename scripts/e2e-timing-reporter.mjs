@@ -24,7 +24,7 @@ export default class E2ETimingReporter {
   /**
    * @param {ReadonlyArray<import("vitest/node").TestModule>} testModules
    * @param {ReadonlyArray<import("vitest/node").SerializedError>} unhandledErrors
-   * @param {import("vitest/reporters").TestRunEndReason} reason
+   * @param {import("vitest/node").TestRunEndReason} reason
    */
   onTestRunEnd(testModules, unhandledErrors, reason) {
     const artifactDirectory = process.env.E2E_ARTIFACT_DIR;
