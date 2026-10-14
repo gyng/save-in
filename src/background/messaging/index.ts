@@ -100,8 +100,8 @@ const internalHandlers = {
     const open = Boolean(request.body?.open);
     await setSourcePanelOpenState(open);
     // When the panel opens, hand it whatever script-loaded media the collector
-    // already observed for this tab before the panel existed.
-    if (open && sender.tab?.id != null) pushBufferedScriptMedia(sender.tab.id);
+    // already observed for this page before the panel existed.
+    if (open && sender.tab?.id != null) pushBufferedScriptMedia(sender.tab.id, sender.documentId);
     sendResponse({ type: MESSAGE_TYPES.OK });
   },
   [MESSAGE_TYPES.SOURCE_PANEL_COPY]: (_request, _sender, sendResponse) => {

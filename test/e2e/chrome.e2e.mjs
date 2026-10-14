@@ -22,6 +22,10 @@ import {
 } from "./shared-scenarios.mjs";
 import { createHarnessSession } from "./harness-session.mjs";
 import {
+  createScriptMediaVisitRoutes,
+  runScriptMediaVisitScenario,
+} from "./script-media-visit-scenario.mjs";
+import {
   appendImageAndWaitForSourceExpression,
   arrayOf,
   beginResourceScope,
@@ -262,7 +266,9 @@ const SOURCE_PDF = Buffer.from(
 );
 
 const startSourcePanelServer = async () => {
+  const visitRoutes = createScriptMediaVisitRoutes();
   const server = http.createServer((req, res) => {
+    if (visitRoutes.handle(req, res)) return;
     if (req.url?.startsWith("/script-media-worker.js")) {
       res.writeHead(200, { "Content-Type": "application/javascript" });
       // An MSE-style fragmented-MP4 segment first, then the manifest, so a
@@ -312,7 +318,7 @@ const startSourcePanelServer = async () => {
       <div id="phase-b-background" style="width:10px;height:10px;background-image:url('/bg.png')"></div>
       ${inlineDataImage}`);
   });
-  return { server, port: await listenLocal(server) };
+  return { server, port: await listenLocal(server), visitRoutes };
 };
 
 /** @param {string} regex @param {number} [deadlineMs] @returns {Promise<DownloadEntry[]>} */
@@ -2787,7 +2793,7 @@ into: e2e/automatic-phase-c-chrome/inline.:mimeext:`,
 });
 
 test("script-media permission discovers hidden fetches, saves the whole file, and revokes cleanly", async () => {
-  const { server, port } = await startSourcePanelServer();
+  const { server, port, visitRoutes } = await startSourcePanelServer();
   const pagePath = `127.0.0.1:${port}/script-media-sources`;
   const pageUrl = `http://${pagePath}`;
   /** @param {string} expression */
@@ -2968,6 +2974,14 @@ into: e2e/script-media-auto-chrome/:filename:`,
       timeoutMs: 10000,
     });
     expect(saved.map((row) => row.filename.split(/[\\/]/).at(-1))).toEqual(["script-only.m3u8"]);
+    await runScriptMediaVisitScenario({
+      control,
+      routes: visitRoutes,
+      tabId,
+      origin: `http://127.0.0.1:${port}`,
+      folder: "e2e/script-media-visit-chrome",
+      evalPage: (target, expression) => cdp.evalInTarget(PORT, target, expression),
+    });
 
     const optionReverted = control.storage.local.wait("sourcePanelScriptMedia", false);
     expect(await evalOptions(`chrome.permissions.remove({ permissions: ["webRequest"] })`)).toBe(

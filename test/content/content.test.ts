@@ -730,6 +730,51 @@ describe("content.js initialisation", () => {
       expect(empty.addScriptMedia).not.toHaveBeenCalled();
     });
 
+    test("speaks for its page visit and starts a new one on a back/forward restore", async () => {
+      vi.spyOn(Date, "now").mockReturnValue(50_000);
+      const { addScriptMedia, push } = await mountWith(scriptMediaOptions);
+      const discoveryOptions = vi.mocked(
+        (await import("../../src/content/auto-download.ts")).setupAutoDownloadDiscovery,
+      ).mock.calls[0]![0];
+      const visitStart = discoveryOptions.scriptMediaVisitStart!;
+      const loadStart = visitStart();
+      expect(replayRequests()[0]![0]).toEqual({
+        type: "SCRIPT_MEDIA_AUTO_REPLAY",
+        body: { visitStart: loadStart },
+      });
+
+      // Only collector candidates carry the visit to the background backstop.
+      const sent = () => vi.mocked(global.chrome.runtime.sendMessage).mock.calls.at(-1)![0];
+      const candidate = {
+        pageUrl: String(window.location),
+        sourceUrl: "https://cdn.test/clip.mp4",
+        sourceKind: "video" as const,
+      };
+      void discoveryOptions.send({ ...candidate, sourceChannel: "script-media" });
+      expect(sent()).toEqual({
+        type: "AUTO_DOWNLOAD_SOURCE",
+        body: { ...candidate, sourceChannel: "script-media", scriptMediaVisitStart: loadStart },
+      });
+      void discoveryOptions.send(candidate);
+      expect(sent()).toEqual({ type: "AUTO_DOWNLOAD_SOURCE", body: candidate });
+
+      // A push that reaches the page while it sits in the back/forward cache
+      // belongs to no visit of it.
+      addScriptMedia.mockClear();
+      window.dispatchEvent(new PageTransitionEvent("pagehide", { persisted: true }));
+      push([{ ...entry, auto: true }]);
+      expect(addScriptMedia).not.toHaveBeenCalled();
+
+      vi.spyOn(Date, "now").mockReturnValue(90_000);
+      window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
+      expect(visitStart()).toBe(90_000);
+      push([{ ...entry, auto: true }]);
+      expect(addScriptMedia).toHaveBeenCalledExactlyOnceWith([entry]);
+      void discoveryOptions.send({ ...candidate, sourceChannel: "script-media" });
+      expect(sent()).toMatchObject({ body: { scriptMediaVisitStart: 90_000 } });
+      vi.restoreAllMocks();
+    });
+
     test("survives a dead extension context when asking for the replay", async () => {
       const { addScriptMedia } = await mountWith(scriptMediaOptions, () => {
         throw new Error("Extension context invalidated");

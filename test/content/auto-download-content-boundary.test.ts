@@ -14,6 +14,7 @@ import {
 } from "../../src/content/auto-download.ts";
 import type { AutomaticRoutingCandidate } from "../../src/automation/automatic-routing.ts";
 import { matchAutomaticRoutingRule } from "../../src/automation/automatic-routing.ts";
+import { navigationVisitStart } from "../../src/content/page-visit.ts";
 import { parseRulesCollecting } from "../../src/routing/rule-parser.ts";
 
 type DefaultedOption =
@@ -23,6 +24,7 @@ type DefaultedOption =
   | "resourceHints"
   | "includeDataUrls"
   | "includeScriptMedia"
+  | "scriptMediaVisitStart"
   | "isPageDisabled";
 
 const setupAutoDownloadDiscovery = (
@@ -36,6 +38,7 @@ const setupAutoDownloadDiscovery = (
     resourceHints: false,
     includeDataUrls: false,
     includeScriptMedia: false,
+    scriptMediaVisitStart: () => navigationVisitStart(window),
     isPageDisabled: () => false,
     ...options,
   });
@@ -911,6 +914,24 @@ describe("script-media candidates", () => {
     await controller.idle();
     expect(send.mock.calls.map(([candidate]) => candidate.sourceUrl)).toEqual([
       "https://cdn.test/this-page.mp4",
+    ]);
+    controller.stop();
+  });
+
+  test("reads the current visit start for each batch", async () => {
+    let start = 150;
+    const { send, controller } = mount({ scriptMediaVisitStart: () => start });
+    controller.addScriptMedia([
+      clip("https://cdn.test/left-behind.mp4", 100),
+      clip("https://cdn.test/this-visit.mp4", 200),
+    ]);
+    await controller.idle();
+    // A back/forward restore moved the visit on: earlier media no longer counts.
+    start = 300;
+    controller.addScriptMedia([clip("https://cdn.test/before-restore.mp4", 250)]);
+    await controller.idle();
+    expect(send.mock.calls.map(([candidate]) => candidate.sourceUrl)).toEqual([
+      "https://cdn.test/this-visit.mp4",
     ]);
     controller.stop();
   });

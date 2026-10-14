@@ -2,7 +2,11 @@ import { options } from "../config/options-data.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
-import { isWholeFileScriptMediaRequest } from "../automation/automatic-routing.ts";
+import {
+  isScriptMediaFromVisit,
+  isWholeFileScriptMediaRequest,
+  type ScriptMediaVisit,
+} from "../automation/automatic-routing.ts";
 import {
   classifyUrlKind,
   isMediaSourceKind,
@@ -59,17 +63,29 @@ const OBSERVED_TYPES = [...MEDIA_TYPES, "main_frame"];
 const FLUSH_DELAY_MS = 300;
 
 // `auto` marks a whole file automatic saves may adopt (see
-// isWholeFileScriptMediaRequest); `at` is the latest observation time, so a
-// content script can ignore a buffer left over from an earlier page when the
-// navigation that should have reset it was never delivered (see above).
-type BufferedMedia = { kind: PageSourceKind; auto: boolean; at: number };
+// isWholeFileScriptMediaRequest). `at` (latest observation time) and `doc` (the
+// top-level document that made it, when the browser says) tie the entry to a
+// page visit: the buffer is reset by a top-level navigation request, but the
+// previous document keeps issuing requests until the new one commits, a
+// back/forward-cache restore sends no navigation request, and Chrome can drop
+// the navigation that should have reset it (see above). See
+// isScriptMediaFromVisit.
+type BufferedMedia = { kind: PageSourceKind; auto: boolean; at: number; doc?: string };
 type ScriptMediaEntry = { url: string; kind: PageSourceKind; auto?: true; at?: number };
+// The session mirror also keeps the document identity, which pages never see.
+type StoredScriptMediaEntry = ScriptMediaEntry & { doc?: string };
 type WebRequestDetails = {
   url: string;
   tabId: number;
   type: string;
   incognito?: boolean;
   timeStamp?: number;
+  // Chrome, and Firefox releases that implement documentId (140 does not):
+  frameId?: number;
+  parentFrameId?: number;
+  frameType?: string;
+  documentId?: string;
+  parentDocumentId?: string;
 };
 type PermissionChange = { permissions?: string[] };
 
@@ -241,7 +257,7 @@ const doHydrate = async (): Promise<void> => {
       const tabId = Number(tabKey);
       if (!Number.isInteger(tabId) || !Array.isArray(entries)) continue;
       const map = new Map<string, BufferedMedia>();
-      for (const entry of entries as ScriptMediaEntry[]) {
+      for (const entry of entries as StoredScriptMediaEntry[]) {
         if (
           !entry ||
           typeof entry.url !== "string" ||
@@ -257,6 +273,7 @@ const doHydrate = async (): Promise<void> => {
           kind: entry.kind,
           auto: entry.auto === true,
           at: typeof entry.at === "number" && Number.isFinite(entry.at) ? entry.at : 0,
+          ...(typeof entry.doc === "string" ? { doc: entry.doc } : {}),
         });
         while (map.size > SCRIPT_MEDIA_SOURCE_LIMIT) evictOldest(map);
       }
@@ -275,12 +292,15 @@ const doHydrate = async (): Promise<void> => {
 const persist = async (): Promise<void> => {
   const storage = sessionStorage();
   if (!storage) return;
-  const record: Record<string, ScriptMediaEntry[]> = {};
+  const record: Record<string, StoredScriptMediaEntry[]> = {};
   for (const [tabId, map] of buffers) {
     // Script-media discovery is not one of the admitted private activity
     // stores. Keep private and unclassified URLs in memory only.
     if (bufferPrivate.get(tabId) !== false) continue;
-    record[String(tabId)] = [...map].map(([url, media]) => wireEntry(url, media));
+    record[String(tabId)] = [...map].map(([url, media]) => ({
+      ...wireEntry(url, media),
+      ...(media.doc !== undefined ? { doc: media.doc } : {}),
+    }));
   }
   try {
     await storage.set({ [SCRIPT_MEDIA_BY_TAB_SESSION_KEY]: record });
@@ -351,6 +371,7 @@ const record = (
   requestType: string,
   privateContext: boolean,
   at: number,
+  doc: string | undefined,
 ): void => {
   let kind = classifyUrlKind(url);
   // A `media`-typed request with no telltale extension is still a media element
@@ -385,7 +406,9 @@ const record = (
         (kind === "video" || kind === "audio") &&
         [...map.values()].some((media) => media.kind === "stream"),
     });
-  map.set(url, { kind: previous?.kind ?? kind, auto, at });
+  // The latest observation also names the document that made it: a URL the
+  // next page requests again belongs to that page from then on.
+  map.set(url, { kind: previous?.kind ?? kind, auto, at, ...(doc !== undefined ? { doc } : {}) });
   while (map.size > SCRIPT_MEDIA_SOURCE_LIMIT) evictOldest(map);
 
   let queued = pending.get(tabId);
@@ -395,6 +418,20 @@ const record = (
   }
   queued.add(url);
   scheduleFlush();
+};
+
+// The top-level document a request belongs to. A top-level request names it
+// directly and a first-level frame's request names it as its parent. A deeper
+// frame's parent is another frame, and Firefox reports no document for a
+// worker's requests, so those stay unattributed and only the visit's time
+// bound applies to them (isScriptMediaFromVisit).
+const requestDocument = (details: WebRequestDetails): string | undefined => {
+  if (details.frameId === 0 || details.frameType === "outermost_frame") {
+    return typeof details.documentId === "string" ? details.documentId : undefined;
+  }
+  return details.parentFrameId === 0 && typeof details.parentDocumentId === "string"
+    ? details.parentDocumentId
+    : undefined;
 };
 
 const dropTab = (tabId: number): void => {
@@ -433,7 +470,7 @@ const onBeforeRequest = (details: WebRequestDetails): void => {
       typeof details.timeStamp === "number" && Number.isFinite(details.timeStamp)
         ? details.timeStamp
         : Date.now();
-    record(details.tabId, details.url, details.type, privateContext, at);
+    record(details.tabId, details.url, details.type, privateContext, at, requestDocument(details));
   });
 };
 
@@ -466,8 +503,11 @@ const stopListening = (): void => {
 };
 
 // Push a tab's whole buffered media set — used when its Page Sources panel
-// opens, so media observed before the panel existed still appears.
-export const pushBufferedScriptMedia = (tabId: number): void => {
+// opens, so media observed before the panel existed still appears. Media the
+// browser attributed to another document of the tab (the page before a
+// navigation committed, or the one left by a back/forward restore) is not this
+// page's and is left out when the opening document is known.
+export const pushBufferedScriptMedia = (tabId: number, documentId?: string): void => {
   const pushGeneration = generation;
   queueTabOperation(tabId, async () => {
     await initialized();
@@ -477,10 +517,12 @@ export const pushBufferedScriptMedia = (tabId: number): void => {
     if (pushGeneration !== generation) return;
     const map = buffers.get(tabId);
     if (!map || map.size === 0) return;
-    send(
-      tabId,
-      [...map].map(([url, media]) => wireEntry(url, media)),
+    const sources = [...map].flatMap(([url, media]) =>
+      documentId !== undefined && media.doc !== undefined && media.doc !== documentId
+        ? []
+        : [wireEntry(url, media)],
     );
+    if (sources.length > 0) send(tabId, sources);
   });
 };
 
@@ -508,25 +550,35 @@ const readAutomaticBuffer = <T>(
     });
   });
 
-// The whole-file media this tab's collector buffer holds, for an automatic
-// discovery that mounted after the requests were already pushed (or lost).
-export const automaticScriptMediaForTab = (tabId: number): Promise<ScriptMediaReplayEntry[]> =>
+// The whole-file media this tab's collector buffer holds for one page visit,
+// for an automatic discovery that mounted after the requests were already
+// pushed (or lost).
+export const automaticScriptMediaForTab = (
+  tabId: number,
+  visit: ScriptMediaVisit,
+): Promise<ScriptMediaReplayEntry[]> =>
   readAutomaticBuffer(tabId, [], (map) =>
-    [...map].flatMap(([url, { kind, auto, at }]) => (auto ? [{ url, kind, at }] : [])),
+    [...map].flatMap(([url, media]) =>
+      media.auto && isScriptMediaFromVisit(media, visit)
+        ? [{ url, kind: media.kind, at: media.at }]
+        : [],
+    ),
   );
 
 // Background backstop for a content-claimed script-media candidate: the URL
-// must still be in this tab's buffer, judged a whole file, of the claimed kind.
-// The content scan strips a fragment the webRequest URL never carries, so the
-// buffer is compared on the same fragment-free form.
+// must still be in this tab's buffer, judged a whole file, of the claimed kind,
+// and observed during the claiming page's visit. The content scan strips a
+// fragment the webRequest URL never carries, so the buffer is compared on the
+// same fragment-free form.
 export const isAutomaticScriptMediaCollected = (
   tabId: number,
   sourceUrl: string,
   kind: PageSourceKind,
+  visit: ScriptMediaVisit,
 ): Promise<boolean> =>
   readAutomaticBuffer(tabId, false, (map) => {
     const media = map.get(sourceUrl);
-    return media?.auto === true && media.kind === kind;
+    return media?.auto === true && media.kind === kind && isScriptMediaFromVisit(media, visit);
   });
 
 // Firefox event pages do not reliably wake the background permissions.onAdded

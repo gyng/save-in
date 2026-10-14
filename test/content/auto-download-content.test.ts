@@ -19,6 +19,7 @@ type DefaultedOption =
   | "resourceHints"
   | "includeDataUrls"
   | "includeScriptMedia"
+  | "scriptMediaVisitStart"
   | "isPageDisabled";
 
 const setupAutoDownloadDiscovery = (
@@ -32,6 +33,7 @@ const setupAutoDownloadDiscovery = (
     resourceHints: false,
     includeDataUrls: false,
     includeScriptMedia: false,
+    scriptMediaVisitStart: () => 0,
     isPageDisabled: () => false,
     ...options,
   });

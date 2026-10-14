@@ -6,6 +6,7 @@ import {
   isAdmittedAutomaticSource,
   matchAutomaticRoutingRule,
   normalizeAutomaticSourceUrl,
+  type ScriptMediaVisit,
 } from "../../automation/automatic-routing.ts";
 import { matchesAnyPatternOrUnreadable } from "../../shared/match-pattern.ts";
 import { normalizeContentOption } from "../../config/content-options.ts";
@@ -18,6 +19,21 @@ import {
 import type { MessageOf } from "../../shared/message-protocol.ts";
 import type { MessageSender, ProtocolSendResponse } from "./protocol.ts";
 import { isPageContentSender } from "./protocol.ts";
+
+// The page visit a script-media request speaks for. The document identity is
+// the browser's, never the message's; the visit start is the content script's
+// own measurement, and a request without one (or with a malformed one) gets no
+// visit, so nothing from the collector is adopted for it.
+const scriptMediaVisit = (
+  sender: MessageSender,
+  start: number | undefined,
+): ScriptMediaVisit | null =>
+  typeof start === "number" && Number.isFinite(start)
+    ? {
+        start,
+        ...(typeof sender.documentId === "string" ? { documentId: sender.documentId } : {}),
+      }
+    : null;
 
 export const handleAutoDownloadSource = async (
   request: MessageOf<typeof MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE>,
@@ -93,16 +109,25 @@ export const handleAutoDownloadSource = async (
     return;
   }
   // Backstop: a script-media candidate is only a claim by the content script.
-  // It must name a URL the collector itself observed in this tab and judged a
-  // whole file, so no message can turn an arbitrary URL, a stream segment, or
-  // another tab's traffic into an unattended save.
-  if (
-    request.body.sourceChannel === "script-media" &&
-    (typeof senderTab.id !== "number" ||
-      !(await isAutomaticScriptMediaCollected(senderTab.id, sourceUrl, request.body.sourceKind)))
-  ) {
-    skip();
-    return;
+  // It must name a URL the collector itself observed in this tab, during the
+  // sending page's visit, and judged a whole file, so no message can turn an
+  // arbitrary URL, a stream segment, another tab's traffic, or the page before
+  // or after this one in the same tab into an unattended save.
+  if (request.body.sourceChannel === "script-media") {
+    const visit = scriptMediaVisit(sender, request.body.scriptMediaVisitStart);
+    if (
+      typeof senderTab.id !== "number" ||
+      visit === null ||
+      !(await isAutomaticScriptMediaCollected(
+        senderTab.id,
+        sourceUrl,
+        request.body.sourceKind,
+        visit,
+      ))
+    ) {
+      skip();
+      return;
+    }
   }
   const rules = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
   const cssAttestation = isPageContentSender(sender, request.body.pageUrl)
@@ -162,19 +187,22 @@ export const handleAutoDownloadSource = async (
 // rule match. A private tab gets nothing unless private automatic saves are on,
 // so its network observations are not even offered.
 export const handleScriptMediaAutoReplay = async (
-  _request: MessageOf<typeof MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY>,
+  request: MessageOf<typeof MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY>,
   sender: MessageSender,
   sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY>>,
 ): Promise<void> => {
   const tabId = sender.tab?.id;
+  const visit = scriptMediaVisit(sender, request.body?.visitStart);
   const allowed =
+    visit !== null &&
     options.autoDownloadEnabled === true &&
     normalizeContentOption("autoDownloadScriptMedia", options.autoDownloadScriptMedia) &&
     (sender.tab?.incognito !== true || options.autoDownloadPrivate === true);
   sendResponse({
     type: MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY,
     body: {
-      sources: allowed && typeof tabId === "number" ? await automaticScriptMediaForTab(tabId) : [],
+      sources:
+        allowed && typeof tabId === "number" ? await automaticScriptMediaForTab(tabId, visit) : [],
     },
   });
 };

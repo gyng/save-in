@@ -330,6 +330,10 @@ export type AutoDownloadSourceRequestBody = {
   // backstop can re-check admission against trusted, current options.
   sourceChannel?: PageSourceChannel | undefined;
   matchedCssSelectorsByOrigin?: CssSelectorAttestation | undefined;
+  // Script-media candidates only: when the sending page's visit began (epoch
+  // ms; see ScriptMediaVisit). Without it the background adopts nothing from
+  // the collector for that candidate.
+  scriptMediaVisitStart?: number | undefined;
 };
 
 // Diagnostic only: reports that automatic Page Sources adoption stopped
@@ -340,6 +344,10 @@ export type AutoDownloadSourceRequestBody = {
 // One buffered whole-file script-media URL and when the collector last saw it
 // (epoch ms), so the content script can ignore an earlier page's leftovers.
 export type ScriptMediaReplayEntry = { url: string; kind: PageSourceKind; at: number };
+
+// The requesting page's visit start (epoch ms; see ScriptMediaVisit). A replay
+// request without one receives nothing.
+export type ScriptMediaAutoReplayRequestBody = { visitStart: number };
 
 export type AutoDownloadLimitReachedRequestBody = {
   maxPerPage: number;
@@ -358,7 +366,10 @@ export type InternalMessage =
       AutoDownloadLimitReachedRequestBody
     >
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_READY>
-  | Message<typeof MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY>
+  | OptionalBodyMessage<
+      typeof MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY,
+      ScriptMediaAutoReplayRequestBody
+    >
   | OptionalBodyMessage<typeof MESSAGE_TYPES.SOURCE_PANEL_STATE, { open: boolean }>
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_COPY>
   | RequiredBodyMessage<typeof MESSAGE_TYPES.CREATE_SOURCE_RULE, CreateSourceRuleRequestBody>
@@ -626,6 +637,9 @@ const isDownloadBody = (value: unknown): value is DownloadRequestBody => {
   );
 };
 
+const isEpochMs = (value: unknown): value is number =>
+  typeof value === "number" && Number.isFinite(value);
+
 const hasOptionalBody = (
   message: Record<string, unknown>,
   validate: (body: unknown) => boolean,
@@ -642,7 +656,14 @@ const isMessageBodyValid = (message: Record<string, unknown> & { type: string })
         (typeof message.body.sourceChannel === "undefined" ||
           isPageSourceChannel(message.body.sourceChannel)) &&
         (typeof message.body.matchedCssSelectorsByOrigin === "undefined" ||
-          isCssSelectorAttestation(message.body.matchedCssSelectorsByOrigin))
+          isCssSelectorAttestation(message.body.matchedCssSelectorsByOrigin)) &&
+        (typeof message.body.scriptMediaVisitStart === "undefined" ||
+          isEpochMs(message.body.scriptMediaVisitStart))
+      );
+    case MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY:
+      return hasOptionalBody(
+        message,
+        (body) => isStringKeyedRecord(body) && isEpochMs(body.visitStart),
       );
     case MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED:
       return isAutoDownloadLimitReachedBody(message.body);
@@ -710,7 +731,6 @@ const isMessageBodyValid = (message: Record<string, unknown> & { type: string })
       );
     case MESSAGE_TYPES.WAKE_WARM:
     case MESSAGE_TYPES.SOURCE_PANEL_READY:
-    case MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY:
     case MESSAGE_TYPES.SOURCE_PANEL_COPY:
     case MESSAGE_TYPES.DIAGNOSTICS_GET:
     case MESSAGE_TYPES.DIAGNOSTICS_CLEAR_FAILURES:

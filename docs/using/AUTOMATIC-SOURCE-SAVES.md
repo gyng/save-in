@@ -167,6 +167,20 @@ page element, so `css:` conditions never match them. Before each save the
 background confirms that it observed the URL in that tab as a whole file, so a
 stale or modified page script cannot widen what is saved.
 
+Only media requested by the page being viewed is adopted. The previous page
+in the tab keeps running while the next one loads, and a page restored with
+Back or Forward reappears without loading again, so the requests a tab makes
+are not all from the page on screen:
+
+- Chrome, and Firefox versions that report document identities, say which page
+  made each request; media requested by any other page is never adopted.
+- Otherwise, including for requests a Firefox page makes from a worker or that
+  a frame inside a frame makes, only media requested after the page's response
+  began, or after it was restored with Back or Forward, is adopted. On Firefox
+  140, which reports no identities, a request the previous page makes in the
+  few milliseconds between that moment and the switch to the new page can
+  still be adopted.
+
 Media requested before the page finished loading is collected and offered once
 when automatic discovery starts; later requests are adopted only while
 **Include sources added after the page loads** is on. After Chrome stops an

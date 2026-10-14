@@ -34,6 +34,7 @@ import {
   type ScriptMediaCandidate,
 } from "./auto-download.ts";
 import { matchesAnyPatternOrUnreadable } from "../shared/match-pattern.ts";
+import { trackPageVisit } from "./page-visit.ts";
 import type { AutomaticRoutingCandidate } from "../automation/automatic-routing.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import type { RoutingRule } from "../routing/rule-types.ts";
@@ -688,7 +689,15 @@ const setupAutoDownload = (options: ResolvedAutoDownloadOptions, dedup: AutoDown
         try {
           pending.inFlight = true;
           chrome.runtime.sendMessage(
-            { type: "AUTO_DOWNLOAD_SOURCE", body: candidate },
+            {
+              type: "AUTO_DOWNLOAD_SOURCE",
+              // The background adopts collector media only for the visit the
+              // page says it is on (see page-visit.ts); it re-checks the rest.
+              body:
+                candidate.sourceChannel === "script-media"
+                  ? { ...candidate, scriptMediaVisitStart: pageVisit.start() }
+                  : candidate,
+            },
             (response) => {
               pending.inFlight = false;
               const failed = Boolean(chrome.runtime.lastError);
@@ -744,6 +753,7 @@ const setupAutoDownload = (options: ResolvedAutoDownloadOptions, dedup: AutoDown
     resourceHints: options.autoDownloadManifests,
     includeDataUrls: options.autoDownloadDataUrls,
     includeScriptMedia: options.autoDownloadScriptMedia,
+    scriptMediaVisitStart: pageVisit.start,
     isPageDisabled: isCurrentPageDisabled,
     send,
     onLimitReached: reportLimitReached,
@@ -758,10 +768,13 @@ const setupAutoDownload = (options: ResolvedAutoDownloadOptions, dedup: AutoDown
     // buffer once. Later pushes count as sources added after load.
     if (options.autoDownloadLive) liveScriptMediaSink = addScriptMedia;
     try {
-      chrome.runtime.sendMessage({ type: "SCRIPT_MEDIA_AUTO_REPLAY" }, (response) => {
-        if (chrome.runtime.lastError) return;
-        addScriptMedia(scriptMediaCandidates(response?.body?.sources, false));
-      });
+      chrome.runtime.sendMessage(
+        { type: "SCRIPT_MEDIA_AUTO_REPLAY", body: { visitStart: pageVisit.start() } },
+        (response) => {
+          if (chrome.runtime.lastError) return;
+          addScriptMedia(scriptMediaCandidates(response?.body?.sources, false));
+        },
+      );
     } catch {
       // Extension context invalidated while the page remained alive.
     }
@@ -823,6 +836,9 @@ const removePageLongReleaseListeners = (): void => {
 let removeClickToSave: (() => void) | null = null;
 let removeAutoDownload: (() => void) | null = null;
 // The mounted live discovery's intake for collector pushes, when it takes them.
+// Collector media is adopted only for the page visit it belongs to.
+const pageVisit = trackPageVisit(window);
+
 let liveScriptMediaSink: ((sources: ScriptMediaCandidate[]) => void) | null = null;
 // Owned per page load, not per discovery mount, so remounts cannot re-send
 // sources this page already saved (see AutoDownloadDedup).
@@ -1229,7 +1245,7 @@ try {
         );
         if (sources.length > 0) mergeScriptMediaSources(sources);
       }
-      liveScriptMediaSink?.(scriptMediaCandidates(raw, true));
+      if (!pageVisit.hidden()) liveScriptMediaSink?.(scriptMediaCandidates(raw, true));
       return;
     }
     if (!["TOGGLE_SOURCE_PANEL", "SET_SOURCE_PANEL"].includes(message?.type)) return;

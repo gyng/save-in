@@ -5,6 +5,9 @@ import type { InternalMessage, ResponseFor } from "../../shared/message-protocol
 import type { SendResponse } from "../message-dispatch.ts";
 
 export type MessageSender = {
+  // Browser-supplied identity of the sending document (Chrome, and Firefox
+  // releases that implement it); see ScriptMediaVisit.
+  documentId?: string | undefined;
   frameId?: number | undefined;
   id?: string | undefined;
   tab?: CurrentTab | undefined;

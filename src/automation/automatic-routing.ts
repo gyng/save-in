@@ -125,6 +125,31 @@ export const isWholeFileScriptMediaRequest = (request: {
   );
 };
 
+// The page visit a script-media entry must belong to before an automatic save
+// may adopt it. A tab's collector buffer outlives the documents it shows: the
+// old document keeps issuing requests after the next navigation has reset the
+// buffer and until the new one commits, and a back/forward-cache restore sends
+// no navigation request at all, so the buffer still holds the other page's
+// traffic. `documentId` is the browser-supplied identity of the requesting
+// top-level document (MessageSender.documentId; Chrome, and Firefox releases
+// that implement it). `start` is the wall-clock time the visit began as the
+// content script measured it: the navigation's response start, or the moment
+// a cached page was restored.
+export type ScriptMediaVisit = { documentId?: string | undefined; start: number };
+
+// When both the request and the visit carry a document identity, it decides:
+// the browser attributed the request to that document, which no clock reading
+// can contradict. Otherwise (Firefox before documentId, a Firefox worker
+// request, a request from a frame nested below the first level) the entry must
+// have been observed no earlier than the visit started.
+export const isScriptMediaFromVisit = (
+  entry: { at: number; doc?: string | undefined },
+  visit: ScriptMediaVisit,
+): boolean =>
+  entry.doc !== undefined && visit.documentId !== undefined
+    ? entry.doc === visit.documentId
+    : entry.at >= visit.start;
+
 export type AutomaticRoutingMatch = RuleMatch;
 
 export const isEligibleAutomaticRoutingRule = (rule: RoutingRule): boolean =>

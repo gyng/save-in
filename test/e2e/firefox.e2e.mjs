@@ -22,6 +22,10 @@ import {
 } from "./shared-scenarios.mjs";
 import { createHarnessSession } from "./harness-session.mjs";
 import {
+  createScriptMediaVisitRoutes,
+  runScriptMediaVisitScenario,
+} from "./script-media-visit-scenario.mjs";
+import {
   appendImageAndWaitForSourceExpression,
   arrayOf,
   beginResourceScope,
@@ -224,7 +228,9 @@ const SOURCE_PDF = Buffer.from(
 );
 
 const startSourcePanelServer = async () => {
+  const visitRoutes = createScriptMediaVisitRoutes();
   const server = http.createServer((req, res) => {
+    if (visitRoutes.handle(req, res)) return;
     if (req.url === "/script-media-frame") {
       res.writeHead(200, { "Content-Type": "text/html" });
       res.end("<!doctype html><title>Script media frame</title>");
@@ -271,7 +277,7 @@ const startSourcePanelServer = async () => {
       ${inlineDataImage}`);
   });
   const port = await listenLocal(server);
-  return { server, port };
+  return { server, port, visitRoutes };
 };
 
 beforeAll(async () => {
@@ -1448,7 +1454,7 @@ into: e2e/automatic-phase-c-firefox/inline.:mimeext:`,
 });
 
 test("script-media permission discovers hidden fetches, saves the whole file, and revokes cleanly", async () => {
-  const { server, port } = await startSourcePanelServer();
+  const { server, port, visitRoutes } = await startSourcePanelServer();
   const pageMatch = `localhost:${port}/script-media-sources`;
   const pageTarget = `localhost:${port}`;
   const pageUrl = `http://${pageMatch}`;
@@ -1639,6 +1645,14 @@ into: e2e/script-media-auto-firefox/:filename:`,
       timeoutMs: 10000,
     });
     expect(saved.map((row) => row.filename.split(/[\\/]/).at(-1))).toEqual(["script-only.m3u8"]);
+    await runScriptMediaVisitScenario({
+      control,
+      routes: visitRoutes,
+      tabId,
+      origin: `http://localhost:${port}`,
+      folder: "e2e/script-media-visit-firefox",
+      evalPage: (target, expression) => session.evaluateInTab(target, expression),
+    });
 
     const optionReverted = control.storage.local.wait("sourcePanelScriptMedia", false);
     expect(await evalOptions(`browser.permissions.remove({ permissions: ["webRequest"] })`)).toBe(

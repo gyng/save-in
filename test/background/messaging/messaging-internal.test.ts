@@ -1546,7 +1546,18 @@ describe("onMessage", () => {
         opened,
       );
       await waitForCall(opened);
-      expect(push).toHaveBeenCalledWith(8);
+      expect(push).toHaveBeenCalledWith(8, undefined);
+
+      // A sender document identity limits the replay to that document's media.
+      push.mockClear();
+      const identified = vi.fn();
+      onMessage(
+        { type: MESSAGE_TYPES.SOURCE_PANEL_STATE, body: { open: true } },
+        { tab: { id: 8 }, documentId: "doc-b" },
+        identified,
+      );
+      await waitForCall(identified);
+      expect(push).toHaveBeenCalledWith(8, "doc-b");
 
       // Opening without a sender tab has nowhere to replay into.
       push.mockClear();

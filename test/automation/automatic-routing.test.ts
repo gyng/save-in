@@ -1,6 +1,7 @@
 import {
   automaticRoutingRuleIssues,
   isAdmittedAutomaticSource,
+  isScriptMediaFromVisit,
   isWholeFileScriptMediaRequest,
   matchAutomaticRoutingRule,
   normalizeAutomaticSourceUrl,
@@ -432,6 +433,28 @@ describe("isAdmittedAutomaticSource", () => {
       }
     },
   );
+});
+
+describe("isScriptMediaFromVisit", () => {
+  test.each<
+    [string, { at: number; doc?: string }, { documentId?: string; start: number }, boolean]
+  >([
+    ["the visit's own document", { at: 1, doc: "b" }, { documentId: "b", start: 5 }, true],
+    // The previous page's poll after the navigation began, however late.
+    ["another document", { at: 9, doc: "a" }, { documentId: "b", start: 5 }, false],
+    ["an unattributed request after the start", { at: 5 }, { documentId: "b", start: 5 }, true],
+    ["an unattributed request before the start", { at: 4 }, { documentId: "b", start: 5 }, false],
+    [
+      "an attributed request when the visit has no identity",
+      { at: 6, doc: "a" },
+      { start: 5 },
+      true,
+    ],
+    ["an early request when the visit has no identity", { at: 4, doc: "a" }, { start: 5 }, false],
+    ["an unusable start", { at: 4 }, { start: Number.NaN }, false],
+  ])("%s", (_label, entry, visit, expected) => {
+    expect(isScriptMediaFromVisit(entry, visit)).toBe(expected);
+  });
 });
 
 describe("isWholeFileScriptMediaRequest", () => {

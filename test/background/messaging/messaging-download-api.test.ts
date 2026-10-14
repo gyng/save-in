@@ -1140,13 +1140,18 @@ sourcekind: ^video$
 into: automatic/
 `).rules;
     };
-    const scriptMediaRequest = (sourceChannel?: string) => ({
+    const visitStart = 1234;
+    const scriptMediaRequest = (
+      sourceChannel?: string,
+      extra: Record<string, unknown> = { scriptMediaVisitStart: visitStart },
+    ) => ({
       type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
       body: {
         pageUrl: senderTab.url,
         sourceUrl,
         sourceKind: "video",
         ...(sourceChannel ? { sourceChannel } : {}),
+        ...extra,
       },
     });
     const skipped = { type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE, body: { status: "skipped" } };
@@ -1173,7 +1178,39 @@ into: automatic/
       const sendResponse = vi.fn();
       onMessage(scriptMediaRequest("script-media"), { tab: senderTab }, sendResponse);
       await waitForCall(sendResponse);
-      expect(collected).toHaveBeenCalledWith(7, sourceUrl, "video");
+      expect(collected).toHaveBeenCalledWith(7, sourceUrl, "video", { start: visitStart });
+      expect(sendResponse).toHaveBeenCalledWith(skipped);
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+    });
+
+    test("checks the claim against the sender's own document and visit", async () => {
+      configureScriptMedia();
+      const collected = vi
+        .spyOn(Collector, "isAutomaticScriptMediaCollected")
+        .mockResolvedValue(true);
+      const sendResponse = vi.fn();
+      onMessage(
+        scriptMediaRequest("script-media"),
+        { tab: senderTab, documentId: "doc-b" },
+        sendResponse,
+      );
+      await waitForCall(sendResponse);
+      expect(collected).toHaveBeenCalledWith(7, sourceUrl, "video", {
+        start: visitStart,
+        documentId: "doc-b",
+      });
+      expect(Download.launchDownload).toHaveBeenCalledOnce();
+    });
+
+    test("refuses a script-media claim that names no visit", async () => {
+      configureScriptMedia();
+      const collected = vi
+        .spyOn(Collector, "isAutomaticScriptMediaCollected")
+        .mockResolvedValue(true);
+      const sendResponse = vi.fn();
+      onMessage(scriptMediaRequest("script-media", {}), { tab: senderTab }, sendResponse);
+      await waitForCall(sendResponse);
+      expect(collected).not.toHaveBeenCalled();
       expect(sendResponse).toHaveBeenCalledWith(skipped);
       expect(Download.launchDownload).not.toHaveBeenCalled();
     });
@@ -1217,16 +1254,19 @@ into: automatic/
     });
 
     describe("replay", () => {
-      const replay = { type: MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY };
+      const replay = {
+        type: MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY,
+        body: { visitStart },
+      };
       const entries = [{ url: sourceUrl, kind: "video" as const, at: 1 }];
 
       test("hands the sender tab's buffered whole files to its discovery", async () => {
         configureScriptMedia();
         const forTab = vi.spyOn(Collector, "automaticScriptMediaForTab").mockResolvedValue(entries);
         const sendResponse = vi.fn();
-        onMessage(replay, { tab: senderTab }, sendResponse);
+        onMessage(replay, { tab: senderTab, documentId: "doc-b" }, sendResponse);
         await waitForCall(sendResponse);
-        expect(forTab).toHaveBeenCalledWith(7);
+        expect(forTab).toHaveBeenCalledWith(7, { start: visitStart, documentId: "doc-b" });
         expect(sendResponse).toHaveBeenCalledWith({
           type: MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY,
           body: { sources: entries },
@@ -1239,12 +1279,17 @@ into: automatic/
         ["the option holds a malformed value", { autoDownloadScriptMedia: "yes" }, senderTab],
         ["the tab is private", {}, { ...senderTab, incognito: true }],
         ["the sender has no tab id", {}, { url: senderTab.url, incognito: false }],
-      ])("offers nothing when %s", async (_label, overrides, tab) => {
+        ["the request names no visit", {}, senderTab, {}],
+      ])("offers nothing when %s", async (_label, overrides, tab, message: object = replay) => {
         configureScriptMedia();
         Object.assign(options, overrides);
         const forTab = vi.spyOn(Collector, "automaticScriptMediaForTab").mockResolvedValue(entries);
         const sendResponse = vi.fn();
-        onMessage(replay, { tab }, sendResponse);
+        onMessage(
+          { type: MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY, ...message },
+          { tab },
+          sendResponse,
+        );
         await waitForCall(sendResponse);
         expect(forTab).not.toHaveBeenCalled();
         expect(sendResponse).toHaveBeenCalledWith({

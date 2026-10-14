@@ -9,7 +9,16 @@ type Details = {
   type: string;
   incognito?: boolean;
   timeStamp?: number;
+  frameId?: number;
+  parentFrameId?: number;
+  frameType?: string;
+  documentId?: string;
+  parentDocumentId?: string;
 };
+
+// A visit that began before every test's requests and names no document, so
+// only the whole-file and kind checks decide.
+const ANY_VISIT = { start: 0 };
 
 // A cold worker whose only record of a tab lives in storage.session.
 const withStoredTab = (tabId: number, entries: Array<Record<string, unknown>>) =>
@@ -991,7 +1000,7 @@ describe("automatic script-media candidates", () => {
     // Once the tab streams, its media-element requests are presumed segments.
     request("https://cdn.example/seg-2.mp4", "media", 1005);
 
-    expect(await mod.automaticScriptMediaForTab(7)).toEqual([
+    expect(await mod.automaticScriptMediaForTab(7, ANY_VISIT)).toEqual([
       { url: "https://cdn.example/clip.mp4", kind: "video", at: 1000 },
       { url: "https://cdn.example/report.pdf", kind: "document", at: 1001 },
       { url: "https://cdn.example/photo.jpg", kind: "image", at: 1002 },
@@ -1016,7 +1025,7 @@ describe("automatic script-media candidates", () => {
     listener!({ url: "https://cdn.example/a.mp4", tabId: 7, type: "media", timeStamp: 2 });
     listener!({ url: "https://cdn.example/a.mp4", tabId: 7, type: "xmlhttprequest", timeStamp: 3 });
 
-    expect(await mod.automaticScriptMediaForTab(7)).toEqual([
+    expect(await mod.automaticScriptMediaForTab(7, ANY_VISIT)).toEqual([
       { url: "https://cdn.example/a.mp4", kind: "video", at: 3 },
     ]);
   });
@@ -1025,7 +1034,7 @@ describe("automatic script-media candidates", () => {
     const { mod, listener } = await setup(AUTO_ON);
     const before = Date.now();
     listener!({ url: "https://cdn.example/a.m3u8", tabId: 7, type: "xmlhttprequest" });
-    const [entry] = await mod.automaticScriptMediaForTab(7);
+    const [entry] = await mod.automaticScriptMediaForTab(7, ANY_VISIT);
     expect(entry?.at).toBeGreaterThanOrEqual(before);
   });
 
@@ -1037,7 +1046,7 @@ describe("automatic script-media candidates", () => {
   ])("offers and confirms nothing while %s", async (_label, overrides) => {
     const { mod, listener } = await setup({ ...AUTO_ON });
     listener!({ url: "https://cdn.example/a.m3u8", tabId: 7, type: "xmlhttprequest" });
-    expect(await mod.automaticScriptMediaForTab(7)).toHaveLength(1);
+    expect(await mod.automaticScriptMediaForTab(7, ANY_VISIT)).toHaveLength(1);
 
     const { options } = await import("../../src/config/options-data.ts");
     Object.assign(options, {
@@ -1047,16 +1056,21 @@ describe("automatic script-media candidates", () => {
       sourcePanelScriptMedia: true,
       ...overrides,
     });
-    expect(await mod.automaticScriptMediaForTab(7)).toEqual([]);
+    expect(await mod.automaticScriptMediaForTab(7, ANY_VISIT)).toEqual([]);
     expect(
-      await mod.isAutomaticScriptMediaCollected(7, "https://cdn.example/a.m3u8", "stream"),
+      await mod.isAutomaticScriptMediaCollected(
+        7,
+        "https://cdn.example/a.m3u8",
+        "stream",
+        ANY_VISIT,
+      ),
     ).toBe(false);
   });
 
   test("offers nothing without the webRequest permission", async () => {
     const { mod } = await setup(AUTO_ON, true, false);
     withStoredTab(7, [{ url: "https://cdn.example/a.m3u8", kind: "stream", auto: true, at: 1 }]);
-    expect(await mod.automaticScriptMediaForTab(7)).toEqual([]);
+    expect(await mod.automaticScriptMediaForTab(7, ANY_VISIT)).toEqual([]);
   });
 
   test("confirms only a collected whole file of the claimed kind in the claimed tab", async () => {
@@ -1064,7 +1078,7 @@ describe("automatic script-media candidates", () => {
     listener!({ url: "https://cdn.example/clip.mp4", tabId: 7, type: "media" });
     listener!({ url: "https://cdn.example/seg-1.mp4", tabId: 7, type: "xmlhttprequest" });
     const collected = (tabId: number, url: string, kind: "video" | "image") =>
-      mod.isAutomaticScriptMediaCollected(tabId, url, kind);
+      mod.isAutomaticScriptMediaCollected(tabId, url, kind, ANY_VISIT);
 
     expect(await collected(7, "https://cdn.example/clip.mp4", "video")).toBe(true);
     expect(await collected(7, "https://cdn.example/clip.mp4", "image")).toBe(false);
@@ -1077,7 +1091,228 @@ describe("automatic script-media candidates", () => {
     const { mod, listener } = await setup(AUTO_ON);
     listener!({ url: "https://cdn.example/a.m3u8", tabId: 7, type: "xmlhttprequest" });
     listener!({ url: "https://site.example/next", tabId: 7, type: "main_frame" });
-    expect(await mod.automaticScriptMediaForTab(7)).toEqual([]);
+    expect(await mod.automaticScriptMediaForTab(7, ANY_VISIT)).toEqual([]);
+  });
+
+  // The navigation window: the old document keeps polling after the next
+  // page's navigation request reset the buffer, until the new page commits.
+  // Measured on Chrome 155 and Firefox 158: the old page's request landed after
+  // the new page's navigation request, attributed to the old document.
+  test("refuses the previous document's requests made after the navigation began", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    const top = { tabId: 7, frameId: 0, parentFrameId: -1 };
+    listener!({ ...top, url: "https://b.example/", type: "main_frame", timeStamp: 1000 });
+    listener!({
+      ...top,
+      url: "https://a.example/live.m3u8",
+      type: "xmlhttprequest",
+      timeStamp: 1200,
+      documentId: "doc-a",
+    });
+    listener!({
+      ...top,
+      url: "https://b.example/own.m3u8",
+      type: "xmlhttprequest",
+      timeStamp: 1300,
+      documentId: "doc-b",
+    });
+    // Page B asks with its browser-supplied document identity. Its measured
+    // start is deliberately early, so only the identity can refuse A's poll.
+    const pageB = { documentId: "doc-b", start: 900 };
+
+    expect(await mod.automaticScriptMediaForTab(7, pageB)).toEqual([
+      { url: "https://b.example/own.m3u8", kind: "stream", at: 1300 },
+    ]);
+    expect(
+      await mod.isAutomaticScriptMediaCollected(7, "https://a.example/live.m3u8", "stream", pageB),
+    ).toBe(false);
+    expect(
+      await mod.isAutomaticScriptMediaCollected(7, "https://b.example/own.m3u8", "stream", pageB),
+    ).toBe(true);
+  });
+
+  test("bounds unattributed requests by the visit's start instead", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    // Firefox 140 reports no document at all.
+    listener!({ url: "https://b.example/", tabId: 7, type: "main_frame", timeStamp: 1000 });
+    listener!({
+      url: "https://a.example/live.m3u8",
+      tabId: 7,
+      type: "xmlhttprequest",
+      timeStamp: 1200,
+    });
+    listener!({
+      url: "https://b.example/own.m3u8",
+      tabId: 7,
+      type: "xmlhttprequest",
+      timeStamp: 1300,
+    });
+    // Page B's response started at 1250, and it reports a document identity
+    // the requests could not be compared with.
+    const pageB = { documentId: "doc-b", start: 1250 };
+
+    expect(await mod.automaticScriptMediaForTab(7, pageB)).toEqual([
+      { url: "https://b.example/own.m3u8", kind: "stream", at: 1300 },
+    ]);
+    expect(
+      await mod.isAutomaticScriptMediaCollected(7, "https://a.example/live.m3u8", "stream", {
+        start: 1250,
+      }),
+    ).toBe(false);
+  });
+
+  // A back/forward-cache restore sends no navigation request, so the buffer
+  // still holds the page the user went back from.
+  test("refuses the page left behind by a back/forward restore", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    listener!({
+      url: "https://b.example/clip.mp4",
+      tabId: 7,
+      frameId: 0,
+      type: "media",
+      timeStamp: 2000,
+      documentId: "doc-b",
+    });
+    listener!({
+      url: "https://b.example/worker.m3u8",
+      tabId: 7,
+      frameId: 0,
+      type: "xmlhttprequest",
+      timeStamp: 2100,
+    });
+
+    // Restored page A, with and without a browser document identity.
+    for (const restoredA of [{ documentId: "doc-a", start: 3000 }, { start: 3000 }]) {
+      expect(await mod.automaticScriptMediaForTab(7, restoredA)).toEqual([]);
+      expect(
+        await mod.isAutomaticScriptMediaCollected(
+          7,
+          "https://b.example/clip.mp4",
+          "video",
+          restoredA,
+        ),
+      ).toBe(false);
+    }
+  });
+
+  test("attributes a first-level frame's request to the top document", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    const request = (url: string, frame: Partial<Details>) =>
+      listener!({ url, tabId: 7, type: "xmlhttprequest", timeStamp: 10, ...frame });
+    request("https://player.example/frame.m3u8", {
+      frameId: 9,
+      parentFrameId: 0,
+      documentId: "doc-frame",
+      parentDocumentId: "doc-top",
+    });
+    // A deeper frame's parent is another frame: unattributed, so time decides.
+    request("https://player.example/nested.m3u8", {
+      frameId: 10,
+      parentFrameId: 9,
+      documentId: "doc-nested",
+      parentDocumentId: "doc-frame",
+    });
+    // Chrome's prerendered page is outermost without being frame 0.
+    request("https://site.example/prerendered.m3u8", {
+      frameId: 4,
+      frameType: "outermost_frame",
+      documentId: "doc-top",
+    });
+    request("https://site.example/elsewhere.m3u8", {
+      frameId: 4,
+      frameType: "outermost_frame",
+      documentId: "doc-other",
+    });
+
+    expect(
+      (await mod.automaticScriptMediaForTab(7, { documentId: "doc-top", start: 0 })).map(
+        ({ url }) => url,
+      ),
+    ).toEqual([
+      "https://player.example/frame.m3u8",
+      "https://player.example/nested.m3u8",
+      "https://site.example/prerendered.m3u8",
+    ]);
+    expect(
+      await mod.automaticScriptMediaForTab(7, { documentId: "doc-top", start: 11 }),
+    ).toHaveLength(2);
+  });
+
+  test("leaves another document's media out of the panel's replay", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    listener!({
+      url: "https://b.example/clip.mp4",
+      tabId: 7,
+      frameId: 0,
+      type: "media",
+      documentId: "doc-b",
+    });
+    listener!({
+      url: "https://b.example/worker.m3u8",
+      tabId: 7,
+      frameId: 0,
+      type: "xmlhttprequest",
+    });
+    await settle();
+    vi.mocked(browser.tabs.sendMessage).mockClear();
+
+    mod.pushBufferedScriptMedia(7, "doc-a");
+    await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalledOnce());
+    expect(lastSend()![1].body.sources.map(({ url }: { url: string }) => url)).toEqual([
+      "https://b.example/worker.m3u8",
+    ]);
+
+    vi.mocked(browser.tabs.sendMessage).mockClear();
+    listener!({ url: "https://b.example/", tabId: 7, type: "main_frame" });
+    listener!({
+      url: "https://b.example/other.mp4",
+      tabId: 7,
+      frameId: 0,
+      type: "media",
+      documentId: "doc-b",
+    });
+    await settle();
+    vi.mocked(browser.tabs.sendMessage).mockClear();
+    mod.pushBufferedScriptMedia(7, "doc-a");
+    await settle();
+    expect(browser.tabs.sendMessage).not.toHaveBeenCalled();
+  });
+
+  test("persists and rehydrates the document identity", async () => {
+    const { listener } = await setup(AUTO_ON);
+    listener!({
+      url: "https://cdn.example/a.m3u8",
+      tabId: 7,
+      frameId: 0,
+      type: "xmlhttprequest",
+      timeStamp: 5,
+      documentId: "doc-a",
+    });
+    await vi.waitFor(() =>
+      expect(browser.storage.session.set).toHaveBeenCalledWith({
+        [SCRIPT_MEDIA_BY_TAB_SESSION_KEY]: {
+          "7": [
+            { url: "https://cdn.example/a.m3u8", kind: "stream", auto: true, at: 5, doc: "doc-a" },
+          ],
+        },
+      }),
+    );
+    // Pages never see it.
+    expect(lastSend()![1].body.sources).toEqual([
+      { url: "https://cdn.example/a.m3u8", kind: "stream", auto: true, at: 5 },
+    ]);
+
+    const { mod } = await setup(AUTO_ON);
+    withStoredTab(7, [
+      { url: "https://cdn.example/a.m3u8", kind: "stream", auto: true, at: 5, doc: "doc-a" },
+      // A malformed identity is no identity: the time bound decides.
+      { url: "https://cdn.example/b.m3u8", kind: "stream", auto: true, at: 6, doc: 42 },
+    ]);
+    expect(
+      (await mod.automaticScriptMediaForTab(7, { documentId: "doc-b", start: 0 })).map(
+        ({ url }) => url,
+      ),
+    ).toEqual(["https://cdn.example/b.m3u8"]);
   });
 
   test("persists and rehydrates the whole-file marker and time", async () => {
@@ -1108,7 +1343,7 @@ describe("automatic script-media candidates", () => {
       { url: "https://cdn.example/b.m3u8", kind: "stream", auto: "yes", at: 7 },
       { url: "https://cdn.example/c.m3u8", kind: "stream", auto: true, at: "late" },
     ]);
-    expect(await mod.automaticScriptMediaForTab(7)).toEqual([
+    expect(await mod.automaticScriptMediaForTab(7, ANY_VISIT)).toEqual([
       { url: "https://cdn.example/a.m3u8", kind: "stream", at: 5 },
       { url: "https://cdn.example/c.m3u8", kind: "stream", at: 0 },
     ]);

@@ -80,6 +80,9 @@ export type AutoDownloadDiscoveryOptions = {
   // (autoDownloadScriptMedia). They arrive through addScriptMedia, never from
   // the DOM scan; the background re-checks each one against its own buffer.
   includeScriptMedia: boolean;
+  // When the current page visit began (wall-clock epoch ms; see page-visit.ts).
+  // Collector media observed earlier belongs to another page of the tab.
+  scriptMediaVisitStart: () => number;
   // Enforced at dispatch time against the live URL so a single-page-app
   // navigation onto the disable list stops queued saves without an options
   // change, and one off it resumes them.
@@ -123,11 +126,6 @@ const AUTO_EXCLUSION_CACHE_LIMIT = 1024;
 // each live rescan, outside the per-page budget, with a failure notice each time.
 const AUTO_FAILED_RETRY_LIMIT = 1;
 const AUTO_FAILED_ATTEMPT_LIMIT = 1024;
-// The collector stamps each URL with the browser's request time and this page's
-// performance.timeOrigin is its navigation start; both are wall-clock epoch ms
-// taken in different processes. The allowance absorbs their skew while still
-// refusing a buffer left over from a page visited seconds earlier.
-const SCRIPT_MEDIA_CLOCK_ALLOWANCE_MS = 1000;
 const MUTABLE_AUTOMATIC_MATCHERS = new Set(["css", "mediatype", "pagetitle", "sourcekind"]);
 
 const hasMutableAutomaticEvidence = (rule: readonly { name: string }[]): boolean =>
@@ -608,7 +606,7 @@ export const setupAutoDownloadDiscovery = (
     if (stopped || !options.includeScriptMedia || automaticRules.length === 0) return;
     // Same contract as scan(): a disabled page consumes no slot or budget.
     if (options.isPageDisabled()) return;
-    const visitStart = performance.timeOrigin - SCRIPT_MEDIA_CLOCK_ALLOWANCE_MS;
+    const visitStart = options.scriptMediaVisitStart();
     route(
       sources
         .filter(({ at }) => at >= visitStart)
