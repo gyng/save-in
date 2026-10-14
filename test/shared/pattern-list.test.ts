@@ -122,6 +122,10 @@ describe("pattern list grammar", () => {
     // written and compares textually, exactly as it did before.
     expect(() => matchesAnyPattern("https://xn--a.com/a", "*://xn--a.com/*")).not.toThrow();
     expect(matchesAnyPattern("https://xn--a.com/a", "*://xn--a.com/*")).toBe(true);
+    // Whether the parser rejects "xn--a" varies across Node 24 patch releases;
+    // a percent-encoded NUL is a forbidden host code point in every release.
+    expect(() => matchesAnyPattern("https://example.com/a", "*://a%00b/*")).not.toThrow();
+    expect(matchesAnyPattern("https://example.com/a", "*://a%00b/*")).toBe(false);
   });
 
   test("rejects host wildcards the spec does not allow", () => {
