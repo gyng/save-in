@@ -68,6 +68,11 @@ retry in a fresh browser with `E2E_RETRY=1`. That retry is a final
 browser-launch/lifecycle backstop, not a case-level retry and not a way to hide
 timing regressions.
 
+Before any of that, the Chrome launcher itself starts a second, fresh process
+once when the first never opens its CDP port. No suite has seen that browser
+yet, so relaunching it hides nothing; every other startup failure, and a second
+hang, is reported as is.
+
 ## Tabs, page-local work, and waits
 
 Use the structured control client for serializable browser operations such as

@@ -2,25 +2,39 @@ import fs, { chmodSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from "no
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createRequire } from "node:module";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 const require = createRequire(import.meta.url);
-const { buildOutputForMode, chromeArgs, findChrome, parseChromeMajorVersion, removeProfile } =
-  require("../../scripts/lib/chrome.js") as {
-    buildOutputForMode: (mode?: "production" | "e2e") => string;
-    chromeArgs: (
-      profileDir: string,
-      port: number,
-      headless?: boolean,
-      noSandbox?: boolean,
-      legacyExtensionDir?: string,
-      disableGpu?: boolean,
-      extraArgs?: string[],
-    ) => string[];
-    findChrome: () => string;
-    parseChromeMajorVersion: (version: string) => number;
-    removeProfile: (profileDir: string) => Promise<void>;
-  };
+const {
+  buildOutputForMode,
+  chromeArgs,
+  findChrome,
+  parseChromeMajorVersion,
+  relaunchIfCdpNeverOpened,
+  removeProfile,
+} = require("../../scripts/lib/chrome.js") as {
+  buildOutputForMode: (mode?: "production" | "e2e") => string;
+  chromeArgs: (
+    profileDir: string,
+    port: number,
+    headless?: boolean,
+    noSandbox?: boolean,
+    legacyExtensionDir?: string,
+    disableGpu?: boolean,
+    extraArgs?: string[],
+  ) => string[];
+  findChrome: () => string;
+  parseChromeMajorVersion: (version: string) => number;
+  removeProfile: (profileDir: string) => Promise<void>;
+  relaunchIfCdpNeverOpened: <T>(
+    launchOnce: () => Promise<T>,
+    options?: { attempts?: number; log?: (message: string) => void },
+  ) => Promise<T>;
+};
+
+// The shape launchOnce reports: its startup error wraps the CDP wait's error.
+const startupFailure = (message: string) =>
+  new Error(`${message}\nChrome process: still running`, { cause: new Error(message) });
 
 const originalChromePath = process.env.CHROME_PATH;
 const originalPath = process.env.PATH;
@@ -33,6 +47,48 @@ afterEach(() => {
 });
 
 describe("isolated Chrome launcher", () => {
+  test("relaunches once when Chrome never opens its CDP port", async () => {
+    const log = vi.fn();
+    let calls = 0;
+    const session = await relaunchIfCdpNeverOpened(
+      async () => {
+        calls += 1;
+        if (calls === 1) throw startupFailure("Chrome did not open CDP port 9737");
+        return "session";
+      },
+      { log },
+    );
+
+    expect(session).toBe("session");
+    expect(calls).toBe(2);
+    expect(log).toHaveBeenCalledOnce();
+  });
+
+  test("reports a repeated hang and never relaunches other startup failures", async () => {
+    const hang = startupFailure("Chrome did not open CDP port 9737");
+    let hangs = 0;
+    await expect(
+      relaunchIfCdpNeverOpened(
+        async () => {
+          hangs += 1;
+          throw hang;
+        },
+        { log: () => {} },
+      ),
+    ).rejects.toBe(hang);
+    expect(hangs).toBe(2);
+
+    const invalidPackage = startupFailure("Extensions.loadUnpacked failed");
+    let loads = 0;
+    await expect(
+      relaunchIfCdpNeverOpened(async () => {
+        loads += 1;
+        throw invalidPackage;
+      }),
+    ).rejects.toBe(invalidPackage);
+    expect(loads).toBe(1);
+  });
+
   test("selects the staged package that matches the requested build mode", () => {
     expect(buildOutputForMode()).toMatch(/[\\/]dist[\\/]bundled-pkg$/);
     expect(buildOutputForMode("e2e")).toMatch(/[\\/]dist[\\/]bundled-pkg-e2e$/);

@@ -211,8 +211,43 @@ const startupError = (error, proc, logPath) => {
   );
 };
 
+const CDP_PORT_NEVER_OPENED = "Chrome did not open CDP port";
+
+/** @param {unknown} error */
+const isCdpPortNeverOpened = (error) =>
+  error instanceof Error &&
+  error.cause instanceof Error &&
+  error.cause.message.startsWith(CDP_PORT_NEVER_OPENED);
+
+// A Chrome that is still starting after the CDP deadline has hung before its
+// debugging port opened (seen on fresh GitHub runner images). Nothing was
+// handed to a suite yet and launchOnce already killed the tree, so one fresh
+// process is safe; any later startup failure is a real one and is reported.
+/**
+ * @template T
+ * @param {() => Promise<T>} launchOnce
+ * @param {{attempts?: number, log?: (message: string) => void}} [options]
+ * @returns {Promise<T>}
+ */
+const relaunchIfCdpNeverOpened = async (
+  launchOnce,
+  { attempts = 2, log = (message) => process.stdout.write(`${message}\n`) } = {},
+) => {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await launchOnce();
+    } catch (error) {
+      if (attempt >= attempts || !isCdpPortNeverOpened(error)) throw error;
+      log(`Chrome E2E: CDP port never opened; relaunching (attempt ${attempt + 1}/${attempts})`);
+    }
+  }
+};
+
 /** @param {{port?: number, profileDir: string, downloadDir?: string, extensionDir?: string, fresh?: boolean, preserveProfile?: boolean, enableGpu?: boolean, extraArgs?: string[], environment?: NodeJS.ProcessEnv}} settings */
-const launch = async ({
+const launch = (settings) => relaunchIfCdpNeverOpened(() => launchOnce(settings));
+
+/** @param {{port?: number, profileDir: string, downloadDir?: string, extensionDir?: string, fresh?: boolean, preserveProfile?: boolean, enableGpu?: boolean, extraArgs?: string[], environment?: NodeJS.ProcessEnv}} settings */
+const launchOnce = async ({
   port: requestedPort = undefined,
   profileDir,
   downloadDir = undefined,
@@ -323,6 +358,7 @@ module.exports = {
   stageBuild,
   chromeArgs,
   launch,
+  relaunchIfCdpNeverOpened,
   killTree,
   removeProfile,
   logTail,
