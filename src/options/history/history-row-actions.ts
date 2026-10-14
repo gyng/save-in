@@ -77,14 +77,19 @@ const openMovePicker = (
   picker.className = "history-move-picker";
   const select = document.createElement("select");
   select.setAttribute("aria-label", historyMessage("historyMoveDestination", "Destination folder"));
-  for (const { dir, title } of rerouteDestinations()) {
-    const option = document.createElement("option");
-    option.value = dir;
-    option.textContent = title;
-    select.append(option);
-  }
   const confirm = document.createElement("button");
   confirm.type = "button";
+  // Nothing to move to until the configured destinations arrive.
+  confirm.disabled = true;
+  void rerouteDestinations().then((destinations) => {
+    for (const { dir, title } of destinations) {
+      const option = document.createElement("option");
+      option.value = dir;
+      option.textContent = title;
+      select.append(option);
+    }
+    confirm.disabled = false;
+  });
   confirm.className = "history-open history-move-confirm";
   confirm.textContent = historyMessage("historyMoveConfirm", "Move");
   confirm.addEventListener("click", () => {

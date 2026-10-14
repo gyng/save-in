@@ -5,6 +5,7 @@ import { stopHistoryProgress } from "../../../src/options/history/history-progre
 const historyRuntime = vi.hoisted(() => ({
   entries: [] as Array<Record<string, unknown>>,
   sendMessage: vi.fn(),
+  storageGet: vi.fn(),
   search: vi.fn(),
   show: vi.fn(),
 }));
@@ -12,7 +13,7 @@ const historyRuntime = vi.hoisted(() => ({
 vi.mock("../../../src/platform/web-extension-api.ts", () => ({
   webExtensionApi: {
     runtime: historyRuntime,
-    storage: { local: { get: vi.fn(), remove: vi.fn() } },
+    storage: { local: { get: historyRuntime.storageGet, remove: vi.fn() } },
     downloads: { search: historyRuntime.search, show: historyRuntime.show },
   },
 }));
@@ -69,6 +70,7 @@ describe("history filter controls", () => {
               : { type: "OK" },
       );
     historyRuntime.search.mockReset().mockResolvedValue([]);
+    historyRuntime.storageGet.mockReset().mockResolvedValue({ paths: "" });
     historyRuntime.show.mockReset().mockResolvedValue(undefined);
     historyRuntime.entries = [];
     localStorage.clear();
@@ -464,8 +466,11 @@ describe("history filter controls", () => {
         url: "https://cdn.test/photo.png",
       },
     ];
-    document.querySelector<HTMLTextAreaElement>("#paths")!.value =
-      "Pictures // (alias: Images)\n> Pictures/Archive\nPictures // duplicate destination";
+    historyRuntime.storageGet.mockResolvedValue({
+      paths: "Pictures // (alias: Images)\n> Pictures/Archive\nPictures // duplicate destination",
+    });
+    // An unapplied draft in the editor is not a configured destination.
+    document.querySelector<HTMLTextAreaElement>("#paths")!.value = "Draft/Unapplied";
     historyRuntime.sendMessage.mockImplementation(async (message: { type: string }) => {
       if (message.type === "HISTORY_REROUTE") {
         return {
@@ -480,6 +485,8 @@ describe("history filter controls", () => {
     document.querySelector<HTMLButtonElement>(".history-move")!.click();
     const picker = document.querySelector<HTMLElement>(".history-move-picker")!;
     const select = picker.querySelector<HTMLSelectElement>("select")!;
+    expect(picker.querySelector<HTMLButtonElement>(".history-move-confirm")!.disabled).toBe(true);
+    await vi.waitFor(() => expect(select.options.length).toBeGreaterThan(0));
     expect([...select.options].map(({ value, text }) => [value, text])).toEqual([
       [".", "Downloads"],
       ["Pictures", "Images"],
@@ -496,6 +503,26 @@ describe("history filter controls", () => {
     );
     await vi.waitFor(() =>
       expect(document.querySelector("#history-feedback")?.textContent).toContain("Save moved"),
+    );
+  });
+
+  test("offers the default directories while none are stored", async () => {
+    historyRuntime.entries = [
+      {
+        id: "h-defaults",
+        status: "complete",
+        downloadId: 48,
+        finalFullPath: "from/photo.png",
+        url: "https://cdn.test/photo.png",
+      },
+    ];
+    historyRuntime.storageGet.mockResolvedValue({});
+    await historyPanel.renderHistory();
+
+    document.querySelector<HTMLButtonElement>(".history-move")!.click();
+    const select = document.querySelector<HTMLSelectElement>(".history-move-picker select")!;
+    await vi.waitFor(() =>
+      expect([...select.options].map(({ value }) => value)).toEqual([".", "Images", "Documents"]),
     );
   });
 
@@ -550,7 +577,7 @@ describe("history filter controls", () => {
         url: "https://cdn.test/photo.png",
       },
     ];
-    document.querySelector("#paths")?.remove();
+    historyRuntime.storageGet.mockRejectedValue(new Error("storage unavailable"));
     historyRuntime.sendMessage.mockImplementation(async (message: { type: string }) =>
       message.type === "HISTORY_GET"
         ? { type: "HISTORY_GET", body: { entries: historyRuntime.entries } }
@@ -560,6 +587,11 @@ describe("history filter controls", () => {
 
     document.querySelector<HTMLButtonElement>(".history-move")!.click();
     const picker = document.querySelector<HTMLElement>(".history-move-picker")!;
+    await vi.waitFor(() =>
+      expect(picker.querySelector<HTMLButtonElement>(".history-move-confirm")!.disabled).toBe(
+        false,
+      ),
+    );
     expect([...picker.querySelectorAll("option")].map((option) => option.value)).toEqual(["."]);
     picker.querySelector<HTMLButtonElement>(".history-move-confirm")!.click();
 
@@ -587,7 +619,9 @@ describe("history filter controls", () => {
     await historyPanel.renderHistory();
 
     document.querySelector<HTMLButtonElement>(".history-move")!.click();
-    document.querySelector<HTMLButtonElement>(".history-move-confirm")!.click();
+    const confirm = document.querySelector<HTMLButtonElement>(".history-move-confirm")!;
+    await vi.waitFor(() => expect(confirm.disabled).toBe(false));
+    confirm.click();
 
     await vi.waitFor(() =>
       expect(document.querySelector("#history-feedback")?.textContent).toContain("Could not move"),
@@ -616,7 +650,9 @@ describe("history filter controls", () => {
     await historyPanel.renderHistory();
 
     document.querySelector<HTMLButtonElement>(".history-move")!.click();
-    document.querySelector<HTMLButtonElement>(".history-move-confirm")!.click();
+    const confirm = document.querySelector<HTMLButtonElement>(".history-move-confirm")!;
+    await vi.waitFor(() => expect(confirm.disabled).toBe(false));
+    confirm.click();
 
     const feedback = document.querySelector<HTMLElement>("#history-feedback")!;
     await vi.waitFor(() =>
@@ -646,7 +682,9 @@ describe("history filter controls", () => {
     await historyPanel.renderHistory();
 
     document.querySelector<HTMLButtonElement>(".history-move")!.click();
-    document.querySelector<HTMLButtonElement>(".history-move-confirm")!.click();
+    const confirm = document.querySelector<HTMLButtonElement>(".history-move-confirm")!;
+    await vi.waitFor(() => expect(confirm.disabled).toBe(false));
+    confirm.click();
 
     await vi.waitFor(() =>
       expect(document.querySelector("#history-feedback")?.textContent).toContain(

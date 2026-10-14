@@ -8,6 +8,7 @@ import { sendInternalMessage } from "../../platform/messaging.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
 import { buildTree } from "../../menus/menu-tree.ts";
 import { splitLines } from "../../shared/util.ts";
+import { OPTION_DEFAULTS } from "../../config/option-defaults.ts";
 import { historyFeedback, renderHistoryFeedback } from "./history-feedback.ts";
 import { historyMessage } from "./history-messages.ts";
 import { renderHistory } from "./history-refresh.ts";
@@ -80,12 +81,16 @@ export const undoSave = async (historyId: string): Promise<void> => {
   }
 };
 
-// The reroute destinations mirror the configured menu directories: the paths
-// textarea is the same source the menu preview reads, so no background
-// round-trip is needed. Downloads root is always offered.
-export const rerouteDestinations = (): { dir: string; title: string }[] => {
-  const textarea = document.querySelector<HTMLTextAreaElement>("#paths");
-  const tree = buildTree(splitLines(textarea?.value ?? ""));
+// The reroute destinations mirror the configured menu directories. They are
+// read from storage rather than the #paths editor, whose text may be an
+// unapplied (or invalid) draft the menus do not offer. Downloads root is always
+// offered, and is all that is offered when storage cannot be read.
+export const rerouteDestinations = async (): Promise<{ dir: string; title: string }[]> => {
+  const stored: Record<string, unknown> = await webExtensionApi.storage.local
+    .get("paths")
+    .catch(() => ({ paths: "" }));
+  const paths = typeof stored.paths === "string" ? stored.paths : OPTION_DEFAULTS.paths;
+  const tree = buildTree(splitLines(paths));
   const dirs = new Map<string, string>([
     [".", historyMessage("historyMoveDownloadsRoot", "Downloads")],
   ]);
