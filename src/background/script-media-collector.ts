@@ -14,7 +14,10 @@ import {
   SCRIPT_MEDIA_SOURCE_LIMIT,
   type PageSourceKind,
 } from "../shared/page-source.ts";
-import { SCRIPT_MEDIA_BY_TAB_SESSION_KEY } from "../shared/storage-keys.ts";
+import {
+  SCRIPT_MEDIA_BY_TAB_SESSION_KEY,
+  SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY,
+} from "../shared/storage-keys.ts";
 import type { ScriptMediaReplayEntry } from "../shared/message-protocol.ts";
 
 // Opt-in webRequest collector for media a page loads with scripts (HLS/DASH
@@ -111,6 +114,19 @@ const tabPrivacyChecks = new Map<number, Promise<boolean>>();
 // preceded it, nor send a pre-navigation buffer that a reset behind it in the
 // queue is about to drop.
 const tabOperations = new Map<number, Promise<void>>();
+// tabId → the top-level documents that showed stream evidence (see
+// isStreamEvidence), oldest first. Unlike the buffer, a main_frame request does
+// not clear it: a back/forward-cache restore brings a document back without
+// any request, so the restored page never re-records the manifest or opaque
+// marker the reset dropped, and its native stream's segment loads would
+// otherwise read as whole files. It holds only the browser's opaque document
+// ids, bounded per tab, and lives until the tab closes. Privacy follows the
+// buffer's rule: only a public tab's ids are mirrored to storage.session.
+type StreamDocuments = { private: boolean; docs: string[] };
+const streamDocuments = new Map<number, StreamDocuments>();
+// A tab rarely keeps more than a few stream pages in its back/forward cache;
+// forgetting the oldest only gives up the extra caution for that page.
+export const SCRIPT_MEDIA_STREAM_DOCUMENT_LIMIT = 8;
 // tabId → media urls observed since the last flush (for the live push).
 const pending = new Map<number, Set<string>>();
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -254,12 +270,15 @@ const doHydrate = async (): Promise<void> => {
   if (!storage) return;
   const readGeneration = generation;
   try {
-    const stored = (await storage.get(SCRIPT_MEDIA_BY_TAB_SESSION_KEY))[
-      SCRIPT_MEDIA_BY_TAB_SESSION_KEY
-    ];
+    const snapshot = await storage.get([
+      SCRIPT_MEDIA_BY_TAB_SESSION_KEY,
+      SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY,
+    ]);
     // A teardown (permission revoke) between the read and here cleared the
     // buffers on purpose; do not resurrect the stale snapshot we just read.
     if (readGeneration !== generation) return;
+    hydrateStreamDocuments(snapshot[SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY]);
+    const stored = snapshot[SCRIPT_MEDIA_BY_TAB_SESSION_KEY];
     if (!stored || typeof stored !== "object") return;
     for (const [tabKey, entries] of Object.entries(stored as Record<string, unknown>)) {
       const tabId = Number(tabKey);
@@ -298,6 +317,20 @@ const doHydrate = async (): Promise<void> => {
   }
 };
 
+// Malformed shapes are dropped: a non-string id is no identity, and a list
+// longer than the bound keeps its newest ids.
+const hydrateStreamDocuments = (stored: unknown): void => {
+  if (!stored || typeof stored !== "object") return;
+  for (const [tabKey, docs] of Object.entries(stored as Record<string, unknown>)) {
+    const tabId = Number(tabKey);
+    if (!Number.isInteger(tabId) || !Array.isArray(docs)) continue;
+    const valid = docs
+      .filter((doc): doc is string => typeof doc === "string")
+      .slice(-SCRIPT_MEDIA_STREAM_DOCUMENT_LIMIT);
+    if (valid.length) streamDocuments.set(tabId, { private: false, docs: valid });
+  }
+};
+
 const persist = async (): Promise<void> => {
   const storage = sessionStorage();
   if (!storage) return;
@@ -312,8 +345,15 @@ const persist = async (): Promise<void> => {
       ...(media.opaque ? { opaque: true as const } : {}),
     }));
   }
+  const documents: Record<string, string[]> = {};
+  for (const [tabId, entry] of streamDocuments) {
+    if (!entry.private) documents[String(tabId)] = entry.docs;
+  }
   try {
-    await storage.set({ [SCRIPT_MEDIA_BY_TAB_SESSION_KEY]: record });
+    await storage.set({
+      [SCRIPT_MEDIA_BY_TAB_SESSION_KEY]: record,
+      [SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY]: documents,
+    });
   } catch {
     // Persist is best-effort; the in-memory mirror remains authoritative.
   }
@@ -388,6 +428,33 @@ const evictOldest = (map: Map<string, BufferedMedia>): void => {
   map.delete(victim);
 };
 
+const rememberStreamDocument = (tabId: number, doc: string, privateContext: boolean): void => {
+  const docs = streamDocuments.get(tabId)?.docs.filter((known) => known !== doc) ?? [];
+  docs.push(doc);
+  streamDocuments.set(tabId, {
+    private: privateContext,
+    docs: docs.slice(-SCRIPT_MEDIA_STREAM_DOCUMENT_LIMIT),
+  });
+};
+
+// Whether a video/audio load belongs to a page that showed a stream: evidence
+// still in the tab's buffer (from any document, as before), or its own
+// document remembered as a stream page. A load the browser attributes to no
+// document (Firefox 140, a Firefox worker, a frame below the first level)
+// cannot be matched to one, so once any page in the tab showed a stream it is
+// presumed to be that stream's segment. Firefox plays no HLS or DASH natively,
+// so there the presumption costs at most an extensionless progressive file.
+const tabHasStream = (
+  tabId: number,
+  map: Map<string, BufferedMedia>,
+  doc: string | undefined,
+): boolean => {
+  if ([...map.values()].some(isStreamEvidence)) return true;
+  const docs = streamDocuments.get(tabId)?.docs;
+  if (!docs) return false;
+  return doc === undefined || docs.includes(doc);
+};
+
 const record = (
   tabId: number,
   url: string,
@@ -410,6 +477,8 @@ const record = (
     buffers.delete(tabId);
     pending.delete(tabId);
   }
+  const remembered = streamDocuments.get(tabId);
+  if (remembered && remembered.private !== privateContext) streamDocuments.delete(tabId);
   if (!map) {
     map = new Map();
     buffers.set(tabId, map);
@@ -426,18 +495,21 @@ const record = (
       kind: previous?.kind ?? kind,
       requestType,
       // Only video/audio consult it, so other kinds skip the buffer walk.
-      tabHasStream:
-        (kind === "video" || kind === "audio") && [...map.values()].some(isStreamEvidence),
+      tabHasStream: (kind === "video" || kind === "audio") && tabHasStream(tabId, map, doc),
     });
   // The latest observation also names the document that made it: a URL the
   // next page requests again belongs to that page from then on.
-  map.set(url, {
+  const media: BufferedMedia = {
     kind: previous?.kind ?? kind,
     auto,
     at,
     ...(doc !== undefined ? { doc } : {}),
     ...(opaque ? { opaque: true as const } : {}),
-  });
+  };
+  map.set(url, media);
+  if (doc !== undefined && isStreamEvidence(media)) {
+    rememberStreamDocument(tabId, doc, privateContext);
+  }
   while (map.size > SCRIPT_MEDIA_SOURCE_LIMIT) evictOldest(map);
 
   let queued = pending.get(tabId);
@@ -469,6 +541,14 @@ const dropTab = (tabId: number): void => {
   if (!buffers.delete(tabId)) return;
   pending.delete(tabId);
   void persist();
+};
+
+// A closed tab's id can be reused, so its remembered stream pages go with it.
+// dropTab persists only when a buffer existed, so cover the case where a
+// navigation already emptied it.
+const forgetTab = (tabId: number): void => {
+  if (streamDocuments.delete(tabId) && !buffers.has(tabId)) void persist();
+  dropTab(tabId);
 };
 
 const onBeforeRequest = (details: WebRequestDetails): void => {
@@ -525,10 +605,14 @@ const stopListening = (): void => {
   }
   buffers.clear();
   bufferPrivate.clear();
+  streamDocuments.clear();
   tabPrivacyChecks.clear();
   tabOperations.clear();
   pending.clear();
-  void sessionStorage()?.remove?.(SCRIPT_MEDIA_BY_TAB_SESSION_KEY);
+  void sessionStorage()?.remove?.([
+    SCRIPT_MEDIA_BY_TAB_SESSION_KEY,
+    SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY,
+  ]);
 };
 
 // Push a tab's whole buffered media set — used when its Page Sources panel
@@ -668,14 +752,14 @@ export const registerScriptMediaCollector = (): void => {
   });
 
   // Route through hydrate for the same reason main_frame does: a tab close can
-  // wake a cold worker whose in-memory buffer is empty, so a bare dropTab would
+  // wake a cold worker whose in-memory buffer is empty, so a bare forgetTab would
   // early-return and leave the closed tab's persisted media to be resurrected
   // (and surfaced) under a reused tabId. Restore the buffer first, then drop.
   webExtensionApi.tabs?.onRemoved?.addListener((tabId: number) => {
     const eventGeneration = generation;
     queueTabOperation(tabId, async () => {
       await hydrate();
-      if (eventGeneration === generation) dropTab(tabId);
+      if (eventGeneration === generation) forgetTab(tabId);
     });
   });
 };

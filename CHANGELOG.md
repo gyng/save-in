@@ -16,7 +16,8 @@
   observes, so that option and its permission must be on too. Only whole files
   are adopted: images, PDFs, HLS/DASH playlists, and video or audio a player
   loads directly. Stream segments are never saved, including those of a stream
-  a player loads from an address with no file extension. Only media the page
+  a player loads from an address with no file extension, and those a stream
+  page requests after Back or Forward restores it. Only media the page
   on screen requested is adopted, not media from the page before it or the one
   left with Back or Forward. Candidates still need a matching automatic rule
   and count against the per-page limit.

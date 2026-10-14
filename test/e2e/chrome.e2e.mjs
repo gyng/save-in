@@ -2981,6 +2981,7 @@ into: e2e/script-media-auto-chrome/:filename:`,
       origin: `http://127.0.0.1:${port}`,
       folder: "e2e/script-media-visit-chrome",
       evalPage: (target, expression) => cdp.evalInTarget(PORT, target, expression),
+      restoredStreamSegment: true,
     });
 
     const optionReverted = control.storage.local.wait("sourcePanelScriptMedia", false);

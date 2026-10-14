@@ -1,7 +1,10 @@
 // Opt-in webRequest collector: observes media-carrying requests, buffers only
 // recognized media per tab, and pushes it (debounced) to the tab's panel. State
 // is module-local, so each test re-imports it fresh.
-import { SCRIPT_MEDIA_BY_TAB_SESSION_KEY } from "../../src/shared/storage-keys.ts";
+import {
+  SCRIPT_MEDIA_BY_TAB_SESSION_KEY,
+  SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY,
+} from "../../src/shared/storage-keys.ts";
 
 type Details = {
   url: string;
@@ -96,7 +99,10 @@ test("drops the listener and refuses requests when webRequest is not held at sta
   await vi.waitFor(() => expect(onBeforeRequest.removeListener).toHaveBeenCalled());
   await new Promise((resolve) => setTimeout(resolve, 350));
   expect(browser.tabs.sendMessage).not.toHaveBeenCalled();
-  expect(browser.storage.session.remove).toHaveBeenCalledWith(SCRIPT_MEDIA_BY_TAB_SESSION_KEY);
+  expect(browser.storage.session.remove).toHaveBeenCalledWith([
+    SCRIPT_MEDIA_BY_TAB_SESSION_KEY,
+    SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY,
+  ]);
 });
 
 test("shares a pending startup permission proof with the waking request", async () => {
@@ -1071,6 +1077,8 @@ describe("automatic script-media candidates", () => {
         [SCRIPT_MEDIA_BY_TAB_SESSION_KEY]: {
           "7": [{ url: "https://cdn.example/api/stream/9", kind: "video", at: 4, opaque: true }],
         },
+        // Unattributed evidence names no document to remember.
+        [SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY]: {},
       }),
     );
     // Pages never see it.
@@ -1365,6 +1373,7 @@ describe("automatic script-media candidates", () => {
             { url: "https://cdn.example/a.m3u8", kind: "stream", auto: true, at: 5, doc: "doc-a" },
           ],
         },
+        [SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY]: { "7": ["doc-a"] },
       }),
     );
     // Pages never see it.
@@ -1402,6 +1411,7 @@ describe("automatic script-media candidates", () => {
             { url: "https://cdn.example/s.mp4", kind: "video", at: 6 },
           ],
         },
+        [SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY]: {},
       }),
     );
 
@@ -1416,6 +1426,276 @@ describe("automatic script-media candidates", () => {
     expect(await mod.automaticScriptMediaForTab(7, ANY_VISIT)).toEqual([
       { url: "https://cdn.example/a.m3u8", kind: "stream", at: 5 },
       { url: "https://cdn.example/c.m3u8", kind: "stream", at: 0 },
+    ]);
+  });
+});
+
+// A back/forward-cache restore sends no request, so the restored document never
+// re-records the stream evidence its tab's main_frame reset dropped. Its stream
+// evidence is remembered per document instead, for the life of the tab.
+describe("stream evidence across a back/forward restore", () => {
+  const AUTO_ON = { autoDownloadEnabled: true, autoDownloadScriptMedia: true };
+  const top = { tabId: 7, frameId: 0, parentFrameId: -1 };
+  const SEGMENT = "https://a.example/hls/seg_00042.mp4";
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 350));
+
+  const visitA = (listener: (details: Details) => void, stream: string) => {
+    listener({ ...top, url: "https://a.example/watch", type: "main_frame", timeStamp: 1 });
+    listener({ ...top, url: stream, type: "media", timeStamp: 2, documentId: "A" });
+    listener({
+      ...top,
+      url: "https://a.example/hls/seg_00001.mp4",
+      type: "media",
+      timeStamp: 3,
+      documentId: "A",
+    });
+  };
+  const leaveForB = (listener: (details: Details) => void) =>
+    listener({ ...top, url: "https://b.example/", type: "main_frame", timeStamp: 10 });
+  const restoredA = { start: 15, documentId: "A" };
+  const segmentOf = (listener: (details: Details) => void, doc: string, tabId = 7) =>
+    listener({ ...top, tabId, url: SEGMENT, type: "media", timeStamp: 20, documentId: doc });
+
+  type Collector = Awaited<ReturnType<typeof setup>>["mod"];
+  // Both the replay and the backstop must agree, so each case checks both.
+  const adopted = async (
+    mod: Collector,
+    url: string,
+    visit: { start: number; documentId?: string },
+    tabId = 7,
+  ) => {
+    const offered = (await mod.automaticScriptMediaForTab(tabId, visit)).some(
+      (entry) => entry.url === url,
+    );
+    const confirmed = await mod.isAutomaticScriptMediaCollected(tabId, url, "video", visit);
+    expect(offered).toBe(confirmed);
+    return confirmed;
+  };
+  const tabRemoved = () =>
+    vi.mocked(browser.tabs.onRemoved.addListener).mock.calls[0]![0] as unknown as (
+      tabId: number,
+    ) => void;
+
+  test.each([
+    ["a recognized manifest", "https://a.example/hls/master.m3u8"],
+    ["an extensionless media-element load", "https://a.example/api/stream/123/master"],
+  ])("refuses a restored stream page's segments after %s", async (_label, stream) => {
+    const { mod, listener } = await setup(AUTO_ON);
+    visitA(listener!, stream);
+    expect(
+      await adopted(mod, "https://a.example/hls/seg_00001.mp4", { start: 0, documentId: "A" }),
+    ).toBe(false);
+
+    leaveForB(listener!);
+    segmentOf(listener!, "A");
+
+    expect(await adopted(mod, SEGMENT, restoredA)).toBe(false);
+  });
+
+  test("still adopts a whole file on a restored page that showed no stream", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    listener!({ ...top, url: "https://c.example/", type: "main_frame", timeStamp: 1 });
+    leaveForB(listener!);
+    // A page visited in between did play a stream, which is remembered as its
+    // own and not the restored page's. (Evidence still in the current buffer
+    // counts for the whole tab, so the restore here skips back past it.)
+    listener!({
+      ...top,
+      url: "https://b.example/live.m3u8",
+      type: "media",
+      timeStamp: 11,
+      documentId: "B",
+    });
+    listener!({ ...top, url: "https://d.example/", type: "main_frame", timeStamp: 12 });
+    const movie = "https://c.example/movie.mp4";
+    listener!({ ...top, url: movie, type: "media", timeStamp: 20, documentId: "C" });
+
+    expect(await adopted(mod, movie, { start: 15, documentId: "C" })).toBe(true);
+  });
+
+  // Firefox 140, a worker, or a deeper frame names no document, so its load
+  // cannot be told apart from a remembered stream page's segment.
+  test("treats an unattributed load as a stream once any page in the tab showed one", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    const before = "https://c.example/before.mp4";
+    listener!({ tabId: 7, url: before, type: "media", timeStamp: 1 });
+    expect(await adopted(mod, before, { start: 0 })).toBe(true);
+
+    visitA(listener!, "https://a.example/hls/master.m3u8");
+    leaveForB(listener!);
+    listener!({ tabId: 7, url: SEGMENT, type: "media", timeStamp: 20 });
+    expect(await adopted(mod, SEGMENT, { start: 15 })).toBe(false);
+  });
+
+  test("remembers a bounded number of stream pages per tab", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    const limit = mod.SCRIPT_MEDIA_STREAM_DOCUMENT_LIMIT;
+    // One page more than the limit evicts the oldest, except that seeing the
+    // first page's evidence again made it the newest, so the second goes.
+    for (let index = 0; index <= limit; index += 1) {
+      listener!({ ...top, url: `https://p${index}.example/`, type: "main_frame" });
+      listener!({
+        ...top,
+        url: `https://p${index}.example/live.m3u8`,
+        type: "xmlhttprequest",
+        timeStamp: 2,
+        documentId: `p${index}`,
+      });
+      if (index === limit - 1) {
+        listener!({
+          ...top,
+          url: "https://p0.example/again.m3u8",
+          type: "xmlhttprequest",
+          timeStamp: 2,
+          documentId: "p0",
+        });
+      }
+    }
+    leaveForB(listener!);
+    const segment = (doc: string) => {
+      const url = `https://${doc}.example/seg_00042.mp4`;
+      listener!({ ...top, url, type: "media", timeStamp: 20, documentId: doc });
+      return url;
+    };
+    const refreshed = segment("p0");
+    const evicted = segment("p1");
+    const third = segment("p2");
+    const newest = segment(`p${limit}`);
+
+    expect(await adopted(mod, evicted, { start: 15, documentId: "p1" })).toBe(true);
+    expect(await adopted(mod, refreshed, { start: 15, documentId: "p0" })).toBe(false);
+    expect(await adopted(mod, third, { start: 15, documentId: "p2" })).toBe(false);
+    expect(await adopted(mod, newest, { start: 15, documentId: `p${limit}` })).toBe(false);
+  });
+
+  test("persists remembered stream pages for public tabs only", async () => {
+    const { listener } = await setup(AUTO_ON);
+    visitA(listener!, "https://a.example/hls/master.m3u8");
+    listener!({
+      tabId: 8,
+      frameId: 0,
+      url: "https://private.example/live.m3u8",
+      type: "media",
+      incognito: true,
+      documentId: "P",
+    });
+    leaveForB(listener!);
+    await vi.waitFor(() =>
+      expect(browser.storage.session.set).toHaveBeenLastCalledWith(
+        expect.objectContaining({ [SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY]: { "7": ["A"] } }),
+      ),
+    );
+  });
+
+  test("rehydrates remembered stream pages, dropping malformed values", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    const limit = mod.SCRIPT_MEDIA_STREAM_DOCUMENT_LIMIT;
+    vi.mocked(browser.storage.session.get).mockResolvedValue({
+      [SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY]: {
+        notanumber: ["N"],
+        "6": "A",
+        // Capped to the newest values, so "A" is dropped with the excess.
+        "7": [42, null, "A", ...Array.from({ length: limit }, (_, index) => `kept-${index}`)],
+        "8": [42, "D"],
+        "9": [42],
+      },
+    } as any);
+    segmentOf(listener!, "A");
+    const kept = "https://a.example/kept.mp4";
+    listener!({ ...top, url: kept, type: "media", timeStamp: 20, documentId: "kept-0" });
+    segmentOf(listener!, "D", 8);
+    segmentOf(listener!, "A", 6);
+    listener!({ ...top, tabId: 9, url: SEGMENT, type: "media", timeStamp: 20, documentId: "N" });
+
+    expect(await adopted(mod, SEGMENT, restoredA)).toBe(true);
+    expect(await adopted(mod, kept, { start: 15, documentId: "kept-0" })).toBe(false);
+    expect(await adopted(mod, SEGMENT, { start: 15, documentId: "D" }, 8)).toBe(false);
+    expect(await adopted(mod, SEGMENT, restoredA, 6)).toBe(true);
+    expect(await adopted(mod, SEGMENT, { start: 15, documentId: "N" }, 9)).toBe(true);
+  });
+
+  test.each([[undefined], ["not-an-object"], [null]])(
+    "ignores a stored value of %s",
+    async (stored) => {
+      const { mod, listener } = await setup(AUTO_ON);
+      vi.mocked(browser.storage.session.get).mockResolvedValue({
+        [SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY]: stored,
+      } as any);
+      segmentOf(listener!, "A");
+      expect(await adopted(mod, SEGMENT, restoredA)).toBe(true);
+    },
+  );
+
+  test("forgets a closed tab's stream pages", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    visitA(listener!, "https://a.example/hls/master.m3u8");
+    await settle();
+    vi.mocked(browser.storage.session.set).mockClear();
+    tabRemoved()(7);
+    await vi.waitFor(() =>
+      expect(browser.storage.session.set).toHaveBeenCalledWith({
+        [SCRIPT_MEDIA_BY_TAB_SESSION_KEY]: {},
+        [SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY]: {},
+      }),
+    );
+
+    // A reused tab id starts with no remembered stream.
+    segmentOf(listener!, "A");
+    expect(await adopted(mod, SEGMENT, restoredA)).toBe(true);
+  });
+
+  test("forgets a closed tab's stream pages after a reset emptied its buffer", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    visitA(listener!, "https://a.example/hls/master.m3u8");
+    leaveForB(listener!);
+    await settle();
+    vi.mocked(browser.storage.session.set).mockClear();
+    tabRemoved()(7);
+    await vi.waitFor(() =>
+      expect(browser.storage.session.set).toHaveBeenCalledWith({
+        [SCRIPT_MEDIA_BY_TAB_SESSION_KEY]: {},
+        [SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY]: {},
+      }),
+    );
+    segmentOf(listener!, "A");
+    expect(await adopted(mod, SEGMENT, restoredA)).toBe(true);
+  });
+
+  test("does not rewrite storage when closing a tab it knows nothing about", async () => {
+    await setup(AUTO_ON);
+    // An earlier test's debounced flush may still be due.
+    await settle();
+    vi.mocked(browser.storage.session.set).mockClear();
+    tabRemoved()(12);
+    await settle();
+    expect(browser.storage.session.set).not.toHaveBeenCalled();
+  });
+
+  test("starts over when a tab id is reclassified private", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    visitA(listener!, "https://a.example/hls/master.m3u8");
+    leaveForB(listener!);
+    listener!({
+      ...top,
+      url: SEGMENT,
+      type: "media",
+      timeStamp: 20,
+      documentId: "A",
+      incognito: true,
+    });
+    expect(await adopted(mod, SEGMENT, restoredA)).toBe(true);
+  });
+
+  test("clears remembered stream pages when the permission is revoked", async () => {
+    await setup(AUTO_ON);
+    (
+      (browser as any).permissions.onRemoved.addListener.mock.calls[0][0] as (permissions: {
+        permissions: string[];
+      }) => void
+    )({ permissions: ["webRequest"] });
+    expect(browser.storage.session.remove).toHaveBeenCalledWith([
+      SCRIPT_MEDIA_BY_TAB_SESSION_KEY,
+      SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY,
     ]);
   });
 });

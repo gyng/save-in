@@ -29,6 +29,10 @@ export const SOURCE_PANEL_OPEN_SESSION_KEY = "sourcePanelOpen";
 // Bounded per-tab buffer of script-loaded media URLs the webRequest collector
 // observed, so an evicted service worker can rehydrate what it already saw.
 export const SCRIPT_MEDIA_BY_TAB_SESSION_KEY = "siScriptMediaByTab";
+// Bounded per-tab list of the opaque browser document ids that showed stream
+// evidence, kept across navigations so a back/forward-restored stream page's
+// segments stay refused. Holds no URL.
+export const SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY = "siScriptMediaStreamDocuments";
 export const SOURCE_PANEL_SORT_STORAGE_KEY = "sourcePanelSort";
 export const SOURCE_PANEL_LAYOUT_STORAGE_KEY = "sourcePanelLayout";
 export const SOURCE_RULE_DRAFT_SESSION_KEY = "sourceRuleDraft";

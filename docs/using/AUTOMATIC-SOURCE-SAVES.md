@@ -152,17 +152,27 @@ Only whole files are adopted, never pieces of a stream:
   Save In does not fetch or assemble the segments it lists.
 - Video and audio are adopted only when a player element requested the file
   itself (for example a `<video>` inside an embedded frame), the URL ends in
-  that kind's extension, and the tab has not loaded a playlist. Media that a
+  that kind's extension, and the page has not loaded a playlist. Media that a
   script fetches, such as the fragmented `.mp4`/`.m4a`/`.webm` segments of an
   adaptive player, is never adopted, and once a page loads a playlist its media
-  requests are treated as that stream's segments.
+  requests are treated as that stream's segments until the tab loads another
+  page.
 - A player element loading an address with no media extension, such as
   `<video src="/api/stream/123/master">`, counts as loading a playlist: a
   browser playing a stream natively requests an extensionless playlist that
   way and then its `.mp4` segments. Save In cannot tell such a playlist from a
   whole file served at an extensionless address, so after one of these the
-  tab's video and audio are no longer adopted, and the extensionless file
-  itself never is. A file adopted before it stays adopted.
+  page's video and audio are no longer adopted until the tab loads another
+  page, and the extensionless file itself never is. A file adopted before it
+  stays adopted.
+- A page that loaded a playlist is remembered for as long as its tab stays
+  open, so when Back or Forward restores it without loading it again, the
+  segments its player goes on to request are still not adopted. This relies on
+  the browser saying which page made each request (see below). A request it
+  does not attribute, such as one from a frame inside a frame, is treated as a
+  segment once any page in the tab is remembered this way. Firefox 140 reports
+  no pages, so it remembers none; Firefox does not play HLS or DASH natively,
+  so there a restored page's player requests no segments to adopt.
 
 These candidates use the `script-media` channel internally and keep their
 ordinary `sourcekind:` (`image`, `video`, `audio`, `stream`, or `document`), so
