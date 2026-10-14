@@ -13,6 +13,7 @@ import {
   type PageSource,
   type PageSourceCandidate,
 } from "./source-panel-model.ts";
+import { startChunkedElementScan, type ChunkedElementScan } from "./chunked-element-scan.ts";
 import { SCRIPT_MEDIA_SOURCE_LIMIT, type PageSourceKind } from "../shared/page-source.ts";
 import { PANEL_HOST_ID, cleanupPanelHost, panelOpenChanges } from "./source-panel-host.ts";
 import type { SourcePanelContext } from "./source-panel-context.ts";
@@ -80,18 +81,10 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
     });
     ctx.render();
   };
-  let backgroundScanGeneration = 0;
-  let backgroundScanHandle = 0;
-  let backgroundScanUsesIdleCallback = false;
-  let backgroundScanActive = false;
+  let backgroundScan: ChunkedElementScan | undefined;
   const cancelBackgroundScan = () => {
-    backgroundScanGeneration += 1;
-    backgroundScanActive = false;
-    if (!backgroundScanHandle) return;
-    if (backgroundScanUsesIdleCallback && typeof window.cancelIdleCallback === "function")
-      window.cancelIdleCallback(backgroundScanHandle);
-    else window.clearTimeout(backgroundScanHandle);
-    backgroundScanHandle = 0;
+    backgroundScan?.cancel();
+    backgroundScan = undefined;
   };
   const scheduleBackgroundRefresh = (
     payloadBudget = createPageSourcePayloadBudget(sourceCandidates),
@@ -101,43 +94,21 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
       backgroundCandidates = [];
       return;
     }
-    const generation = backgroundScanGeneration;
-    backgroundScanActive = true;
-    const elements = iterateBackgroundElements(document);
     const nextBackgroundCandidates = createPageSourceCandidateCollection();
-    const runChunk = (deadline?: IdleDeadline) => {
-      backgroundScanHandle = 0;
-      let processed = 0;
-      for (;;) {
-        const next = elements.next();
-        if (next.done) {
-          if (generation !== backgroundScanGeneration) return;
-          backgroundScanActive = false;
-          backgroundCandidates = nextBackgroundCandidates.values;
-          commitSources();
-          return;
-        }
-        const element = next.value;
+    backgroundScan = startChunkedElementScan(
+      iterateBackgroundElements(document),
+      (element) => {
         if (element !== host && element.isConnected)
           nextBackgroundCandidates.addAll(
             collectBackgroundSourceCandidates([element], timingByUrl, payloadBudget),
           );
-        processed += 1;
-        if (processed >= 50 && (!deadline || deadline.timeRemaining() <= 1)) break;
-      }
-      if (generation !== backgroundScanGeneration) return;
-      queueChunk();
-    };
-    const queueChunk = () => {
-      if (typeof window.requestIdleCallback === "function") {
-        backgroundScanUsesIdleCallback = true;
-        backgroundScanHandle = window.requestIdleCallback(runChunk, { timeout: 100 });
-      } else {
-        backgroundScanUsesIdleCallback = false;
-        backgroundScanHandle = window.setTimeout(() => runChunk(), 0);
-      }
-    };
-    queueChunk();
+      },
+      () => {
+        backgroundScan = undefined;
+        backgroundCandidates = nextBackgroundCandidates.values;
+        commitSources();
+      },
+    );
   };
   const refreshSources = () => {
     const payloadBudget = createPageSourcePayloadBudget();
@@ -192,7 +163,7 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
       ),
     ]);
     if (ctx.panelOptions.includeBackgrounds !== false) {
-      if (backgroundScanActive) scheduleBackgroundRefresh();
+      if (backgroundScan) scheduleBackgroundRefresh();
       else
         backgroundCandidates = compactPageSourceCandidates([
           ...backgroundCandidates,

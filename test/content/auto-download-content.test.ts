@@ -615,6 +615,114 @@ describe("automatic source discovery", () => {
     document.querySelector("style")?.remove();
   });
 
+  test("slices a page-wide background scan and routes once it completes", async () => {
+    const idleCallbacks: IdleRequestCallback[] = [];
+    vi.stubGlobal("requestIdleCallback", (callback: IdleRequestCallback) =>
+      idleCallbacks.push(callback),
+    );
+    vi.stubGlobal("cancelIdleCallback", vi.fn());
+    const styles = vi.spyOn(window, "getComputedStyle");
+    document.body.innerHTML =
+      '<img src="https://cdn.test/first.png">' +
+      Array.from({ length: 120 }, (_, index) => `<div class="tile-${index}"></div>`).join("") +
+      `<div style="background-image:url('https://cdn.test/wall.png')"></div>`;
+    const send = vi.fn<(candidate: AutomaticRoutingCandidate) => Promise<"started">>(() =>
+      Promise.resolve("started"),
+    );
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 20,
+      includeBackgrounds: true,
+      send,
+    });
+
+    // Only the first slice runs synchronously, and nothing is routed until
+    // the whole scan finishes, so rule order still sees every candidate.
+    expect(styles.mock.calls.length).toBeLessThanOrEqual(50);
+    expect(send).not.toHaveBeenCalled();
+    let idle = false;
+    void controller.idle().then(() => (idle = true));
+    while (idleCallbacks.length > 0) {
+      idleCallbacks.shift()?.({ didTimeout: false, timeRemaining: () => 0 } as IdleDeadline);
+    }
+    await vi.waitFor(() => expect(idle).toBe(true));
+    expect(send.mock.calls.map(([candidate]) => candidate.sourceUrl)).toEqual([
+      "https://cdn.test/first.png",
+      "https://cdn.test/wall.png",
+    ]);
+    controller.stop();
+    styles.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
+  test("a page-wide rescan supersedes a pending background scan, and stop cancels it", () => {
+    const idleCallbacks: IdleRequestCallback[] = [];
+    vi.stubGlobal("requestIdleCallback", (callback: IdleRequestCallback) =>
+      idleCallbacks.push(callback),
+    );
+    const cancelIdleCallback = vi.fn();
+    vi.stubGlobal("cancelIdleCallback", cancelIdleCallback);
+    document.body.innerHTML = Array.from(
+      { length: 60 },
+      (_, index) => `<div class="tile-${index}"></div>`,
+    ).join("");
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 20,
+      includeBackgrounds: true,
+      send: vi.fn(() => Promise.resolve("started" as const)),
+    });
+    expect(idleCallbacks).toHaveLength(1);
+
+    controller.scan();
+    expect(cancelIdleCallback).toHaveBeenCalledWith(1);
+    expect(idleCallbacks).toHaveLength(2);
+    controller.stop();
+    expect(cancelIdleCallback).toHaveBeenCalledWith(2);
+    vi.unstubAllGlobals();
+  });
+
+  test("bounds pending subtree background scans with one document scan", () => {
+    const idleCallbacks: IdleRequestCallback[] = [];
+    vi.stubGlobal("requestIdleCallback", (callback: IdleRequestCallback) =>
+      idleCallbacks.push(callback),
+    );
+    const cancelIdleCallback = vi.fn();
+    vi.stubGlobal("cancelIdleCallback", cancelIdleCallback);
+    // jsdom resolves styles slowly; this case counts scans, not URLs.
+    const styles = vi.spyOn(window, "getComputedStyle").mockReturnValue({
+      backgroundImage: "none",
+    } as CSSStyleDeclaration);
+    const tiles = Array.from({ length: 51 }, () => '<i class="tile"></i>').join("");
+    document.body.innerHTML = Array.from(
+      { length: 65 },
+      (_, index) => `<section id="group-${index}">${tiles}</section>`,
+    ).join("");
+    const discovery = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 20,
+      includeBackgrounds: true,
+      send: vi.fn(() => Promise.resolve("started" as const)),
+    });
+    // A group scan cannot supersede the pending document scan that contains
+    // it, so the initial scan plus 63 group scans fill the 64-root limit.
+    const groups = [...document.querySelectorAll("section")];
+    groups.slice(0, 63).forEach((group) => discovery.scan(group));
+    expect(cancelIdleCallback).not.toHaveBeenCalled();
+    expect(idleCallbacks).toHaveLength(64);
+    discovery.scan(groups[63]!);
+    // Past the limit every pending scan is cancelled and one document scan
+    // replaces them.
+    expect(cancelIdleCallback).toHaveBeenCalledTimes(64);
+    expect(idleCallbacks).toHaveLength(65);
+    discovery.stop();
+    styles.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
   test("rescans the document when a link stops being a stylesheet", async () => {
     vi.useFakeTimers();
     const stylesheet = document.createElement("link");

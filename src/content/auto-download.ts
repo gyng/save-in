@@ -10,11 +10,16 @@ import {
   type AutomaticRoutingCandidate,
 } from "../automation/automatic-routing.ts";
 import {
+  collectBackgroundSourceCandidates,
   collectPageSourceCandidates,
+  collectResourceHintSources,
   createPageSourcePayloadBudget,
+  iterateBackgroundElements,
   resourceTimingByUrl,
+  type PageSourceCandidate,
   type ResourceTimingByUrl,
 } from "./source-panel-model.ts";
+import { startChunkedElementScan, type ChunkedElementScan } from "./chunked-element-scan.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { normalizeAutoDownloadLimit } from "../config/content-options.ts";
@@ -78,7 +83,7 @@ export type AutoDownloadDiscoveryOptions = {
   dedup?: AutoDownloadDedup | undefined;
 };
 export type AutoDownloadDiscovery = {
-  scan(root?: ParentNode): void;
+  scan(root?: Document | Element): void;
   idle(): Promise<void>;
   stop(): void;
 };
@@ -178,7 +183,7 @@ export const setupAutoDownloadDiscovery = (
   let outstandingDataCharacters = 0;
 
   const settleIdle = () => {
-    if (draining || queue.length > 0) return;
+    if (draining || queue.length > 0 || backgroundScans.size > 0) return;
     idleWaiters.forEach((resolve) => resolve());
     idleWaiters.clear();
   };
@@ -219,8 +224,23 @@ export const setupAutoDownloadDiscovery = (
     settleIdle();
   };
 
+  // Background discovery calls getComputedStyle per candidate element, so a
+  // page-wide scan (the initial one, a stylesheet change, an html/body class
+  // flip) runs in idle-callback slices instead of one synchronous pass. Routing
+  // waits for the whole scan so rule order sees the same candidate set as
+  // before. A new scan supersedes pending ones inside its root; past the root
+  // limit, one document scan replaces them all.
+  const backgroundScans = new Map<Document | Element, ChunkedElementScan>();
+  const cancelBackgroundScans = (within: Document | Element) => {
+    for (const [root, pending] of backgroundScans) {
+      if (within !== root && !within.contains(root)) continue;
+      pending.cancel();
+      backgroundScans.delete(root);
+    }
+  };
+
   const scan = (
-    root: ParentNode = document,
+    root: Document | Element = document,
     includeResourceHints = options.resourceHints,
     suppliedTimingByUrl?: ResourceTimingByUrl,
   ) => {
@@ -233,33 +253,85 @@ export const setupAutoDownloadDiscovery = (
     // page stays idle until an option change remounts discovery (content
     // scripts get no navigation event for pushState).
     if (options.isPageDisabled()) return;
+    lastScannedPageUrl = `${window.location}`;
+    const timingByUrl =
+      suppliedTimingByUrl || (includeResourceHints ? resourceTimingByUrl() : noResourceTimings);
+    const payloadBudget = createPageSourcePayloadBudget(
+      [],
+      AUTO_DATA_CHARACTER_BUDGET,
+      (url) => isDataUrl(url) && seen.has(seenKeyFor(url)),
+    );
+    // Only CSS routing consumes per-origin DOM evidence. Other automatic
+    // rules can keep one representative instead of every duplicate node.
+    const preserveDuplicateOrigins = cssSelectors.length > 0;
+    const collectorOptions = {
+      includeBackgrounds: false,
+      resourceHints: false,
+      // Documents/streams are anchor-classified, so their option turns on
+      // anchor collection by itself — it does not require includeLinks.
+      includeLinks: options.includeLinks || options.includeDocuments,
+    };
+    if (!options.includeBackgrounds) {
+      route(
+        collectPageSourceCandidates(
+          root,
+          { ...collectorOptions, resourceHints: includeResourceHints },
+          timingByUrl,
+          payloadBudget,
+          preserveDuplicateOrigins,
+        ),
+      );
+      return;
+    }
+    cancelBackgroundScans(root);
+    if (backgroundScans.size >= LIVE_SCAN_ROOT_LIMIT) {
+      scan(document, includeResourceHints, timingByUrl);
+      return;
+    }
+    const elementCandidates = collectPageSourceCandidates(
+      root,
+      collectorOptions,
+      timingByUrl,
+      payloadBudget,
+      preserveDuplicateOrigins,
+    );
+    const backgroundCandidates: PageSourceCandidate[] = [];
+    let finished = false;
+    const pending = startChunkedElementScan(
+      iterateBackgroundElements(root),
+      (element) => {
+        backgroundCandidates.push(
+          ...collectBackgroundSourceCandidates(
+            [element],
+            timingByUrl,
+            payloadBudget,
+            preserveDuplicateOrigins,
+          ),
+        );
+      },
+      () => {
+        finished = true;
+        backgroundScans.delete(root);
+        // Keep the single-pass collector's order: elements, backgrounds,
+        // then resource hints.
+        route([
+          ...elementCandidates,
+          ...backgroundCandidates,
+          ...(includeResourceHints ? collectResourceHintSources(timingByUrl) : []),
+        ]);
+        settleIdle();
+      },
+      { firstChunkNow: true },
+    );
+    if (!finished) backgroundScans.set(root, pending);
+  };
+
+  const route = (candidates: readonly PageSourceCandidate[]) => {
     const pageUrl = `${window.location}`;
     if (dedup.excludedPageUrl !== pageUrl) {
       excluded.clear();
       dedup.excludedPageUrl = pageUrl;
     }
-    lastScannedPageUrl = pageUrl;
-    const timingByUrl =
-      suppliedTimingByUrl || (includeResourceHints ? resourceTimingByUrl() : noResourceTimings);
-    const candidates = collectPageSourceCandidates(
-      root,
-      {
-        includeBackgrounds: options.includeBackgrounds,
-        resourceHints: includeResourceHints,
-        // Documents/streams are anchor-classified, so their option turns on
-        // anchor collection by itself — it does not require includeLinks.
-        includeLinks: options.includeLinks || options.includeDocuments,
-      },
-      timingByUrl,
-      createPageSourcePayloadBudget(
-        [],
-        AUTO_DATA_CHARACTER_BUDGET,
-        (url) => isDataUrl(url) && seen.has(seenKeyFor(url)),
-      ),
-      // Only CSS routing consumes per-origin DOM evidence. Other automatic
-      // rules can keep one representative instead of every duplicate node.
-      cssSelectors.length > 0,
-    );
     const admittedSources = [];
     for (const source of candidates) {
       if (source.previewable === false) continue;
@@ -498,7 +570,7 @@ export const setupAutoDownloadDiscovery = (
   return {
     scan,
     idle: () =>
-      draining || queue.length > 0
+      draining || queue.length > 0 || backgroundScans.size > 0
         ? new Promise<void>((resolve) => idleWaiters.add(resolve))
         : Promise.resolve(),
     stop: () => {
@@ -510,6 +582,7 @@ export const setupAutoDownloadDiscovery = (
       window.clearTimeout(refreshTimer);
       window.clearTimeout(refreshMaxWaitTimer);
       pendingRoots.clear();
+      cancelBackgroundScans(document);
       // The dedup outlives this instance across a remount, so queued-but-
       // unsent candidates must return their slot and budget (symmetric with
       // the dispatch-time drop) or the remounted rescan would skip them
