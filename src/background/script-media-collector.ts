@@ -462,6 +462,7 @@ const record = (
   privateContext: boolean,
   at: number,
   doc: string | undefined,
+  frameDoc: string | undefined,
 ): void => {
   let kind = classifyUrlKind(url);
   // A `media`-typed request with no telltale extension is still a media element
@@ -507,8 +508,13 @@ const record = (
     ...(opaque ? { opaque: true as const } : {}),
   };
   map.set(url, media);
-  if (doc !== undefined && isStreamEvidence(media)) {
-    rememberStreamDocument(tabId, doc, privateContext);
+  // A stream in a frame below the first level has no top-level document, and
+  // neither will its segments after a back/forward restore. Remembering the
+  // frame's own document still marks the tab, so those unattributed loads
+  // are presumed segments (tabHasStream).
+  const evidenceDoc = doc ?? frameDoc;
+  if (evidenceDoc !== undefined && isStreamEvidence(media)) {
+    rememberStreamDocument(tabId, evidenceDoc, privateContext);
   }
   while (map.size > SCRIPT_MEDIA_SOURCE_LIMIT) evictOldest(map);
 
@@ -579,7 +585,15 @@ const onBeforeRequest = (details: WebRequestDetails): void => {
       typeof details.timeStamp === "number" && Number.isFinite(details.timeStamp)
         ? details.timeStamp
         : Date.now();
-    record(details.tabId, details.url, details.type, privateContext, at, requestDocument(details));
+    record(
+      details.tabId,
+      details.url,
+      details.type,
+      privateContext,
+      at,
+      requestDocument(details),
+      typeof details.documentId === "string" ? details.documentId : undefined,
+    );
   });
 };
 

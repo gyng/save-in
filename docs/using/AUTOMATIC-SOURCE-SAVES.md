@@ -168,9 +168,10 @@ Only whole files are adopted, never pieces of a stream:
 - A page that loaded a playlist is remembered for as long as its tab stays
   open, so when Back or Forward restores it without loading it again, the
   segments its player goes on to request are still not adopted. This relies on
-  the browser saying which page made each request (see below). A request it
-  does not attribute, such as one from a frame inside a frame, is treated as a
-  segment once any page in the tab is remembered this way. Firefox 140 reports
+  the browser saying which page or frame made each request (see below). A
+  request it does not attribute to a page, such as one from a frame inside a
+  frame, is treated as a segment once any page or frame in the tab is
+  remembered this way. Firefox 140 reports
   no pages, so it remembers none; Firefox does not play HLS or DASH natively,
   so there a restored page's player requests no segments to adopt.
 

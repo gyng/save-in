@@ -1492,6 +1492,26 @@ describe("stream evidence across a back/forward restore", () => {
     expect(await adopted(mod, SEGMENT, restoredA)).toBe(false);
   });
 
+  test("refuses a restored stream's segments when it plays in a frame inside a frame", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    // A deep frame names no top-level document, only its own.
+    const deep = { tabId: 7, frameId: 9, parentFrameId: 4, documentId: "F" };
+    listener!({ ...top, url: "https://a.example/watch", type: "main_frame", timeStamp: 1 });
+    listener!({
+      ...deep,
+      url: "https://a.example/api/stream/1/master",
+      type: "media",
+      timeStamp: 2,
+    });
+    listener!({ ...deep, url: "https://a.example/hls/seg_00001.mp4", type: "media", timeStamp: 3 });
+    expect(await adopted(mod, "https://a.example/hls/seg_00001.mp4", { start: 0 })).toBe(false);
+
+    leaveForB(listener!);
+    listener!({ ...deep, url: SEGMENT, type: "media", timeStamp: 20 });
+
+    expect(await adopted(mod, SEGMENT, restoredA)).toBe(false);
+  });
+
   test("still adopts a whole file on a restored page that showed no stream", async () => {
     const { mod, listener } = await setup(AUTO_ON);
     listener!({ ...top, url: "https://c.example/", type: "main_frame", timeStamp: 1 });
