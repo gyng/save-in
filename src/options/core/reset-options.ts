@@ -92,8 +92,10 @@ export const setupResetOptions = ({
       // no changes and never reaches the page-load reload that options.ts asks
       // for on a webmcpEnabled change. webmcpEnabled does go back to its
       // default of off, but Chrome cannot unregister a tool, so tools this page
-      // already registered stay live and callable until it is reloaded.
-      // Accepted: reloading here would take the success message with it.
+      // already registered stay registered until it is reloaded; each tool
+      // reads the stored switch per call and refuses, so none stays usable. A
+      // reset uiLocale likewise waits for the next load. Accepted: reloading
+      // here would take the success message with it.
       await restoreOptions();
       updateErrors();
       markSavedNow();

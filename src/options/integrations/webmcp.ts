@@ -59,6 +59,11 @@ const unavailableError = () => ({
   errors: [{ field: "$", message: "Save In is temporarily unavailable" }],
 });
 
+const disabledError = () => ({
+  status: "ERROR",
+  errors: [{ field: "$", message: "Agent access is turned off in Save In" }],
+});
+
 const invalidOptionalString = (
   input: Record<string, unknown>,
   key: string,
@@ -171,7 +176,14 @@ export const getModelContext = (): WebMcpContext | null => {
 
 // `send` messages the background and resolves to the response body; injected
 // so the tools stay testable
-export const buildTools = (send: WebMcpSend): WebMcpTool[] => {
+// `isEnabled` reads the live switch on every call: Chrome cannot unregister a
+// tool, so turning agent access off (by import, reset, or another tab) leaves
+// these registered until the page reloads, and only a call-time check can
+// refuse them in the meantime.
+export const buildTools = (
+  send: WebMcpSend,
+  isEnabled: () => boolean | Promise<boolean> = () => true,
+): WebMcpTool[] => {
   const tools: PreparedWebMcpTool[] = [
     {
       name: "save_in_get_schema",
@@ -571,10 +583,17 @@ export const buildTools = (send: WebMcpSend): WebMcpTool[] => {
       if ("error" in prepared) {
         return inputError(prepared.error.field, prepared.error.message);
       }
+      const run = (enabled: boolean): Promise<unknown> =>
+        enabled
+          ? Promise.resolve(tool.execute(prepared.input)).then((result) =>
+              result == null ? unavailableError() : result,
+            )
+          : Promise.resolve(disabledError());
       try {
-        return Promise.resolve(tool.execute(prepared.input))
-          .then((result) => (result == null ? unavailableError() : result))
-          .catch(unavailableError);
+        const enabled = isEnabled();
+        return (typeof enabled === "boolean" ? run(enabled) : enabled.then(run)).catch(
+          unavailableError,
+        );
       } catch {
         return Promise.resolve(unavailableError());
       }
@@ -582,8 +601,12 @@ export const buildTools = (send: WebMcpSend): WebMcpTool[] => {
   }));
 };
 
-export const registerWebMcp = async (ctx: WebMcpContext, send: WebMcpSend): Promise<number> => {
-  const registrations = buildTools(send).map((tool) => {
+export const registerWebMcp = async (
+  ctx: WebMcpContext,
+  send: WebMcpSend,
+  isEnabled?: () => boolean | Promise<boolean>,
+): Promise<number> => {
+  const registrations = buildTools(send, isEnabled).map((tool) => {
     try {
       return Promise.resolve(ctx.registerTool(tool)).then(
         () => true,
@@ -632,9 +655,13 @@ export const setupWebMcpStatus = (
       }
       return body;
     };
+    const isEnabled = async () => {
+      const stored = await webExtensionApi.storage.local.get(WEBMCP_ENABLED_OPTION);
+      return stored[WEBMCP_ENABLED_OPTION] === true;
+    };
     const count = buildTools(send).length;
     if (statusEl) statusEl.textContent = localize("webMcpStatusRegistering") || "Registering…";
-    void registerWebMcp(ctx, send).then((registered) => {
+    void registerWebMcp(ctx, send, isEnabled).then((registered) => {
       if (!statusEl) return;
       statusEl.textContent =
         registered === count

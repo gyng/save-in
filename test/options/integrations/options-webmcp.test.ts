@@ -787,6 +787,18 @@ describe("buildTools", () => {
     }
   });
 
+  test("refuses every tool without messaging while the live switch is off", async () => {
+    const send = vi.fn();
+    const tools = buildTools(send, () => false);
+    for (const tool of tools) {
+      await expect(tool.execute({})).resolves.toEqual({
+        status: "ERROR",
+        errors: [{ field: "$", message: "Agent access is turned off in Save In" }],
+      });
+    }
+    expect(send).not.toHaveBeenCalled();
+  });
+
   test("register reports successful registrations and isolates failures", async () => {
     const registerTool = vi.fn(() => Promise.resolve());
     await expect(registerWebMcp({ registerTool }, vi.fn())).resolves.toBe(7);
@@ -901,6 +913,7 @@ describe("options-page registration", () => {
           }),
         ),
       },
+      storage: { local: { get: vi.fn(() => Promise.resolve({ webmcpEnabled: true })) } },
     };
     const onConfigApplied = vi.fn(() => Promise.reject(new Error("page refresh failed")));
 
@@ -915,6 +928,36 @@ describe("options-page registration", () => {
       rejected: [],
     });
     expect(onConfigApplied).toHaveBeenCalledWith({ prompt: true });
+  });
+
+  // Chrome cannot unregister a tool, so an import, reset, or other tab that
+  // turns agent access off leaves these registered until the page reloads.
+  test("refuses tool calls once agent access is turned off in storage", async () => {
+    document.body.innerHTML =
+      '<span id="webmcp-status"></span><input type="checkbox" id="webmcpEnabled" checked>';
+    let configTool: SaveInTool | undefined;
+    document.modelContext = {
+      registerTool: vi.fn((tool: { name: string }) => {
+        if (tool.name === "save_in_get_config") configTool = tool as SaveInTool;
+        return Promise.resolve();
+      }),
+    };
+    const sendMessage = vi.fn(() => Promise.resolve({ body: {} }));
+    (global as any).browser = {
+      runtime: { sendMessage },
+      storage: { local: { get: vi.fn(() => Promise.resolve({ webmcpEnabled: false })) } },
+    };
+
+    vi.resetModules();
+    const { setupWebMcpStatus } = await import("../../../src/options/integrations/webmcp.ts");
+    setupWebMcpStatus(() => "");
+    await vi.waitFor(() => expect(configTool).toBeDefined());
+
+    await expect(configTool!.execute({})).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "$", message: "Agent access is turned off in Save In" }],
+    });
+    expect(sendMessage).not.toHaveBeenCalled();
   });
 
   test("no-ops and reports unavailability without a model context", async () => {
@@ -968,12 +1011,14 @@ describe("options-page registration", () => {
     const sendMessage = vi.fn().mockResolvedValueOnce(null).mockResolvedValue({ body: null });
     (global as any).browser = {
       runtime: { sendMessage },
+      storage: { local: { get: vi.fn(() => Promise.resolve({ webmcpEnabled: true })) } },
     };
 
     vi.resetModules();
     const { setupWebMcpStatus } = await import("../../../src/options/integrations/webmcp.ts");
     expect(() => setupWebMcpStatus(() => "")).not.toThrow();
     await vi.waitFor(() => expect(document.modelContext?.registerTool).toHaveBeenCalledTimes(7));
+    await vi.waitFor(() => expect(sendMessage).toHaveBeenCalledTimes(4));
     delete document.modelContext;
     expect(() => setupWebMcpStatus(() => "")).not.toThrow();
   });
