@@ -129,11 +129,14 @@ const evalOptions = optionsPage.evaluate;
 // touches the page too early races it — a null #option-search, or an empty
 // #version-label whose zero size drops it from the tab order so the first Tab
 // falls through to a nav disclosure summary. Wait for both, the late-wired
-// pieces, as the "fully interactive" signal before interacting.
+// pieces, as the "fully interactive" signal before interacting. The body also
+// stays hidden until init finishes, and a hidden element cannot take focus, so
+// a navigation that ran before the reveal would scroll but never focus.
 const waitForOptionsInteractive = () =>
   waitForPageCondition(
     evalOptions,
     `document.readyState === "complete" &&
+     !document.documentElement.classList.contains("localization-pending") &&
      !document.querySelector("#welcome-dialog") &&
      Boolean(document.querySelector("#option-search")) &&
      Boolean(document.querySelector("#version-label")?.textContent)`,
