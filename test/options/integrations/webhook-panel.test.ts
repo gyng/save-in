@@ -270,6 +270,32 @@ test("sends a privacy-minimal test and reports endpoint rejection", async () => 
   );
 });
 
+test("sends a debounced endpoint edit and holds the page when it unloads first", async () => {
+  vi.useFakeTimers();
+  const ports = dependencies();
+  const addListener = vi.spyOn(window, "addEventListener");
+  setupWebhookPanel(ports);
+  const handler = addListener.mock.calls.find(([type]) => type === "beforeunload")![1];
+  addListener.mockRestore();
+  const endpoint = document.querySelector<HTMLInputElement>("#webhookUrl")!;
+  // Earlier panels in this file stay subscribed to window, so call this one's.
+  const unload = () => {
+    const event = new Event("beforeunload", { cancelable: true });
+    if (typeof handler === "function") handler(event);
+    return event.defaultPrevented;
+  };
+
+  expect(unload()).toBe(false);
+  endpoint.value = "https://hooks.example/typed";
+  endpoint.dispatchEvent(new InputEvent("input"));
+
+  expect(unload()).toBe(true);
+  expect(ports.apply).toHaveBeenCalledWith({ webhookUrl: "https://hooks.example/typed" });
+  await vi.advanceTimersByTimeAsync(400);
+  expect(ports.apply).toHaveBeenCalledTimes(1);
+  expect(unload()).toBe(false);
+});
+
 test("debounces valid endpoint saves, saves blank endpoints, and rejects malformed endpoints", async () => {
   vi.useFakeTimers();
   const ports = dependencies();

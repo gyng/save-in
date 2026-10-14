@@ -416,6 +416,15 @@ export const setupWebhookPanel = (
     endpointValidation(endpoint.value.trim() !== "");
     void saveEndpoint();
   });
+  // The endpoint saves on its own debounce, outside autosave, so the page's
+  // unsaved-changes guard cannot see an edit still waiting on it. Send it now
+  // and hold the page so closing it right after typing keeps the edit.
+  window.addEventListener("beforeunload", (event) => {
+    if (endpointSaveTimer === undefined) return;
+    void saveEndpoint();
+    event.preventDefault();
+    event.returnValue = "";
+  });
   test.addEventListener("click", async () => {
     const validation = endpointValidation(true);
     if (!validation.ok) {
