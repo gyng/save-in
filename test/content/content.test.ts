@@ -827,6 +827,8 @@ describe("content.js initialisation", () => {
     expect(mousedown).toBeTypeOf("function");
     keydown({ isTrusted: true, keyCode: 17, key: "Control" });
     const img = document.getElementById("disabled-img");
+    const preventDefault = vi.fn();
+    const stopImmediatePropagation = vi.fn();
     mousedown!({
       isTrusted: true,
       button: 2,
@@ -835,8 +837,8 @@ describe("content.js initialisation", () => {
       clientX: 0,
       clientY: 0,
       composedPath: () => [img],
-      preventDefault: vi.fn(),
-      stopImmediatePropagation: vi.fn(),
+      preventDefault,
+      stopImmediatePropagation,
     });
 
     expect(
@@ -844,6 +846,9 @@ describe("content.js initialisation", () => {
         .mocked(global.chrome.runtime.sendMessage)
         .mock.calls.filter(([message]) => (message as any)?.type === "DOWNLOAD"),
     ).toHaveLength(0);
+    // The page, and any other extension on it, still receives the click (#183).
+    expect(preventDefault).not.toHaveBeenCalled();
+    expect(stopImmediatePropagation).not.toHaveBeenCalled();
   });
 
   test("re-enables click-to-save after a pushState navigation off the disable list", async () => {
