@@ -21,11 +21,22 @@ const PLAYLIST = "#EXTM3U\n#EXT-X-VERSION:3\n";
 // Page A parks a request the server answers only once page B's navigation
 // request arrives; A then requests its playlist while B's response is held, so
 // that request is made by A after the navigation began. B's response is
-// released only once A's request has been seen. Firefox cancels the parked
-// request when the navigation starts, possibly before B's request reaches the
-// server, so A parks again until it does.
+// released only once A's request has been seen.
+// Firefox cancels the old document's loads when the navigation starts, but
+// that cancellation is not ordered with B's request reaching the server: it can
+// land before the parked request is answered, or after, cancelling the playlist
+// request A made in reply before it leaves the browser. Whichever load it
+// cancels, A parks again, and the server answers every later park at once:
+// "go" until A's playlist arrived, then "done". No request of A's is left
+// unanswered, which matters: Firefox keeps the tab's load group across
+// same-process documents, so a parked request of A's still open after B
+// commits counts as B's own pending request and keeps B out of the
+// back/forward cache.
 const PAGE_A = `<!doctype html><title>Visit A</title><script>
-const park = () => fetch("/visit-a-hold").then(() => fetch("/visit-a-live.m3u8"), park);
+const park = () => fetch("/visit-a-hold")
+  .then((response) => response.text())
+  .then((step) => step === "go" ? fetch("/visit-a-live.m3u8") : undefined)
+  .catch(park);
 park();
 </script>`;
 // Loads a URL through a media element the page scan cannot see, as a natively
@@ -95,7 +106,7 @@ export const createScriptMediaVisitRoutes = () => {
     else if (url === "/visit-a-hold") {
       if (bRequested) {
         res.writeHead(200, { "Content-Type": "text/plain" });
-        res.end("go");
+        res.end(aRequested ? "done" : "go");
       } else heldA = res;
       markHoldArrived();
     } else if (url === "/visit-b") {
