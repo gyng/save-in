@@ -1,4 +1,4 @@
-import { Path } from "../routing/path.ts";
+import { acceptStoredPath } from "../routing/path.ts";
 
 export type QuickSaveTargetOptions = {
   quickSaveDirectory: string;
@@ -14,6 +14,7 @@ export type QuickSaveTargetOptions = {
 export const resolveDefaultDestination = (options: QuickSaveTargetOptions): string => {
   if (!options.quickSaveUseDirectory) return ".";
   const directory = options.quickSaveDirectory.trim();
-  if (!directory || !new Path(directory).validate().valid) return ".";
-  return directory;
+  if (!directory) return ".";
+  const accepted = acceptStoredPath(directory);
+  return accepted.validation.valid ? accepted.path : ".";
 };

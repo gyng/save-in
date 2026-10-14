@@ -14,7 +14,7 @@ import {
   RECENT_DESTINATIONS_STORAGE_KEY,
 } from "../shared/storage-keys.ts";
 import { MAX_RECENT_DESTINATIONS, MEDIA_TYPES } from "../shared/constants.ts";
-import { Path } from "../routing/path.ts";
+import { acceptStoredPath } from "../routing/path.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import type { MenuTree, TabAction } from "../menus/menu-tree.ts";
@@ -93,12 +93,17 @@ export const setLastUsed = (path: string, meta: LastUsedMeta, privateContext = f
     .catch(() => {});
 };
 
+const storedPathOrNull = (path: unknown): string | null => {
+  if (typeof path !== "string" || !path) return null;
+  const accepted = acceptStoredPath(path);
+  return accepted.validation.valid ? accepted.path : null;
+};
+
 export const restorePrivateLastUsed = (stored: unknown): void => {
   const value = isStringKeyedRecord(stored) ? stored[PRIVATE_LAST_USED_SESSION_KEY] : undefined;
   const path = isStringKeyedRecord(value) ? value.path : undefined;
   const meta = isStringKeyedRecord(value) ? normalizeLastUsedMeta(value.meta) : null;
-  menuState.privateLastUsedPath =
-    typeof path === "string" && path && new Path(path).validate().valid ? path : null;
+  menuState.privateLastUsedPath = storedPathOrNull(path);
   menuState.privateLastUsedMeta = menuState.privateLastUsedPath ? meta : null;
 };
 
@@ -176,8 +181,8 @@ const normalizeRecentDestinations = (value: unknown): RecentDestination[] => {
       const meta = normalizeLastUsedMeta(entry.meta);
       if (!meta || typeof meta.comment !== "string" || typeof meta.menuIndex !== "string")
         return [];
-      const path = entry.path;
-      if (!path || !new Path(path).validate().valid) return [];
+      const path = storedPathOrNull(entry.path);
+      if (!path) return [];
       return [
         {
           path,
@@ -233,8 +238,7 @@ export const recordRecentDestination = (
 export const restoreLastUsed = (stored: unknown) => {
   const path = isStringKeyedRecord(stored) ? stored.lastUsedPath : undefined;
   const meta = isStringKeyedRecord(stored) ? stored.lastUsedMeta : undefined;
-  menuState.lastUsedPath =
-    typeof path === "string" && path && new Path(path).validate().valid ? path : null;
+  menuState.lastUsedPath = storedPathOrNull(path);
   menuState.lastUsedMeta = menuState.lastUsedPath ? normalizeLastUsedMeta(meta) : null;
   menuState.recentDestinations = normalizeRecentDestinations(
     isStringKeyedRecord(stored) ? stored[RECENT_DESTINATIONS_STORAGE_KEY] : undefined,
@@ -351,7 +355,7 @@ export const addQuickSave = (
 // corrupt profile value never shows an unusable toggle.
 export const quickSaveDirectoryConfigured = (): boolean => {
   const directory = options.quickSaveDirectory.trim();
-  return directory !== "" && directory !== "." && new Path(directory).validate().valid;
+  return directory !== "" && directory !== "." && acceptStoredPath(directory).validation.valid;
 };
 
 export const addQuickSaveToDirectory = (contexts: readonly MenuContext[]) => {

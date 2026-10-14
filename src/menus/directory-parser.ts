@@ -1,5 +1,5 @@
 import { parsePathLineAst } from "../config/path-lines.ts";
-import { Path } from "../routing/path.ts";
+import { acceptStoredPath } from "../routing/path.ts";
 import { SPECIAL_DIRS } from "../shared/constants.ts";
 import { MENU_IDS } from "./menu-ids.ts";
 
@@ -121,10 +121,13 @@ const normalizeMenuTreeItems = (items: MenuTreeItem[]): MenuTreeItem[] => {
 export const parsePath = (dir: string): ParsedPath => {
   const { ast, issues } = parsePathLineAst(dir);
   const { depth } = ast;
-  const parsedDir = ast.path.value;
   const comment = ast.comment?.value ?? "";
   const meta = Object.fromEntries(ast.metadata.map((entry) => [entry.key, entry.value]));
-  const validation = issues.length ? { valid: false } : new Path(parsedDir).validate();
+  const accepted = issues.length
+    ? { path: ast.path.value, validation: { valid: false } }
+    : acceptStoredPath(ast.path.value);
+  const parsedDir = accepted.path;
+  const { validation } = accepted;
   return {
     raw: dir,
     comment,

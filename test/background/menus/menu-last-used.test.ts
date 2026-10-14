@@ -77,6 +77,19 @@ describe("Menus last-used state", () => {
     expect(menuState.lastUsedMeta).toBeNull();
   });
 
+  test("restoreLastUsed keeps stored 4.1.0 relative paths in their saved form", () => {
+    restoreLastUsed({
+      lastUsedPath: "./Archive ",
+      lastUsedMeta: { comment: "old", menuIndex: "1" },
+      recentDestinations: [{ path: "./.hidden", meta: { comment: "0", menuIndex: "1" } }],
+    });
+    restorePrivateLastUsed({ siPrivateLastUsed: { path: "./Saved.", meta: {} } });
+
+    expect(menuState.lastUsedPath).toBe("./Archive");
+    expect(menuState.recentDestinations.map((entry) => entry.path)).toEqual(["./_hidden"]);
+    expect(menuState.privateLastUsedPath).toBe("./Saved");
+  });
+
   test("setLastUsed mutates state and persists to storage.local", () => {
     setLastUsed("dir/x", { comment: "cm", menuIndex: "2" });
     expect(menuState.lastUsedPath).toBe("dir/x");

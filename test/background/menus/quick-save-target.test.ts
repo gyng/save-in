@@ -20,6 +20,12 @@ describe("resolveDefaultDestination", () => {
     ).toBe("Photos");
   });
 
+  test("keeps a stored 4.1.0 relative directory as the folder 4.1.0 saved to", () => {
+    expect(
+      resolveDefaultDestination({ quickSaveDirectory: "./Saved.", quickSaveUseDirectory: true }),
+    ).toBe("./Saved");
+  });
+
   test("falls back to Downloads when the toggle is on but no directory is set", () => {
     expect(
       resolveDefaultDestination({ quickSaveDirectory: "   ", quickSaveUseDirectory: true }),

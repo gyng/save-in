@@ -316,6 +316,8 @@ describe("menu creation", () => {
       expect(menu.quickSaveDirectoryConfigured()).toBe(false);
       options.quickSaveDirectory = "../escape";
       expect(menu.quickSaveDirectoryConfigured()).toBe(false);
+      options.quickSaveDirectory = "./Saved.";
+      expect(menu.quickSaveDirectoryConfigured()).toBe(true);
     });
 
     test("addQuickSaveToDirectory creates a checkbox reflecting the toggle", () => {
@@ -936,6 +938,13 @@ describe("buildTree", () => {
         raw: ">b",
       },
     ]);
+  });
+
+  test("keeps a stored 4.1.0 relative menu path, saving where 4.1.0 saved", () => {
+    const { items, errors } = menu.buildTree(["./Saved."]);
+
+    expect(errors).toEqual([]);
+    expect(items).toMatchObject([{ kind: "path", parsedDir: "./Saved", raw: "./Saved." }]);
   });
 
   test("emits separator items between paths at the top level and nested", () => {

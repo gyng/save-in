@@ -473,6 +473,29 @@ describe("Path.validate", () => {
     },
   );
 
+  test.each([
+    ["./Archive ", "./Archive"],
+    ["./Saved.", "./Saved"],
+    ["./.hidden", "./_hidden"],
+    ["./bad?name", "./bad_name"],
+    ["./con.txt", "./_con.txt"],
+    ["./../up", "./_/up"],
+    [".\\bad?name/:year:", "./bad_name/:year:"],
+  ])("accepts the stored 4.1.0 relative path %j as %j", (path, accepted) => {
+    expect(Path.acceptStoredPath(path)).toEqual({ path: accepted, validation: { valid: true } });
+    // Exactly what 4.1.0 saved to, since it sanitized these components at download time.
+    expect(new Path.Path(accepted).finalize()).toBe(new Path.Path(path).finalize());
+  });
+
+  test.each(["Archive ", "../escape", "./Photos/:domian:"])(
+    "keeps rejecting %j, which 4.1.0 also rejected or reports as a typo",
+    (path) => {
+      const accepted = Path.acceptStoredPath(path);
+      expect(accepted.path).toBe(path);
+      expect(accepted.validation).toEqual(new Path.Path(path).validate());
+    },
+  );
+
   test("absolute paths are invalid", () => {
     const result = new Path.Path("/abs").validate();
     expect(result.valid).toBe(false);

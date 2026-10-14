@@ -227,6 +227,30 @@ export function sanitizeBufStrings(buf: PathSegment[]) {
   });
 }
 
+const EXPLICIT_RELATIVE_PREFIX_REGEX = /^\.[/\\]/;
+
+// 4.1.0 validated nothing after a leading "./" and sanitized those components
+// only at download time, so stored menus, Quick save folders and last-used
+// paths can hold e.g. "./Archive " or "./.hidden". Validation is stricter now,
+// but such a stored value must keep working rather than silently vanish from
+// the menu, so it is accepted as the sanitized path 4.1.0 actually saved to.
+// An unknown variable stays an error: that is a reported typo, not a component
+// the browser would have repaired.
+export function acceptStoredPath(path: string): { path: string; validation: PathValidation } {
+  const validation = new Path(path).validate();
+  if (validation.valid || validation.error !== undefined) return { path, validation };
+  if (!EXPLICIT_RELATIVE_PREFIX_REGEX.test(path)) return { path, validation };
+  const buf = parsePathStr(path);
+  const sanitized = buf
+    .map((item, index) => {
+      if (index === 0 || item.type !== PATH_SEGMENT_TYPES.STRING) return item.val;
+      const startsComponent = buf[index - 1]?.type === PATH_SEGMENT_TYPES.SEPARATOR;
+      return sanitizeFilename(item.val, 0, startsComponent);
+    })
+    .join("");
+  return { path: sanitized, validation: new Path(sanitized).validate() };
+}
+
 export function parsePathStr(pathInput: PathInput = "") {
   const path = pathInput ?? "";
   let split = path.split(SEPARATOR_REGEX_INCLUSIVE);
