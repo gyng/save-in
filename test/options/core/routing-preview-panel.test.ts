@@ -114,3 +114,40 @@ test("updates an expanded variables table when a newer preview arrives", async (
   expect(variablesBody.textContent).toContain("new.jpg");
   expect(variablesBody.textContent).not.toContain("old.jpg");
 });
+
+test("revalidates instead of applying a verdict for text the editor no longer holds", async () => {
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `<textarea id="paths">downloads</textarea>
+     <textarea id="filenamePatterns">into: a</textarea>
+     <div id="error-paths"></div>
+     <div id="error-filenamePatterns"></div>`,
+  );
+  let resolveOlder!: (value: unknown) => void;
+  const valid = { type: MESSAGE_TYPES.VALIDATE, body: { pathErrors: [], ruleErrors: [] } };
+  vi.mocked(browser.runtime.sendMessage)
+    .mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveOlder = resolve;
+        }),
+    )
+    .mockResolvedValueOnce(valid);
+  const setValidity = vi.fn();
+  const panel = createRoutingPreviewPanel({
+    setValidity,
+    setValidationPending: vi.fn(),
+    setValidationUnavailable: vi.fn(),
+  });
+
+  panel.renderValidationErrors("filenamePatterns");
+  document.querySelector<HTMLTextAreaElement>("#filenamePatterns")!.value = "into: [";
+  resolveOlder(valid);
+
+  await vi.waitFor(() => expect(browser.runtime.sendMessage).toHaveBeenCalledTimes(2));
+  expect(vi.mocked(browser.runtime.sendMessage).mock.calls[1]![0]).toMatchObject({
+    body: { paths: "downloads", filenamePatterns: "into: [" },
+  });
+  await vi.waitFor(() => expect(setValidity).toHaveBeenCalledWith("filenamePatterns", true));
+  expect(setValidity).toHaveBeenCalledTimes(2);
+});

@@ -1,6 +1,6 @@
 export const createLatestOnly = <Args extends unknown[], Result>(
   request: (...args: Args) => Promise<Result>,
-  apply: (result: Result) => void,
+  apply: (result: Result, ...args: Args) => void,
   reject?: (error: unknown, ...args: Args) => void,
 ) => {
   let generation = 0;
@@ -10,7 +10,7 @@ export const createLatestOnly = <Args extends unknown[], Result>(
       try {
         const result = await request(...args);
         if (mine !== generation) return false;
-        apply(result);
+        apply(result, ...args);
         return true;
       } catch (error) {
         if (mine === generation) reject?.(error, ...args);

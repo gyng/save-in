@@ -269,7 +269,21 @@ export const createRoutingPreviewPanel = (manualEditorState: ManualEditorStateLi
         type: MESSAGE_TYPES.VALIDATE,
         body: request.body,
       }),
-    (res: unknown) => {
+    (res: unknown, request) => {
+      const pathsTextarea = document.querySelector("#paths");
+      const rulesTextarea = document.querySelector("#filenamePatterns");
+      // latest-only drops a response only once a newer request is sent, so an
+      // older verdict can land during the input debounce. Applying it would
+      // mark text it never saw as valid and re-enable Apply.
+      if (
+        (pathsTextarea instanceof HTMLTextAreaElement ? pathsTextarea.value : "") !==
+          request.body.paths ||
+        (rulesTextarea instanceof HTMLTextAreaElement ? rulesTextarea.value : "") !==
+          request.body.filenamePatterns
+      ) {
+        renderValidationErrors(request.initiator);
+        return;
+      }
       const body = isStringKeyedRecord(res) && isStringKeyedRecord(res.body) ? res.body : {};
       const pathErrors = Array.isArray(body.pathErrors)
         ? body.pathErrors.filter(isIndexedValidationError)
@@ -277,8 +291,6 @@ export const createRoutingPreviewPanel = (manualEditorState: ManualEditorStateLi
       const backgroundRuleErrors = Array.isArray(body.ruleErrors)
         ? body.ruleErrors.filter(isValidationError)
         : [];
-      const pathsTextarea = document.querySelector("#paths");
-      const rulesTextarea = document.querySelector("#filenamePatterns");
       const localCssErrors =
         rulesTextarea instanceof HTMLTextAreaElement ? cssSelectorErrors(rulesTextarea.value) : [];
       const ruleErrors = [
