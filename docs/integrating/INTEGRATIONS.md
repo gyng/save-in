@@ -212,15 +212,28 @@ Tools exist only while the options page is open and the browser provides WebMCP.
 ## Webhooks
 
 Webhooks are an optional, user-configured notification for Save In downloads.
-They are disabled by default. A webhook is sent once after the browser accepts a
-non-private download started by a direct Save In command. Ordinary browser
-downloads, automatic Page Sources saves, external Download API requests,
-private-window activity, failed preparations, and rejected downloads do not
-trigger one. Webhook failure never changes the download result, and Save In
-does not retry delivery.
+They are disabled by default. Only non-private downloads started by a direct
+Save In command are eligible. Ordinary browser downloads, automatic Page Sources
+saves, external Download API requests, private-window activity, failed
+preparations, and rejected downloads never send one. Webhook failure never
+changes the download result, and Save In does not retry delivery.
+
+Each eligible download can send a start event and one outcome event, each
+separately enabled in Options:
+
+- `save` (off by default) once the browser accepts the download.
+- `complete` (on by default) when it finishes, with the saved `path`.
+- `failed` (off by default) when it fails for good, with the browser's error
+  as `reason`. A download the user cancels sends nothing. A network or server
+  failure that Save In retries through a background fetch sends no `failed`
+  event; the retry's own outcome is reported instead.
+
+Every event about one download carries the same `id`, including the outcome of
+a retried download, so a receiver can match them up.
 
 The endpoint must be a direct HTTPS URL without embedded username/password
-credentials or a fragment. Save In sends a `POST` with `Content-Type:
+credentials or a fragment; an explicit, off-by-default option also accepts plain
+`http://` endpoints. Save In sends a `POST` with `Content-Type:
 application/json`, omits cookies and browser credentials, supplies no referrer,
 and rejects redirects. It checks only the HTTP status and never reads the
 response body.
@@ -232,14 +245,18 @@ Save payload version 1 always contains:
   "version": 1,
   "event": "save",
   "timestamp": "2026-07-14T10:00:00.000Z",
+  "id": 42,
   "url": "https://cdn.example.com/image.jpg"
 }
 ```
 
-The user can separately add `pageUrl`, `pageTitle`, and `selectionText` in
-Options. Local destination paths, cookies, persistent identifiers, diagnostics,
-and other browser state are never added. **Send test** uses the same transport
-but sends only `version`, `event: "test"`, and `timestamp`.
+The user can separately add `pageUrl`, `pageTitle`, and `selectionText` to the
+save event in Options. The `complete` and `failed` events carry `version`,
+`event`, `timestamp`, `id`, and `url`, plus `path` or `reason`. For a save whose
+own URL is an inline `data:` or `blob:` payload, every event's `url` is the
+containing page's URL instead. No other local paths, cookies, persistent
+identifiers, diagnostics, or other browser state are added. **Send test** uses
+the same transport but sends only `version`, `event: "test"`, and `timestamp`.
 
 ## Downloader hand-offs
 
