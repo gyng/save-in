@@ -4617,5 +4617,11 @@
   },
   "html_urlfileextMatcherDescription": {
     "message": "Correspond à l’extension du fichier à la fin du chemin de l’URL, en ignorant toute ?requête ou tout #fragment."
+  },
+  "o_cDupeAskEmulatedHelp": {
+    "message": "Firefox n’affiche sa boîte de dialogue Enregistrer sous qu’après avoir trouvé un fichier portant ce nom. Pour les enregistrements à la racine de Téléchargements, elle peut s’ouvrir dans le dernier dossier utilisé : vérifiez le dossier avant d’enregistrer."
+  },
+  "o_cDupeSkipHelp": {
+    "message": "Firefox démarre l’enregistrement et l’annule dès qu’il trouve un fichier portant ce nom. L’historique indique Existe déjà ; vous ne recevez une notification que si Avertir lorsqu’un téléchargement échoue est activé."
   }
 }

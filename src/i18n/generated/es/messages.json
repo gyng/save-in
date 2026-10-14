@@ -4617,5 +4617,11 @@
   },
   "html_urlfileextMatcherDescription": {
     "message": "Coincide con la extensión del archivo al final de la ruta de la URL e ignora cualquier ?consulta o #fragmento."
+  },
+  "o_cDupeAskEmulatedHelp": {
+    "message": "Firefox muestra su diálogo Guardar como solo después de encontrar un archivo con ese nombre. Al guardar directamente en Descargas, el diálogo puede abrirse en la última carpeta que usaste, así que comprueba la carpeta antes de guardar."
+  },
+  "o_cDupeSkipHelp": {
+    "message": "Firefox inicia la descarga y la cancela en cuanto encuentra un archivo con ese nombre. El historial muestra Ya existe; solo recibes una notificación si Notificar cuando falla una descarga está activado."
   }
 }

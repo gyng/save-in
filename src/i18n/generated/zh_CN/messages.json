@@ -4617,5 +4617,11 @@
   },
   "html_urlfileextMatcherDescription": {
     "message": "匹配 URL 路径末尾文件的扩展名，忽略任何 ?查询 或 #片段。"
+  },
+  "o_cDupeAskEmulatedHelp": {
+    "message": "Firefox 只有在找到同名文件后才会显示“另存为”对话框。保存到“下载”文件夹顶层时，对话框可能会在你上次使用的文件夹中打开，请在保存前确认文件夹。"
+  },
+  "o_cDupeSkipHelp": {
+    "message": "Firefox 会开始保存，并在发现同名文件时立即取消。历史记录显示“已存在”；只有开启“下载失败时通知”时才会收到通知。"
   }
 }

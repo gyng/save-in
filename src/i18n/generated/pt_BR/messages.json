@@ -4617,5 +4617,11 @@
   },
   "html_urlfileextMatcherDescription": {
     "message": "Corresponde à extensão do arquivo no final do caminho da URL, ignorando qualquer ?consulta ou #fragmento."
+  },
+  "o_cDupeAskEmulatedHelp": {
+    "message": "O Firefox mostra a caixa de diálogo Salvar como só depois de encontrar um arquivo com esse nome. Ao salvar direto em Downloads, a caixa pode abrir na última pasta usada, então confira a pasta antes de salvar."
+  },
+  "o_cDupeSkipHelp": {
+    "message": "O Firefox inicia o salvamento e o cancela assim que encontra um arquivo com esse nome. O histórico mostra Já existe; você só recebe uma notificação se Notificar quando um download falhar estiver ativado."
   }
 }

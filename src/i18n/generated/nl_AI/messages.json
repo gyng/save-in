@@ -4617,5 +4617,11 @@
   },
   "html_urlfileextMatcherDescription": {
     "message": "Komt overeen met de extensie van het bestand aan het einde van het URL-pad en negeert een ?query of #fragment."
+  },
+  "o_cDupeAskEmulatedHelp": {
+    "message": "Firefox toont het dialoogvenster Opslaan als pas nadat het een bestand met die naam vindt. Bij opslaan direct in Downloads kan het venster openen in de map die je het laatst gebruikte, dus controleer de map voordat je opslaat."
+  },
+  "o_cDupeSkipHelp": {
+    "message": "Firefox start het opslaan en annuleert het zodra er een bestand met die naam wordt gevonden. De geschiedenis toont Bestaat al; je krijgt alleen een melding als Melden wanneer een download mislukt aan staat."
   }
 }

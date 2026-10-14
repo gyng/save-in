@@ -5,7 +5,7 @@
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { getMessage } from "../../platform/localization.ts";
 import { renderHistory } from "../history/history-panel.ts";
-import { CURRENT_BROWSER } from "../../platform/chrome-detector.ts";
+import { CURRENT_BROWSER, WEB_EXTENSION_CAPABILITIES } from "../../platform/chrome-detector.ts";
 import { createManualEditorState } from "../syntax-editor/manual-editor-controller.ts";
 import { assertApplySucceeded, collectOptionConfig } from "./options-save.ts";
 import { setupOptionDependencies } from "./options-dependencies.ts";
@@ -38,6 +38,7 @@ import { updateMenuPreview, setupPathsPreviewWiring } from "./menu-preview.ts";
 import { createManualEditorActions } from "./manual-editor-actions.ts";
 import { setOptionFieldValue } from "./option-field-sync.ts";
 import { applyBrowserCapabilityUi } from "./browser-capability-ui.ts";
+import { setupConflictActionHelp } from "./conflict-action-help.ts";
 import { setupOptionJumpLinks } from "./option-navigation.ts";
 import { showHistoryRetentionDialog } from "../history/history-retention-dialog.ts";
 import { lowersHistoryRetention } from "../history/history-retention-model.ts";
@@ -242,6 +243,7 @@ const waitForBrowserDetection = () => {
     setTimeout(waitForBrowserDetection, 10);
   } else {
     applyBrowserCapabilityUi();
+    setupConflictActionHelp(WEB_EXTENSION_CAPABILITIES);
     updateOptionDependencies();
   }
 };

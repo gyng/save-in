@@ -5922,5 +5922,13 @@
   "html_urlfileextMatcherDescription": {
     "message": "Matches the extension of the file at the end of the URL path, ignoring any ?query or #fragment.",
     "description": "Description of the urlfileext: routing matcher in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "o_cDupeAskEmulatedHelp": {
+    "message": "Firefox shows its Save As dialog only after it finds a file with that name. For saves to the top of Downloads, the dialog may open in the folder you used last, so check the folder before you save.",
+    "description": "Help under the \"When a file already exists:\" select when Ask each time is chosen on Firefox, where Save In emulates the prompt. Used in src/options/options.html."
+  },
+  "o_cDupeSkipHelp": {
+    "message": "Firefox starts the save and cancels it as soon as it finds a file with that name. History shows Already exists; you get a notification only if Notify when a download fails is on.",
+    "description": "Help under the \"When a file already exists:\" select when Skip is chosen (Firefox only). \"Already exists\" is the History status label and \"Notify when a download fails\" is the setting label; reuse their translations. Used in src/options/options.html."
   }
 }
