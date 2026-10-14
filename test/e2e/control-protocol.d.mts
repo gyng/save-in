@@ -12,6 +12,7 @@ export interface E2EStoredOptionValues {
   autoDownloadMaxPerPage: string | number;
   autoDownloadPrivate: boolean;
   browserDownloadFilter: string;
+  browserDownloadPageDetails: boolean;
   closeTabOnSave: boolean;
   contentClickToSave: boolean;
   contentClickToSaveBindings: string;

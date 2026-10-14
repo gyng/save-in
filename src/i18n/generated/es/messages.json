@@ -703,6 +703,12 @@
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox carece de enrutamiento de nombres de archivos nativo, por lo que Save In cancela cada descarga coincidente e inicia un reemplazo. Esto puede fallar en solicitudes POST, URL que caducan, encabezados personalizados o descargas autenticadas."
   },
+  "o_cBrowserDownloadPageDetails": {
+    "message": "Usar los detalles de la página de la pestaña abierta"
+  },
+  "o_cBrowserDownloadPageDetailsHelp": {
+    "message": "Las reglas de enrutamiento pueden comparar el título y la URL de la página cuando exactamente una pestaña abierta muestra la página de la que procede una descarga del navegador. Nunca se usan pestañas de navegación privada."
+  },
   "o_lFirefoxFilenameApiBug": {
     "message": "Error de Mozilla 1245652"
   },
@@ -3462,7 +3468,7 @@
     "message": "Datos de enrutamiento disponibles"
   },
   "o_lBrowserDownloadVariablesUnavailable": {
-    "message": "El título de la página, la URL de la página, el texto del enlace, la selección, los metadatos del menú y las teclas modificadoras no están disponibles."
+    "message": "El texto del enlace, la selección, los metadatos del menú y las teclas modificadoras no están disponibles. El título y la URL de la página requieren «Usar los detalles de la página de la pestaña abierta»."
   },
   "welcomeTitle": {
     "message": "Te damos la bienvenida a Save In"

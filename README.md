@@ -55,6 +55,9 @@ private-window and per-page safety limits. See
 Optionally include matching ordinary browser downloads in local history. Chrome
 can apply routing rules before saving; Firefox offers a separately
 labelled experimental cancel-and-redownload mode for matching HTTP(S) downloads.
+An opt-in setting lets those rules use the page title and URL of the one open
+tab a download came from. See
+[page details for browser downloads](docs/using/ROUTING-ACTIONS.md#page-details-for-browser-downloads).
 
 A versioned external API plus configuration tools support scripts and compatible
 in-browser AI agents through WebMCP. See the source-controlled

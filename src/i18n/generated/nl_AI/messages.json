@@ -703,6 +703,12 @@
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox heeft geen ingebouwde bestandsnaamroutering, dus Save In annuleert elke overeenkomende download en start een vervangende download. Dit kan mislukken bij POST-verzoeken, verlopende URL's, aangepaste headers of geverifieerde downloads."
   },
+  "o_cBrowserDownloadPageDetails": {
+    "message": "Paginagegevens van het geopende tabblad gebruiken"
+  },
+  "o_cBrowserDownloadPageDetailsHelp": {
+    "message": "Routeringsregels kunnen de paginatitel en pagina-URL vergelijken wanneer precies één geopend tabblad de pagina toont waar een browserdownload vandaan komt. Tabbladen voor privénavigatie worden nooit gebruikt."
+  },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla-bug 1245652"
   },
@@ -3462,7 +3468,7 @@
     "message": "Beschikbare routeringsgegevens"
   },
   "o_lBrowserDownloadVariablesUnavailable": {
-    "message": "Paginatitel, pagina-URL, linktekst, selectie, menumetagegevens en modificatietoetsen zijn niet beschikbaar."
+    "message": "Linktekst, selectie, menumetagegevens en modificatietoetsen zijn niet beschikbaar. Paginatitel en pagina-URL vereisen ‘Paginagegevens van het geopende tabblad gebruiken’."
   },
   "welcomeTitle": {
     "message": "Welkom bij Save In"

@@ -713,6 +713,61 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     );
   });
 
+  test("routes on the referring tab's page details when enabled", async () => {
+    freshOptions.routeBrowserDownloads = true;
+    freshOptions.browserDownloadPageDetails = true;
+    const referrer = "https://gallery.example/albums/cats";
+    (global.browser as any).tabs = {
+      query: vi.fn(async () => [{ url: referrer, title: "Cats", incognito: false }]),
+    };
+    const matches = vi
+      .spyOn(freshDownload, "getRoutingMatches")
+      .mockImplementation((state) =>
+        state.info.currentTab?.title === "Cats" ? "cats/:filename:" : null,
+      );
+    vi.spyOn(freshDownload, "finalizeFullPath").mockReturnValue("cats/cat.jpg");
+    const suggest = vi.fn();
+
+    expect(
+      listener(
+        { filename: "cat.jpg", url: "https://cdn.example/cat.jpg", referrer } as any,
+        suggest,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() =>
+      expect(suggest).toHaveBeenCalledWith({
+        filename: "cats/cat.jpg",
+        conflictAction: "uniquify",
+      }),
+    );
+    expect(matches.mock.calls[0]?.[0].info.pageUrl).toBe(referrer);
+  });
+
+  test("answers Chrome without page details when the tab query never settles", async () => {
+    freshOptions.routeBrowserDownloads = true;
+    freshOptions.browserDownloadPageDetails = true;
+    (global.browser as any).tabs = { query: vi.fn(() => new Promise(() => {})) };
+    vi.spyOn(freshDownload, "getRoutingMatches").mockReturnValue(null);
+    const suggest = vi.fn();
+    vi.useFakeTimers();
+    try {
+      expect(
+        listener(
+          {
+            filename: "cat.jpg",
+            url: "https://cdn.example/cat.jpg",
+            referrer: "https://gallery.example/albums/cats",
+          } as any,
+          suggest,
+        ),
+      ).toBe(true);
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(suggest).toHaveBeenCalledWith(undefined);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   test("records that a rule applied so History can report the routing", async () => {
     freshOptions.routeBrowserDownloads = true;
     freshOptions.trackBrowserDownloads = true;

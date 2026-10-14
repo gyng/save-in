@@ -1,13 +1,136 @@
 import { Path } from "../../src/routing/path.ts";
 import { matchRules, parseRules } from "../../src/routing/router.ts";
+import { applyVariables } from "../../src/routing/variable.ts";
+import { options as liveOptions } from "../../src/config/options-data.ts";
+import { webExtensionApi } from "../../src/platform/web-extension-api.ts";
 import {
+  BROWSER_DOWNLOAD_PAGE_TIMEOUT_MS,
   BrowserDownloadRouting,
   createBrowserDownloadState,
+  findBrowserDownloadPage,
+  inferBrowserDownloadPage,
   isOrdinaryBrowserDownload,
   isReroutableBrowserDownload,
   matchesBrowserDownloadFilter,
   routeBrowserDownload,
 } from "../../src/downloads/browser-downloads.ts";
+import { browserTab } from "../support/webextension-host.fixture.ts";
+
+describe("browser download page inference", () => {
+  const page = "https://gallery.example/albums/cats?page=2";
+  const tab = (url: string | undefined, overrides: { title?: string; incognito?: boolean } = {}) =>
+    ({ url, title: "Cats", incognito: false, ...overrides }) as const;
+
+  test.each([
+    ["the one tab showing the referrer", page, [tab(page)], { url: page, title: "Cats" }],
+    [
+      "a tab whose address adds only a fragment",
+      page,
+      [tab(`${page}#photo-3`)],
+      { url: `${page}#photo-3`, title: "Cats" },
+    ],
+    ["an untitled tab", page, [{ url: page, incognito: false }], { url: page, title: "" }],
+    ["no referrer", undefined, [tab(page)], null],
+    ["an unparseable referrer", "not a url", [tab("not a url")], null],
+    ["a non-HTTP referrer", "file:///home/me/page.html", [tab("file:///home/me/page.html")], null],
+    [
+      "an origin-only referrer a policy may have shortened",
+      "https://gallery.example/",
+      [tab("https://gallery.example/")],
+      null,
+    ],
+    ["no tab at the referrer", page, [tab("https://gallery.example/other"), tab(undefined)], null],
+    ["two tabs at the referrer", page, [tab(page), tab(page, { title: "Cats again" })], null],
+    ["a private tab at the referrer", page, [tab(page, { incognito: true })], null],
+    ["a public and a private tab", page, [tab(page), tab(page, { incognito: true })], null],
+    ["a tab whose privacy is unknown", page, [{ url: page, title: "Cats" }], null],
+  ])("%s", (_name, referrer, tabs, expected) => {
+    expect(inferBrowserDownloadPage(referrer, tabs)).toEqual(expected);
+  });
+
+  test("queries tabs only for a public download with a referrer", async () => {
+    const queryTabs = vi.fn(async () => [tab(page)]);
+    await expect(findBrowserDownloadPage({ referrer: page }, queryTabs)).resolves.toEqual({
+      url: page,
+      title: "Cats",
+    });
+    await expect(
+      findBrowserDownloadPage({ referrer: page, incognito: true }, queryTabs),
+    ).resolves.toBeNull();
+    await expect(findBrowserDownloadPage({ incognito: false }, queryTabs)).resolves.toBeNull();
+    expect(queryTabs).toHaveBeenCalledOnce();
+  });
+
+  test("a failed tab query yields no page", async () => {
+    await expect(
+      findBrowserDownloadPage({ referrer: page }, () => Promise.reject(new Error("no tabs"))),
+    ).resolves.toBeNull();
+  });
+
+  test("a tab query that never settles yields no page after the bound", async () => {
+    vi.useFakeTimers();
+    try {
+      const found = findBrowserDownloadPage({ referrer: page }, () => new Promise(() => {}));
+      await vi.advanceTimersByTimeAsync(BROWSER_DOWNLOAD_PAGE_TIMEOUT_MS);
+      await expect(found).resolves.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test("an inferred page reaches the page matchers and variables", async () => {
+    const state = createBrowserDownloadState(
+      { url: "https://cdn.example/cat.jpg", filename: "cat.jpg", referrer: page },
+      { url: page, title: "Cats album" },
+    );
+    expect(state.info).toMatchObject({
+      pageUrl: page,
+      currentTab: { title: "Cats album", url: page, incognito: false },
+      referrerUrl: page,
+    });
+    expect(state.info.currentTab).not.toHaveProperty("id");
+    const rules = parseRules(
+      "pagetitle: ^Cats\npagedomain: ^gallery\\.example$\ninto: :pagedomain:/:pagetitle:/:filename:",
+    );
+    const route = matchRules(rules, state.info);
+    expect(route).toBe(":pagedomain:/:pagetitle:/:filename:");
+    expect((await applyVariables(new Path(route as string), state.info)).toString()).toBe(
+      "gallery.example/Cats album/cat.jpg",
+    );
+  });
+});
+
+describe("browser download routing with page details", () => {
+  const referrer = "https://gallery.example/albums/cats";
+  const item = { url: "https://cdn.example/cat.jpg", filename: "cat.jpg", referrer };
+  const download = () => ({
+    getRoutingMatches: vi.fn((state: { info: { currentTab?: { title?: string } | null } }) =>
+      state.info.currentTab?.title === "Cats" ? "cats/:filename:" : null,
+    ),
+    resolveRenameTransform: vi.fn(() => Promise.resolve()),
+    finalizeFullPath: vi.fn(() => "cats/cat.jpg"),
+  });
+
+  afterEach(() => {
+    liveOptions.browserDownloadPageDetails = false;
+  });
+
+  test("stays off by default so page rules keep missing browser downloads", async () => {
+    expect(liveOptions.browserDownloadPageDetails).toBe(false);
+    const query = vi.spyOn(webExtensionApi.tabs, "query");
+    await expect(routeBrowserDownload(download() as any, item)).resolves.toBeNull();
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  test("routes on the inferred page once enabled", async () => {
+    liveOptions.browserDownloadPageDetails = true;
+    const query = vi
+      .spyOn(webExtensionApi.tabs, "query")
+      .mockResolvedValue([browserTab({ url: referrer, title: "Cats" })]);
+    await expect(routeBrowserDownload(download() as any, item)).resolves.toBe("cats/cat.jpg");
+    expect(query).toHaveBeenCalledWith({});
+  });
+});
 
 describe("ordinary browser download ownership", () => {
   test("accepts browser-owned downloads and excludes every extension", () => {

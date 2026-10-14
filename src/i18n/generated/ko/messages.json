@@ -281,6 +281,12 @@
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox에는 기본 파일명 라우팅 기능이 없으므로 Save In은 일치하는 다운로드를 취소하고 대체 다운로드를 시작합니다. POST 요청, 만료되는 URL, 사용자 지정 헤더 또는 인증이 필요한 다운로드에서는 실패할 수 있습니다."
   },
+  "o_cBrowserDownloadPageDetails": {
+    "message": "열린 탭의 페이지 정보 사용"
+  },
+  "o_cBrowserDownloadPageDetailsHelp": {
+    "message": "브라우저 다운로드가 시작된 페이지를 표시하는 열린 탭이 정확히 하나일 때 라우팅 규칙에서 페이지 제목과 페이지 URL을 비교할 수 있습니다. 비공개 브라우징 탭은 사용되지 않습니다."
+  },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla 버그 1245652"
   },
@@ -3462,7 +3468,7 @@
     "message": "사용 가능한 라우팅 데이터"
   },
   "o_lBrowserDownloadVariablesUnavailable": {
-    "message": "페이지 제목, 페이지 URL, 링크 텍스트, 선택 항목, 메뉴 메타데이터 및 보조 키는 사용할 수 없습니다."
+    "message": "링크 텍스트, 선택 항목, 메뉴 메타데이터 및 보조 키는 사용할 수 없습니다. 페이지 제목과 페이지 URL을 사용하려면 '열린 탭의 페이지 정보 사용'을 켜야 합니다."
   },
   "welcomeTitle": {
     "message": "Save In에 오신 것을 환영합니다"

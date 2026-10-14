@@ -90,6 +90,7 @@ test("keeps Browser routings actions concise, described, and task ordered", () =
     ["browserDownloadsUpdateLastUsed", "browser-downloads-last-used-help"],
     ["routeBrowserDownloads", "route-browser-downloads-help"],
     ["routeBrowserDownloadsFirefox", "route-browser-downloads-firefox-help"],
+    ["browserDownloadPageDetails", "browser-download-page-details-help"],
   ] as const;
 
   for (const [controlId, helpId] of controls) {

@@ -715,6 +715,12 @@
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox ne permet pas d’acheminer nativement les noms de fichiers. Save In annule donc chaque téléchargement correspondant et lance un téléchargement de remplacement. Cette opération peut échouer pour les requêtes POST, les URL temporaires, les en-têtes personnalisés ou les téléchargements authentifiés."
   },
+  "o_cBrowserDownloadPageDetails": {
+    "message": "Utiliser les détails de la page de l’onglet ouvert"
+  },
+  "o_cBrowserDownloadPageDetailsHelp": {
+    "message": "Les règles de routage peuvent utiliser le titre et l’URL de la page lorsqu’un seul onglet ouvert affiche la page d’où provient un téléchargement du navigateur. Les onglets de navigation privée ne sont jamais utilisés."
+  },
   "o_lFirefoxFilenameApiBug": {
     "message": "Bogue Mozilla 1245652"
   },
@@ -3462,7 +3468,7 @@
     "message": "Données de routage disponibles"
   },
   "o_lBrowserDownloadVariablesUnavailable": {
-    "message": "Le titre et l’URL de la page, le texte du lien, la sélection, les métadonnées du menu et les touches de modification ne sont pas disponibles."
+    "message": "Le texte du lien, la sélection, les métadonnées du menu et les touches de modification ne sont pas disponibles. Le titre et l’URL de la page nécessitent « Utiliser les détails de la page de l’onglet ouvert »."
   },
   "welcomeTitle": {
     "message": "Bienvenue dans Save In"

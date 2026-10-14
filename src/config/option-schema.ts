@@ -417,6 +417,11 @@ export const OPTION_KEYS = defineOptions([
     type: OPTION_TYPES.BOOL,
     default: OPTION_DEFAULTS.routeBrowserDownloadsFirefox,
   },
+  {
+    name: "browserDownloadPageDetails",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.browserDownloadPageDetails,
+  },
   { name: "tabEnabled", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.tabEnabled },
   { name: "closeTabOnSave", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.closeTabOnSave },
   { name: "setRefererHeader", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.setRefererHeader },

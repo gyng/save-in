@@ -703,6 +703,12 @@
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox não possui roteamento de nome de arquivo nativo, então Save In cancela cada download correspondente e inicia uma substituição. Isso pode falhar em solicitações POST, URLs expiradas, cabeçalhos personalizados ou downloads autenticados."
   },
+  "o_cBrowserDownloadPageDetails": {
+    "message": "Usar detalhes da página da guia aberta"
+  },
+  "o_cBrowserDownloadPageDetailsHelp": {
+    "message": "As regras de roteamento podem comparar o título e a URL da página quando exatamente uma guia aberta mostra a página de onde veio um download do navegador. Guias de navegação privativa nunca são usadas."
+  },
   "o_lFirefoxFilenameApiBug": {
     "message": "Bug Mozilla 1245652"
   },
@@ -3462,7 +3468,7 @@
     "message": "Dados de roteamento disponíveis"
   },
   "o_lBrowserDownloadVariablesUnavailable": {
-    "message": "Título da página, URL da página, texto do link, seleção, metadados do menu e teclas modificadoras não estão disponíveis."
+    "message": "Texto do link, seleção, metadados do menu e teclas modificadoras não estão disponíveis. Título e URL da página exigem “Usar detalhes da página da guia aberta”."
   },
   "welcomeTitle": {
     "message": "Boas-vindas ao Save In"

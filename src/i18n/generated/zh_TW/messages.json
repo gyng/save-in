@@ -281,6 +281,12 @@
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox 缺少原生檔案名稱路由功能，因此 Save In 會取消每個符合的下載並啟動替代下載。POST 請求、即將過期的 URL、自訂標頭或需要驗證的下載可能會失敗。"
   },
+  "o_cBrowserDownloadPageDetails": {
+    "message": "使用已開啟分頁的頁面資訊"
+  },
+  "o_cBrowserDownloadPageDetailsHelp": {
+    "message": "當恰好只有一個已開啟的分頁顯示瀏覽器下載的來源頁面時，路由規則可以比對頁面標題和頁面 URL。絕不使用隱私瀏覽分頁。"
+  },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla Bug 1245652"
   },
@@ -3462,7 +3468,7 @@
     "message": "可用的路由資料"
   },
   "o_lBrowserDownloadVariablesUnavailable": {
-    "message": "頁面標題、頁面 URL、連結文字、選取的文字、選單中繼資料和輔助按鍵無法使用。"
+    "message": "連結文字、選取的文字、選單中繼資料和輔助按鍵無法使用。頁面標題和頁面 URL 需要啟用「使用已開啟分頁的頁面資訊」。"
   },
   "welcomeTitle": {
     "message": "歡迎使用 Save In"

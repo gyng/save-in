@@ -148,6 +148,8 @@ export const OptionsManagement: OptionsManagementApi = {
       "Optional URL match patterns excluding ordinary browser downloads from handling.",
     routeBrowserDownloadsFirefox:
       "Experimentally cancel and re-download matching ordinary downloads on Firefox.",
+    browserDownloadPageDetails:
+      "Give routed ordinary browser downloads the page title and URL of the one open, non-private tab whose address equals the download's referrer.",
     tabEnabled: "Enable the tab-strip context menu (Firefox or Chrome 150+).",
     closeTabOnSave: "Close a tab after saving it.",
     setRefererHeader: "Set the Referer header to the page URL for matching sites.",

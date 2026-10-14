@@ -1,5 +1,12 @@
 # Unreleased
 
+- Routed browser downloads can use page details (#146). With the new, off by
+  default **Use page details from the open tab** setting, `pagetitle:`,
+  `pageurl:`, `pagedomain:`, and their variables come from the one open,
+  non-private tab whose address is the download's referrer. A site-root
+  referrer, several tabs on that address, or a private tab gives no page
+  details. Because a page rule above a browser-download rule can start matching,
+  existing profiles keep the old behavior until the setting is turned on.
 - Click-to-save can bind the same mouse action to different keys, and the new
   `keys:` routing matcher sends each binding to its own folder, for example
   `keys: ^alt$` to `images/` and `keys: ^ctrl\+shift$` to `wallpapers/` (#15).

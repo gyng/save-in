@@ -2,6 +2,8 @@ import { Path, ROUTES_TO_FOLDER_REGEX } from "../routing/path.ts";
 import { applyVariables, normalizeMimeType } from "../routing/variable.ts";
 import { BROWSER_DOWNLOAD_CONTEXT } from "../shared/constants.ts";
 import { matchesAnyPattern, matchesAnyPatternOrUnreadable } from "../shared/match-pattern.ts";
+import { options } from "../config/options-data.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 import type { DownloadPipelineState } from "./download-types.ts";
 import { releaseUnusedContent } from "./download-pipeline-state.ts";
 
@@ -12,6 +14,16 @@ export type BrowserDownloadItem = {
   mime?: string | undefined;
   referrer?: string | undefined;
   byExtensionId?: string | undefined;
+  incognito?: boolean | undefined;
+};
+
+// The page an ordinary browser download came from, inferred from its referrer.
+export type BrowserDownloadPage = { url: string; title: string };
+
+export type BrowserDownloadPageTab = {
+  url?: string | undefined;
+  title?: string | undefined;
+  incognito?: boolean | undefined;
 };
 
 type BrowserDownloadRouter = {
@@ -74,7 +86,65 @@ export const matchesBrowserDownloadFilter = (
       excludeFilter.trim() === "" ||
       !matchesAnyPatternOrUnreadable(url, excludeFilter)));
 
-export const createBrowserDownloadState = (item: BrowserDownloadItem): DownloadPipelineState => {
+// Neither browser says which tab started a download; the referrer is the only
+// evidence, so every doubt yields no page rather than a guessed one. A
+// referrer that is only an origin may be one a referrer policy cut down from
+// a deeper page (the cross-origin default), so it cannot name the tab showing
+// the site's root. A fragment never reaches a referrer, so it is ignored on
+// the tab side. Two tabs on the same address are indistinguishable, and a
+// private tab is never page context, so either withholds the page.
+export const inferBrowserDownloadPage = (
+  referrer: string | undefined,
+  tabs: readonly BrowserDownloadPageTab[],
+): BrowserDownloadPage | null => {
+  if (!referrer) return null;
+  let parsed: URL;
+  try {
+    parsed = new URL(referrer);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
+  if (referrer === `${parsed.origin}/`) return null;
+  const [tab, ...others] = tabs.flatMap((candidate) =>
+    typeof candidate.url === "string" && candidate.url.split("#", 1)[0] === referrer
+      ? [{ url: candidate.url, title: candidate.title ?? "", incognito: candidate.incognito }]
+      : [],
+  );
+  if (!tab || others.length > 0 || tab.incognito !== false) return null;
+  return { url: tab.url, title: tab.title };
+};
+
+// Chrome's onDeterminingFilename holds the download until suggest(), so a tab
+// query that never settles must cost a bounded delay, not the download.
+export const BROWSER_DOWNLOAD_PAGE_TIMEOUT_MS = 1000;
+
+export const findBrowserDownloadPage = async (
+  item: Pick<BrowserDownloadItem, "referrer" | "incognito">,
+  queryTabs: () => Promise<readonly BrowserDownloadPageTab[]>,
+): Promise<BrowserDownloadPage | null> => {
+  if (item.incognito === true || !item.referrer) return null;
+  const { referrer } = item;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const tabs = await Promise.race([
+      queryTabs(),
+      new Promise<null>((resolve) => {
+        timer = setTimeout(() => resolve(null), BROWSER_DOWNLOAD_PAGE_TIMEOUT_MS);
+      }),
+    ]);
+    return tabs ? inferBrowserDownloadPage(referrer, tabs) : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
+export const createBrowserDownloadState = (
+  item: BrowserDownloadItem,
+  page: BrowserDownloadPage | null = null,
+): DownloadPipelineState => {
   const filename = proposedFilename(item.filename || item.url);
   const sourceUrl = item.finalUrl || item.url;
   const mime = normalizeMimeType(item.mime);
@@ -82,7 +152,10 @@ export const createBrowserDownloadState = (item: BrowserDownloadItem): DownloadP
     path: new Path("."),
     scratch: {},
     info: {
-      currentTab: null,
+      // A synthetic tab carries only what the page matchers read: with no id,
+      // no tab action can reach the inferred tab.
+      currentTab: page ? { title: page.title, url: page.url, incognito: false } : null,
+      ...(page ? { pageUrl: page.url } : {}),
       url: sourceUrl,
       sourceUrl,
       ...(mime ? { mime } : {}),
@@ -102,7 +175,13 @@ export const routeBrowserDownload = async (
   Download: BrowserDownloadRouter,
   item: BrowserDownloadItem,
 ): Promise<string | null> => {
-  const state = createBrowserDownloadState(item);
+  // Opt-in: no page matcher could match a browser download before this, so a
+  // default-on inference would silently move files for any profile with a
+  // page rule above its browser-download rule.
+  const page = options.browserDownloadPageDetails
+    ? await findBrowserDownloadPage(item, () => webExtensionApi.tabs.query({}))
+    : null;
+  const state = createBrowserDownloadState(item, page);
   try {
     const route = Download.getRoutingMatches(state);
     if (!route) return null;

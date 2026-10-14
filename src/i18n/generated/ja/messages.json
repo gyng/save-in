@@ -281,6 +281,12 @@
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox にはネイティブのファイル名ルーティング機能がないため、Save In は一致するダウンロードをキャンセルして代替ダウンロードを開始します。POST リクエスト、期限切れになる URL、カスタムヘッダー、認証が必要なダウンロードでは失敗することがあります。"
   },
+  "o_cBrowserDownloadPageDetails": {
+    "message": "開いているタブのページ情報を使用"
+  },
+  "o_cBrowserDownloadPageDetailsHelp": {
+    "message": "ブラウザーのダウンロード元のページを表示している開いたタブがちょうど 1 つの場合、ルーティングルールでページタイトルとページ URL を照合できます。プライベートブラウジングのタブは使用されません。"
+  },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla バグ 1245652"
   },
@@ -3462,7 +3468,7 @@
     "message": "使用可能なルーティングデータ"
   },
   "o_lBrowserDownloadVariablesUnavailable": {
-    "message": "ページタイトル、ページ URL、リンクテキスト、選択範囲、メニューメタデータ、修飾キーは使用できません。"
+    "message": "リンクテキスト、選択範囲、メニューメタデータ、修飾キーは使用できません。ページタイトルとページ URL には「開いているタブのページ情報を使用」が必要です。"
   },
   "welcomeTitle": {
     "message": "Save In へようこそ"

@@ -54,3 +54,34 @@ open.
 Automatic rules cannot use `after: close-tab`: unattended source discovery must not
 close a page. Ordinary browser-download routing also ignores post-save tab
 actions because it has no source tab to act on.
+
+## Page details for browser downloads
+
+An ordinary browser download does not say which tab started it, so by default
+`pagetitle:`, `pageurl:`, `pagedomain:`, `pagerootdomain:`, and the matching
+variables are empty for it and never match. `referrerurl:` and
+`referrerdomain:` still read the address the browser reports as the download's
+referrer.
+
+Turn on **Use page details from the open tab** under **Browser downloads** to
+give routed browser downloads page details. Save In uses the title and address
+of an open tab only when all of these hold:
+
+- the download has a referrer, and it is a deeper page than a site root such as
+  `https://example.com/`, which a referrer policy may have shortened from
+  another page;
+- exactly one open tab shows that address (a `#fragment` on the tab is
+  ignored);
+- that tab is not in a private browsing window, and the download is not private.
+
+Otherwise the download has no page details, exactly as with the setting off.
+Turning it on can change where existing rules send browser downloads: a page
+rule placed above your browser-download rules can now match them. The setting
+is off by default for that reason. Page details are read only for routing; they
+are not stored in History.
+
+```text
+context: ^browser$
+pagedomain: ^gallery\.example$
+into: gallery/:pagetitle:/:filename:
+```

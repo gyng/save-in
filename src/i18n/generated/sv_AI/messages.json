@@ -703,6 +703,12 @@
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox saknar inbyggd filnamnsroutning, så Save In avbryter varje matchande nedladdning och startar en ersättningsnedladdning. Detta kan misslyckas för POST-begäranden, URL:er som löper ut, anpassade HTTP-huvuden eller autentiserade nedladdningar."
   },
+  "o_cBrowserDownloadPageDetails": {
+    "message": "Använd siduppgifter från den öppna fliken"
+  },
+  "o_cBrowserDownloadPageDetailsHelp": {
+    "message": "Routningsregler kan matcha sidrubrik och sid-URL när exakt en öppen flik visar sidan som en webbläsarnedladdning kom från. Flikar för privat surfning används aldrig."
+  },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla bugg 1245652"
   },
@@ -3462,7 +3468,7 @@
     "message": "Tillgängliga routningsdata"
   },
   "o_lBrowserDownloadVariablesUnavailable": {
-    "message": "Sidrubrik, sid-URL, länktext, markering, menymetadata och modifieringstangenter är inte tillgängliga."
+    "message": "Länktext, markering, menymetadata och modifieringstangenter är inte tillgängliga. Sidrubrik och sid-URL kräver ”Använd siduppgifter från den öppna fliken”."
   },
   "welcomeTitle": {
     "message": "Välkommen till Save In"

@@ -269,6 +269,12 @@
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox non supporta il routing nativo dei nomi file, quindi Save In annulla ogni download corrispondente e ne avvia uno sostitutivo. L'operazione può non riuscire con richieste POST, URL temporanei, intestazioni personalizzate o download autenticati."
   },
+  "o_cBrowserDownloadPageDetails": {
+    "message": "Usa i dettagli della pagina dalla scheda aperta"
+  },
+  "o_cBrowserDownloadPageDetailsHelp": {
+    "message": "Le regole di routing possono confrontare titolo e URL della pagina quando esattamente una scheda aperta mostra la pagina da cui proviene un download del browser. Le schede di navigazione privata non vengono mai usate."
+  },
   "o_lFirefoxFilenameApiBug": {
     "message": "Bug Mozilla 1245652"
   },
@@ -3462,7 +3468,7 @@
     "message": "Dati di routing disponibili"
   },
   "o_lBrowserDownloadVariablesUnavailable": {
-    "message": "Titolo e URL della pagina, testo del collegamento, selezione, metadati del menu e tasti modificatori non sono disponibili."
+    "message": "Testo del collegamento, selezione, metadati del menu e tasti modificatori non sono disponibili. Titolo e URL della pagina richiedono «Usa i dettagli della pagina dalla scheda aperta»."
   },
   "welcomeTitle": {
     "message": "Benvenuto in Save In"

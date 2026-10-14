@@ -1547,6 +1547,81 @@ export const runDownloadAttributeRoutingScenario = async ({
 /**
  * @param {{
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   evaluatePage: (target: string, expression: string) => Promise<unknown>,
+ *   waitForDownloads: (filename: string, timeoutMs?: number) => Promise<DownloadSummary[]>,
+ *   browserLabel: "chrome" | "firefox",
+ * }} adapters
+ */
+export const runBrowserDownloadPageDetailsScenario = async ({
+  control,
+  evaluatePage,
+  waitForDownloads,
+  browserLabel,
+}) => {
+  // The page lives below the site root: an origin-only referrer is never
+  // attributed to a tab. Only the browser's referrer links this download to
+  // the tab, so routing on the tab title proves the inference reached the
+  // rule engine in this browser's ordinary-download path.
+  const pageTitle = `Page details ${browserLabel}`;
+  let holdFirefoxOriginal = browserLabel === "firefox";
+  const server = http.createServer((req, res) => {
+    if (req.url === "/files/asset") {
+      res.writeHead(200, { "Content-Type": "application/octet-stream" });
+      if (holdFirefoxOriginal) {
+        // See runDownloadAttributeRoutingScenario: the cancelled original must
+        // not complete before Firefox's replacement starts.
+        holdFirefoxOriginal = false;
+        res.write("pending");
+        return;
+      }
+      res.end("page details payload");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(
+      `<title>${pageTitle}</title><a id="asset" href="/files/asset" download="page-details-${browserLabel}.bin">download</a>`,
+    );
+  });
+  const port = await listenLocal(server);
+  const target = `127.0.0.1:${port}`;
+  const pageUrl = `http://${target}/gallery/page.html`;
+  const routeKey =
+    browserLabel === "chrome" ? "routeBrowserDownloads" : "routeBrowserDownloadsFirefox";
+  let tabId;
+
+  try {
+    await control.options.set({
+      [routeKey]: true,
+      browserDownloadPageDetails: true,
+      filenamePatterns: `pagetitle: ^${pageTitle}$\npageurl: /gallery/page\\.html$\ninto: :pagetitle:/:filename:`,
+    });
+    const created = await control.tabs.create({ url: pageUrl, active: true });
+    tabId = created.id;
+    await control.tabs.wait({ ...(tabId === undefined ? {} : { id: tabId }), urlIncludes: target });
+    await evaluatePage(target, `document.querySelector("#asset").click(); true`);
+
+    const rows = await waitForDownloads(pageTitle);
+    expect(
+      rows.some(
+        (row) =>
+          row.state === "complete" &&
+          row.filename.endsWith(path.join(pageTitle, `page-details-${browserLabel}.bin`)),
+      ),
+    ).toBe(true);
+  } finally {
+    if (tabId !== undefined) await control.tabs.remove(tabId).catch(() => {});
+    await control.options.set({
+      [routeKey]: false,
+      browserDownloadPageDetails: false,
+      filenamePatterns: "",
+    });
+    await closeLocal(server);
+  }
+};
+
+/**
+ * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  * }} adapters
  */

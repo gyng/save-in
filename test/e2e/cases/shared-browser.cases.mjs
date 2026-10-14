@@ -7,6 +7,7 @@ import {
   runContextMenuScenario,
   runLinkMetadataRoutingScenario,
   runCssRoutingScenario,
+  runBrowserDownloadPageDetailsScenario,
   runDownloadAttributeRoutingScenario,
   runQuickSaveScenario,
   runFailedDownloadLogScenario,
@@ -147,6 +148,15 @@ export const registerSharedBrowserCases = (adapters) => {
 
   test("an anchor's download attribute names and routes an ordinary browser download", async () => {
     await runDownloadAttributeRoutingScenario({
+      control,
+      evaluatePage,
+      waitForDownloads,
+      browserLabel,
+    });
+  });
+
+  test("a browser download routes on the one open tab its referrer names", async () => {
+    await runBrowserDownloadPageDetailsScenario({
       control,
       evaluatePage,
       waitForDownloads,

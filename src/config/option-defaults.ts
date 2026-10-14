@@ -82,6 +82,9 @@ export const OPTION_DEFAULTS = {
   browserDownloadFilter: "",
   browserDownloadExcludeFilter: "",
   routeBrowserDownloadsFirefox: false,
+  // Off: a page rule that could never match a browser download must not start
+  // capturing them in an existing profile (see routeBrowserDownload).
+  browserDownloadPageDetails: false,
   tabEnabled: false,
   closeTabOnSave: false,
   setRefererHeader: false,

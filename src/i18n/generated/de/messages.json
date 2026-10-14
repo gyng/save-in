@@ -703,6 +703,12 @@
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox unterstützt keine native Weiterleitung anhand des Dateinamens. Daher bricht Save In jeden passenden Download ab und startet einen Ersatzdownload. Dies kann bei POST-Anfragen, ablaufenden URLs, benutzerdefinierten Headern oder authentifizierten Downloads fehlschlagen."
   },
+  "o_cBrowserDownloadPageDetails": {
+    "message": "Seitendetails aus dem geöffneten Tab verwenden"
+  },
+  "o_cBrowserDownloadPageDetailsHelp": {
+    "message": "Routing-Regeln können Seitentitel und Seiten-URL abgleichen, wenn genau ein geöffneter Tab die Seite zeigt, von der ein Browser-Download stammt. Tabs beim privaten Surfen werden nie verwendet."
+  },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla-Fehler 1245652"
   },
@@ -3462,7 +3468,7 @@
     "message": "Verfügbare Routing-Daten"
   },
   "o_lBrowserDownloadVariablesUnavailable": {
-    "message": "Seitentitel, Seiten-URL, Linktext, Auswahl, Menümetadaten und Tastenmodifikatoren sind nicht verfügbar."
+    "message": "Linktext, Auswahl, Menümetadaten und Tastenmodifikatoren sind nicht verfügbar. Seitentitel und Seiten-URL erfordern „Seitendetails aus dem geöffneten Tab verwenden“."
   },
   "welcomeTitle": {
     "message": "Willkommen bei Save In"
