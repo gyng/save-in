@@ -470,7 +470,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
     if (!pendingState || !pendingState.path) {
       if (
         initiatedBySaveIn &&
-        takeUnroutedDownload(downloadItem.id, [downloadItem.url, downloadItem.finalUrl])
+        takeUnroutedDownload("filename", downloadItem.id, [downloadItem.url, downloadItem.finalUrl])
       ) {
         suggest();
         return false;

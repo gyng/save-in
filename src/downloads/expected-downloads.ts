@@ -21,7 +21,12 @@ type ExpectedDownload = {
 };
 const expectedDownloads: ExpectedDownload[] = [];
 
-export type UnroutedDownload = { url: string; downloadId?: number };
+export type UnroutedDownloadEvent = "created" | "filename";
+export type UnroutedDownload = {
+  url: string;
+  downloadId?: number;
+  awaiting: Set<UnroutedDownloadEvent>;
+};
 const unroutedDownloads = new Set<UnroutedDownload>();
 
 export const resetExpectedDownloads = (): void => {
@@ -64,12 +69,15 @@ export const findExpectedDownload = (
   );
 
 // Save In's own failure Save As prompt is a bare downloads.download with no
-// pipeline state. Chrome still reports it as ours, so without this mark its
-// onDeterminingFilename event reads as a save whose route did not hold and is
-// cancelled when unmatched saves are skipped. The prompt may resolve before or
-// after that event, so the mark matches its URL until the id is known.
+// pipeline state. Chrome still reports it as ours to onDeterminingFilename, so
+// without this mark it reads as a save whose route did not hold and is
+// cancelled when unmatched saves are skipped; Chrome's onCreated omits that
+// ownership, so it would also be tracked as an ordinary browser download. Each
+// of those two events consumes the mark once, in either order. The prompt may
+// resolve before or after them, so the mark matches its URL until the id is
+// known.
 export const allowUnroutedDownload = (url: string): UnroutedDownload => {
-  const unrouted: UnroutedDownload = { url };
+  const unrouted: UnroutedDownload = { url, awaiting: new Set(["created", "filename"]) };
   unroutedDownloads.add(unrouted);
   return unrouted;
 };
@@ -84,16 +92,19 @@ export const settleUnroutedDownload = (
 };
 
 export const takeUnroutedDownload = (
+  event: UnroutedDownloadEvent,
   downloadId: number | undefined,
   urls: readonly (string | undefined)[],
 ): boolean => {
   for (const unrouted of unroutedDownloads) {
     if (
-      unrouted.downloadId === undefined
+      unrouted.awaiting.has(event) &&
+      (unrouted.downloadId === undefined
         ? urls.includes(unrouted.url)
-        : unrouted.downloadId === downloadId
+        : unrouted.downloadId === downloadId)
     ) {
-      unroutedDownloads.delete(unrouted);
+      unrouted.awaiting.delete(event);
+      if (unrouted.awaiting.size === 0) unroutedDownloads.delete(unrouted);
       return true;
     }
   }

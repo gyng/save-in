@@ -12,6 +12,7 @@ import {
   mergeTrackedDownload,
   removeTrackedDownload,
   settleUnroutedDownload,
+  takeUnroutedDownload,
 } from "./expected-downloads.ts";
 import { isPrivateDownloadRecord } from "./download-state.ts";
 import type { DownloadRecord } from "./download-state.ts";
@@ -172,6 +173,9 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
   // that drops its expectation, so an event that lost that race is already
   // claimed and must not spend an inherited restart slot or be re-tracked.
   if (downloadsState.records.get(item.id)?.adopted === true) return;
+  // Save In's own failure Save As prompt is neither a save to watch nor an
+  // ordinary browser download, and Chrome reports it without our ownership.
+  if (takeUnroutedDownload("created", item.id, [item.url, finalUrl])) return;
 
   // Chrome strips both Incognito and extension ownership from our download's
   // onCreated item. If an isolated private request survived a worker restart,
