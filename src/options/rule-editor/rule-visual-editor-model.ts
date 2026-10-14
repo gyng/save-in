@@ -423,7 +423,7 @@ const isExcludeIncompatible = (clause: RoutingClauseNode): boolean =>
 // then rewrite the rule that followed it.
 export const canExcludeRoutingRule = (source: string, ruleIndex: number): boolean =>
   editableRule(source, ruleIndex).unit.rule.clauses.some(
-    (clause) => clause.clauseKind === "matcher",
+    (clause) => clause.clauseKind === "matcher" && clause.name !== "disabled",
   );
 
 export const setRoutingRuleExcluded = (
@@ -449,15 +449,16 @@ export const setRoutingRuleExcluded = (
       value: ROUTING_ACTION_VALUES.exclude,
     });
   }
+  // Add the destination before removing exclude: deleting a rule's only clause
+  // first would delete the rule and leave the index on the one after it.
   const { unit } = editableRule(next, ruleIndex);
-  const exclude = unit.rule.clauses.find((clause) => clause.name === "exclude");
-  if (exclude) {
-    next = deleteRoutingClause(next, ruleIndex, unit.rule.clauses.indexOf(exclude));
+  if (!unit.rule.clauses.some((clause) => clause.clauseKind === "destination")) {
+    // Match the default a new saving rule uses so a converted rule reads the same.
+    next = addRoutingClause(next, ruleIndex, { name: "into", value: ":filename:" });
   }
   const { unit: restored } = editableRule(next, ruleIndex);
-  if (restored.rule.clauses.some((clause) => clause.clauseKind === "destination")) return next;
-  // Match the default a new saving rule uses so a converted rule reads the same.
-  return addRoutingClause(next, ruleIndex, { name: "into", value: ":filename:" });
+  const exclude = restored.rule.clauses.findIndex((clause) => clause.name === "exclude");
+  return exclude < 0 ? next : deleteRoutingClause(next, ruleIndex, exclude);
 };
 
 export const duplicateRoutingRule = (source: string, ruleIndex: number): string => {

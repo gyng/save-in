@@ -245,6 +245,16 @@ describe("routing visual editor model", () => {
     );
   });
 
+  test("restores a matcherless exclusion without touching the rule after it", () => {
+    // Removing exclude: first deleted the whole rule, and the destination was
+    // then added to the next rule at the same index.
+    expect(setRoutingRuleExcluded("exclude: true\n\nfilename: b\nexclude: true\n", 0, false)).toBe(
+      "into: :filename:\n\nfilename: b\nexclude: true\n",
+    );
+    // A disabled: clause is not a matcher an exclusion could keep.
+    expect(canExcludeRoutingRule("into: x\ndisabled: true", 0)).toBe(false);
+  });
+
   test("keeps an automatic context when converting to an exclusion", () => {
     const automatic = [
       "context: ^auto$",
