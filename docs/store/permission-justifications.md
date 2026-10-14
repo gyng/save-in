@@ -115,7 +115,10 @@ the peripheral features fit a single purpose:
 > scripts — for example HLS/DASH manifests or fetch/XHR media, including from
 > workers and cross-origin frames — that the page's own DOM does not expose.
 > Recognized URLs are added to the same Page Sources list the DOM scan
-> produces, entirely on the device.
+> produces, entirely on the device. If the user also turns on the
+> off-by-default automatic-save option "Include media loaded by scripts,"
+> whole files among them are offered to the user's own automatic save rules
+> under the same page, rule, and per-page limits as media found in the DOM.
 >
 > Turning the option off, denying the permission prompt, or removing the
 > permission from the browser's extension settings immediately drops it and

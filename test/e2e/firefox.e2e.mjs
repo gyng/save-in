@@ -235,6 +235,11 @@ const startSourcePanelServer = async () => {
       res.end("#EXTM3U\n#EXT-X-VERSION:3\n");
       return;
     }
+    if (req.url === "/script-seg-1.mp4") {
+      res.writeHead(200, { "Content-Type": "video/mp4" });
+      res.end(Buffer.alloc(16));
+      return;
+    }
     if (req.url?.endsWith(".png")) {
       res.writeHead(200, { "Content-Type": "image/png", "Content-Length": PNG.length });
       res.end(PNG);
@@ -1440,11 +1445,20 @@ into: e2e/automatic-phase-c-firefox/inline.:mimeext:`,
   }
 });
 
-test("script-media permission discovers hidden fetches and revokes cleanly", async () => {
+test("script-media permission discovers hidden fetches, saves the whole file, and revokes cleanly", async () => {
   const { server, port } = await startSourcePanelServer();
   const pageMatch = `localhost:${port}/script-media-sources`;
   const pageTarget = `localhost:${port}`;
   const pageUrl = `http://${pageMatch}`;
+  const automaticKeys = [
+    "autoDownloadEnabled",
+    "autoDownloadLive",
+    "autoDownloadScriptMedia",
+    "autoDownloadMaxPerPage",
+    "filenamePatterns",
+  ];
+  const previous = await control.storage.local.get(automaticKeys);
+  const missingAutomaticKeys = automaticKeys.filter((key) => !(key in previous));
 
   try {
     await evalOptions(`browser.permissions.remove({ permissions: ["webRequest"] })`);
@@ -1456,6 +1470,17 @@ test("script-media permission discovers hidden fetches and revokes cleanly", asy
       sourcePanelResourceHints: false,
       sourcePanelLinks: false,
       sourcePanelScriptMedia: false,
+      // The same frame traffic feeds automatic saves: the rule matches both
+      // the segment and the manifest, so only the whole-file filter decides.
+      autoDownloadEnabled: true,
+      autoDownloadLive: true,
+      autoDownloadScriptMedia: true,
+      autoDownloadMaxPerPage: 5,
+      filenamePatterns: `context: ^auto$
+pageurl: ^http://localhost:${port}/script-media-sources$
+sourcekind: ^(?:stream|video)$
+sourceurl: /script-
+into: e2e/script-media-auto-firefox/:filename:`,
     });
     await control.runtime.reset();
     await reloadOptionsPage();
@@ -1584,10 +1609,11 @@ test("script-media permission discovers hidden fetches and revokes cleanly", asy
         `new Promise((resolve, reject) => {
           const frame = document.createElement("iframe");
           frame.hidden = true;
-          frame.onload = () => frame.contentWindow.fetch("/script-only.m3u8").then(
-            () => resolve(true),
-            reject,
-          );
+          // An MSE-style fragmented-MP4 segment first, then the manifest, so a
+          // wrongly adopted segment would be queued ahead of the manifest's save.
+          frame.onload = () => frame.contentWindow.fetch("/script-seg-1.mp4")
+            .then(() => frame.contentWindow.fetch("/script-only.m3u8"))
+            .then(() => resolve(true), reject);
           frame.onerror = () => reject(new Error("Script-media frame failed to load"));
           frame.src = "/script-media-frame";
           document.body.append(frame);
@@ -1603,6 +1629,14 @@ test("script-media permission discovers hidden fetches and revokes cleanly", asy
         .some((element) => element.textContent === "script-only.m3u8")`,
       { description: "subframe-loaded HLS source in Firefox Page Sources" },
     );
+    // Exactly one automatic save: the manifest. The segment was fetched first,
+    // so had it been adopted it would already be among these rows.
+    const saved = await control.downloads.wait({
+      filenameRegex: "script-media-auto-firefox",
+      minimumComplete: 1,
+      timeoutMs: 10000,
+    });
+    expect(saved.map((row) => row.filename.split(/[\\/]/).at(-1))).toEqual(["script-only.m3u8"]);
 
     const optionReverted = control.storage.local.wait("sourcePanelScriptMedia", false);
     expect(await evalOptions(`browser.permissions.remove({ permissions: ["webRequest"] })`)).toBe(
@@ -1616,9 +1650,11 @@ test("script-media permission discovers hidden fetches and revokes cleanly", asy
     await Promise.all([
       control.storage.session.set({ sourcePanelOpen: false }),
       control.storage.local.set({
+        ...previous,
         sourcePanelEnabled: false,
         sourcePanelScriptMedia: false,
       }),
+      control.storage.local.remove(missingAutomaticKeys),
     ]);
     const fixtureIds = (await control.tabs.query())
       .filter((tab) => tab.url?.includes(`localhost:${port}/script-media-sources`))

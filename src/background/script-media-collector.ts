@@ -2,6 +2,7 @@ import { options } from "../config/options-data.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
+import { isWholeFileScriptMediaRequest } from "../automation/automatic-routing.ts";
 import {
   classifyUrlKind,
   isMediaSourceKind,
@@ -10,6 +11,7 @@ import {
   type PageSourceKind,
 } from "../shared/page-source.ts";
 import { SCRIPT_MEDIA_BY_TAB_SESSION_KEY } from "../shared/storage-keys.ts";
+import type { ScriptMediaReplayEntry } from "../shared/message-protocol.ts";
 
 // Opt-in webRequest collector for media a page loads with scripts (HLS/DASH
 // manifests, fetch/XHR media) that the DOM scan and Resource Timing miss —
@@ -56,12 +58,23 @@ const MEDIA_TYPES = ["xmlhttprequest", "media", "object", "other"];
 const OBSERVED_TYPES = [...MEDIA_TYPES, "main_frame"];
 const FLUSH_DELAY_MS = 300;
 
-type MediaEntry = { url: string; kind: PageSourceKind };
-type WebRequestDetails = { url: string; tabId: number; type: string; incognito?: boolean };
+// `auto` marks a whole file automatic saves may adopt (see
+// isWholeFileScriptMediaRequest); `at` is the latest observation time, so a
+// content script can ignore a buffer left over from an earlier page when the
+// navigation that should have reset it was never delivered (see above).
+type BufferedMedia = { kind: PageSourceKind; auto: boolean; at: number };
+type ScriptMediaEntry = { url: string; kind: PageSourceKind; auto?: true; at?: number };
+type WebRequestDetails = {
+  url: string;
+  tabId: number;
+  type: string;
+  incognito?: boolean;
+  timeStamp?: number;
+};
 type PermissionChange = { permissions?: string[] };
 
-// tabId → (url → kind), insertion order = age for LRU eviction.
-const buffers = new Map<number, Map<string, PageSourceKind>>();
+// tabId → (url → media), insertion order = age for LRU eviction.
+const buffers = new Map<number, Map<string, BufferedMedia>>();
 // Privacy belongs to the buffer, not just the latest request. Rehydrated
 // buffers are public; live buffers are classified before their first write.
 const bufferPrivate = new Map<number, boolean>();
@@ -116,6 +129,12 @@ const webRequestApi = ():
 
 const isConfigured = (): boolean =>
   options.sourcePanelEnabled === true && options.sourcePanelScriptMedia === true;
+
+// Automatic saves read the collector only when its own opt-in is on as well.
+const isAutomaticConfigured = (): boolean =>
+  isConfigured() &&
+  options.autoDownloadEnabled === true &&
+  options.autoDownloadScriptMedia === true;
 
 // MV3: a request or panel-open message routinely arrives while the worker is
 // still starting — on Chrome the whole burst that follows a wake lands in that
@@ -221,8 +240,8 @@ const doHydrate = async (): Promise<void> => {
     for (const [tabKey, entries] of Object.entries(stored as Record<string, unknown>)) {
       const tabId = Number(tabKey);
       if (!Number.isInteger(tabId) || !Array.isArray(entries)) continue;
-      const map = new Map<string, PageSourceKind>();
-      for (const entry of entries as MediaEntry[]) {
+      const map = new Map<string, BufferedMedia>();
+      for (const entry of entries as ScriptMediaEntry[]) {
         if (
           !entry ||
           typeof entry.url !== "string" ||
@@ -232,7 +251,13 @@ const doHydrate = async (): Promise<void> => {
         )
           continue;
         if (map.has(entry.url)) map.delete(entry.url);
-        map.set(entry.url, entry.kind);
+        // A missing or malformed marker is not whole-file evidence, and a
+        // missing time can never be newer than the page asking for it.
+        map.set(entry.url, {
+          kind: entry.kind,
+          auto: entry.auto === true,
+          at: typeof entry.at === "number" && Number.isFinite(entry.at) ? entry.at : 0,
+        });
         while (map.size > SCRIPT_MEDIA_SOURCE_LIMIT) evictOldest(map);
       }
       // Every caller awaits the shared hydrate promise before touching buffers,
@@ -250,12 +275,12 @@ const doHydrate = async (): Promise<void> => {
 const persist = async (): Promise<void> => {
   const storage = sessionStorage();
   if (!storage) return;
-  const record: Record<string, MediaEntry[]> = {};
+  const record: Record<string, ScriptMediaEntry[]> = {};
   for (const [tabId, map] of buffers) {
     // Script-media discovery is not one of the admitted private activity
     // stores. Keep private and unclassified URLs in memory only.
     if (bufferPrivate.get(tabId) !== false) continue;
-    record[String(tabId)] = [...map].map(([url, kind]) => ({ url, kind }));
+    record[String(tabId)] = [...map].map(([url, media]) => wireEntry(url, media));
   }
   try {
     await storage.set({ [SCRIPT_MEDIA_BY_TAB_SESSION_KEY]: record });
@@ -264,7 +289,14 @@ const persist = async (): Promise<void> => {
   }
 };
 
-const send = (tabId: number, sources: MediaEntry[]): void => {
+const wireEntry = (url: string, media: BufferedMedia): ScriptMediaEntry => ({
+  url,
+  kind: media.kind,
+  ...(media.auto ? { auto: true as const } : {}),
+  at: media.at,
+});
+
+const send = (tabId: number, sources: ScriptMediaEntry[]): void => {
   try {
     void webExtensionApi.tabs
       .sendMessage(tabId, { type: MESSAGE_TYPES.SCRIPT_MEDIA_DETECTED, body: { sources } })
@@ -281,10 +313,10 @@ const flush = (): void => {
   for (const [tabId, map] of buffers) {
     const urls = pending.get(tabId);
     if (!urls) continue;
-    const sources: MediaEntry[] = [];
+    const sources: ScriptMediaEntry[] = [];
     for (const url of urls) {
-      const kind = map.get(url);
-      if (kind) sources.push({ url, kind });
+      const media = map.get(url);
+      if (media) sources.push(wireEntry(url, media));
     }
     send(tabId, sources);
   }
@@ -301,9 +333,9 @@ const scheduleFlush = (): void => {
 // flood of ordinary media requests. Streams go only when nothing else remains.
 // Eviction runs only on overflow, so the loop always executes and assigns a
 // victim; a URL is never "", so that sentinel just means "not yet chosen".
-const evictOldest = (map: Map<string, PageSourceKind>): void => {
+const evictOldest = (map: Map<string, BufferedMedia>): void => {
   let victim = "";
-  for (const [url, kind] of map) {
+  for (const [url, { kind }] of map) {
     if (victim === "") victim = url; // oldest entry (first iteration)
     if (kind !== "stream") {
       victim = url; // the oldest non-stream is the better victim
@@ -313,7 +345,13 @@ const evictOldest = (map: Map<string, PageSourceKind>): void => {
   map.delete(victim);
 };
 
-const record = (tabId: number, url: string, requestType: string, privateContext: boolean): void => {
+const record = (
+  tabId: number,
+  url: string,
+  requestType: string,
+  privateContext: boolean,
+  at: number,
+): void => {
   let kind = classifyUrlKind(url);
   // A `media`-typed request with no telltale extension is still a media element
   // load; treat it as video rather than dropping it.
@@ -332,11 +370,22 @@ const record = (tabId: number, url: string, requestType: string, privateContext:
     buffers.set(tabId, map);
   }
   bufferPrivate.set(tabId, privateContext);
-  if (map.has(url)) {
-    // Refresh recency without changing the kind.
-    map.delete(url);
-  }
-  map.set(url, kind);
+  const previous = map.get(url);
+  // Refresh recency without changing the kind; whole-file evidence from any
+  // observation of the URL is kept.
+  if (previous) map.delete(url);
+  const auto =
+    previous?.auto === true ||
+    isWholeFileScriptMediaRequest({
+      url,
+      kind: previous?.kind ?? kind,
+      requestType,
+      // Only video/audio consult it, so other kinds skip the buffer walk.
+      tabHasStream:
+        (kind === "video" || kind === "audio") &&
+        [...map.values()].some((media) => media.kind === "stream"),
+    });
+  map.set(url, { kind: previous?.kind ?? kind, auto, at });
   while (map.size > SCRIPT_MEDIA_SOURCE_LIMIT) evictOldest(map);
 
   let queued = pending.get(tabId);
@@ -380,7 +429,11 @@ const onBeforeRequest = (details: WebRequestDetails): void => {
       dropTab(details.tabId);
       return;
     }
-    record(details.tabId, details.url, details.type, privateContext);
+    const at =
+      typeof details.timeStamp === "number" && Number.isFinite(details.timeStamp)
+        ? details.timeStamp
+        : Date.now();
+    record(details.tabId, details.url, details.type, privateContext, at);
   });
 };
 
@@ -426,10 +479,55 @@ export const pushBufferedScriptMedia = (tabId: number): void => {
     if (!map || map.size === 0) return;
     send(
       tabId,
-      [...map].map(([url, kind]) => ({ url, kind })),
+      [...map].map(([url, media]) => wireEntry(url, media)),
     );
   });
 };
+
+// Runs a read of one tab's buffer behind that tab's queued events, so it can
+// neither overtake the main_frame reset before it nor read a buffer a queued
+// reset is about to drop. Resolves `fallback` whenever the collector or its
+// automatic opt-in is off.
+const readAutomaticBuffer = <T>(
+  tabId: number,
+  fallback: T,
+  read: (map: Map<string, BufferedMedia>) => T,
+): Promise<T> =>
+  new Promise((resolve) => {
+    const readGeneration = generation;
+    queueTabOperation(tabId, async () => {
+      await initialized();
+      const held = await checkWebRequestPermission();
+      if (held !== true || readGeneration !== generation || !isAutomaticConfigured()) {
+        resolve(fallback);
+        return;
+      }
+      await hydrate();
+      const map = buffers.get(tabId);
+      resolve(readGeneration === generation && map ? read(map) : fallback);
+    });
+  });
+
+// The whole-file media this tab's collector buffer holds, for an automatic
+// discovery that mounted after the requests were already pushed (or lost).
+export const automaticScriptMediaForTab = (tabId: number): Promise<ScriptMediaReplayEntry[]> =>
+  readAutomaticBuffer(tabId, [], (map) =>
+    [...map].flatMap(([url, { kind, auto, at }]) => (auto ? [{ url, kind, at }] : [])),
+  );
+
+// Background backstop for a content-claimed script-media candidate: the URL
+// must still be in this tab's buffer, judged a whole file, of the claimed kind.
+// The content scan strips a fragment the webRequest URL never carries, so the
+// buffer is compared on the same fragment-free form.
+export const isAutomaticScriptMediaCollected = (
+  tabId: number,
+  sourceUrl: string,
+  kind: PageSourceKind,
+): Promise<boolean> =>
+  readAutomaticBuffer(tabId, false, (map) => {
+    const media = map.get(sourceUrl);
+    return media?.auto === true && media.kind === kind;
+  });
 
 // Firefox event pages do not reliably wake the background permissions.onAdded
 // listener for a silently granted optional webRequest permission. The config

@@ -96,8 +96,10 @@ this condition.
 `audio`, `stream`, `document`, and `link`. The automatic page scanner always
 queues previewable HTTP(S) image, video, and audio elements. Four further
 content options each open one additional discovery channel, and a fifth admits
-`data:` URLs through whichever channel found them. All are off by default so
-existing rules keep matching embedded media only until a channel is turned on:
+`data:` URLs through whichever channel found them. A sixth, described in
+[Media loaded by scripts](#media-loaded-by-scripts), adopts whole files seen on
+the network. All are off by default so existing rules keep matching embedded
+media only until a channel is turned on:
 
 - **Include media that pages link to** adopts anchors (`<a href>`) the shared
   collector classifies as previewable media — `image`, `video`, or `audio` by
@@ -133,6 +135,45 @@ existing rules keep matching embedded media only until a channel is turned on:
   into output; this keeps the payload out of filenames and History. `blob:` URLs
   are never adopted: they cannot be resolved outside the page that created them.
 
+### Media loaded by scripts
+
+**Include media loaded by scripts** adopts URLs that page scripts request over
+the network: media fetched by a worker or `fetch`/XHR, a player inside a
+cross-origin frame, or a PDF viewer that downloads its document. None of these
+appear in the page's DOM, so the scan above cannot find them. The option reads
+what **Options → Page Sources → Detect media loaded by scripts** observes, so
+that option and the optional network-access permission it requests must also
+be on. Private windows stay excluded unless **Allow in private windows** is on.
+
+Only whole files are adopted, never pieces of a stream:
+
+- HLS/DASH playlists (`.m3u8`/`.mpd`), images, and PDFs are adopted however a
+  script requested them. A saved playlist is the playlist text file itself;
+  Save In does not fetch or assemble the segments it lists.
+- Video and audio are adopted only when a player element requested the file
+  itself (for example a `<video>` inside an embedded frame), the URL ends in
+  that kind's extension, and the tab has not loaded a playlist. Media that a
+  script fetches, such as the fragmented `.mp4`/`.m4a`/`.webm` segments of an
+  adaptive player, is never adopted, and once a page loads a playlist its media
+  requests are treated as that stream's segments.
+
+These candidates use the `script-media` channel internally and keep their
+ordinary `sourcekind:` (`image`, `video`, `audio`, `stream`, or `document`), so
+existing rules match them without changes. They share the once-per-visit
+de-duplication and **Maximum saves per page visit** with every other channel:
+a URL already saved from the page is not saved again, and a URL saved from the
+network is not saved again when it later appears in the page. They have no
+page element, so `css:` conditions never match them. Before each save the
+background confirms that it observed the URL in that tab as a whole file, so a
+stale or modified page script cannot widen what is saved.
+
+Media requested before the page finished loading is collected and offered once
+when automatic discovery starts; later requests are adopted only while
+**Include sources added after the page loads** is on. After Chrome stops an
+idle Save In service worker, the request that wakes it is not delivered, so the
+first media request after a long idle period can be missed until the page is
+reloaded.
+
 Each channel is gated independently by its own option and by where a
 candidate actually came from, not only by its `sourcekind`. A `.m3u8`
 discovered as a page anchor is gated by **Include linked documents and
@@ -165,8 +206,8 @@ block saving a rule.
 - **Allow in private windows** is a separate opt-in and defaults to off.
 - **Include media that pages link to**, **Include linked documents and
   streams**, **Include CSS background images**, **Look for streaming-video
-  playlists**, and **Include inline data: images and media** are grouped under
-  **Automatic scan coverage**. Each is a separate opt-in and defaults to off;
+  playlists**, **Include inline data: images and media**, and **Include media
+  loaded by scripts** are grouped under **Automatic scan coverage**. Each is a separate opt-in and defaults to off;
   when all are off, only HTTP(S) media embedded on the page is adopted.
   **Include inline data: images and media** admits `data:` URLs up to 2 MB
   each; `blob:` URLs are never adopted.
@@ -209,8 +250,9 @@ compatibility, but new configurations should put all automatic rules in
   the page to begin a new visit.
 - If a resource never appears, confirm the page exposes a previewable HTTP(S)
   source, or an inline `data:` source under 2 MB with **Include inline data:
-  images and media** enabled. `blob:` and page-script-only resources are never
-  adopted.
+  images and media** enabled. `blob:` URLs are never adopted, and media that
+  only scripts request needs **Include media loaded by scripts** together with
+  Page Sources' **Detect media loaded by scripts**.
 
 The machine-facing validation and vocabulary contract is documented in
 [Integrations](../integrating/INTEGRATIONS.md#config-messages).

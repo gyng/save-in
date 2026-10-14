@@ -29,10 +29,15 @@ export type ReachabilityOptions = {
   autoDownloadBackgrounds: boolean;
   autoDownloadManifests: boolean;
   autoDownloadDataUrls: boolean;
+  autoDownloadScriptMedia: boolean;
 };
 
 // Option names double as their _locales label keys, so surfaces can render
-// the exact checkbox label the user must turn on.
+// the exact checkbox label the user must turn on. autoDownloadScriptMedia is
+// read for producibility but never advised: it supplies nothing until Page
+// Sources' script-media collector and its permission are on too, so naming it
+// alone would be incomplete advice, and every kind it adds already has an
+// advisable channel here.
 const CHANNEL_OPTION_IDS = [
   "autoDownloadLinks",
   "autoDownloadDocuments",
@@ -48,6 +53,7 @@ export const REACHABILITY_OPTION_IDS = [
   "autoDownloadBackgrounds",
   "autoDownloadManifests",
   "autoDownloadDataUrls",
+  "autoDownloadScriptMedia",
 ] as const;
 
 // Rule-card diagnostics never consult the data: gate (the admission probe
@@ -67,6 +73,7 @@ export const readReachabilityOptions = (
   autoDownloadBackgrounds: checked("autoDownloadBackgrounds"),
   autoDownloadManifests: checked("autoDownloadManifests"),
   autoDownloadDataUrls: checked("autoDownloadDataUrls"),
+  autoDownloadScriptMedia: checked("autoDownloadScriptMedia"),
 });
 
 export type RuleReachabilityDiagnostic =
@@ -106,6 +113,7 @@ const scanGates = (options: ReachabilityOptions): AutomaticScanGates => ({
   includeBackgrounds: options.autoDownloadBackgrounds,
   resourceHints: options.autoDownloadManifests,
   includeDataUrls: options.autoDownloadDataUrls,
+  includeScriptMedia: options.autoDownloadScriptMedia,
 });
 
 // Every discovery path a candidate can arrive through: the three gated

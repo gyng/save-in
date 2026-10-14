@@ -163,6 +163,9 @@ export const MESSAGE_TYPES = {
   // Background → content: script-loaded media the webRequest collector observed
   // (opt-in). Delivered as a batch to merge into the Page Sources panel.
   SCRIPT_MEDIA_DETECTED: "SCRIPT_MEDIA_DETECTED",
+  // Content → background: the whole-file script media already buffered for the
+  // sending tab, for an automatic discovery that mounted after it was pushed.
+  SCRIPT_MEDIA_AUTO_REPLAY: "SCRIPT_MEDIA_AUTO_REPLAY",
   DIAGNOSTICS_GET: "DIAGNOSTICS_GET",
   DIAGNOSTICS_CLEAR_FAILURES: "DIAGNOSTICS_CLEAR_FAILURES",
   HISTORY_GET: "HISTORY_GET",

@@ -11,6 +11,10 @@ import { matchesAnyPatternOrUnreadable } from "../../shared/match-pattern.ts";
 import { normalizeContentOption } from "../../config/content-options.ts";
 import { isDataUrl, isDataUrlWithinCap, parseDataUrlMediaType } from "../../shared/data-url.ts";
 import { addLogEntry } from "../log.ts";
+import {
+  automaticScriptMediaForTab,
+  isAutomaticScriptMediaCollected,
+} from "../script-media-collector.ts";
 import type { MessageOf } from "../../shared/message-protocol.ts";
 import type { MessageSender, ProtocolSendResponse } from "./protocol.ts";
 import { isPageContentSender } from "./protocol.ts";
@@ -65,6 +69,10 @@ export const handleAutoDownloadSource = async (
     ),
     resourceHints: normalizeContentOption("autoDownloadManifests", options.autoDownloadManifests),
     includeDataUrls: normalizeContentOption("autoDownloadDataUrls", options.autoDownloadDataUrls),
+    includeScriptMedia: normalizeContentOption(
+      "autoDownloadScriptMedia",
+      options.autoDownloadScriptMedia,
+    ),
   };
   if (!isAdmittedAutomaticSource(request.body.sourceKind, request.body.sourceChannel, gates)) {
     skip();
@@ -81,6 +89,18 @@ export const handleAutoDownloadSource = async (
         { privateContext: senderTab.incognito === true },
       );
     }
+    skip();
+    return;
+  }
+  // Backstop: a script-media candidate is only a claim by the content script.
+  // It must name a URL the collector itself observed in this tab and judged a
+  // whole file, so no message can turn an arbitrary URL, a stream segment, or
+  // another tab's traffic into an unattended save.
+  if (
+    request.body.sourceChannel === "script-media" &&
+    (typeof senderTab.id !== "number" ||
+      !(await isAutomaticScriptMediaCollected(senderTab.id, sourceUrl, request.body.sourceKind)))
+  ) {
     skip();
     return;
   }
@@ -133,6 +153,29 @@ export const handleAutoDownloadSource = async (
   sendResponse({
     type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
     body: { status: result.status },
+  });
+};
+
+// Hands a freshly mounted automatic discovery the whole-file media the
+// collector already buffered for its tab. Only candidates leave here: each one
+// still goes through AUTO_DOWNLOAD_SOURCE, which repeats every gate and the
+// rule match. A private tab gets nothing unless private automatic saves are on,
+// so its network observations are not even offered.
+export const handleScriptMediaAutoReplay = async (
+  _request: MessageOf<typeof MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY>,
+  sender: MessageSender,
+  sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY>>,
+): Promise<void> => {
+  const tabId = sender.tab?.id;
+  const allowed =
+    options.autoDownloadEnabled === true &&
+    normalizeContentOption("autoDownloadScriptMedia", options.autoDownloadScriptMedia) &&
+    (sender.tab?.incognito !== true || options.autoDownloadPrivate === true);
+  sendResponse({
+    type: MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY,
+    body: {
+      sources: allowed && typeof tabId === "number" ? await automaticScriptMediaForTab(tabId) : [],
+    },
   });
 };
 

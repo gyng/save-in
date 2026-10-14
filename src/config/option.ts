@@ -63,6 +63,8 @@ export const OptionsManagement: OptionsManagementApi = {
       "Also adopt HLS/DASH manifest URLs found in resource timing; saves the manifest file itself, not the assembled stream.",
     autoDownloadDataUrls:
       "Also adopt self-contained inline data: image and media URLs, up to 2 MB each; larger ones are skipped.",
+    autoDownloadScriptMedia:
+      "Also adopt whole media files that Detect media loaded by scripts observed on the network; never stream segments.",
     autoDownloadMaxPerPage: "Maximum automatic saves allowed during one page visit.",
     sourcePanelEnabled: "Enable the toolbar source browser for DOM-visible page media.",
     sourcePanelBackgrounds: "Include URLs found in computed CSS background images.",

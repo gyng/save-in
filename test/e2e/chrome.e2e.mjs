@@ -265,9 +265,16 @@ const startSourcePanelServer = async () => {
   const server = http.createServer((req, res) => {
     if (req.url?.startsWith("/script-media-worker.js")) {
       res.writeHead(200, { "Content-Type": "application/javascript" });
+      // An MSE-style fragmented-MP4 segment first, then the manifest, so a
+      // wrongly adopted segment would be queued ahead of the manifest's save.
       res.end(
-        `fetch("/script-only.m3u8").then(() => postMessage("done"), (error) => postMessage(String(error)))`,
+        `fetch("/script-seg-1.mp4").then(() => fetch("/script-only.m3u8")).then(() => postMessage("done"), (error) => postMessage(String(error)))`,
       );
+      return;
+    }
+    if (req.url === "/script-seg-1.mp4") {
+      res.writeHead(200, { "Content-Type": "video/mp4" });
+      res.end(Buffer.alloc(16));
       return;
     }
     if (req.url === "/script-only.m3u8") {
@@ -2778,12 +2785,21 @@ into: e2e/automatic-phase-c-chrome/inline.:mimeext:`,
   }
 });
 
-test("script-media permission discovers hidden fetches and revokes cleanly", async () => {
+test("script-media permission discovers hidden fetches, saves the whole file, and revokes cleanly", async () => {
   const { server, port } = await startSourcePanelServer();
   const pagePath = `127.0.0.1:${port}/script-media-sources`;
   const pageUrl = `http://${pagePath}`;
   /** @param {string} expression */
   const evalPage = (expression) => cdp.evalInTarget(PORT, pagePath, expression);
+  const automaticKeys = [
+    "autoDownloadEnabled",
+    "autoDownloadLive",
+    "autoDownloadScriptMedia",
+    "autoDownloadMaxPerPage",
+    "filenamePatterns",
+  ];
+  const previous = await control.storage.local.get(automaticKeys);
+  const missingAutomaticKeys = automaticKeys.filter((key) => !(key in previous));
 
   try {
     await evalOptions(`chrome.permissions.remove({ permissions: ["webRequest"] })`);
@@ -2795,6 +2811,17 @@ test("script-media permission discovers hidden fetches and revokes cleanly", asy
       sourcePanelResourceHints: false,
       sourcePanelLinks: false,
       sourcePanelScriptMedia: false,
+      // The same worker traffic feeds automatic saves: the rule matches both
+      // the segment and the manifest, so only the whole-file filter decides.
+      autoDownloadEnabled: true,
+      autoDownloadLive: true,
+      autoDownloadScriptMedia: true,
+      autoDownloadMaxPerPage: 5,
+      filenamePatterns: `context: ^auto$
+pageurl: ^http://127\\.0\\.0\\.1:${port}/script-media-sources$
+sourcekind: ^(?:stream|video)$
+sourceurl: /script-
+into: e2e/script-media-auto-chrome/:filename:`,
     });
     await control.runtime.reset();
     await reloadOptionsPage();
@@ -2932,6 +2959,14 @@ test("script-media permission discovers hidden fetches and revokes cleanly", asy
         .some((element) => element.textContent === "script-only.m3u8")`,
       { description: "worker-loaded HLS source in Chrome Page Sources" },
     );
+    // Exactly one automatic save: the manifest. The segment was fetched first,
+    // so had it been adopted it would already be among these rows.
+    const saved = await control.downloads.wait({
+      filenameRegex: "script-media-auto-chrome",
+      minimumComplete: 1,
+      timeoutMs: 10000,
+    });
+    expect(saved.map((row) => row.filename.split(/[\\/]/).at(-1))).toEqual(["script-only.m3u8"]);
 
     const optionReverted = control.storage.local.wait("sourcePanelScriptMedia", false);
     expect(await evalOptions(`chrome.permissions.remove({ permissions: ["webRequest"] })`)).toBe(
@@ -2943,9 +2978,11 @@ test("script-media permission discovers hidden fetches and revokes cleanly", asy
     await Promise.all([
       control.storage.session.set({ sourcePanelOpen: false }),
       control.storage.local.set({
+        ...previous,
         sourcePanelEnabled: false,
         sourcePanelScriptMedia: false,
       }),
+      control.storage.local.remove(missingAutomaticKeys),
     ]);
     const fixtureIds = (await control.tabs.query())
       .filter((tab) => tab.url?.includes(`127.0.0.1:${port}/script-media-sources`))

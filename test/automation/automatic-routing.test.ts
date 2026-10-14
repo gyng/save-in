@@ -1,6 +1,7 @@
 import {
   automaticRoutingRuleIssues,
   isAdmittedAutomaticSource,
+  isWholeFileScriptMediaRequest,
   matchAutomaticRoutingRule,
   normalizeAutomaticSourceUrl,
   type AutomaticScanGates,
@@ -288,6 +289,7 @@ describe("isAdmittedAutomaticSource", () => {
     includeBackgrounds: false,
     resourceHints: false,
     includeDataUrls: false,
+    includeScriptMedia: false,
   };
   const ALL_ON: AutomaticScanGates = {
     includeLinks: true,
@@ -295,6 +297,7 @@ describe("isAdmittedAutomaticSource", () => {
     includeBackgrounds: true,
     resourceHints: true,
     includeDataUrls: true,
+    includeScriptMedia: true,
   };
 
   test.each<[PageSourceKind]>([["image"], ["video"], ["audio"]])(
@@ -387,25 +390,95 @@ describe("isAdmittedAutomaticSource", () => {
     },
   );
 
+  test.each<[PageSourceKind]>([["image"], ["video"], ["audio"], ["stream"], ["document"]])(
+    "gates a script-media %s on includeScriptMedia alone",
+    (kind) => {
+      expect(isAdmittedAutomaticSource(kind, "script-media", ALL_OFF)).toBe(false);
+      expect(
+        isAdmittedAutomaticSource(kind, "script-media", { ...ALL_OFF, includeScriptMedia: true }),
+      ).toBe(true);
+      // Every other channel gate on, including the manifests gate that also
+      // adopts streams, must not open the network channel.
+      expect(
+        isAdmittedAutomaticSource(kind, "script-media", { ...ALL_ON, includeScriptMedia: false }),
+      ).toBe(false);
+    },
+  );
+
+  test("the script-media gate opens no other channel", () => {
+    const scriptOnly = { ...ALL_OFF, includeScriptMedia: true };
+    expect(isAdmittedAutomaticSource("stream", "resource-hint", scriptOnly)).toBe(false);
+    expect(isAdmittedAutomaticSource("document", "anchor", scriptOnly)).toBe(false);
+    expect(isAdmittedAutomaticSource("image", "background", scriptOnly)).toBe(false);
+  });
+
   test("a .m3u8 anchor is not adopted merely because the manifests gate is on", () => {
     expect(isAdmittedAutomaticSource("stream", "anchor", { ...ALL_OFF, resourceHints: true })).toBe(
       false,
     );
   });
 
-  test.each<[PageSourceChannel]>([["anchor"], ["background"], ["resource-hint"]])(
+  test.each<[PageSourceChannel]>([["anchor"], ["background"], ["resource-hint"], ["script-media"]])(
     "%s never admits a kind that channel cannot produce, even with every gate on",
     (channel) => {
       const impossible: Record<PageSourceChannel, PageSourceKind[]> = {
         anchor: [],
         background: ["video", "audio", "stream", "document", "link"],
         "resource-hint": ["image", "video", "audio", "document", "link"],
+        "script-media": ["link"],
       };
       for (const kind of impossible[channel]) {
         expect(isAdmittedAutomaticSource(kind, channel, ALL_ON)).toBe(false);
       }
     },
   );
+});
+
+describe("isWholeFileScriptMediaRequest", () => {
+  const whole = (
+    url: string,
+    kind: PageSourceKind,
+    requestType: string,
+    tabHasStream = false,
+  ): boolean => isWholeFileScriptMediaRequest({ url, kind, requestType, tabHasStream });
+
+  test.each<[string, PageSourceKind, string]>([
+    ["https://cdn.test/live/master.m3u8", "stream", "xmlhttprequest"],
+    ["https://cdn.test/dash/manifest.mpd?token=1", "stream", "xmlhttprequest"],
+    ["https://cdn.test/viewer/report.pdf", "document", "xmlhttprequest"],
+    ["https://cdn.test/viewer/report.pdf", "document", "object"],
+    ["https://cdn.test/gallery/photo.jpg", "image", "xmlhttprequest"],
+    ["https://cdn.test/gallery/photo.webp", "image", "other"],
+    ["https://cdn.test/clips/intro.mp4", "video", "media"],
+    ["https://cdn.test/podcast/episode.mp3", "audio", "media"],
+    ["https://cdn.test/embed/movie.webm", "video", "object"],
+  ])("adopts whole file %s (%s via %s)", (url, kind, requestType) => {
+    expect(whole(url, kind, requestType)).toBe(true);
+  });
+
+  test.each<[string, PageSourceKind, string]>([
+    // MSE players fetch fragmented-MP4/WebM/AAC segments with fetch/XHR, under
+    // ordinary media extensions.
+    ["https://cdn.test/hls/seg-00001.mp4", "video", "xmlhttprequest"],
+    ["https://cdn.test/dash/chunk-1.webm", "video", "xmlhttprequest"],
+    ["https://cdn.test/dash/audio-0001.m4a", "audio", "xmlhttprequest"],
+    ["https://cdn.test/progressive/track.mp3", "audio", "other"],
+    // The collector's extensionless media-element fallback (a natively played
+    // .ts segment reaches it the same way) names no kind of its own.
+    ["https://cdn.test/hls/segment-7.ts", "video", "media"],
+    ["https://cdn.test/videoplayback?id=1", "video", "media"],
+    ["https://cdn.test/page", "link", "xmlhttprequest"],
+  ])("refuses %s (%s via %s)", (url, kind, requestType) => {
+    expect(whole(url, kind, requestType)).toBe(false);
+  });
+
+  test("treats media-element requests on a streaming tab as that stream's segments", () => {
+    expect(whole("https://cdn.test/hls/seg-1.mp4", "video", "media", true)).toBe(false);
+    expect(whole("https://cdn.test/hls/audio-1.m4a", "audio", "media", true)).toBe(false);
+    // Whole-file kinds stay adoptable beside a stream.
+    expect(whole("https://cdn.test/hls/variant.m3u8", "stream", "xmlhttprequest", true)).toBe(true);
+    expect(whole("https://cdn.test/poster.jpg", "image", "xmlhttprequest", true)).toBe(true);
+  });
 });
 
 describe("normalizeAutomaticSourceUrl", () => {

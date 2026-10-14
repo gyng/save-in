@@ -4859,6 +4859,14 @@
     "message": "Adopts self-contained data: URLs, up to 2 MB each; larger ones are skipped.",
     "description": "Explains that inline data: sources are adopted with a 2 MB per-URL size limit. Used in src/options/options.html."
   },
+  "autoDownloadScriptMedia": {
+    "message": "Include media loaded by scripts",
+    "description": "Checkbox label that opts in to automatically saving media that page scripts load over the network, as observed by the Page Sources option “Detect media loaded by scripts”. Off by default. Also shown in routing-rule hints that name the option to turn on. Used in src/options/options.html."
+  },
+  "autoDownloadScriptMediaHelp": {
+    "message": "Needs “Detect media loaded by scripts” in Page Sources. Adopts whole files only: images, PDFs, playlists, and video or audio that a player loads directly. Stream segments are never saved.",
+    "description": "Help text under the automatic script-media option. Names the Page Sources option it depends on (reuse that option's translated label without its parenthetical) and explains that only complete files are saved, never pieces of a stream. Used in src/options/options.html."
+  },
   "autoDownloadLimit": {
     "message": "Maximum saves per page visit",
     "description": "Label for the automatic-download safety limit. Used in src/options/options.html."

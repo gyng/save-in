@@ -75,6 +75,16 @@ export const setupOptionDependencies = () => {
         "sourcePanelShortcutReset",
       ],
     },
+    // Automatic script-media saves read the Page Sources collector, which runs
+    // only while its own option (and so its optional permission) is on. Listed
+    // after the Page Sources entry so that entry has already settled whether
+    // the collector checkbox is itself disabled.
+    {
+      parent: "autoDownloadEnabled",
+      watches: ["sourcePanelEnabled", "sourcePanelScriptMedia"],
+      children: ["autoDownloadScriptMedia"],
+      when: () => checked("autoDownloadEnabled") && checked("sourcePanelScriptMedia"),
+    },
     { parent: "tabEnabled", children: ["closeTabOnSave"] },
     {
       parent: "quickSaveEnabled",

@@ -286,8 +286,10 @@ for reproducible bytes.
 - An optional webRequest permission is requested only when the user turns on
   the off-by-default Page Sources option "Detect media loaded by scripts".
   When granted, a listener observes media-carrying request types to surface
-  script-loaded media (HLS/DASH, fetch/XHR) in the Page Sources panel,
-  entirely on the device. Turning the option off or revoking the permission
+  script-loaded media (HLS/DASH, fetch/XHR) in the Page Sources panel and,
+  only if the off-by-default "Include media loaded by scripts" automatic-save
+  option is also on, to the user's own automatic save rules, entirely on the
+  device. Turning the option off or revoking the permission
   tears the listener down; webRequestBlocking is never requested.
 - Webhooks (the only feature that can send data off the device) are disabled by
   default, have no developer endpoint, require the user to add an endpoint and

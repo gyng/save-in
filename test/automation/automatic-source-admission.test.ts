@@ -10,6 +10,7 @@ const ALL_OFF: AutomaticScanGates = {
   includeBackgrounds: false,
   resourceHints: false,
   includeDataUrls: false,
+  includeScriptMedia: false,
 };
 const ALL_ON: AutomaticScanGates = {
   includeLinks: true,
@@ -17,6 +18,7 @@ const ALL_ON: AutomaticScanGates = {
   includeBackgrounds: true,
   resourceHints: true,
   includeDataUrls: true,
+  includeScriptMedia: true,
 };
 
 // The exhaustive channel x kind x gate matrix lives in automatic-routing.test.ts.

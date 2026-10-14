@@ -3135,6 +3135,12 @@
   "autoDownloadDataUrlsHelp": {
     "message": "자체 포함된 data: URL을 개당 최대 2 MB까지 가져옵니다. 더 큰 것은 건너뜁니다."
   },
+  "autoDownloadScriptMedia": {
+    "message": "스크립트가 불러오는 미디어 포함"
+  },
+  "autoDownloadScriptMediaHelp": {
+    "message": "페이지 소스의 ‘스크립트가 불러오는 미디어 감지’가 필요합니다. 완전한 파일만 가져옵니다: 이미지, PDF, 재생 목록, 그리고 플레이어가 직접 불러오는 동영상이나 오디오. 스트림 세그먼트는 저장하지 않습니다."
+  },
   "autoDownloadLimit": {
     "message": "페이지 방문당 최대 저장 수"
   },

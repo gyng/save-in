@@ -179,6 +179,10 @@ export type InternalResponseMap = {
   [MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE]: AutoDownloadSourceResponse;
   [MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED]: OkResponse;
   [MESSAGE_TYPES.SOURCE_PANEL_READY]: OkResponse;
+  [MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY]: Response<
+    typeof MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY,
+    { sources: ScriptMediaReplayEntry[] }
+  >;
   [MESSAGE_TYPES.SOURCE_PANEL_STATE]: OkResponse;
   [MESSAGE_TYPES.SOURCE_PANEL_COPY]: Response<
     typeof MESSAGE_TYPES.SOURCE_PANEL_COPY,
@@ -333,6 +337,10 @@ export type AutoDownloadSourceRequestBody = {
 // reached. maxPerPage is what the sending content script currently has
 // resolved, so the log entry can name the limit that fired without the
 // background needing to trust anything beyond a bounded positive integer.
+// One buffered whole-file script-media URL and when the collector last saw it
+// (epoch ms), so the content script can ignore an earlier page's leftovers.
+export type ScriptMediaReplayEntry = { url: string; kind: PageSourceKind; at: number };
+
 export type AutoDownloadLimitReachedRequestBody = {
   maxPerPage: number;
 };
@@ -350,6 +358,7 @@ export type InternalMessage =
       AutoDownloadLimitReachedRequestBody
     >
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_READY>
+  | Message<typeof MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY>
   | OptionalBodyMessage<typeof MESSAGE_TYPES.SOURCE_PANEL_STATE, { open: boolean }>
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_COPY>
   | RequiredBodyMessage<typeof MESSAGE_TYPES.CREATE_SOURCE_RULE, CreateSourceRuleRequestBody>
@@ -425,6 +434,7 @@ const INTERNAL_MESSAGE_TYPE_MAP = {
   [MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE]: true,
   [MESSAGE_TYPES.AUTO_DOWNLOAD_LIMIT_REACHED]: true,
   [MESSAGE_TYPES.SOURCE_PANEL_READY]: true,
+  [MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY]: true,
   [MESSAGE_TYPES.SOURCE_PANEL_STATE]: true,
   [MESSAGE_TYPES.SOURCE_PANEL_COPY]: true,
   [MESSAGE_TYPES.CREATE_SOURCE_RULE]: true,
@@ -700,6 +710,7 @@ const isMessageBodyValid = (message: Record<string, unknown> & { type: string })
       );
     case MESSAGE_TYPES.WAKE_WARM:
     case MESSAGE_TYPES.SOURCE_PANEL_READY:
+    case MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY:
     case MESSAGE_TYPES.SOURCE_PANEL_COPY:
     case MESSAGE_TYPES.DIAGNOSTICS_GET:
     case MESSAGE_TYPES.DIAGNOSTICS_CLEAR_FAILURES:

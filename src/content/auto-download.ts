@@ -17,12 +17,14 @@ import {
   iterateBackgroundElements,
   resourceTimingByUrl,
   type PageSourceCandidate,
+  type PageSourceKind,
   type ResourceTimingByUrl,
 } from "./source-panel-model.ts";
 import { startChunkedElementScan, type ChunkedElementScan } from "./chunked-element-scan.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { normalizeAutoDownloadLimit } from "../config/content-options.ts";
+import { isPageSourceKind } from "../shared/page-source.ts";
 import {
   automaticSeenKey,
   DATA_URL_COLLECTION_CHARACTER_BUDGET,
@@ -74,6 +76,10 @@ export type AutoDownloadDiscoveryOptions = {
   // <img src="data:…"> stays channel-absent embedded media; a data: anchor still
   // needs its channel gate). blob: is never admitted. Off by default.
   includeDataUrls: boolean;
+  // Adopts whole media files the opt-in webRequest collector observed
+  // (autoDownloadScriptMedia). They arrive through addScriptMedia, never from
+  // the DOM scan; the background re-checks each one against its own buffer.
+  includeScriptMedia: boolean;
   // Enforced at dispatch time against the live URL so a single-page-app
   // navigation onto the disable list stops queued saves without an options
   // change, and one off it resumes them.
@@ -82,8 +88,28 @@ export type AutoDownloadDiscoveryOptions = {
   onLimitReached?: (() => void) | undefined;
   dedup?: AutoDownloadDedup | undefined;
 };
+export type ScriptMediaCandidate = { url: string; kind: PageSourceKind; at: number };
+
+// Narrows a background message's script-media list to automatic candidates.
+// A live push carries every buffered kind for the panel, so only entries the
+// collector marked as whole files are kept; a replay already holds only those.
+export const scriptMediaCandidates = (
+  raw: unknown,
+  requireAutoMarker: boolean,
+): ScriptMediaCandidate[] => {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((entry: unknown): ScriptMediaCandidate[] => {
+    if (!entry || typeof entry !== "object") return [];
+    const { url, kind, at, auto } = entry as Record<string, unknown>;
+    if (typeof url !== "string" || !isPageSourceKind(kind)) return [];
+    if (typeof at !== "number" || !Number.isFinite(at)) return [];
+    if (requireAutoMarker && auto !== true) return [];
+    return [{ url, kind, at }];
+  });
+};
 export type AutoDownloadDiscovery = {
   scan(root?: Document | Element): void;
+  addScriptMedia(sources: readonly ScriptMediaCandidate[]): void;
   idle(): Promise<void>;
   stop(): void;
 };
@@ -97,6 +123,11 @@ const AUTO_EXCLUSION_CACHE_LIMIT = 1024;
 // each live rescan, outside the per-page budget, with a failure notice each time.
 const AUTO_FAILED_RETRY_LIMIT = 1;
 const AUTO_FAILED_ATTEMPT_LIMIT = 1024;
+// The collector stamps each URL with the browser's request time and this page's
+// performance.timeOrigin is its navigation start; both are wall-clock epoch ms
+// taken in different processes. The allowance absorbs their skew while still
+// refusing a buffer left over from a page visited seconds earlier.
+const SCRIPT_MEDIA_CLOCK_ALLOWANCE_MS = 1000;
 const MUTABLE_AUTOMATIC_MATCHERS = new Set(["css", "mediatype", "pagetitle", "sourcekind"]);
 
 const hasMutableAutomaticEvidence = (rule: readonly { name: string }[]): boolean =>
@@ -348,6 +379,7 @@ export const setupAutoDownloadDiscovery = (
         includeBackgrounds: options.includeBackgrounds,
         resourceHints: options.resourceHints,
         includeDataUrls: options.includeDataUrls,
+        includeScriptMedia: options.includeScriptMedia,
       };
       if (!isAdmittedAutomaticSource(source.kind, source.channel, gates)) continue;
       const sourceUrl = normalizeAutomaticSourceUrl(source.url, gates);
@@ -572,8 +604,27 @@ export const setupAutoDownloadDiscovery = (
   }
   scan(document);
 
+  const addScriptMedia = (sources: readonly ScriptMediaCandidate[]) => {
+    if (stopped || !options.includeScriptMedia || automaticRules.length === 0) return;
+    // Same contract as scan(): a disabled page consumes no slot or budget.
+    if (options.isPageDisabled()) return;
+    const visitStart = performance.timeOrigin - SCRIPT_MEDIA_CLOCK_ALLOWANCE_MS;
+    route(
+      sources
+        .filter(({ at }) => at >= visitStart)
+        .map(({ url, kind }): PageSourceCandidate => ({
+          url,
+          kind,
+          element: document.body,
+          collectorOriginElements: [],
+          channel: "script-media",
+        })),
+    );
+  };
+
   return {
     scan,
+    addScriptMedia,
     idle: () =>
       draining || queue.length > 0 || backgroundScans.size > 0
         ? new Promise<void>((resolve) => idleWaiters.add(resolve))

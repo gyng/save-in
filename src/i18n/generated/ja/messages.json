@@ -3135,6 +3135,12 @@
   "autoDownloadDataUrlsHelp": {
     "message": "自己完結型の data: URL を 1 件あたり最大 2 MB まで取り込みます。それより大きいものはスキップされます。"
   },
+  "autoDownloadScriptMedia": {
+    "message": "スクリプトが読み込むメディアも含める"
+  },
+  "autoDownloadScriptMediaHelp": {
+    "message": "ページソースの「スクリプトが読み込むメディアを検出」が必要です。取り込むのは完全なファイルのみです：画像、PDF、プレイリスト、およびプレーヤーが直接読み込む動画や音声。ストリームのセグメントは保存しません。"
+  },
   "autoDownloadLimit": {
     "message": "1 回のページ訪問での最大保存数"
   },

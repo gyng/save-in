@@ -7,7 +7,11 @@ import {
   isAutomaticRuleClauses,
   type AutomaticRuleIssue,
 } from "../routing/automatic-rule.ts";
-import type { PageSourceChannel, PageSourceKind } from "../shared/page-source.ts";
+import {
+  classifyUrlKind,
+  type PageSourceChannel,
+  type PageSourceKind,
+} from "../shared/page-source.ts";
 import { isDataUrl, isDataUrlWithinCap, parseDataUrlMediaType } from "../shared/data-url.ts";
 import { RULE_TYPES } from "../shared/constants.ts";
 
@@ -42,6 +46,7 @@ export type AutomaticScanGates = {
   includeBackgrounds: boolean;
   resourceHints: boolean;
   includeDataUrls: boolean;
+  includeScriptMedia: boolean;
 };
 
 export const normalizeAutomaticSourceUrl = (
@@ -82,11 +87,42 @@ export const isAdmittedAutomaticSource = (
   if (channel === undefined) return kind === "image" || kind === "video" || kind === "audio";
   if (channel === "background") return gates.includeBackgrounds && kind === "image";
   if (channel === "resource-hint") return gates.resourceHints && kind === "stream";
+  // The collector only ever hands over recognized media; a plain link has no
+  // whole-file meaning and is refused here even if a message claims one.
+  if (channel === "script-media") return gates.includeScriptMedia && kind !== "link";
   if (channel === "anchor") {
     if (kind === "image" || kind === "video" || kind === "audio") return gates.includeLinks;
     if (kind === "stream" || kind === "document") return gates.includeDocuments;
   }
   return false;
+};
+
+// Which network-observed media may become an automatic candidate at all. The
+// collector buffers everything it recognizes for the Page Sources panel, but an
+// unattended save must never adopt a fragment of a stream: HLS/DASH players fetch
+// segments with fetch/XHR, often under .mp4/.m4a/.webm names, and a browser
+// playing HLS natively issues media-element requests for every segment. So:
+// - stream manifests, images, and documents are whole files however they were
+//   fetched (an XHR-fetched PDF or image is still the complete resource);
+// - video/audio count only when a media element or <object>/<embed> requested
+//   the URL itself, the URL's own extension names that kind (the collector's
+//   extensionless media-element fallback could be a .ts segment), and the tab
+//   has not loaded a stream manifest, after which its media requests are
+//   presumed to be that stream's segments.
+export const isWholeFileScriptMediaRequest = (request: {
+  url: string;
+  kind: PageSourceKind;
+  requestType: string;
+  tabHasStream: boolean;
+}): boolean => {
+  const { url, kind, requestType, tabHasStream } = request;
+  if (kind === "stream" || kind === "image" || kind === "document") return true;
+  if (kind !== "video" && kind !== "audio") return false;
+  return (
+    (requestType === "media" || requestType === "object") &&
+    classifyUrlKind(url) === kind &&
+    !tabHasStream
+  );
 };
 
 export type AutomaticRoutingMatch = RuleMatch;

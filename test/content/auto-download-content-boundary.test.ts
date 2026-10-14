@@ -8,6 +8,7 @@ vi.mock("../../src/content/source-panel-model.ts", async (importOriginal) => ({
 
 import {
   createAutoDownloadDedup,
+  scriptMediaCandidates,
   setupAutoDownloadDiscovery as rawSetupAutoDownloadDiscovery,
   type AutoDownloadDiscoveryOptions,
 } from "../../src/content/auto-download.ts";
@@ -21,6 +22,7 @@ type DefaultedOption =
   | "includeBackgrounds"
   | "resourceHints"
   | "includeDataUrls"
+  | "includeScriptMedia"
   | "isPageDisabled";
 
 const setupAutoDownloadDiscovery = (
@@ -33,6 +35,7 @@ const setupAutoDownloadDiscovery = (
     includeBackgrounds: false,
     resourceHints: false,
     includeDataUrls: false,
+    includeScriptMedia: false,
     isPageDisabled: () => false,
     ...options,
   });
@@ -834,4 +837,129 @@ test("bounds and coalesces adversarial live mutation roots", async () => {
   controller.stop();
   vi.useRealTimers();
   vi.unstubAllGlobals();
+});
+
+describe("script-media candidates", () => {
+  const now = () => performance.timeOrigin + performance.now();
+  const clip = (url = "https://cdn.test/clip.mp4", at = now()) => ({
+    url,
+    kind: "video" as const,
+    at,
+  });
+  const mount = (overrides: Partial<AutoDownloadDiscoveryOptions> = {}) => {
+    const send = vi.fn<(candidate: AutomaticRoutingCandidate) => Promise<"started">>(async () =>
+      Promise.resolve("started"),
+    );
+    const controller = setupAutoDownloadDiscovery({
+      rules: anyMediaRules,
+      live: false,
+      maxPerPage: 10,
+      includeScriptMedia: true,
+      send,
+      ...overrides,
+    });
+    return { send, controller };
+  };
+
+  test("adopts collector media only while its option is on, under its own channel", async () => {
+    const off = mount({ includeScriptMedia: false });
+    off.controller.addScriptMedia([clip()]);
+    await off.controller.idle();
+    expect(off.send).not.toHaveBeenCalled();
+    off.controller.stop();
+
+    const on = mount();
+    on.controller.addScriptMedia([clip("https://cdn.test/clip.mp4#t=4")]);
+    await on.controller.idle();
+    expect(on.send).toHaveBeenCalledExactlyOnceWith({
+      pageUrl: String(window.location),
+      sourceUrl: "https://cdn.test/clip.mp4",
+      sourceKind: "video",
+      sourceChannel: "script-media",
+    });
+    on.controller.stop();
+  });
+
+  test("shares the once-per-visit dedup with the DOM scan", async () => {
+    fixture.candidates = [{ url: "https://cdn.test/clip.mp4", kind: "video", previewable: true }];
+    const { send, controller } = mount();
+    controller.addScriptMedia([clip(), clip()]);
+    await controller.idle();
+    expect(send).toHaveBeenCalledOnce();
+    expect(send.mock.calls[0]![0].sourceChannel).toBeUndefined();
+    controller.stop();
+  });
+
+  test("counts against the same per-page limit", async () => {
+    fixture.candidates = [{ url: "https://cdn.test/first.jpg", kind: "image", previewable: true }];
+    const onLimitReached = vi.fn();
+    const { send, controller } = mount({ maxPerPage: 1, onLimitReached });
+    controller.addScriptMedia([clip()]);
+    await controller.idle();
+    expect(send).toHaveBeenCalledOnce();
+    expect(send.mock.calls[0]![0].sourceUrl).toBe("https://cdn.test/first.jpg");
+    expect(onLimitReached).toHaveBeenCalledOnce();
+    controller.stop();
+  });
+
+  test("ignores media the collector saw before this page visit began", async () => {
+    const { send, controller } = mount();
+    controller.addScriptMedia([
+      clip("https://cdn.test/previous-page.mp4", performance.timeOrigin - 5000),
+      clip("https://cdn.test/this-page.mp4"),
+    ]);
+    await controller.idle();
+    expect(send.mock.calls.map(([candidate]) => candidate.sourceUrl)).toEqual([
+      "https://cdn.test/this-page.mp4",
+    ]);
+    controller.stop();
+  });
+
+  test("consumes nothing on a disabled page or after stop", async () => {
+    let disabled = true;
+    const dedup = createAutoDownloadDedup();
+    const { send, controller } = mount({ isPageDisabled: () => disabled, dedup });
+    controller.addScriptMedia([clip()]);
+    await controller.idle();
+    expect(send).not.toHaveBeenCalled();
+    expect(dedup.seen.size).toBe(0);
+
+    disabled = false;
+    controller.stop();
+    controller.addScriptMedia([clip()]);
+    await controller.idle();
+    expect(send).not.toHaveBeenCalled();
+    expect(dedup.seen.size).toBe(0);
+  });
+
+  test("never satisfies a css: rule, since no page element declared it", async () => {
+    const { send, controller } = mount({ rules: cssRules });
+    controller.addScriptMedia([{ url: "https://cdn.test/photo.jpg", kind: "image", at: now() }]);
+    await controller.idle();
+    expect(send).not.toHaveBeenCalled();
+    controller.stop();
+  });
+});
+
+describe("scriptMediaCandidates", () => {
+  test("keeps well-formed entries and, for a live push, only whole-file ones", () => {
+    const raw = [
+      { url: "https://cdn.test/a.m3u8", kind: "stream", auto: true, at: 1 },
+      { url: "https://cdn.test/seg.mp4", kind: "video", at: 2 },
+      { url: "https://cdn.test/b.pdf", kind: "document", auto: true, at: "3" },
+      { url: 4, kind: "image", auto: true, at: 4 },
+      { url: "https://cdn.test/c.png", kind: "bogus", auto: true, at: 5 },
+      { url: "https://cdn.test/d.png", kind: "image", auto: true, at: Number.NaN },
+      null,
+      "https://cdn.test/e.png",
+    ];
+    expect(scriptMediaCandidates(raw, true)).toEqual([
+      { url: "https://cdn.test/a.m3u8", kind: "stream", at: 1 },
+    ]);
+    expect(scriptMediaCandidates(raw, false)).toEqual([
+      { url: "https://cdn.test/a.m3u8", kind: "stream", at: 1 },
+      { url: "https://cdn.test/seg.mp4", kind: "video", at: 2 },
+    ]);
+    expect(scriptMediaCandidates(undefined, false)).toEqual([]);
+  });
 });

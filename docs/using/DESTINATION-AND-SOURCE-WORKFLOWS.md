@@ -106,7 +106,8 @@ expose. Turning it on requests the optional network-access (`webRequest`)
 permission; declining or later revoking it reverts the setting and leaves the
 rest of Page Sources unaffected. On Chrome, the request that wakes the sleeping
 extension background is not reported to it, so reload the page if a stream is
-missing right after the page loads.
+missing right after the page loads. Automatic saves can use the same observations; see
+[Media loaded by scripts](AUTOMATIC-SOURCE-SAVES.md#media-loaded-by-scripts).
 
 - **Select filtered** selects every result in the current text and type filters.
 - Selected sources remain selected when filters change; the selection bar shows

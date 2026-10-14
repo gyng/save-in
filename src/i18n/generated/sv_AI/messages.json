@@ -3135,6 +3135,12 @@
   "autoDownloadDataUrlsHelp": {
     "message": "Tar med fristående data:-URL:er, upp till 2 MB styck; större hoppas över."
   },
+  "autoDownloadScriptMedia": {
+    "message": "Inkludera media som läses in av skript"
+  },
+  "autoDownloadScriptMediaHelp": {
+    "message": "Kräver ”Upptäck media som läses in av skript” under Sidresurser. Tar bara med hela filer: bilder, PDF-filer, spellistor samt video eller ljud som en spelare läser in direkt. Strömsegment sparas aldrig."
+  },
   "autoDownloadLimit": {
     "message": "Maximalt antal sparningar per sidbesök"
   },

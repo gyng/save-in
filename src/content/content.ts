@@ -27,9 +27,11 @@ import {
 } from "../shared/source-panel-copy.ts";
 import {
   createAutoDownloadDedup,
+  scriptMediaCandidates,
   setupAutoDownloadDiscovery,
   type AutoDownloadDedup,
   type AutoDownloadSendResult,
+  type ScriptMediaCandidate,
 } from "./auto-download.ts";
 import { matchesAnyPatternOrUnreadable } from "../shared/match-pattern.ts";
 import type { AutomaticRoutingCandidate } from "../automation/automatic-routing.ts";
@@ -258,6 +260,7 @@ type ResolvedAutoDownloadOptions = Pick<
   | "autoDownloadBackgrounds"
   | "autoDownloadManifests"
   | "autoDownloadDataUrls"
+  | "autoDownloadScriptMedia"
   | "autoDownloadMaxPerPage"
 > & { filenamePatterns: string };
 type ResolvedContentScriptOptions = ResolvedContentOptions & ResolvedAutoDownloadOptions;
@@ -740,13 +743,32 @@ const setupAutoDownload = (options: ResolvedAutoDownloadOptions, dedup: AutoDown
     includeBackgrounds: options.autoDownloadBackgrounds,
     resourceHints: options.autoDownloadManifests,
     includeDataUrls: options.autoDownloadDataUrls,
+    includeScriptMedia: options.autoDownloadScriptMedia,
     isPageDisabled: isCurrentPageDisabled,
     send,
     onLimitReached: reportLimitReached,
     dedup,
   });
+  const addScriptMedia = (sources: ScriptMediaCandidate[]) => {
+    if (!controller.signal.aborted && sources.length > 0) discovery.addScriptMedia(sources);
+  };
+  if (options.autoDownloadScriptMedia) {
+    // Pushes reach only a listening discovery, so media requested before this
+    // mount (or before the content script ran) is fetched from the collector's
+    // buffer once. Later pushes count as sources added after load.
+    if (options.autoDownloadLive) liveScriptMediaSink = addScriptMedia;
+    try {
+      chrome.runtime.sendMessage({ type: "SCRIPT_MEDIA_AUTO_REPLAY" }, (response) => {
+        if (chrome.runtime.lastError) return;
+        addScriptMedia(scriptMediaCandidates(response?.body?.sources, false));
+      });
+    } catch {
+      // Extension context invalidated while the page remained alive.
+    }
+  }
   return () => {
     controller.abort();
+    if (liveScriptMediaSink === addScriptMedia) liveScriptMediaSink = null;
     discovery.stop();
     retryTimers.forEach((timer) => window.clearTimeout(timer));
     retryTimers.clear();
@@ -800,6 +822,8 @@ const removePageLongReleaseListeners = (): void => {
 };
 let removeClickToSave: (() => void) | null = null;
 let removeAutoDownload: (() => void) | null = null;
+// The mounted live discovery's intake for collector pushes, when it takes them.
+let liveScriptMediaSink: ((sources: ScriptMediaCandidate[]) => void) | null = null;
 // Owned per page load, not per discovery mount, so remounts cannot re-send
 // sources this page already saved (see AutoDownloadDedup).
 let autoDownloadDedup: AutoDownloadDedup = createAutoDownloadDedup();
@@ -883,6 +907,7 @@ const applyOptions = (next: ContentOptions) => {
       "autoDownloadBackgrounds",
       "autoDownloadManifests",
       "autoDownloadDataUrls",
+      "autoDownloadScriptMedia",
       "autoDownloadMaxPerPage",
     ] as const
   ).some((key) => previous[key] !== currentOptions[key]);
@@ -1204,6 +1229,7 @@ try {
         );
         if (sources.length > 0) mergeScriptMediaSources(sources);
       }
+      liveScriptMediaSink?.(scriptMediaCandidates(raw, true));
       return;
     }
     if (!["TOGGLE_SOURCE_PANEL", "SET_SOURCE_PANEL"].includes(message?.type)) return;

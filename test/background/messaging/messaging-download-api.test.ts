@@ -14,6 +14,7 @@ import {
 import { parseRulesCollecting } from "../../../src/routing/rule-parser.ts";
 import { options } from "../../../src/config/options-data.ts";
 import * as DownloadDisposition from "../../../src/downloads/download-disposition.ts";
+import * as Collector from "../../../src/background/script-media-collector.ts";
 
 beforeEach(() => setupGlobals());
 
@@ -1121,6 +1122,149 @@ into: automatic/:pagedomain:/
       );
       await waitForCall(sendResponse);
       expect(Download.launchDownload).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe("script-media backstop", () => {
+    const senderTab = { id: 7, url: "https://example.test/player/", incognito: false };
+    const sourceUrl = "https://cdn.test/clips/intro.mp4";
+    const configureScriptMedia = () => {
+      options.autoDownloadEnabled = true;
+      options.autoDownloadPrivate = false;
+      options.autoDownloadScriptMedia = true;
+      options.perSiteDisableList = "";
+      options.filenamePatterns = parseRulesCollecting(`
+context: ^auto$
+pageurl: ^https://example\\.test/player/
+sourcekind: ^video$
+into: automatic/
+`).rules;
+    };
+    const scriptMediaRequest = (sourceChannel?: string) => ({
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: {
+        pageUrl: senderTab.url,
+        sourceUrl,
+        sourceKind: "video",
+        ...(sourceChannel ? { sourceChannel } : {}),
+      },
+    });
+    const skipped = { type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE, body: { status: "skipped" } };
+
+    test("refuses a script-media candidate while its option is off", async () => {
+      configureScriptMedia();
+      options.autoDownloadScriptMedia = false;
+      const collected = vi
+        .spyOn(Collector, "isAutomaticScriptMediaCollected")
+        .mockResolvedValue(true);
+      const sendResponse = vi.fn();
+      onMessage(scriptMediaRequest("script-media"), { tab: senderTab }, sendResponse);
+      await waitForCall(sendResponse);
+      expect(sendResponse).toHaveBeenCalledWith(skipped);
+      expect(collected).not.toHaveBeenCalled();
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+    });
+
+    test("refuses a URL the collector did not observe as a whole file in that tab", async () => {
+      configureScriptMedia();
+      const collected = vi
+        .spyOn(Collector, "isAutomaticScriptMediaCollected")
+        .mockResolvedValue(false);
+      const sendResponse = vi.fn();
+      onMessage(scriptMediaRequest("script-media"), { tab: senderTab }, sendResponse);
+      await waitForCall(sendResponse);
+      expect(collected).toHaveBeenCalledWith(7, sourceUrl, "video");
+      expect(sendResponse).toHaveBeenCalledWith(skipped);
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+    });
+
+    test("refuses a script-media claim from a sender without a tab id", async () => {
+      configureScriptMedia();
+      const collected = vi.spyOn(Collector, "isAutomaticScriptMediaCollected");
+      const sendResponse = vi.fn();
+      onMessage(
+        scriptMediaRequest("script-media"),
+        { tab: { url: senderTab.url, incognito: false } },
+        sendResponse,
+      );
+      await waitForCall(sendResponse);
+      expect(collected).not.toHaveBeenCalled();
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+    });
+
+    test("launches a confirmed candidate through the repeated rule match", async () => {
+      configureScriptMedia();
+      vi.spyOn(Collector, "isAutomaticScriptMediaCollected").mockResolvedValue(true);
+      const sendResponse = vi.fn();
+      onMessage(scriptMediaRequest("script-media"), { tab: senderTab }, sendResponse);
+      await waitForCall(sendResponse);
+      expect(Download.launchDownload).toHaveBeenCalledOnce();
+      expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info).toMatchObject({
+        sourceUrl,
+        sourceKind: "video",
+        context: DOWNLOAD_TYPES.AUTO,
+      });
+    });
+
+    test("never consults the collector for embedded media", async () => {
+      configureScriptMedia();
+      const collected = vi.spyOn(Collector, "isAutomaticScriptMediaCollected");
+      const sendResponse = vi.fn();
+      onMessage(scriptMediaRequest(), { tab: senderTab }, sendResponse);
+      await waitForCall(sendResponse);
+      expect(collected).not.toHaveBeenCalled();
+      expect(Download.launchDownload).toHaveBeenCalledOnce();
+    });
+
+    describe("replay", () => {
+      const replay = { type: MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY };
+      const entries = [{ url: sourceUrl, kind: "video" as const, at: 1 }];
+
+      test("hands the sender tab's buffered whole files to its discovery", async () => {
+        configureScriptMedia();
+        const forTab = vi.spyOn(Collector, "automaticScriptMediaForTab").mockResolvedValue(entries);
+        const sendResponse = vi.fn();
+        onMessage(replay, { tab: senderTab }, sendResponse);
+        await waitForCall(sendResponse);
+        expect(forTab).toHaveBeenCalledWith(7);
+        expect(sendResponse).toHaveBeenCalledWith({
+          type: MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY,
+          body: { sources: entries },
+        });
+      });
+
+      test.each([
+        ["automatic saves are off", { autoDownloadEnabled: false }, senderTab],
+        ["the script-media option is off", { autoDownloadScriptMedia: false }, senderTab],
+        ["the option holds a malformed value", { autoDownloadScriptMedia: "yes" }, senderTab],
+        ["the tab is private", {}, { ...senderTab, incognito: true }],
+        ["the sender has no tab id", {}, { url: senderTab.url, incognito: false }],
+      ])("offers nothing when %s", async (_label, overrides, tab) => {
+        configureScriptMedia();
+        Object.assign(options, overrides);
+        const forTab = vi.spyOn(Collector, "automaticScriptMediaForTab").mockResolvedValue(entries);
+        const sendResponse = vi.fn();
+        onMessage(replay, { tab }, sendResponse);
+        await waitForCall(sendResponse);
+        expect(forTab).not.toHaveBeenCalled();
+        expect(sendResponse).toHaveBeenCalledWith({
+          type: MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY,
+          body: { sources: [] },
+        });
+      });
+
+      test("offers a private tab its media once private automatic saves are on", async () => {
+        configureScriptMedia();
+        options.autoDownloadPrivate = true;
+        vi.spyOn(Collector, "automaticScriptMediaForTab").mockResolvedValue(entries);
+        const sendResponse = vi.fn();
+        onMessage(replay, { tab: { ...senderTab, incognito: true } }, sendResponse);
+        await waitForCall(sendResponse);
+        expect(sendResponse).toHaveBeenCalledWith({
+          type: MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY,
+          body: { sources: entries },
+        });
+      });
     });
   });
 

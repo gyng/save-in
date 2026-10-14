@@ -3,10 +3,16 @@
 // is module-local, so each test re-imports it fresh.
 import { SCRIPT_MEDIA_BY_TAB_SESSION_KEY } from "../../src/shared/storage-keys.ts";
 
-type Details = { url: string; tabId: number; type: string; incognito?: boolean };
+type Details = {
+  url: string;
+  tabId: number;
+  type: string;
+  incognito?: boolean;
+  timeStamp?: number;
+};
 
 // A cold worker whose only record of a tab lives in storage.session.
-const withStoredTab = (tabId: number, entries: Array<{ url: string; kind: string }>) =>
+const withStoredTab = (tabId: number, entries: Array<Record<string, unknown>>) =>
   vi.mocked(browser.storage.session.get).mockResolvedValue({
     [SCRIPT_MEDIA_BY_TAB_SESSION_KEY]: { [String(tabId)]: entries },
   });
@@ -187,7 +193,7 @@ test("buffers a stream manifest and pushes it to the tab", async () => {
   const [tabId, message] = lastSend()!;
   expect(tabId).toBe(7);
   expect(message.type).toBe("SCRIPT_MEDIA_DETECTED");
-  expect(message.body.sources).toEqual([
+  expect(message.body.sources).toMatchObject([
     { url: "https://cdn.example/live/master.m3u8?token=1", kind: "stream" },
   ]);
 });
@@ -289,7 +295,7 @@ test("drops a prior public buffer if the same tab id is later classified private
   mod.pushBufferedScriptMedia(11);
   await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
 
-  expect(lastSend()![1].body.sources).toEqual([
+  expect(lastSend()![1].body.sources).toMatchObject([
     { url: "https://private.example/new.mp4", kind: "video" },
   ]);
 });
@@ -308,7 +314,7 @@ test("treats an extensionless media-typed request as video", async () => {
   listener!({ url: "https://example.com/stream/segment", tabId: 3, type: "media" });
 
   await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
-  expect(lastSend()![1].body.sources[0]).toEqual({
+  expect(lastSend()![1].body.sources[0]).toMatchObject({
     url: "https://example.com/stream/segment",
     kind: "video",
   });
@@ -352,7 +358,7 @@ test("pushBufferedScriptMedia replays a tab's buffered media on panel open", asy
 
   mod.pushBufferedScriptMedia(9);
   await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
-  expect(lastSend()![1].body.sources).toEqual([
+  expect(lastSend()![1].body.sources).toMatchObject([
     { url: "https://example.com/a.m3u8", kind: "stream" },
   ]);
 });
@@ -364,7 +370,7 @@ test("rehydrates a tab's media from session storage after a worker restart", asy
   // Cold worker: nothing is in memory, only the persisted snapshot.
   mod.pushBufferedScriptMedia(4);
   await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
-  expect(lastSend()![1].body.sources).toEqual([
+  expect(lastSend()![1].body.sources).toMatchObject([
     { url: "https://cdn.example/live.m3u8", kind: "stream" },
   ]);
 });
@@ -724,7 +730,7 @@ test("drops malformed stored entries during rehydrate", async () => {
 
   mod.pushBufferedScriptMedia(3);
   await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
-  expect(lastSend()![1].body.sources).toEqual([
+  expect(lastSend()![1].body.sources).toMatchObject([
     { url: "https://ok.example/a.m3u8", kind: "stream" },
   ]);
 });
@@ -884,7 +890,7 @@ test("buffers a request that woke the worker before init replaced the defaults",
   await completeInit();
 
   await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
-  expect(lastSend()![1].body.sources).toEqual([
+  expect(lastSend()![1].body.sources).toMatchObject([
     { url: "https://cdn.example/live/master.m3u8", kind: "stream" },
   ]);
 });
@@ -912,7 +918,7 @@ test("replays a panel open that arrived before init replaced the defaults", asyn
   await completeInit();
 
   await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
-  expect(lastSend()![1].body.sources).toEqual([
+  expect(lastSend()![1].body.sources).toMatchObject([
     { url: "https://cdn.example/live.m3u8", kind: "stream" },
   ]);
 });
@@ -934,7 +940,7 @@ test("keeps observing after a failed init instead of wedging on its rejection", 
   failInit();
 
   await vi.waitFor(() => expect(browser.tabs.sendMessage).toHaveBeenCalled());
-  expect(lastSend()![1].body.sources).toEqual([
+  expect(lastSend()![1].body.sources).toMatchObject([
     { url: "https://cdn.example/live/master.m3u8", kind: "stream" },
   ]);
 });
@@ -966,4 +972,145 @@ test("drops a request whose tab-privacy lookup outlived a teardown", async () =>
   await new Promise((r) => setTimeout(r, 350));
   expect(browser.tabs.sendMessage).not.toHaveBeenCalled();
   expect(browser.storage.session.set).not.toHaveBeenCalled();
+});
+
+describe("automatic script-media candidates", () => {
+  const AUTO_ON = { autoDownloadEnabled: true, autoDownloadScriptMedia: true };
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 350));
+
+  test("hands automatic saves whole files only, stamped with the request time", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    const request = (url: string, type: string, timeStamp: number) =>
+      listener!({ url, tabId: 7, type, timeStamp });
+    request("https://cdn.example/clip.mp4", "media", 1000);
+    request("https://cdn.example/report.pdf", "xmlhttprequest", 1001);
+    request("https://cdn.example/photo.jpg", "xmlhttprequest", 1002);
+    // An MSE player's fragmented-MP4 segment arrives by XHR.
+    request("https://cdn.example/seg-1.mp4", "xmlhttprequest", 1003);
+    request("https://cdn.example/live.m3u8", "xmlhttprequest", 1004);
+    // Once the tab streams, its media-element requests are presumed segments.
+    request("https://cdn.example/seg-2.mp4", "media", 1005);
+
+    expect(await mod.automaticScriptMediaForTab(7)).toEqual([
+      { url: "https://cdn.example/clip.mp4", kind: "video", at: 1000 },
+      { url: "https://cdn.example/report.pdf", kind: "document", at: 1001 },
+      { url: "https://cdn.example/photo.jpg", kind: "image", at: 1002 },
+      { url: "https://cdn.example/live.m3u8", kind: "stream", at: 1004 },
+    ]);
+    // The panel still receives every recognized URL; only the marker differs.
+    await settle();
+    const pushed = lastSend()![1].body.sources as Array<{ url: string; auto?: true }>;
+    expect(pushed.map(({ url, auto }) => [url, auto === true])).toEqual([
+      ["https://cdn.example/clip.mp4", true],
+      ["https://cdn.example/report.pdf", true],
+      ["https://cdn.example/photo.jpg", true],
+      ["https://cdn.example/seg-1.mp4", false],
+      ["https://cdn.example/live.m3u8", true],
+      ["https://cdn.example/seg-2.mp4", false],
+    ]);
+  });
+
+  test("keeps whole-file evidence and refreshes the time on a repeat request", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    listener!({ url: "https://cdn.example/a.mp4", tabId: 7, type: "xmlhttprequest", timeStamp: 1 });
+    listener!({ url: "https://cdn.example/a.mp4", tabId: 7, type: "media", timeStamp: 2 });
+    listener!({ url: "https://cdn.example/a.mp4", tabId: 7, type: "xmlhttprequest", timeStamp: 3 });
+
+    expect(await mod.automaticScriptMediaForTab(7)).toEqual([
+      { url: "https://cdn.example/a.mp4", kind: "video", at: 3 },
+    ]);
+  });
+
+  test("stamps a request without a browser time with the current time", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    const before = Date.now();
+    listener!({ url: "https://cdn.example/a.m3u8", tabId: 7, type: "xmlhttprequest" });
+    const [entry] = await mod.automaticScriptMediaForTab(7);
+    expect(entry?.at).toBeGreaterThanOrEqual(before);
+  });
+
+  test.each([
+    ["automatic saves are off", { autoDownloadScriptMedia: true }],
+    ["the script-media opt-in is off", { autoDownloadEnabled: true }],
+    ["the collector is off", { ...AUTO_ON, sourcePanelScriptMedia: false }],
+    ["Page Sources is off", { ...AUTO_ON, sourcePanelEnabled: false }],
+  ])("offers and confirms nothing while %s", async (_label, overrides) => {
+    const { mod, listener } = await setup({ ...AUTO_ON });
+    listener!({ url: "https://cdn.example/a.m3u8", tabId: 7, type: "xmlhttprequest" });
+    expect(await mod.automaticScriptMediaForTab(7)).toHaveLength(1);
+
+    const { options } = await import("../../src/config/options-data.ts");
+    Object.assign(options, {
+      autoDownloadEnabled: false,
+      autoDownloadScriptMedia: false,
+      sourcePanelEnabled: true,
+      sourcePanelScriptMedia: true,
+      ...overrides,
+    });
+    expect(await mod.automaticScriptMediaForTab(7)).toEqual([]);
+    expect(
+      await mod.isAutomaticScriptMediaCollected(7, "https://cdn.example/a.m3u8", "stream"),
+    ).toBe(false);
+  });
+
+  test("offers nothing without the webRequest permission", async () => {
+    const { mod } = await setup(AUTO_ON, true, false);
+    withStoredTab(7, [{ url: "https://cdn.example/a.m3u8", kind: "stream", auto: true, at: 1 }]);
+    expect(await mod.automaticScriptMediaForTab(7)).toEqual([]);
+  });
+
+  test("confirms only a collected whole file of the claimed kind in the claimed tab", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    listener!({ url: "https://cdn.example/clip.mp4", tabId: 7, type: "media" });
+    listener!({ url: "https://cdn.example/seg-1.mp4", tabId: 7, type: "xmlhttprequest" });
+    const collected = (tabId: number, url: string, kind: "video" | "image") =>
+      mod.isAutomaticScriptMediaCollected(tabId, url, kind);
+
+    expect(await collected(7, "https://cdn.example/clip.mp4", "video")).toBe(true);
+    expect(await collected(7, "https://cdn.example/clip.mp4", "image")).toBe(false);
+    expect(await collected(8, "https://cdn.example/clip.mp4", "video")).toBe(false);
+    expect(await collected(7, "https://cdn.example/seg-1.mp4", "video")).toBe(false);
+    expect(await collected(7, "https://cdn.example/never.mp4", "video")).toBe(false);
+  });
+
+  test("forgets a tab's candidates on navigation", async () => {
+    const { mod, listener } = await setup(AUTO_ON);
+    listener!({ url: "https://cdn.example/a.m3u8", tabId: 7, type: "xmlhttprequest" });
+    listener!({ url: "https://site.example/next", tabId: 7, type: "main_frame" });
+    expect(await mod.automaticScriptMediaForTab(7)).toEqual([]);
+  });
+
+  test("persists and rehydrates the whole-file marker and time", async () => {
+    const { listener } = await setup(AUTO_ON);
+    listener!({
+      url: "https://cdn.example/a.m3u8",
+      tabId: 7,
+      type: "xmlhttprequest",
+      timeStamp: 5,
+    });
+    listener!({ url: "https://cdn.example/s.mp4", tabId: 7, type: "xmlhttprequest", timeStamp: 6 });
+    await vi.waitFor(() =>
+      expect(browser.storage.session.set).toHaveBeenCalledWith({
+        [SCRIPT_MEDIA_BY_TAB_SESSION_KEY]: {
+          "7": [
+            { url: "https://cdn.example/a.m3u8", kind: "stream", auto: true, at: 5 },
+            { url: "https://cdn.example/s.mp4", kind: "video", at: 6 },
+          ],
+        },
+      }),
+    );
+
+    const { mod } = await setup(AUTO_ON);
+    withStoredTab(7, [
+      { url: "https://cdn.example/a.m3u8", kind: "stream", auto: true, at: 5 },
+      { url: "https://cdn.example/s.mp4", kind: "video", at: 6 },
+      // Malformed markers are not whole-file evidence; a missing time is old.
+      { url: "https://cdn.example/b.m3u8", kind: "stream", auto: "yes", at: 7 },
+      { url: "https://cdn.example/c.m3u8", kind: "stream", auto: true, at: "late" },
+    ]);
+    expect(await mod.automaticScriptMediaForTab(7)).toEqual([
+      { url: "https://cdn.example/a.m3u8", kind: "stream", at: 5 },
+      { url: "https://cdn.example/c.m3u8", kind: "stream", at: 0 },
+    ]);
+  });
 });

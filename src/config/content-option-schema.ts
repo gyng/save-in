@@ -65,6 +65,11 @@ export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
     default: CONTENT_OPTION_DEFAULTS.autoDownloadDataUrls,
   },
   {
+    name: "autoDownloadScriptMedia",
+    type: "BOOL",
+    default: CONTENT_OPTION_DEFAULTS.autoDownloadScriptMedia,
+  },
+  {
     name: "autoDownloadMaxPerPage",
     type: "VALUE",
     onLoad: normalizeAutoDownloadLimit,

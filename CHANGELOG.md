@@ -7,6 +7,14 @@
   referrer, several tabs on that address, or a private tab gives no page
   details. Because a page rule above a browser-download rule can start matching,
   existing profiles keep the old behavior until the setting is turned on.
+- Automatic saves can include media that page scripts load over the network
+  (#47). Turn on **Include media loaded by scripts** under **Automatic scan
+  coverage**; it uses what Page Sources' **Detect media loaded by scripts**
+  observes, so that option and its permission must be on too. Only whole files
+  are adopted: images, PDFs, HLS/DASH playlists, and video or audio a player
+  loads directly. Stream segments fetched by scripts are never saved, and
+  candidates still need a matching automatic rule and count against the
+  per-page limit.
 - Click-to-save can bind the same mouse action to different keys, and the new
   `keys:` routing matcher sends each binding to its own folder, for example
   `keys: ^alt$` to `images/` and `keys: ^ctrl\+shift$` to `wallpapers/` (#15).

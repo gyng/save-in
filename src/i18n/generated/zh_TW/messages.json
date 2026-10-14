@@ -3135,6 +3135,12 @@
   "autoDownloadDataUrlsHelp": {
     "message": "擷取自包含的 data: URL，每個最多 2 MB；較大的會略過。"
   },
+  "autoDownloadScriptMedia": {
+    "message": "包含指令碼載入的媒體"
+  },
+  "autoDownloadScriptMediaHelp": {
+    "message": "需要啟用頁面來源中的「偵測指令碼載入的媒體」。只擷取完整檔案：圖片、PDF、播放清單，以及播放器直接載入的影片或音訊。從不儲存串流片段。"
+  },
   "autoDownloadLimit": {
     "message": "每次頁面瀏覽的最大儲存數"
   },

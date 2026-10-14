@@ -18,6 +18,7 @@ type DefaultedOption =
   | "includeBackgrounds"
   | "resourceHints"
   | "includeDataUrls"
+  | "includeScriptMedia"
   | "isPageDisabled";
 
 const setupAutoDownloadDiscovery = (
@@ -30,6 +31,7 @@ const setupAutoDownloadDiscovery = (
     includeBackgrounds: false,
     resourceHints: false,
     includeDataUrls: false,
+    includeScriptMedia: false,
     isPageDisabled: () => false,
     ...options,
   });

@@ -623,6 +623,121 @@ describe("content.js initialisation", () => {
     vi.doUnmock("../../src/content/auto-download.ts");
   });
 
+  describe("automatic script media", () => {
+    const scriptMediaOptions = {
+      autoDownloadEnabled: true,
+      autoDownloadLive: true,
+      autoDownloadScriptMedia: true,
+      filenamePatterns: "context: ^auto$\npageurl: .\nsourceurl: .\ninto: automatic/",
+    };
+    const entry = { url: "https://cdn.test/clip.mp4", kind: "video", at: 5 };
+
+    const mountWith = async (
+      stored: Record<string, unknown>,
+      replay: (callback: (response?: unknown) => void) => void = (callback) =>
+        callback({ body: { sources: [entry] } }),
+    ) => {
+      vi.resetModules();
+      const addScriptMedia = vi.fn();
+      vi.doMock("../../src/content/auto-download.ts", async (importOriginal) => ({
+        ...(await importOriginal<typeof import("../../src/content/auto-download.ts")>()),
+        setupAutoDownloadDiscovery: vi.fn(() => ({ stop: vi.fn(), addScriptMedia })),
+      }));
+      global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
+        if (message?.type === "SCRIPT_MEDIA_AUTO_REPLAY") replay(callback);
+        else callback?.();
+      }) as any;
+      global.chrome.runtime.onMessage.addListener = vi.fn();
+      global.chrome.storage.local.get = vi.fn((_keys, callback) => callback(stored)) as any;
+      (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+      await import("../../src/content/content.ts");
+      const push = (sources: unknown) =>
+        Reflect.apply(
+          vi.mocked(global.chrome.runtime.onMessage.addListener).mock.calls[0]![0],
+          undefined,
+          [{ type: "SCRIPT_MEDIA_DETECTED", body: { sources } }, {}, vi.fn()],
+        );
+      return { addScriptMedia, push };
+    };
+    const replayRequests = () =>
+      vi
+        .mocked(global.chrome.runtime.sendMessage)
+        .mock.calls.filter(
+          ([message]) => (message as { type?: string })?.type === "SCRIPT_MEDIA_AUTO_REPLAY",
+        );
+
+    afterEach(() => {
+      vi.doUnmock("../../src/content/auto-download.ts");
+    });
+
+    test("replays the buffer on mount and takes whole-file live pushes", async () => {
+      const { addScriptMedia, push } = await mountWith(scriptMediaOptions);
+      expect(replayRequests()).toHaveLength(1);
+      expect(addScriptMedia).toHaveBeenCalledExactlyOnceWith([entry]);
+
+      push([
+        { ...entry, url: "https://cdn.test/seg.mp4" },
+        { ...entry, auto: true },
+      ]);
+      expect(addScriptMedia).toHaveBeenLastCalledWith([entry]);
+      // A push with nothing whole-file in it reaches no discovery.
+      push([{ ...entry, url: "https://cdn.test/seg.mp4" }]);
+      expect(addScriptMedia).toHaveBeenCalledTimes(2);
+
+      // After teardown, neither pushes nor a late replay reach the discovery.
+      pushContentOptions({ autoDownloadEnabled: false });
+      push([{ ...entry, auto: true }]);
+      expect(addScriptMedia).toHaveBeenCalledTimes(2);
+    });
+
+    test("replays without taking later pushes when live discovery is off", async () => {
+      const { addScriptMedia, push } = await mountWith({
+        ...scriptMediaOptions,
+        autoDownloadLive: false,
+      });
+      expect(addScriptMedia).toHaveBeenCalledOnce();
+      push([{ ...entry, auto: true }]);
+      expect(addScriptMedia).toHaveBeenCalledOnce();
+    });
+
+    test("asks for nothing while the option is off", async () => {
+      const { addScriptMedia, push } = await mountWith({
+        ...scriptMediaOptions,
+        autoDownloadScriptMedia: false,
+      });
+      expect(replayRequests()).toHaveLength(0);
+      push([{ ...entry, auto: true }]);
+      expect(addScriptMedia).not.toHaveBeenCalled();
+    });
+
+    test("drops a replay answered after teardown or with an error", async () => {
+      let answer: ((response?: unknown) => void) | undefined;
+      const late = await mountWith(scriptMediaOptions, (callback) => {
+        answer = callback;
+      });
+      pushContentOptions({ autoDownloadEnabled: false });
+      answer?.({ body: { sources: [entry] } });
+      expect(late.addScriptMedia).not.toHaveBeenCalled();
+
+      const failed = await mountWith(scriptMediaOptions, (callback) => {
+        (global.chrome.runtime as any).lastError = { message: "No receiver" };
+        callback(undefined);
+        Reflect.deleteProperty(global.chrome.runtime as any, "lastError");
+      });
+      expect(failed.addScriptMedia).not.toHaveBeenCalled();
+
+      const empty = await mountWith(scriptMediaOptions, (callback) => callback({}));
+      expect(empty.addScriptMedia).not.toHaveBeenCalled();
+    });
+
+    test("survives a dead extension context when asking for the replay", async () => {
+      const { addScriptMedia } = await mountWith(scriptMediaOptions, () => {
+        throw new Error("Extension context invalidated");
+      });
+      expect(addScriptMedia).not.toHaveBeenCalled();
+    });
+  });
+
   test("tolerates a dead extension context when reporting the limit", async () => {
     vi.resetModules();
     let discoveryOptions: { onLimitReached?: () => void } | undefined;

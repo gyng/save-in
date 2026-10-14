@@ -3135,6 +3135,12 @@
   "autoDownloadDataUrlsHelp": {
     "message": "Adota URLs data: autônomas, até 2 MB cada; as maiores são ignoradas."
   },
+  "autoDownloadScriptMedia": {
+    "message": "Incluir mídia carregada por scripts"
+  },
+  "autoDownloadScriptMediaHelp": {
+    "message": "Requer “Detectar mídia carregada por scripts” em Fontes da página. Adota apenas arquivos completos: imagens, PDFs, playlists e vídeo ou áudio que um player carrega diretamente. Segmentos de transmissão nunca são salvos."
+  },
   "autoDownloadLimit": {
     "message": "Máximo de salvamentos por visita à página"
   },

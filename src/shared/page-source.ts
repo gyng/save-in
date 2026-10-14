@@ -16,7 +16,15 @@ export const SCRIPT_MEDIA_SOURCE_LIMIT = 256;
 // channel — that is the pre-4.2 default and keeps old candidates valid.
 // Anchor/background/resource-hint candidates are new-in-4.2 channels that the
 // automatic scan gates independently of kind (see automation/automatic-routing.ts).
-export const PAGE_SOURCE_CHANNELS = ["anchor", "background", "resource-hint"] as const;
+// "script-media" marks a URL the opt-in webRequest collector observed and judged
+// a whole file (background/script-media-collector.ts); the background re-checks
+// that claim against its own buffer before an automatic save.
+export const PAGE_SOURCE_CHANNELS = [
+  "anchor",
+  "background",
+  "resource-hint",
+  "script-media",
+] as const;
 
 export type PageSourceChannel = (typeof PAGE_SOURCE_CHANNELS)[number];
 

@@ -3135,6 +3135,12 @@
   "autoDownloadDataUrlsHelp": {
     "message": "Übernimmt eigenständige data:-URLs bis zu je 2 MB; größere werden übersprungen."
   },
+  "autoDownloadScriptMedia": {
+    "message": "Von Skripten geladene Medien einbeziehen"
+  },
+  "autoDownloadScriptMediaHelp": {
+    "message": "Benötigt „Von Skripten geladene Medien erkennen“ in den Seitenquellen. Übernimmt nur vollständige Dateien: Bilder, PDFs, Playlists sowie Video oder Audio, das ein Player direkt lädt. Stream-Segmente werden nie gespeichert."
+  },
   "autoDownloadLimit": {
     "message": "Maximal gespeicherte Quellen pro Seitenbesuch"
   },

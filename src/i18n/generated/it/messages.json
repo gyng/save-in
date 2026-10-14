@@ -3135,6 +3135,12 @@
   "autoDownloadDataUrlsHelp": {
     "message": "Acquisisce URL data: autonomi, fino a 2 MB ciascuno; quelli più grandi vengono ignorati."
   },
+  "autoDownloadScriptMedia": {
+    "message": "Includi i media caricati dagli script"
+  },
+  "autoDownloadScriptMediaHelp": {
+    "message": "Richiede «Rileva i media caricati dagli script» in Sorgenti della pagina. Acquisisce solo file completi: immagini, PDF, playlist e video o audio che un lettore carica direttamente. I segmenti dello stream non vengono mai salvati."
+  },
   "autoDownloadLimit": {
     "message": "Numero massimo di salvataggi per visita alla pagina"
   },

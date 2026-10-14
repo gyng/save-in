@@ -3135,6 +3135,12 @@
   "autoDownloadDataUrlsHelp": {
     "message": "Récupère les URL data: autonomes, jusqu’à 2 Mo chacune ; les plus grandes sont ignorées."
   },
+  "autoDownloadScriptMedia": {
+    "message": "Inclure les médias chargés par des scripts"
+  },
+  "autoDownloadScriptMediaHelp": {
+    "message": "Nécessite « Détecter les médias chargés par des scripts » dans Sources de la page. Ne récupère que des fichiers complets : images, PDF, playlists, et vidéo ou audio qu’un lecteur charge directement. Les segments de flux ne sont jamais enregistrés."
+  },
   "autoDownloadLimit": {
     "message": "Nombre maximal d’enregistrements par consultation de page"
   },

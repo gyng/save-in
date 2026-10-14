@@ -3135,6 +3135,12 @@
   "autoDownloadDataUrlsHelp": {
     "message": "Neemt op zichzelf staande data:-URL's over, tot 2 MB per stuk; grotere worden overgeslagen."
   },
+  "autoDownloadScriptMedia": {
+    "message": "Media die door scripts worden geladen opnemen"
+  },
+  "autoDownloadScriptMediaHelp": {
+    "message": "Vereist ‘Media die door scripts worden geladen detecteren’ in Paginabronnen. Neemt alleen volledige bestanden over: afbeeldingen, PDF’s, afspeellijsten en video of audio die een speler rechtstreeks laadt. Streamsegmenten worden nooit opgeslagen."
+  },
   "autoDownloadLimit": {
     "message": "Maximumaantal opgeslagen items per paginabezoek"
   },

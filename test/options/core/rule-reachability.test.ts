@@ -20,6 +20,7 @@ const allOff: ReachabilityOptions = {
   autoDownloadBackgrounds: false,
   autoDownloadManifests: false,
   autoDownloadDataUrls: false,
+  autoDownloadScriptMedia: false,
 };
 
 const automatic = (...extra: Array<{ name: string; value: string | RegExp; flags?: string }>) => [
@@ -47,6 +48,28 @@ describe("producibleSourceKinds", () => {
     expect(producibleSourceKinds({ ...allOff, autoDownloadManifests: true }).has("document")).toBe(
       false,
     );
+  });
+
+  test("script media supplies every non-link kind but is never advised on its own", () => {
+    const kinds = producibleSourceKinds({ ...allOff, autoDownloadScriptMedia: true });
+    expect([...kinds].toSorted()).toEqual(["audio", "document", "image", "stream", "video"]);
+    // A stream rule is unreachable with every channel off; the advice names
+    // only options that work by themselves, not the collector-dependent one.
+    expect(
+      ruleReachabilityDiagnostics(automatic({ name: "sourcekind", value: "^stream$" }), allOff),
+    ).toEqual([
+      {
+        kind: "unreachable-kinds",
+        level: "warning",
+        unlockOptions: ["autoDownloadDocuments", "autoDownloadManifests"],
+      },
+    ]);
+    expect(
+      ruleReachabilityDiagnostics(automatic({ name: "sourcekind", value: "^stream$" }), {
+        ...allOff,
+        autoDownloadScriptMedia: true,
+      }),
+    ).toEqual([]);
   });
 
   test("link and data gates never add kinds", () => {
@@ -603,6 +626,7 @@ describe("readReachabilityOptions", () => {
       autoDownloadBackgrounds: false,
       autoDownloadManifests: true,
       autoDownloadDataUrls: false,
+      autoDownloadScriptMedia: false,
     });
   });
 });
