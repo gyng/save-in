@@ -168,6 +168,21 @@ describe("filename rewrite and routing", () => {
       });
     });
 
+    // Page-controlled URLs (data: URLs reach 2 MB) are matched only by their
+    // first 4,096 characters, which bounds a backtracking pattern's cost.
+    test("matches a value by its first 4,096 characters only", () => {
+      const matcher = router.matcherFunctions.sourceurl;
+      const ordinary = `https://e.example/${"a".repeat(4_096 - 22)}.jpg`;
+      const long = `data:image/png;base64,${"A".repeat(100_000)}.jpg`;
+
+      expect(ordinary).toHaveLength(4_096);
+      expect(matcher(/.*\.(jpg|png)$/)({ sourceUrl: ordinary })).toBeTruthy();
+      expect(matcher(/.*\.(jpg|png)$/)({ sourceUrl: long })).toBeNull();
+      expect(
+        expectMatch(matcher(/^data:image\/png;base64,A*$/)({ sourceUrl: long }))[0],
+      ).toHaveLength(4_096);
+    });
+
     // Debug consoles retain object graphs, so a page-controlled data: payload
     // must not reach DevTools through the matched-info bag.
     test("debug matching truncates data: payloads it would otherwise log", () => {

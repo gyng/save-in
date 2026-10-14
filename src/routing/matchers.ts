@@ -46,8 +46,15 @@ const logMatch = (match: MatcherResult, regex: RegExp, info: RoutingInfo): void 
     routingPorts.logDebug("matched", match, regex, withoutDataPayloads(info));
 };
 
+// Matched values are page-controlled and unbounded (a data: URL may be 2 MB),
+// while an ordinary-looking pattern such as `.*\.(jpg|png)$` backtracks
+// quadratically when it fails: over 20 s against a 100 KB data: URL. Matching
+// only the first 4,096 characters bounds that to tens of milliseconds, yet leaves
+// every value up to that length (ordinary URLs included) matched exactly.
+const MAX_MATCHED_CHARACTERS = 4_096;
+
 const matchValue = (value: string, regex: RegExp): RegExpMatchArray | null =>
-  new RegExp(regex.source, regex.flags).exec(value);
+  new RegExp(regex.source, regex.flags).exec(value.slice(0, MAX_MATCHED_CHARACTERS));
 
 type MatcherCandidate = { source: string; value: string };
 type MatcherEvaluator = NonNullable<RuleMatcher["explain"]>;
