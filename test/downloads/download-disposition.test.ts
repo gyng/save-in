@@ -2,6 +2,7 @@ import * as Download from "../../src/downloads/download-disposition.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "../../src/routing/filename.ts";
 import { options } from "../../src/config/options-data.ts";
 import { Path } from "../../src/routing/path.ts";
+import { applyVariables } from "../../src/routing/variable.ts";
 import {
   BROWSERS,
   CURRENT_BROWSER,
@@ -226,6 +227,49 @@ describe("finalizeFullPath: folder-only route keeps the real filename (§8.1)", 
     } finally {
       Object.assign(options, previous);
     }
+  });
+});
+
+describe("finalizeFullPath: a route's leading './' inside the menu folder", () => {
+  beforeEach(() => {
+    Object.assign(options, { replacementChar: "_" });
+  });
+
+  // Chrome refuses a "." component anywhere in a download path. Only the menu
+  // folder may be the Downloads root; a route's own "./" (a capture expanding
+  // to ".", or `into: ././sorted/` after the parser strips one) means nothing.
+  test.each([
+    ["Pics", "./sorted/", true, "Pics/sorted/a.jpg"],
+    ["Pics", "./", true, "Pics/a.jpg"],
+    ["Pics", "./b.jpg", false, "Pics/b.jpg"],
+    [".", "./sorted/", true, "sorted/a.jpg"],
+    [".", "./", true, "a.jpg"],
+    [".", "./b.jpg", false, "b.jpg"],
+    ["Pics", ".", false, "Pics/_"],
+  ])(
+    "menu %j with route %j saves without a '.' component",
+    (menu, route, routeIsFolder, expected) => {
+      const s = {
+        path: new Path(menu),
+        route: new Path(route),
+        routeIsFolder,
+        info: { filename: "a.jpg" },
+        scratch: {},
+      };
+      expect(Download.finalizeFullPath(s)).toBe(expected);
+    },
+  );
+
+  test("a variable that expands to '.' is an ordinary component", async () => {
+    const info = { linkText: ".", filename: "a.jpg" };
+    const s = {
+      path: new Path("Pics"),
+      route: await applyVariables(new Path(":linktext:/"), info),
+      routeIsFolder: true,
+      info,
+      scratch: {},
+    };
+    expect(Download.finalizeFullPath(s)).toBe("Pics/_/a.jpg");
   });
 });
 

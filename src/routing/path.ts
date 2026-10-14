@@ -347,10 +347,15 @@ export class Path {
         break;
       }
     }
+    // Only a "." the user wrote is the Downloads-root marker. A variable that
+    // expands to "." is page-controlled text, sanitized like any other
+    // dot-only component, or it would leave "." inside a menu folder.
+    const rawFirst = this.rawbuf[0];
+    const writtenRootMarker = rawFirst?.type === PATH_SEGMENT_TYPES.STRING && rawFirst.val === ".";
     return completed
       .map((item, index) => {
         if (item.type === PATH_SEGMENT_TYPES.SEPARATOR) return item;
-        const isLeadingDot = index === 0 && item.val === ".";
+        const isLeadingDot = writtenRootMarker && index === 0 && item.val === ".";
         const isFinalFilename =
           finalizeOptions.finalComponentIsFilename === true && index === finalComponentIndex;
         const value =

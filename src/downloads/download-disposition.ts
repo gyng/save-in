@@ -56,6 +56,12 @@ export const resolveDispositionFilename = async (state: DownloadPipelineState): 
   state.info.resolvedFilename = state.info.filename;
 };
 
+// The parser already strips a written `into: ./`, so a route's remaining
+// leading "./" (a capture expanding to ".", or `into: ././x`) has no meaning,
+// and keeping it would put a "." component inside the menu folder, which Chrome
+// refuses as an invalid filename. Only the menu folder can be the root.
+const withoutRouteRootMarker = (route: string): string => route.replace(/^\.\/+/, "");
+
 const finalizeFullPathWithMimeExtension = (
   _state: FinalizableDownloadState,
   mimeExtension: string | undefined,
@@ -76,16 +82,18 @@ const finalizeFullPathWithMimeExtension = (
     // directory and keeps the download's real name — the browser's
     // Content-Disposition/MIME-resolved filename (or the URL/CD name on
     // Firefox) — instead of naming the file after the folder.
-    const routeDir = String(_state.route.finalize()).replace(/\/+$/, "");
+    const routeDir = withoutRouteRootMarker(String(_state.route.finalize())).replace(/\/+$/, "");
     finalDir = [finalDir, routeDir].filter((x) => x != null && x !== "").join("/");
     finalFilename =
       typeof _state.info.filename === "string" ? renameComponent(_state.info.filename) : undefined;
   } else if (_state.route) {
     // The rule sets the whole name (which may itself include subdirectories)
-    finalFilename = _state.route.finalize({
-      finalComponentIsFilename: true,
-      ...(renameResolved ? { transformFinalComponent: renameComponent } : {}),
-    });
+    finalFilename = withoutRouteRootMarker(
+      _state.route.finalize({
+        finalComponentIsFilename: true,
+        ...(renameResolved ? { transformFinalComponent: renameComponent } : {}),
+      }),
+    );
     finalFilenameIsRoutePath = true;
   } else {
     finalFilename = typeof _state.info.filename === "string" ? _state.info.filename : undefined;

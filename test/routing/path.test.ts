@@ -523,6 +523,15 @@ describe("Path.finalize component semantics", () => {
       options.truncateLength = previous;
     }
   });
+
+  test("only a written leading '.' is the Downloads-root marker", () => {
+    expect(new Path.Path("./x").finalize()).toBe("./x");
+    // A variable is page-controlled; a dot-only value it expands to is an
+    // ordinary component, or it would become "." inside a menu folder.
+    const path = new Path.Path(":linktext:/x");
+    path.buf = [Path.stringSegment("."), ...path.buf.slice(1)];
+    expect(path.finalize()).toBe("_/x");
+  });
 });
 
 describe("Path.validate", () => {
