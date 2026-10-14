@@ -1707,6 +1707,10 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
       sourcePanelLinks: false,
     });
     await control.runtime.reset();
+    // As in the script-media case: the background restores the shared open
+    // state to the tab through its own queue, unordered with the direct open
+    // message below, so the state is written before the tab exists.
+    await control.storage.session.set({ sourcePanelOpen: true });
     const created = await control.tabs.create({ url: firstUrl });
     await control.tabs.wait(
       created.id === undefined ? { urlIncludes: firstMatch } : { id: created.id },
@@ -1736,7 +1740,6 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
           candidate.url?.includes(firstMatch),
         );
         if (tab?.id === undefined) throw new Error("Page Sources fixture tab missing");
-        await control.storage.session.set({ sourcePanelOpen: true });
         await control.tabs.sendMessage(tab.id, { type: "SET_SOURCE_PANEL", body: { open: true } });
       })(),
     ]);
