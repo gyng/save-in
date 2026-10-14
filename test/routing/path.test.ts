@@ -138,6 +138,50 @@ describe("sanitisation", () => {
       expect(Path.sanitizeFilename("LPT10", 0, false)).toBe("LPT10");
     });
 
+    // Chrome's downloads API refuses these names on every OS.
+    test.each([
+      ["CLOCK$", "_CLOCK$"],
+      ["clock$.txt", "_clock$.txt"],
+      ["desktop.ini", "_desktop.ini"],
+      ["Thumbs.db", "_Thumbs.db"],
+    ])("prefixes the browser-refused name %j", (name, expected) => {
+      expect(Path.sanitizeFilename(name, 0, false)).toBe(expected);
+    });
+
+    test("prefixes browser-refused names inside folders", () => {
+      expect(new Path.Path("thumbs.db/desktop.ini").finalize()).toBe("_thumbs.db/_desktop.ini");
+    });
+
+    test("leaves names that merely contain a browser-refused name alone", () => {
+      expect(Path.sanitizeFilename("clock$s", 0, false)).toBe("clock$s");
+      expect(Path.sanitizeFilename("desktop.ini.txt", 0, false)).toBe("desktop.ini.txt");
+    });
+
+    test.each([
+      ["shortcut.lnk", "shortcut_lnk"],
+      ["a.b.LNK", "a.b_LNK"],
+      ["nas.local", "nas_local"],
+      [
+        "file.{20D04FE0-3AEA-1069-A2D8-08002B30309D}",
+        "file_{20D04FE0-3AEA-1069-A2D8-08002B30309D}",
+      ],
+      [".lnk", "_lnk"],
+    ])("defuses the shell-integrated extension of %j", (name, expected) => {
+      expect(Path.sanitizeFilename(name, 0, true, true)).toBe(expected);
+    });
+
+    test.each(["a.lnk.txt", "file.lnkx", "file.{x", "local"])(
+      "keeps the ordinary name %j",
+      (name) => {
+        expect(Path.sanitizeFilename(name, 0, false)).toBe(name);
+      },
+    );
+
+    test("does not let truncation expose a shell-integrated extension", () => {
+      expect(Path.sanitizeFilename("ab.lnk.lnk", 6, false)).toBe("ab_lnk");
+      expect(Path.sanitizeFilename("ab.lnk.lnk", 6, false, true)).not.toMatch(/\.lnk$/i);
+    });
+
     test("round-trips a reserved name through Path.finalize", () => {
       expect(new Path.Path("con.txt").finalize()).toBe("_con.txt");
     });

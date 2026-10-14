@@ -62,7 +62,16 @@ const BAD_LEADING_CHARACTERS = /^[./\\]/g;
 // and so is trimmed (and refused at an edge) by Chrome just like the others.
 const LEADING_WHITESPACE_REGEX = /^[\s\u0085]+/;
 const TRAILING_DOTS_AND_SPACES_REGEX = /[.\s\u0085]+$/;
-export const RESERVED_DEVICE_NAME_REGEX = /^(CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³])$/i;
+// CLOCK$ and the two shell files are not reserved by every filesystem, but
+// Chrome's downloads API refuses them as "Invalid filename" on every OS.
+export const RESERVED_DEVICE_NAME_REGEX = /^(CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³]|CLOCK\$)$/i;
+const RESERVED_SHELL_FILE_REGEX = /^(desktop\.ini|thumbs\.db)$/i;
+// Chrome also refuses, on every OS, a component whose final extension Windows
+// shells interpret: .lnk runs code, .local redirects DLL loading, and a {CLSID}
+// extension disguises the file type. The dot becomes "_" rather than gaining a
+// suffix: a same-length edit cannot be undone by a later byte-limit
+// truncation, and the original extension stays readable.
+const SHELL_INTEGRATED_EXTENSION_REGEX = /\.(lnk|local|\{[^.]*\})$/i;
 const SEPARATOR_REGEX_INCLUSIVE = /([/\\])/g;
 // A destination ending in a separator names a folder and keeps the download's
 // own name. It must accept every separator the line above splits on, or the
@@ -150,11 +159,15 @@ function trimLeadingWhitespace(value: string) {
 
 function neutralizeReservedDeviceName(value: string, replacement?: string) {
   const baseName = value.split(".")[0] || value;
-  if (!RESERVED_DEVICE_NAME_REGEX.test(baseName)) {
+  if (!RESERVED_DEVICE_NAME_REGEX.test(baseName) && !RESERVED_SHELL_FILE_REGEX.test(value)) {
     return value;
   }
 
   return `${replacementChar(replacement, "_")}${value}`;
+}
+
+function defuseShellIntegratedExtension(value: string) {
+  return value.replace(SHELL_INTEGRATED_EXTENSION_REGEX, (extension) => `_${extension.slice(1)}`);
 }
 
 export function sanitizeFilename(
@@ -213,7 +226,7 @@ export function sanitizeFilename(
     : truncateIfLongerThan(deviceSafe, max);
   const result = trimTrailingDotsAndSpaces(boundedDeviceSafe);
   const leadingSafe = leadingDotsForbidden ? replaceLeadingDots(result, "_") : result;
-  return leadingSafe || "_";
+  return defuseShellIntegratedExtension(leadingSafe) || "_";
 }
 
 export function sanitizeBufStrings(buf: PathSegment[]) {
