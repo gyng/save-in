@@ -8,7 +8,6 @@ import {
 import { Sha256 } from "../shared/sha256.ts";
 import { mimeToExtension } from "../routing/variable.ts";
 import { makeUrlFromBlob } from "./content-fetch.ts";
-import { downloadRuntime } from "./download-runtime-instance.ts";
 import type { DownloadPipelineState } from "./download-types.ts";
 
 export const readPageBlob = (
@@ -110,13 +109,8 @@ export const readPageBlob = (
 export const preparePageBlob = (state: DownloadPipelineState): Promise<void> | undefined => {
   const { info } = state;
   const url = info.url;
-  if (
-    !url ||
-    !isPageBlobUrl(url) ||
-    info.contentPromise ||
-    downloadRuntime.generatedObjectUrls.has(url)
-  )
-    return;
+  // Extension-generated object URLs never have an HTTP(S) origin.
+  if (!url || !isPageBlobUrl(url) || info.contentPromise) return;
   const tabId = info.currentTab?.id;
   if (tabId === undefined || !Number.isSafeInteger(tabId) || tabId < 0) return;
   const frameId =
