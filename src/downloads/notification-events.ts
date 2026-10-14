@@ -18,6 +18,7 @@ import { isPrivateDownloadRecord } from "./download-state.ts";
 import type { DownloadRecord } from "./download-state.ts";
 import type { HistoryEntry } from "../shared/history-types.ts";
 import { downloadsState } from "./download-state-instances.ts";
+import { historyDisplayUrl } from "../shared/data-url.ts";
 import { getSession, normalizeSessionCounter } from "../shared/session-state.ts";
 import { claimInheritedPendingDownload } from "./notification-recovery.ts";
 import { options, shouldPersistActivity } from "../config/options-data.ts";
@@ -278,7 +279,10 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
           {
             timestamp: new Date().toISOString(),
             ...(item.incognito ? { private: true } : {}),
-            url: browserDownloadUrl,
+            // A page-built data: download's URL is its whole payload, often a
+            // multi-megabyte canvas export. Store the display form, as
+            // automatic saves do; undo matches this row by startTime.
+            url: historyDisplayUrl(browserDownloadUrl),
             finalFullPath: item.filename,
             routed: false,
             mechanism: "browser-download",

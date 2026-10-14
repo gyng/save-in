@@ -537,6 +537,20 @@ describe("download lifecycle notifications", () => {
     expect(browserLastUsedHolder.update).toHaveBeenCalledWith("Private");
   });
 
+  test("stores a tracked data: browser download's URL in its display form", async () => {
+    options.trackBrowserDownloads = true;
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry").mockReturnValue("h-data");
+    vi.spyOn(history, "setHistoryDownloadId").mockResolvedValue(undefined);
+    const payload = `data:image/png;base64,${"A".repeat(200_000)}`;
+
+    await onCreated({ id: 63, filename: "C:\\Downloads\\canvas.png", url: payload });
+
+    const [entry] = vi.mocked(history.addHistoryEntry).mock.calls.at(-1)!;
+    expect(entry.url).toMatch(/^data:image\/png/);
+    expect(entry.url!.length).toBeLessThan(1_000);
+  });
+
   test("marks an ordinary browser download that Chrome routed as routed", async () => {
     options.trackBrowserDownloads = true;
     const history = await import("../../../src/background/history.ts");
