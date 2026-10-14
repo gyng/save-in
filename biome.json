@@ -10,7 +10,10 @@
     "enabled": true,
     "includes": ["src/**/*.css"],
     "rules": {
-      "preset": "recommended"
+      "preset": "recommended",
+      "style": {
+        "noDescendingSpecificity": "off"
+      }
     }
   },
   "assist": {

@@ -379,15 +379,13 @@ export const setupAutoDownloadDiscovery = (
               automaticRules,
             )
           : undefined;
-      const candidatesForUrl = sources.map(
-        (source): AutomaticRoutingCandidate => ({
-          pageUrl,
-          sourceUrl,
-          sourceKind: source.kind,
-          ...(source.channel ? { sourceChannel: source.channel } : {}),
-          ...(cssAttestation ? { matchedCssSelectorsByOrigin: cssAttestation } : {}),
-        }),
-      );
+      const candidatesForUrl = sources.map((source): AutomaticRoutingCandidate => ({
+        pageUrl,
+        sourceUrl,
+        sourceKind: source.kind,
+        ...(source.channel ? { sourceChannel: source.channel } : {}),
+        ...(cssAttestation ? { matchedCssSelectorsByOrigin: cssAttestation } : {}),
+      }));
       let selected: AutomaticRoutingCandidate | undefined;
       let excludedByRule = false;
       let cacheExclusion = false;

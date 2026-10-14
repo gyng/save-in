@@ -89,7 +89,7 @@ export type MenuTree = { items: MenuTreeItem[]; errors: MenuTreeError[] };
 export type MenuTreeEntry = MenuTreeItem | MenuTreeError;
 
 export const getMenuTreeEntries = ({ items, errors }: MenuTree): MenuTreeEntry[] =>
-  [...items, ...errors].sort((left, right) => left.sourceIndex - right.sourceIndex);
+  [...items, ...errors].toSorted((left, right) => left.sourceIndex - right.sourceIndex);
 
 const normalizeMenuTreeItems = (items: MenuTreeItem[]): MenuTreeItem[] => {
   const siblingsByParent = new Map<string, MenuTreeItem[]>();

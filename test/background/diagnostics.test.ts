@@ -8,13 +8,10 @@ describe("background diagnostics", () => {
 
   test("bounds routine lifecycle records without evicting high-value events", async () => {
     const { normalizeDiagnosticLifecycle } = await import("../../src/background/diagnostics.ts");
-    const valid = Array.from(
-      { length: 55 },
-      (_, index): DiagnosticLifecycleEntry => ({
-        at: `2026-07-15T08:00:${String(index).padStart(2, "0")}.000Z`,
-        kind: "configuration_reloaded",
-      }),
-    );
+    const valid = Array.from({ length: 55 }, (_, index): DiagnosticLifecycleEntry => ({
+      at: `2026-07-15T08:00:${String(index).padStart(2, "0")}.000Z`,
+      kind: "configuration_reloaded",
+    }));
 
     const extensionUpdate: DiagnosticLifecycleEntry = {
       at: "2026-07-15T07:59:00.000Z",
@@ -38,13 +35,10 @@ describe("background diagnostics", () => {
       ]),
     ).toEqual([]);
     expect(normalizeDiagnosticLifecycle({ legacy: true })).toEqual([]);
-    const highValue = Array.from(
-      { length: 51 },
-      (_, index): DiagnosticLifecycleEntry => ({
-        at: `2026-07-15T09:00:${String(index).padStart(2, "0")}.000Z`,
-        kind: "extension_installed",
-      }),
-    );
+    const highValue = Array.from({ length: 51 }, (_, index): DiagnosticLifecycleEntry => ({
+      at: `2026-07-15T09:00:${String(index).padStart(2, "0")}.000Z`,
+      kind: "extension_installed",
+    }));
     expect(normalizeDiagnosticLifecycle(highValue)).toHaveLength(50);
   });
 
