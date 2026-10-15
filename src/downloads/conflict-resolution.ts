@@ -117,22 +117,22 @@ export const isDiscardedConflictDownload = async (
   return (await readCancels())[String(downloadId)] !== undefined;
 };
 
-// Whether Firefox renamed the save because the requested file exists. Any
-// failure to read the answer means "no conflict": the save proceeds exactly as
-// it would have without this feature.
-export const hasNameConflict = async (
+// The name Firefox chose when it renamed the save because the requested file
+// exists, or null. Any failure to read the answer means "no conflict": the
+// save proceeds exactly as it would have without this feature.
+export const findNameConflict = async (
   downloadId: number,
   requestedPath: string,
   log: Logger,
-): Promise<boolean> => {
+): Promise<string | null> => {
   try {
     const [item] = await webExtensionApi.downloads.search({ id: downloadId });
-    return (
-      typeof item?.filename === "string" && isFirefoxUniqueRename(requestedPath, item.filename)
-    );
+    return typeof item?.filename === "string" && isFirefoxUniqueRename(requestedPath, item.filename)
+      ? item.filename
+      : null;
   } catch (error) {
     log("existing-file check failed", String(error));
-    return false;
+    return null;
   }
 };
 

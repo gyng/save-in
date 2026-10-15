@@ -37,3 +37,11 @@ export const isFirefoxUniqueRename = (requestedPath: string, actualPath: string)
   const counter = actualLeaf.slice(base.length + 1, actualLeaf.length - extension.length - 1);
   return /^[1-9]\d*$/.test(counter);
 };
+
+// Firefox opens Save As in the folder it last saved to whenever the requested
+// name has no folder part, and refuses every way of naming the top of
+// Downloads explicitly ("./name" is an illegal character, measured on 140 and
+// 158). Asking there would let the dialog save somewhere the user never
+// routed, so a top-level conflict keeps Firefox's unique name instead.
+export const isTopOfDownloads = (requestedPath: string): boolean =>
+  pathParts(requestedPath).length <= 1;

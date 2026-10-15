@@ -4552,6 +4552,25 @@
   "notificationPrivateConflictSkippedMessage": {
     "message": "同じ名前のファイルがすでに存在するため、プライベートブラウジングの項目は保存されませんでした。"
   },
+  "notificationConflictRenamedTitle": {
+    "message": "重複しない名前で保存しました"
+  },
+  "notificationConflictRenamedMessage": {
+    "message": "$REQUESTED$ はすでに存在します。$SAVEDAS$ として保存しました。",
+    "placeholders": {
+      "requested": {
+        "content": "$1",
+        "example": "photo.jpg"
+      },
+      "savedas": {
+        "content": "$2",
+        "example": "photo(1).jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictRenamedMessage": {
+    "message": "同じ名前のファイルがすでに存在するため、プライベートブラウジングの項目は重複しない名前で保存されました。"
+  },
   "routeActionExclude": {
     "message": "一致する項目を保存しない"
   },
@@ -4619,7 +4638,7 @@
     "message": "URL のパスの末尾にあるファイルの拡張子と一致します。?クエリや #フラグメントは無視します。"
   },
   "o_cDupeAskEmulatedHelp": {
-    "message": "Firefox は同じ名前のファイルを見つけたときだけ「名前を付けて保存」ダイアログを表示します。ダウンロードフォルダーの最上位に保存する場合、ダイアログが最後に使ったフォルダーで開くことがあるため、保存前にフォルダーを確認してください。"
+    "message": "Firefox は同じ名前のファイルを見つけたときだけ「名前を付けて保存」ダイアログを表示します。ダウンロードフォルダーに直接保存する場合は、代わりに重複しない名前を使用し、「ダウンロードが失敗した場合に通知する」がオンの場合に通知を表示します。"
   },
   "o_cDupeSkipHelp": {
     "message": "Firefox は保存を開始し、同じ名前のファイルを見つけた時点で取り消します。履歴には「既に存在」と表示され、「ダウンロードが失敗した場合に通知する」がオンの場合のみ通知されます。"

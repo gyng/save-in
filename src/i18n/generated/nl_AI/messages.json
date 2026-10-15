@@ -4552,6 +4552,25 @@
   "notificationPrivateConflictSkippedMessage": {
     "message": "Een item uit privénavigatie is niet opgeslagen omdat er al een bestand met die naam bestaat."
   },
+  "notificationConflictRenamedTitle": {
+    "message": "Opgeslagen met een unieke naam"
+  },
+  "notificationConflictRenamedMessage": {
+    "message": "$REQUESTED$ bestaat al. Opgeslagen als $SAVEDAS$.",
+    "placeholders": {
+      "requested": {
+        "content": "$1",
+        "example": "photo.jpg"
+      },
+      "savedas": {
+        "content": "$2",
+        "example": "photo(1).jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictRenamedMessage": {
+    "message": "Een item uit privénavigatie is opgeslagen met een unieke naam omdat er al een bestand met die naam bestaat."
+  },
   "routeActionExclude": {
     "message": "Overeenkomende items niet opslaan"
   },
@@ -4619,7 +4638,7 @@
     "message": "Komt overeen met de extensie van het bestand aan het einde van het URL-pad en negeert een ?query of #fragment."
   },
   "o_cDupeAskEmulatedHelp": {
-    "message": "Firefox toont het dialoogvenster Opslaan als pas nadat het een bestand met die naam vindt. Bij opslaan direct in Downloads kan het venster openen in de map die je het laatst gebruikte, dus controleer de map voordat je opslaat."
+    "message": "Firefox toont het dialoogvenster Opslaan als pas nadat het een bestand met die naam vindt. Bij opslaan direct in Downloads behoudt Firefox een unieke naam en toont het een melding als Melden wanneer een download mislukt aanstaat."
   },
   "o_cDupeSkipHelp": {
     "message": "Firefox start het opslaan en annuleert het zodra er een bestand met die naam wordt gevonden. De geschiedenis toont Bestaat al; je krijgt alleen een melding als Melden wanneer een download mislukt aan staat."

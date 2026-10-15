@@ -4552,6 +4552,25 @@
   "notificationPrivateConflictSkippedMessage": {
     "message": "Un elemento di navigazione privata non è stato salvato perché esiste già un file con quel nome."
   },
+  "notificationConflictRenamedTitle": {
+    "message": "Salvato con un nome univoco"
+  },
+  "notificationConflictRenamedMessage": {
+    "message": "$REQUESTED$ esiste già. Salvato come $SAVEDAS$.",
+    "placeholders": {
+      "requested": {
+        "content": "$1",
+        "example": "photo.jpg"
+      },
+      "savedas": {
+        "content": "$2",
+        "example": "photo(1).jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictRenamedMessage": {
+    "message": "Un elemento di navigazione privata è stato salvato con un nome univoco perché esiste già un file con quel nome."
+  },
   "routeActionExclude": {
     "message": "Non salvare gli elementi corrispondenti"
   },
@@ -4619,7 +4638,7 @@
     "message": "Corrisponde all'estensione del file alla fine del percorso dell'URL, ignorando qualsiasi ?query o #frammento."
   },
   "o_cDupeAskEmulatedHelp": {
-    "message": "Firefox mostra la finestra Salva con nome solo dopo aver trovato un file con quel nome. Per i salvataggi direttamente in Download, la finestra può aprirsi nell'ultima cartella usata: controlla la cartella prima di salvare."
+    "message": "Firefox mostra la finestra Salva con nome solo dopo aver trovato un file con quel nome. Per i salvataggi direttamente in Download, mantiene invece un nome univoco e mostra un avviso se è attiva l’opzione Avvisa quando un download fallisce."
   },
   "o_cDupeSkipHelp": {
     "message": "Firefox avvia il salvataggio e lo annulla appena trova un file con quel nome. La cronologia mostra Esiste già; ricevi una notifica solo se Avvisa quando un download fallisce è attivo."

@@ -167,6 +167,28 @@
     "message": "A private browsing item was not saved because a file with that name already exists.",
     "description": "Privacy-preserving notification body when a private save was skipped because the destination folder already has a file with that name. Do not identify the item. Used in src/downloads/download-execution.ts."
   },
+  "notificationConflictRenamedTitle": {
+    "message": "Saved with a unique name",
+    "description": "Notification title when Firefox Ask each time keeps a unique name for a conflict directly in Downloads. Used in src/downloads/download-execution.ts."
+  },
+  "notificationConflictRenamedMessage": {
+    "message": "$REQUESTED$ already exists. Saved as $SAVEDAS$.",
+    "description": "Notification body when Firefox Ask each time keeps a unique name directly in Downloads. REQUESTED and SAVEDAS are file names without folders. Used in src/downloads/download-execution.ts.",
+    "placeholders": {
+      "requested": {
+        "content": "$1",
+        "example": "photo.jpg"
+      },
+      "savedas": {
+        "content": "$2",
+        "example": "photo(1).jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictRenamedMessage": {
+    "message": "A private browsing item was saved with a unique name because a file with that name already exists.",
+    "description": "Privacy-preserving notification body when Firefox Ask each time keeps a unique name directly in Downloads for a private save. Do not identify the item. Used in src/downloads/download-execution.ts."
+  },
   "routeActionExclude": {
     "message": "Do not save matching items",
     "description": "Action label for adding or displaying an exclude: true routing rule. Used in src/options/options.html, src/options/rule-editor/rule-visual-editor.ts, src/options/route-debugger/route-debugger.ts, and src/options/clauselist.html."
@@ -5924,8 +5946,8 @@
     "description": "Description of the urlfileext: routing matcher in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "o_cDupeAskEmulatedHelp": {
-    "message": "Firefox shows its Save As dialog only after it finds a file with that name. For saves to the top of Downloads, the dialog may open in the folder you used last, so check the folder before you save.",
-    "description": "Help under the \"When a file already exists:\" select when Ask each time is chosen on Firefox, where Save In emulates the prompt. Used in src/options/options.html."
+    "message": "Firefox shows its Save As dialog only after it finds a file with that name. For saves directly in Downloads, it keeps a unique name instead and shows a notice if Notify when a download fails is on.",
+    "description": "Help under the \"When a file already exists:\" select when Ask each time is chosen on Firefox. Saves directly in Downloads keep a unique name; subfolders use Save As. \"Notify when a download fails\" is the setting label; reuse its translation. Used in src/options/options.html."
   },
   "o_cDupeSkipHelp": {
     "message": "Firefox starts the save and cancels it as soon as it finds a file with that name. History shows Already exists; you get a notification only if Notify when a download fails is on.",

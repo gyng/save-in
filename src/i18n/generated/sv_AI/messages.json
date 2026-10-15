@@ -4552,6 +4552,25 @@
   "notificationPrivateConflictSkippedMessage": {
     "message": "Ett objekt från privat surfning sparades inte eftersom en fil med det namnet redan finns."
   },
+  "notificationConflictRenamedTitle": {
+    "message": "Sparad med ett unikt namn"
+  },
+  "notificationConflictRenamedMessage": {
+    "message": "$REQUESTED$ finns redan. Sparad som $SAVEDAS$.",
+    "placeholders": {
+      "requested": {
+        "content": "$1",
+        "example": "photo.jpg"
+      },
+      "savedas": {
+        "content": "$2",
+        "example": "photo(1).jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictRenamedMessage": {
+    "message": "Ett objekt från privat surfning sparades med ett unikt namn eftersom en fil med det namnet redan finns."
+  },
   "routeActionExclude": {
     "message": "Spara inte matchande objekt"
   },
@@ -4619,7 +4638,7 @@
     "message": "Matchar filändelsen för filen i slutet av URL-sökvägen och ignorerar en ?fråga eller ett #fragment."
   },
   "o_cDupeAskEmulatedHelp": {
-    "message": "Firefox visar dialogrutan Spara som först när den hittar en fil med det namnet. När du sparar direkt i Hämtade filer kan dialogrutan öppnas i den mapp du använde senast, så kontrollera mappen innan du sparar."
+    "message": "Firefox visar dialogrutan Spara som först när den hittar en fil med det namnet. När du sparar direkt i Hämtade filer behåller Firefox i stället ett unikt namn och visar ett meddelande om Meddela när en nedladdning misslyckas är på."
   },
   "o_cDupeSkipHelp": {
     "message": "Firefox startar sparandet och avbryter det så snart den hittar en fil med det namnet. Historiken visar Finns redan; du får bara en avisering om Meddela när en nedladdning misslyckas är på."

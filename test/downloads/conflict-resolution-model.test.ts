@@ -1,5 +1,6 @@
 import {
   isFirefoxUniqueRename,
+  isTopOfDownloads,
   splitFirefoxBaseName,
 } from "../../src/downloads/conflict-resolution-model.ts";
 
@@ -61,4 +62,16 @@ test.each([
   ["no requested name", "", `${ROOT}/plain(1).bin`],
 ])("%s is not a conflict", (_label, requested, actual) => {
   expect(isFirefoxUniqueRename(requested, actual)).toBe(false);
+});
+
+test.each([
+  ["photo.jpg", true],
+  ["./photo.jpg", true],
+  [".\\photo.jpg", true],
+  ["Images/photo.jpg", false],
+  ["./Images/photo.jpg", false],
+  ["Images\\photo.jpg", false],
+  ["Images/nested/photo.jpg", false],
+])("%s saves directly in Downloads: %s", (requested, expected) => {
+  expect(isTopOfDownloads(requested)).toBe(expected);
 });

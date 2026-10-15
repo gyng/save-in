@@ -70,10 +70,11 @@ import { deliverSaveWebhook } from "./webhook-delivery.ts";
 import {
   beginConflictCheck,
   discardConflictingDownload,
-  hasNameConflict,
+  findNameConflict,
   nativeConflictAction,
   plannedConflictResolution,
 } from "./conflict-resolution.ts";
+import { isTopOfDownloads } from "./conflict-resolution-model.ts";
 import { proposedFilename } from "./browser-downloads.ts";
 import { notifyExclusiveRouteMiss, notifyRouteExclusion } from "./route-outcome-notification.ts";
 import {
@@ -429,7 +430,14 @@ export const executeBrowserDownload = async (
     cancelExpectedDownload(expected);
     if (conflictCheck && conflictResolution) {
       const log = (message: string, data?: unknown) => addDownloadLog(state, message, data);
-      if (await hasNameConflict(downloadId, filename, log)) {
+      const renamedTo = await findNameConflict(downloadId, filename, log);
+      if (renamedTo !== null && conflictResolution === "ask" && isTopOfDownloads(filename)) {
+        // Keep Firefox's unique name rather than open a dialog that would
+        // start in the folder used last (isTopOfDownloads).
+        conflictCheck.settle(false);
+        log("existing file found at the top of Downloads; kept the unique name");
+        notifyConflictRenamed(plan, filename, renamedTo);
+      } else if (renamedTo !== null) {
         await discardConflictingDownload(
           downloadId,
           { action: conflictResolution, ...(historyEntryId ? { historyEntryId } : {}) },
@@ -456,8 +464,7 @@ export const executeBrowserDownload = async (
           .catch((error) => log("existing-file skip history failed", String(error)));
         notifyConflictSkipped(plan, filename);
         return { status: "skipped" };
-      }
-      conflictCheck.settle(false);
+      } else conflictCheck.settle(false);
     }
     if (acquired.ownedObjectUrl) {
       downloadRuntime.ownedObjectUrls.set(downloadId, acquired.ownedObjectUrl);
@@ -615,6 +622,25 @@ const notifyConflictSkipped = (plan: DownloadPlan, filename: string): void => {
     privateContext
       ? getMessage("notificationPrivateConflictSkippedMessage")
       : getMessage("notificationConflictSkippedMessage", [proposedFilename(filename)]),
+    false,
+    EXTENSION_NOTIFICATION_STREAMS.CONFLICT_SKIP,
+    { privateContext },
+  );
+};
+
+// The save went ahead under Firefox's unique name, so this is a notice about
+// where it went, gated like the skip notice it replaces.
+const notifyConflictRenamed = (plan: DownloadPlan, filename: string, renamedTo: string): void => {
+  if (!options.notifyOnFailure || isSourceSidecar(plan.state)) return;
+  const privateContext = isPrivateDownloadState(plan.state);
+  createExtensionNotification(
+    getMessage("notificationConflictRenamedTitle"),
+    privateContext
+      ? getMessage("notificationPrivateConflictRenamedMessage")
+      : getMessage("notificationConflictRenamedMessage", [
+          proposedFilename(filename),
+          proposedFilename(renamedTo),
+        ]),
     false,
     EXTENSION_NOTIFICATION_STREAMS.CONFLICT_SKIP,
     { privateContext },

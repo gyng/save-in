@@ -4552,6 +4552,25 @@
   "notificationPrivateConflictSkippedMessage": {
     "message": "No se guardó un elemento de navegación privada porque ya existe un archivo con ese nombre."
   },
+  "notificationConflictRenamedTitle": {
+    "message": "Guardado con un nombre único"
+  },
+  "notificationConflictRenamedMessage": {
+    "message": "$REQUESTED$ ya existe. Se guardó como $SAVEDAS$.",
+    "placeholders": {
+      "requested": {
+        "content": "$1",
+        "example": "photo.jpg"
+      },
+      "savedas": {
+        "content": "$2",
+        "example": "photo(1).jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictRenamedMessage": {
+    "message": "Se guardó un elemento de navegación privada con un nombre único porque ya existe un archivo con ese nombre."
+  },
   "routeActionExclude": {
     "message": "No guardar los elementos coincidentes"
   },
@@ -4619,7 +4638,7 @@
     "message": "Coincide con la extensión del archivo al final de la ruta de la URL e ignora cualquier ?consulta o #fragmento."
   },
   "o_cDupeAskEmulatedHelp": {
-    "message": "Firefox muestra su diálogo Guardar como solo después de encontrar un archivo con ese nombre. Al guardar directamente en Descargas, el diálogo puede abrirse en la última carpeta que usaste, así que comprueba la carpeta antes de guardar."
+    "message": "Firefox muestra su diálogo Guardar como solo después de encontrar un archivo con ese nombre. Al guardar directamente en Descargas, conserva un nombre único y muestra un aviso si está activada la opción Notificar cuando falla una descarga."
   },
   "o_cDupeSkipHelp": {
     "message": "Firefox inicia la descarga y la cancela en cuanto encuentra un archivo con ese nombre. El historial muestra Ya existe; solo recibes una notificación si Notificar cuando falla una descarga está activado."

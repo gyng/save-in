@@ -4,12 +4,12 @@
 decides what happens when the destination folder already has a file with the
 name Save In chose.
 
-| Choice               | Firefox                                                   | Chrome                     |
-| -------------------- | --------------------------------------------------------- | -------------------------- |
-| Create a unique name | Saves as `name(1).ext` (the default)                      | Saves as `name (1).ext`    |
-| Overwrite            | Replaces the existing file                                | Replaces the existing file |
-| Ask each time        | Opens a Save As dialog, but only when the file exists     | Chrome's own dialog        |
-| Skip                 | Does not save, and shows a "File already exists" notice   | Not offered                |
+| Choice               | Firefox                                                      | Chrome                     |
+| -------------------- | ------------------------------------------------------------ | -------------------------- |
+| Create a unique name | Saves as `name(1).ext` (the default)                           | Saves as `name (1).ext`     |
+| Overwrite            | Replaces the existing file                                   | Replaces the existing file |
+| Ask each time        | Asks for subfolders; keeps a unique name directly in Downloads | Chrome's own dialog        |
+| Skip                 | Does not save, and shows a "File already exists" notice        | Not offered                |
 
 ## How Firefox finds the existing file
 
@@ -17,8 +17,10 @@ Neither browser lets an extension look at your folders, and Firefox's download
 list keeps calling a file present after you delete it. So Save In asks Firefox
 to save under a unique name and checks the name Firefox picked. When Firefox
 answers with `name(1).ext`, a file named `name.ext` is already in that folder,
-whether or not it was ever downloaded. Save In then cancels that copy at once
-and either skips the save or opens the Save As dialog for the original name.
+whether or not it was ever downloaded. Save In then either keeps that copy
+for Ask each time directly in Downloads,
+or cancels it at once to skip the save or open the Save As dialog for the
+original name.
 
 - A skipped save appears in History as **Already exists** and is not sent to
   webhooks. Its notice follows **Notify when a download fails**; private
@@ -38,16 +40,17 @@ and either skips the save or opens the Save As dialog for the original name.
 - Only saves Save In names itself are checked. Ordinary browser downloads,
   saves where you already get a Save As dialog, and retries after a network
   failure keep the browser's behavior.
-- For saves to the top of Downloads, Firefox may open the dialog in the folder
-  you used last. Check the folder before you save: saving there leaves the
-  existing file alone and puts the new one in that other folder. Saves to a
-  folder inside Downloads always open in that folder.
+- With Ask each time, saves directly in Downloads keep Firefox’s unique name
+  and show a notice if **Notify when a download fails** is on. Private notices
+  do not name the file. Firefox cannot open its Save As dialog reliably in
+  Downloads itself: it may use the folder saved to last. Saves to a folder
+  inside Downloads still open the dialog in that folder.
 - A name Firefox shortens or cleans up for another reason, for example a very
   long name that leaves no room for `(1)`, is not treated as a conflict. The
   save then completes under Firefox's unique name, as with Create a unique name.
 - Chrome reports its chosen name too late to cancel reliably, so Chrome offers
   no Skip. A profile imported from Firefox with Skip saves under a unique name
   on Chrome.
-- A profile imported from Chrome with Ask each time now asks on Firefox.
-  Earlier versions saved it under a unique name there, because Firefox has no
-  dialog of its own for this.
+- A profile imported from Chrome with Ask each time now follows the behavior
+  above on Firefox. Earlier versions always saved it under a unique name there,
+  because Firefox has no dialog of its own for this.

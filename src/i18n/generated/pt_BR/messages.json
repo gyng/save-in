@@ -4552,6 +4552,25 @@
   "notificationPrivateConflictSkippedMessage": {
     "message": "Um item da navegação privativa não foi salvo porque já existe um arquivo com esse nome."
   },
+  "notificationConflictRenamedTitle": {
+    "message": "Salvo com um nome único"
+  },
+  "notificationConflictRenamedMessage": {
+    "message": "$REQUESTED$ já existe. Salvo como $SAVEDAS$.",
+    "placeholders": {
+      "requested": {
+        "content": "$1",
+        "example": "photo.jpg"
+      },
+      "savedas": {
+        "content": "$2",
+        "example": "photo(1).jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictRenamedMessage": {
+    "message": "Um item da navegação privativa foi salvo com um nome único porque já existe um arquivo com esse nome."
+  },
   "routeActionExclude": {
     "message": "Não salvar itens correspondentes"
   },
@@ -4619,7 +4638,7 @@
     "message": "Corresponde à extensão do arquivo no final do caminho da URL, ignorando qualquer ?consulta ou #fragmento."
   },
   "o_cDupeAskEmulatedHelp": {
-    "message": "O Firefox mostra a caixa de diálogo Salvar como só depois de encontrar um arquivo com esse nome. Ao salvar direto em Downloads, a caixa pode abrir na última pasta usada, então confira a pasta antes de salvar."
+    "message": "O Firefox mostra a caixa de diálogo Salvar como só depois de encontrar um arquivo com esse nome. Ao salvar direto em Downloads, mantém um nome único e mostra um aviso se Notificar quando um download falhar estiver ativado."
   },
   "o_cDupeSkipHelp": {
     "message": "O Firefox inicia o salvamento e o cancela assim que encontra um arquivo com esse nome. O histórico mostra Já existe; você só recebe uma notificação se Notificar quando um download falhar estiver ativado."

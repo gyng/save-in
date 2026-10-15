@@ -4552,6 +4552,25 @@
   "notificationPrivateConflictSkippedMessage": {
     "message": "由於已有同名檔案，因此未儲存一個隱私瀏覽項目。"
   },
+  "notificationConflictRenamedTitle": {
+    "message": "已使用不重複的名稱儲存"
+  },
+  "notificationConflictRenamedMessage": {
+    "message": "$REQUESTED$ 已存在。已另存為 $SAVEDAS$。",
+    "placeholders": {
+      "requested": {
+        "content": "$1",
+        "example": "photo.jpg"
+      },
+      "savedas": {
+        "content": "$2",
+        "example": "photo(1).jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictRenamedMessage": {
+    "message": "由於已有同名檔案，一個隱私瀏覽項目已使用不重複的名稱儲存。"
+  },
   "routeActionExclude": {
     "message": "不儲存相符項目"
   },
@@ -4619,7 +4638,7 @@
     "message": "比對 URL 路徑末端檔案的副檔名，忽略任何 ?查詢 或 #片段。"
   },
   "o_cDupeAskEmulatedHelp": {
-    "message": "Firefox 只有在找到同名檔案後才會顯示「另存新檔」對話方塊。儲存到「下載」資料夾最上層時，對話方塊可能會在你上次使用的資料夾開啟，請在儲存前確認資料夾。"
+    "message": "Firefox 只有在找到同名檔案後才會顯示「另存新檔」對話方塊。直接儲存到「下載」資料夾時，會改為保留不重複的名稱，並在開啟「下載失敗時顯示通知」時顯示通知。"
   },
   "o_cDupeSkipHelp": {
     "message": "Firefox 會開始儲存，並在找到同名檔案時立即取消。歷史記錄會顯示「檔案已存在」；只有開啟「下載失敗時顯示通知」時才會收到通知。"

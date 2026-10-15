@@ -1881,4 +1881,23 @@ test("an existing file is skipped or asked about instead of saved again", async 
   expect(messages).toContain("existing file found; asking where to save");
   expect(filesNamed(`exists-ask-${stamp}`)).toEqual([asked]);
   expect(fs.readFileSync(path.join(directory, asked), "utf8")).toBe("original");
+
+  // Save As cannot pin Downloads itself. Keep the browser's unique name,
+  // including the completed file and its normal History row, without a picker.
+  const rootName = `exists-root-${stamp}.txt`;
+  fs.writeFileSync(path.join(session.downloadDir, rootName), "original");
+  await control.background.startDownload({
+    content: "duplicate",
+    suggestedFilename: rootName,
+    pageUrl: "https://example.com/",
+    path: ".",
+  });
+  const kept = await waitForDownloads(`exists-root-${stamp}`);
+  expect(kept).toHaveLength(1);
+  const completed = requireValue(kept[0], "Unique-name download was not captured");
+  expect(completed.state).toBe("complete");
+  expect(completed.filename).toBe(path.join(session.downloadDir, `exists-root-${stamp}(1).txt`));
+  expect(fs.readFileSync(completed.filename, "utf8")).toBe("duplicate");
+  expect(fs.readFileSync(path.join(session.downloadDir, rootName), "utf8")).toBe("original");
+  await control.history.wait({ finalFullPath: rootName, status: "complete" });
 });

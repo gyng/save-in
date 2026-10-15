@@ -179,10 +179,9 @@ describe("Ask each time, emulated on Firefox", () => {
   // Firefox opens the dialog in its last-used folder for a name without a
   // separator, but rejects "./name" as an illegal filename (measured on 140
   // and 158), so a save to the top of Downloads cannot pin the folder.
-  test.each([
-    [".", "file.png"],
-    ["Images", "Images/file.png"],
-  ])("asks with the requested name for folder %s", async (folder, filename) => {
+  test("asks with the requested name in a subfolder", async () => {
+    const folder = "Images";
+    const filename = "Images/file.png";
     vi.mocked(global.browser.downloads.download)
       .mockResolvedValueOnce(101)
       .mockResolvedValueOnce(102);
@@ -198,6 +197,79 @@ describe("Ask each time, emulated on Firefox", () => {
       [true, filename],
     ]);
   });
+
+  test("keeps the unique name directly in Downloads and reports both names", async () => {
+    const getMessage = vi.spyOn(global.browser.i18n, "getMessage");
+
+    await expect(
+      Download.renameAndDownload(makeState({ path: { finalize: () => "." } })),
+    ).resolves.toEqual({ status: "started", downloadId: 101 });
+
+    expect(global.browser.downloads.download).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ saveAs: false, filename: "file.png", conflictAction: "uniquify" }),
+    );
+    expect(global.browser.downloads.cancel).not.toHaveBeenCalled();
+    expect(global.browser.downloads.erase).not.toHaveBeenCalled();
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    expect(SaveHistory.setHistoryDownloadId).toHaveBeenCalledWith("h-test", 101);
+    expect(statuses()).toEqual([]);
+    expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
+      "notificationConflictRenamedTitle",
+      "notificationConflictRenamedMessage",
+      false,
+      Notifier.EXTENSION_NOTIFICATION_STREAMS.CONFLICT_SKIP,
+      { privateContext: false },
+    );
+    expect(getMessage).toHaveBeenCalledWith("notificationConflictRenamedMessage", [
+      "file.png",
+      "file(1).png",
+    ]);
+  });
+
+  test("does not name a private save in the unique-name notice", async () => {
+    options.persistPrivateActivity = false;
+    const getMessage = vi.spyOn(global.browser.i18n, "getMessage");
+
+    await expect(
+      Download.renameAndDownload(
+        makeState({ path: { finalize: () => "." }, info: { currentTab: { incognito: true } } }),
+      ),
+    ).resolves.toEqual({ status: "started", downloadId: 101 });
+
+    expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
+      "notificationConflictRenamedTitle",
+      "notificationPrivateConflictRenamedMessage",
+      false,
+      Notifier.EXTENSION_NOTIFICATION_STREAMS.CONFLICT_SKIP,
+      { privateContext: true },
+    );
+    expect(getMessage).not.toHaveBeenCalledWith(
+      "notificationConflictRenamedMessage",
+      expect.anything(),
+    );
+    expect(SaveHistory.setHistoryDownloadId).not.toHaveBeenCalled();
+    expect(global.browser.downloads.cancel).not.toHaveBeenCalled();
+  });
+
+  test.each(["notifications off", "sidecar"])(
+    "keeps the unique name silently: %s",
+    async (mode) => {
+      options.notifyOnFailure = mode !== "notifications off";
+
+      await expect(
+        Download.renameAndDownload(
+          makeState({
+            path: { finalize: () => "." },
+            ...(mode === "sidecar" ? { info: { context: DOWNLOAD_TYPES.SIDECAR } } : {}),
+          }),
+        ),
+      ).resolves.toEqual({ status: "started", downloadId: 101 });
+
+      expect(global.browser.downloads.download).toHaveBeenCalledTimes(1);
+      expect(global.browser.downloads.cancel).not.toHaveBeenCalled();
+      expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
+    },
+  );
 
   test("dismissing the dialog cancels the save without fetching or asking again", async () => {
     vi.mocked(global.browser.downloads.download).mockImplementation(async (request: any) => {

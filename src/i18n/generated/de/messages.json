@@ -4552,6 +4552,25 @@
   "notificationPrivateConflictSkippedMessage": {
     "message": "Ein Element aus einem privaten Fenster wurde nicht gespeichert, weil bereits eine Datei mit diesem Namen vorhanden ist."
   },
+  "notificationConflictRenamedTitle": {
+    "message": "Mit eindeutigem Namen gespeichert"
+  },
+  "notificationConflictRenamedMessage": {
+    "message": "$REQUESTED$ ist bereits vorhanden. Als $SAVEDAS$ gespeichert.",
+    "placeholders": {
+      "requested": {
+        "content": "$1",
+        "example": "photo.jpg"
+      },
+      "savedas": {
+        "content": "$2",
+        "example": "photo(1).jpg"
+      }
+    }
+  },
+  "notificationPrivateConflictRenamedMessage": {
+    "message": "Ein Element aus einem privaten Fenster wurde mit einem eindeutigen Namen gespeichert, weil bereits eine Datei mit diesem Namen vorhanden ist."
+  },
   "routeActionExclude": {
     "message": "Übereinstimmende Elemente nicht speichern"
   },
@@ -4619,7 +4638,7 @@
     "message": "Entspricht der Erweiterung der Datei am Ende des URL-Pfads und ignoriert eine ?Abfrage oder ein #Fragment."
   },
   "o_cDupeAskEmulatedHelp": {
-    "message": "Firefox zeigt seinen Dialog „Speichern unter“ erst, nachdem eine Datei mit diesem Namen gefunden wurde. Beim Speichern direkt in Downloads kann der Dialog im zuletzt verwendeten Ordner öffnen. Prüfen Sie daher vor dem Speichern den Ordner."
+    "message": "Firefox zeigt seinen Dialog „Speichern unter“ erst, nachdem eine Datei mit diesem Namen gefunden wurde. Beim Speichern direkt in Downloads behält Firefox stattdessen einen eindeutigen Namen bei und zeigt einen Hinweis, wenn „Benachrichtigen, wenn ein Download fehlschlägt“ aktiviert ist."
   },
   "o_cDupeSkipHelp": {
     "message": "Firefox startet das Speichern und bricht es ab, sobald eine Datei mit diesem Namen gefunden wird. Der Verlauf zeigt Bereits vorhanden; eine Benachrichtigung erhalten Sie nur, wenn Benachrichtigen, wenn ein Download fehlschlägt aktiviert ist."

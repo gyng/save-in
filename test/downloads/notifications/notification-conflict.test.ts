@@ -219,8 +219,10 @@ describe("existing-file check", () => {
 
   test("finds Firefox's rename of the requested file", async () => {
     const conflict = await loadConflict();
-    await expect(conflict.hasNameConflict(9, "e2e/a.png", vi.fn())).resolves.toBe(true);
-    await expect(conflict.hasNameConflict(9, "e2e/b.png", vi.fn())).resolves.toBe(false);
+    await expect(conflict.findNameConflict(9, "e2e/a.png", vi.fn())).resolves.toBe(
+      "/dl/e2e/a(1).png",
+    );
+    await expect(conflict.findNameConflict(9, "e2e/b.png", vi.fn())).resolves.toBeNull();
   });
 
   test("fails open: an unreadable item saves as before", async () => {
@@ -228,11 +230,11 @@ describe("existing-file check", () => {
     vi.mocked(global.browser.downloads.search).mockRejectedValueOnce(new Error("no item"));
     const log = vi.fn();
 
-    await expect(conflict.hasNameConflict(9, "e2e/a.png", log)).resolves.toBe(false);
+    await expect(conflict.findNameConflict(9, "e2e/a.png", log)).resolves.toBeNull();
     expect(log).toHaveBeenCalledWith("existing-file check failed", "Error: no item");
 
     vi.mocked(global.browser.downloads.search).mockResolvedValueOnce([]);
-    await expect(conflict.hasNameConflict(9, "e2e/a.png", log)).resolves.toBe(false);
+    await expect(conflict.findNameConflict(9, "e2e/a.png", log)).resolves.toBeNull();
   });
 });
 
