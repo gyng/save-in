@@ -2,8 +2,7 @@
   "extends": "./chrome.json",
   "compilerOptions": {
     "lib": ["es2023", "webworker"],
-    "types": ["firefox-webext-browser", "chrome"],
-    // Both upstream WebExtension declaration packages mention a few DOM-only
+    // Upstream Chrome declarations mention a few DOM-only
     // types even for APIs available in workers. App source remains checked.
     "skipLibCheck": true
   },

@@ -131,6 +131,29 @@ check(
   readJson("config/typescript/chrome.json").exclude?.includes("../../types/host-firefox.d.ts"),
   "Chrome host check must exclude Firefox declarations",
 );
+check(
+  baseOptions.types?.includes("save-in-chrome") && !baseOptions.types?.includes("chrome"),
+  "default Firefox project must load the Chrome declaration adapter",
+);
+check(
+  JSON.stringify(readJson("config/typescript/chrome.json").compilerOptions?.types) ===
+    JSON.stringify(["chrome"]) && worker.compilerOptions?.types === undefined,
+  "Chrome and worker checks must load only the original Chrome host declarations",
+);
+check(
+  readJson("tsconfig.json").files?.includes("test/contracts/host-firefox.ts") &&
+    readJson("config/typescript/chrome.json").files?.includes(
+      "../../test/contracts/host-chrome.ts",
+    ),
+  "host projects must check their own API contracts",
+);
+check(
+  packageJson.scripts?.postinstall?.includes("generate:chrome-types") &&
+    typecheck.includes("generate:chrome-types") &&
+    packageJson.scripts?.["lint:type-aware"]?.includes("generate:chrome-types") &&
+    packageJson.scripts?.["lint:staged"]?.includes("check:host-types"),
+  "install, typecheck and lint must maintain and validate the Chrome declaration adapter",
+);
 
 const tools = readJson("config/typescript/tools.json");
 check(

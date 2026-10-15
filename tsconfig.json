@@ -11,7 +11,8 @@
     "noUncheckedSideEffectImports": true,
     "allowImportingTsExtensions": true,
     "lib": ["es2023", "dom"],
-    "types": ["firefox-webext-browser", "chrome"],
+    "types": ["firefox-webext-browser", "save-in-chrome"],
+    "typeRoots": ["./dist/types", "./node_modules/@types", "./node_modules"],
     "strict": true,
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
@@ -25,6 +26,7 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true
   },
+  "files": ["test/contracts/host-firefox.ts"],
   "include": ["src/**/*.ts", "types/**/*.d.ts"],
   "exclude": ["types/host-chrome.d.ts"]
 }

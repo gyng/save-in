@@ -54,6 +54,20 @@ deeply nested selector trees or create catch-all override stylesheets.
 rejects it outright while Firefox below 146 remains supported (Chrome has it since
 118, so the declared Firefox minimum is what gates it).
 
+Chrome's typings also declare a global `browser` alias, which conflicts with
+Firefox's `browser` namespace. `scripts/generate-chrome-types.js` copies the
+installed Chrome declaration package to `dist/types/save-in-chrome`, omitting
+only its global `browser` and `Window.browser` declarations. Firefox, the default
+editor project, and the combined test project load that adapter alongside the
+Firefox types; Chrome and its worker load only the original Chrome types.
+`npm install` and `npm run typecheck` regenerate the adapter; after cleaning,
+`npm run generate:chrome-types` also restores editor types. `check:host-types`
+rejects stale output, and unexpected upstream alias declarations stop generation.
+Keep the per-host contracts in `test/contracts/host-*.ts` checked by their host
+projects so Firefox-only APIs and promise-only calls cannot drift into Chrome's
+host, or Chrome's alias into Firefox's host. Do not suppress the collision with
+`skipLibCheck` or edit installed packages.
+
 **Build, ship, and browser tests target the staged bundle** in
 `dist/bundled-pkg`. `npm run typecheck` covers source and the TypeScript test
 suite with `exactOptionalPropertyTypes` and `noUncheckedIndexedAccess`.
@@ -423,8 +437,9 @@ vitest specifics (`test/**/*.test.ts`, typed; `tsc` covers them):
   import-real + `vi.spyOn`, and typed listener capture.
 - Module-reset tests use `vi.resetModules()` + `await import(...)`. In jsdom
   tests, stub away `URL.createObjectURL` to exercise MV3 paths.
-- Compile-only API relationships belong in `test/contracts/type-contracts.ts`; do not
-  wrap `expectTypeOf` assertions in runtime tests.
+- Compile-only API relationships belong in `test/contracts/type-contracts.ts`;
+  host-specific relationships belong in `test/contracts/host-*.ts`, checked by
+  the corresponding host project. Do not wrap `expectTypeOf` assertions in runtime tests.
 - Capture browser event handlers via
   `vi.mocked(browser.x.onY.addListener).mock.calls[0]![0]` and invoke them.
 

@@ -1,5 +1,9 @@
 {
   "extends": "./browser.json",
+  "compilerOptions": {
+    "types": ["chrome"]
+  },
+  "files": ["../../test/contracts/host-chrome.ts"],
   "include": ["../../src/**/*.ts", "../../types/**/*.d.ts"],
   "exclude": ["../../types/host-firefox.d.ts"]
 }
