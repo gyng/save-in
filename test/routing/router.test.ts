@@ -1,4 +1,5 @@
 import * as router from "../../src/routing/router.ts";
+import { canonicalFetchRewrite } from "../../src/routing/fetch-url.ts";
 import {
   type MatcherResult,
   type RoutingRule,
@@ -330,6 +331,28 @@ describe("filename rewrite and routing", () => {
       expect(match?.rule).toBe(rules[0]);
       expect(match?.destination).toBe("twitter/EQEN6n3U.jpg");
       expect(match?.fetch).toBe("https://pbs.twimg.com/media/EQEN6n3U.jpg?name=orig");
+    });
+
+    // The capture is loose enough to take a path separator, and the template
+    // places it in the host: the match must not name a host the page chose.
+    test("a capture that would move the fetch template's host is refused", () => {
+      const rules = router.parseRules(
+        "sourceurl: [?&]cdn=([^&]+)&id=(\\w+)\ncapture: sourceurl\nfetch: https://:$1:.cdn.example/full/:$2:\ninto: full/:$2:",
+      );
+      expect(rules).toHaveLength(1);
+
+      const honest = router.matchRulesDetailed(rules, {
+        sourceUrl: "https://site.example/v?cdn=img7&id=abc",
+      });
+      const hostile = router.matchRulesDetailed(rules, {
+        sourceUrl: "https://site.example/v?cdn=evil.example/&id=abc",
+      });
+
+      expect(honest?.fetch).toBe("https://img7.cdn.example/full/abc");
+      expect(hostile?.destination).toBe("full/abc");
+      expect(hostile?.fetch).not.toBeNull();
+      expect(hostile?.fetch).not.toContain("evil.example");
+      expect(canonicalFetchRewrite(hostile?.fetch ?? "")).toBeNull();
     });
 
     test("rules without fetch report a null fetch template", () => {

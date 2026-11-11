@@ -573,16 +573,27 @@ const VARIABLE_TEMPLATE_PATTERN = new RegExp(
 // are substituted verbatim; the caller decides what sanitization the result
 // needs. skipTokens keeps known-but-banned variables literal so a stale
 // stored rule cannot trigger the fetch the ban exists to prevent.
-export const expandVariableTemplate = async (
+export type ExpandedTemplatePart = {
+  // The template text this part came from, and what it expanded to. They are
+  // the same string for literal text and for a token that names no variable.
+  source: string;
+  value: string;
+  variable: boolean;
+};
+
+// The expansion piece by piece, for a caller that must know which characters a
+// variable supplied (a fetch: template checks those that land in its host).
+export const expandVariableTemplateParts = async (
   template: string,
   info: RoutingDownloadInfo,
   skipTokens?: ReadonlySet<string>,
-): Promise<string> => {
+): Promise<ExpandedTemplatePart[]> => {
   ensureTransformerInfo(info);
   const tokens = template.split(VARIABLE_TEMPLATE_PATTERN).filter(Boolean);
-  const resolved = await Promise.all(
+  return Promise.all(
     tokens.map(async (token) => {
-      if (skipTokens?.has(token)) return token;
+      const literal = { source: token, value: token, variable: false };
+      if (skipTokens?.has(token)) return literal;
       // split() on a capturing pattern also yields the literal text between the
       // variables, so that text reaches this lookup. transformers is an object
       // literal whose own keys are all colon-wrapped, so an Object.prototype
@@ -591,12 +602,20 @@ export const expandVariableTemplate = async (
       // Object]", and "__proto__" is truthy but not callable, throwing out of
       // the download pipeline. Only an own key names a variable.
       const transformer = Object.hasOwn(transformers, token) ? transformers[token] : undefined;
-      if (!transformer) return token;
-      return String(await transformer(info));
+      if (!transformer) return literal;
+      return { source: token, value: String(await transformer(info)), variable: true };
     }),
   );
-  return resolved.join("");
 };
+
+export const expandVariableTemplate = async (
+  template: string,
+  info: RoutingDownloadInfo,
+  skipTokens?: ReadonlySet<string>,
+): Promise<string> =>
+  (await expandVariableTemplateParts(template, info, skipTokens))
+    .map(({ value }) => value)
+    .join("");
 
 // Async so a transformer may await (e.g. a :counter: read-modify-write or a
 // :mime: HEAD request). Sync transformers resolve instantly through

@@ -14,6 +14,7 @@ import type {
 } from "./rule-types.ts";
 import { isCssMatcherClause, isPageTextMatcherClause, isRegexMatcherClause } from "./rule-types.ts";
 import { isSafeRelativeDestination } from "./destination-safety.ts";
+import { substituteFetchCaptures } from "./fetch-url.ts";
 
 export type EvaluatedMatcherClause = {
   clause: MatcherClause;
@@ -275,7 +276,7 @@ export const evaluateRule = (rule: RoutingRule, info: RoutingInfo): RuleEvaluati
   return {
     outcome: "route",
     destination,
-    fetch: fetchClause ? substituteCaptures(fetchClause.value, captured) : false,
+    fetch: fetchClause ? substituteFetchCaptures(fetchClause.value, captured) : false,
     rename: renameClause
       ? {
           find: renameClause.find.source,

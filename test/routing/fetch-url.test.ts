@@ -1,8 +1,10 @@
 import {
+  canonicalFetchRewrite,
   expandFetchUrl,
   isUsableFetchRewrite,
   isUsableFetchTemplate,
   retargetDownloadInfo,
+  substituteFetchCaptures,
 } from "../../src/routing/fetch-url.ts";
 
 test("retargets resource metadata without mutating or dropping the save context", () => {
@@ -142,4 +144,177 @@ test("validates fetch templates with placeholders in structural URL positions", 
   expect(isUsableFetchTemplate("https://[2001:db8::1]/file")).toBe(true);
   expect(isUsableFetchTemplate("https:///file")).toBe(false);
   expect(isUsableFetchTemplate("https://example.test:bad/file")).toBe(false);
+});
+
+// A fetch: template pins the host. A capture or variable written inside the
+// template's authority may supply host characters and nothing that ends or
+// restructures the authority; a loose capture of "evil.example/" must not send
+// the request to a host the page chose.
+describe("values placed in a fetch template's authority", () => {
+  const hostTemplates = [
+    "https://:$1:.cdn.example/full/x",
+    "https://cdn.example:$1:",
+    "https://cdn.example:$1:/full/x",
+    "https://:$1:/full/x",
+    "HTTP://:$1:.cdn.example",
+    "https://user@:$1:.cdn.example/x",
+    "https://:$1:@cdn.example/x",
+    "https://cdn.example::$1:/x",
+  ];
+  const hostile = [
+    ["a path separator", "evil.example/"],
+    ["a query", "evil.example?"],
+    ["a fragment", "evil.example#"],
+    ["userinfo", "evil.example@"],
+    ["userinfo before the host", "user:pass@evil.example"],
+    ["a backslash", "evil.example\\"],
+    ["a percent-encoded slash", "evil.example%2F"],
+    ["a percent-encoded at sign", "evil.example%40"],
+    ["a fullwidth solidus", "evil.example\uFF0F"],
+    ["a fullwidth question mark", "evil.example\uFF1F"],
+    ["a fullwidth number sign", "evil.example\uFF03"],
+    ["a fullwidth commercial at", "evil.example\uFF20"],
+    ["an ideographic full stop", "evil\u3002example"],
+    ["a fullwidth full stop", "evil\uFF0Eexample"],
+    ["a halfwidth ideographic full stop", "evil\uFF61example"],
+    ["a non-ASCII letter", "\u0435vil.example"],
+    ["a space", "evil.example /"],
+    ["a tab", "evil.example\t"],
+    ["a line break", "evil.example\n"],
+    ["a variable's spelling", ":pagetext:"],
+    ["a bracketed address", "[::1]"],
+    ["a port with trailing text", "evil.example:80/"],
+    ["a port that is not a number", "evil.example:8o"],
+    ["a port that is too long", "evil.example:123456"],
+    ["two ports", "evil.example:80:80"],
+    ["an underscore", "evil_example"],
+  ] as const;
+
+  test.each(hostile)("refuses a capture holding %s", (_label, value) => {
+    for (const template of hostTemplates) {
+      const substituted = substituteFetchCaptures(template, ["whole", value]);
+
+      expect(substituted).not.toContain("evil");
+      expect(canonicalFetchRewrite(substituted)).toBeNull();
+    }
+  });
+
+  test.each(hostile)("refuses a variable holding %s", async (_label, value) => {
+    for (const template of hostTemplates) {
+      const expanded = await expandFetchUrl(template.replace(":$1:", ":pagetitle:"), {
+        currentTab: { title: value },
+      });
+
+      expect(expanded).not.toContain("evil");
+      expect(canonicalFetchRewrite(expanded)).toBeNull();
+    }
+  });
+
+  test.each([
+    ["letters, digits, dots and hyphens", "img-7.EU", "https://img-7.eu.cdn.example/full/x"],
+    ["a single label", "static", "https://static.cdn.example/full/x"],
+    // The remaining literal host is still the template's own.
+    ["nothing", "", "https://.cdn.example/full/x"],
+  ])("accepts a host value of %s", async (_label, value, expected) => {
+    const template = "https://:$1:.cdn.example/full/x";
+
+    const substituted = substituteFetchCaptures(template, ["whole", value]);
+    expect(canonicalFetchRewrite(substituted)).toBe(expected);
+    expect(
+      canonicalFetchRewrite(
+        await expandFetchUrl(template.replace(":$1:", ":pagetitle:"), {
+          currentTab: { title: value },
+        }),
+      ),
+    ).toBe(expected);
+  });
+
+  test("a capture that is the whole host may carry its port", () => {
+    // A capture such as ([^/]+) taken from an address on a non-default port.
+    const template = "https://:$1:/full/:$2:";
+
+    expect(substituteFetchCaptures(template, ["whole", "nas.local:5001", "a/b.jpg"])).toBe(
+      "https://nas.local:5001/full/a/b.jpg",
+    );
+    expect(substituteFetchCaptures(template, ["whole", "192.168.1.5:80", "x"])).toBe(
+      "https://192.168.1.5:80/full/x",
+    );
+    // Anywhere but the end of the authority, the port leaves no usable address.
+    expect(
+      canonicalFetchRewrite(
+        substituteFetchCaptures("https://:$1:.cdn.example/x", ["whole", "evil.example:80"]),
+      ),
+    ).toBeNull();
+  });
+
+  test("a capture in a port position must be a port", () => {
+    const template = "https://cdn.example::$1:/x";
+
+    expect(canonicalFetchRewrite(substituteFetchCaptures(template, ["whole", "8443"]))).toBe(
+      "https://cdn.example:8443/x",
+    );
+    expect(canonicalFetchRewrite(substituteFetchCaptures(template, ["whole", ""]))).toBe(
+      "https://cdn.example/x",
+    );
+    for (const value of ["80.evil.example", "evil", "80@evil.example", "80/"]) {
+      expect(canonicalFetchRewrite(substituteFetchCaptures(template, ["whole", value]))).toBeNull();
+    }
+  });
+
+  test("an empty value that leaves no host is unusable, as before", () => {
+    expect(
+      canonicalFetchRewrite(substituteFetchCaptures("https://:$1:/full/x", ["whole", ""])),
+    ).toBeNull();
+    expect(
+      canonicalFetchRewrite(substituteFetchCaptures("https://:$1:/full/x", ["whole", undefined])),
+    ).toBeNull();
+  });
+
+  test("values in the path, query, and fragment are substituted verbatim, as before", async () => {
+    const template = "https://cdn.example/:$1:?q=:$2:#:$3:";
+    const values = ["whole", "a/b c@d", "x?y=/\uFF0F", "evil.example/#%2F"];
+
+    expect(substituteFetchCaptures(template, values)).toBe(
+      "https://cdn.example/a/b c@d?q=x?y=/\uFF0F#evil.example/#%2F",
+    );
+    await expect(
+      expandFetchUrl("https://cdn.example/:pagetitle:?t=:pagetitle:", {
+        currentTab: { title: "a b/c&d@e" },
+      }),
+    ).resolves.toBe("https://cdn.example/a b/c&d@e?t=a b/c&d@e");
+  });
+
+  test("a template with no captures to substitute is returned as written", () => {
+    expect(substituteFetchCaptures("https://:$1:.cdn.example/x", null)).toBe(
+      "https://:$1:.cdn.example/x",
+    );
+  });
+
+  test("a template that does not begin with its scheme has no safe position", async () => {
+    // The parser rejects such a template; a stored one must still fail closed.
+    expect(
+      canonicalFetchRewrite(substituteFetchCaptures(":$1:", ["whole", "https://evil.example/x"])),
+    ).toBeNull();
+    expect(
+      canonicalFetchRewrite(
+        await expandFetchUrl(":pagetitle:", { currentTab: { title: "https://evil.example/x" } }),
+      ),
+    ).toBeNull();
+  });
+
+  test("a variable after a checked capture is still inside the authority", async () => {
+    const substituted = substituteFetchCaptures("https://:$1:.:pagetitle:.cdn.example/x", [
+      "whole",
+      "img",
+    ]);
+
+    expect(
+      canonicalFetchRewrite(
+        await expandFetchUrl(substituted, { currentTab: { title: "evil.example/" } }),
+      ),
+    ).toBeNull();
+    await expect(expandFetchUrl(substituted, { currentTab: { title: "eu" } })).resolves.toBe(
+      "https://img.eu.cdn.example/x",
+    );
+  });
 });

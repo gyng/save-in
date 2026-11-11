@@ -501,6 +501,26 @@ describe("fetch rewrite", () => {
     );
   });
 
+  test("fails the plan when a variable would move the fetch address's host", async () => {
+    fetchMatch("routed", "https://:pagetitle:.cdn.example/full.png");
+    const state = makeState({
+      info: {
+        url: "https://example.com/dir/file.png",
+        currentTab: { id: 1, title: "evil.example/" },
+      },
+    });
+
+    const plan = await Download.resolveDownloadPlan(state);
+
+    // Neither the host the page text chose nor, silently, the original.
+    expect(plan).toBeNull();
+    expect(state.info.url).toBe("https://example.com/dir/file.png");
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "fetch rewrite skipped: expanded address is not usable HTTP(S)",
+      expect.objectContaining({ template: "https://:pagetitle:.cdn.example/full.png" }),
+    );
+  });
+
   test("rejects an expansion carrying characters the URL parser would strip", async () => {
     // new URL("https://\t/orig.png") strips the tab and parses with host
     // "orig.png" — the rewrite must fail closed, not retarget the download.
