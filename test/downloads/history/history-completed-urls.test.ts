@@ -52,6 +52,19 @@ describe("completed-address index", () => {
     await loadFreshBackground();
   });
 
+  test.each([
+    ["a recorded browser download", { observedBrowserDownload: true }],
+    ["a routed browser download", { mechanism: "browser-download" as const }],
+    ["a Firefox replacement download", { mechanism: "firefox-replacement" as const }],
+  ])("does not count %s", async (_label, marker) => {
+    const id = SaveHistory.addHistoryEntry({ url: "https://a/browser", ...marker });
+    await SaveHistory.setHistoryStatus(id, "complete");
+    await complete("https://a/save-in");
+
+    expect(await SaveHistory.hasCompletedHistoryUrl("https://a/browser")).toBe(false);
+    expect(await SaveHistory.hasCompletedHistoryUrl("https://a/save-in")).toBe(true);
+  });
+
   test("counts only completed entries with a stable address", async () => {
     await complete("https://a/done");
     SaveHistory.addHistoryEntry({ url: "https://a/in-flight" });

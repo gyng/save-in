@@ -56,9 +56,20 @@ type HistoryIndex = {
 const COMPLETED_URL_INDEX_MAX_LENGTH = 4096;
 let completedUrlCounts: Map<string, number> | null = null;
 
+// A download the browser started on its own — recorded, routed, or replaced
+// by the Firefox experiment — is in History because the user downloaded that
+// address some other way. Only a save the user asked Save In for says "Save In
+// already saved this"; skipping one because of the browser's own download
+// would be a surprise the option's wording does not cover.
+const isBrowserStartedEntry = (entry: HistoryEntry): boolean =>
+  entry.observedBrowserDownload === true ||
+  entry.mechanism === "browser-download" ||
+  entry.mechanism === "firefox-replacement";
+
 // A row without a status predates statuses and is shown as complete.
 const completedHistoryUrl = (entry: HistoryEntry | null): string | null => {
   if (!entry || (entry.status || "complete") !== "complete") return null;
+  if (isBrowserStartedEntry(entry)) return null;
   const { url } = entry;
   return typeof url === "string" &&
     url.length <= COMPLETED_URL_INDEX_MAX_LENGTH &&

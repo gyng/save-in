@@ -72,9 +72,10 @@ address is still recorded, and if so does not download that address again.
   rule's `fetch:` rewrite. It must match the recorded address exactly; Save In
   does not fetch or hash the file to compare contents. `data:` and `blob:`
   sources are never skipped.
-- Only an entry History shows as completed counts, including a recorded
-  ordinary browser download. Failed, canceled, skipped, and in-progress entries
-  do not, and neither does a file that exists but has no History entry.
+- Only a completed save you made through Save In counts. An ordinary browser
+  download that History recorded or routed does not, and neither do failed,
+  canceled, skipped, and in-progress entries, or a file that exists but has no
+  History entry.
 - The check lasts only as long as the entry. After you clear History, once
   **Keep completed entries** removes the entry, or while that limit is 0,
   nothing is skipped. A deleted file is still skipped while its entry remains.
