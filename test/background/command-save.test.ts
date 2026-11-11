@@ -20,7 +20,7 @@ beforeEach(() => {
   backgroundRuntime.ready = Promise.resolve();
   options.paths = "first\nparent\n>child\n---\nthird";
   global.browser.tabs.query = vi.fn(() => Promise.resolve([tab])) as never;
-  global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve(null)) as never;
+  global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve({ hovered: null })) as never;
 });
 
 afterEach(() => {
@@ -68,8 +68,10 @@ describe("save commands", () => {
   test("saves the hovered media and link as a menu click would report them", async () => {
     global.browser.tabs.sendMessage = vi.fn(() =>
       Promise.resolve({
-        media: { url: "https://img.example.com/a.png", kind: "image" },
-        linkUrl: "https://example.com/full",
+        hovered: {
+          media: { url: "https://img.example.com/a.png", kind: "image" },
+          linkUrl: "https://example.com/full",
+        },
       }),
     ) as never;
 
@@ -113,6 +115,37 @@ describe("save commands", () => {
     );
   });
 
+  // No answer says nothing about the pointer: a tab loaded before an install
+  // or update has no current content script, and saving the whole page in
+  // place of the image under the pointer would be a wrong guess.
+  test.each(["https://example.com/page", "HTTP://example.com/", "file:///home/u/a.html"])(
+    "does nothing when a page that runs the content script gives no answer (%s)",
+    async (url) => {
+      global.browser.tabs.query = vi.fn(() => Promise.resolve([{ ...tab, url }])) as never;
+      global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve(undefined)) as never;
+
+      await runPointerCommand("save-folder-1");
+
+      expect(handleContextMenuClick).not.toHaveBeenCalled();
+    },
+  );
+
+  test("still saves the page where the content script can never run", async () => {
+    const restricted = { ...tab, url: "about:addons" };
+    global.browser.tabs.query = vi.fn(() => Promise.resolve([restricted])) as never;
+    global.browser.tabs.sendMessage = vi.fn(() =>
+      Promise.reject(new Error("no receiver")),
+    ) as never;
+
+    await runPointerCommand("save-folder-1");
+
+    expect(handleContextMenuClick).toHaveBeenCalledWith(
+      { menuItemId: "save-in-0", pageUrl: "about:addons" },
+      restricted,
+      destination("first"),
+    );
+  });
+
   test("does nothing without an active tab address", async () => {
     global.browser.tabs.query = vi.fn(() => Promise.resolve([])) as never;
     await runPointerCommand("save-folder-1");
@@ -128,7 +161,7 @@ describe("hovered source lookup", () => {
     ["a tab without an id", { url: "https://example.com/" }],
     ["no tab", null],
   ])("skips %s", async (_label, target) => {
-    expect(await readHoveredSource(target)).toBeNull();
+    expect(await readHoveredSource(target)).toBeUndefined();
     expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
   });
 
@@ -140,11 +173,31 @@ describe("hovered source lookup", () => {
         throw new Error("tab closed");
       },
     ],
-    ["an older content script answers nothing", () => Promise.resolve(undefined)],
-    ["the answer is not a fetchable address", () => Promise.resolve({ linkUrl: "javascript:1" })],
-  ])("falls back to the page when %s", async (_label, answer) => {
+    ["a content script answers nothing", () => Promise.resolve(undefined)],
+    // Before the answer was wrapped, a content script sent the source bare.
+    [
+      "an older content script answers in the unwrapped shape",
+      () => Promise.resolve({ linkUrl: "https://example.com/a" }),
+    ],
+    ["an older content script answers a bare null", () => Promise.resolve(null)],
+  ])("reports no answer when %s", async (_label, answer) => {
     global.browser.tabs.sendMessage = vi.fn(answer) as never;
+    expect(await readHoveredSource(tab)).toBeUndefined();
+  });
+
+  test.each([
+    ["nothing is hovered", null],
+    ["the hovered address is not fetchable", { linkUrl: "javascript:1" }],
+  ])("reports an answer of nothing hovered when %s", async (_label, hovered) => {
+    global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve({ hovered })) as never;
     expect(await readHoveredSource(tab)).toBeNull();
+  });
+
+  test("unwraps the hovered source", async () => {
+    global.browser.tabs.sendMessage = vi.fn(() =>
+      Promise.resolve({ hovered: { linkUrl: "https://example.com/a" } }),
+    ) as never;
+    expect(await readHoveredSource(tab)).toEqual({ linkUrl: "https://example.com/a" });
   });
 
   test("stops waiting for a content script that never answers", async () => {
@@ -152,7 +205,7 @@ describe("hovered source lookup", () => {
     global.browser.tabs.sendMessage = vi.fn(() => new Promise(() => {})) as never;
     const pending = readHoveredSource(tab);
     await vi.advanceTimersByTimeAsync(500);
-    expect(await pending).toBeNull();
+    expect(await pending).toBeUndefined();
   });
 
   test("maps the answer onto menu click fields", () => {

@@ -209,8 +209,19 @@ export const setupAutoDownloadDiscovery = (
   // drops the key instead, which only costs a repeat of the cheap check.
   const declineSlot = (seenKey: string) => {
     releaseSlot(seenKey);
-    if (excluded.size < AUTO_EXCLUSION_CACHE_LIMIT) excluded.add(seenKey);
+    if (excluded.size >= AUTO_EXCLUSION_CACHE_LIMIT) return;
+    excluded.add(seenKey);
+    // Only a decline that is now remembered may ask for another scan: one that
+    // could not be remembered would be offered and declined again without end.
+    declinedSinceScan = true;
   };
+  // A scan that stops at the per-visit limit drops the sources beyond it. If
+  // the sources it did queue are then declined, their places come back and
+  // nothing would ever offer the dropped ones on a page that does not change:
+  // the drain rescans once instead. Whether the limit was really reached is
+  // only known after the drain, so that is when it is reported.
+  let limitPending = false;
+  let declinedSinceScan = false;
   const recordFailure = (seenKey: string) => {
     const previous = failedAttempts.get(seenKey);
     // Once the attempt map is full, an unknown source gets no retry rather
@@ -269,6 +280,20 @@ export const setupAutoDownloadDiscovery = (
       }
     }
     draining = false;
+    const freedByDeclines = declinedSinceScan;
+    declinedSinceScan = false;
+    if (limitPending && !stopped) {
+      limitPending = false;
+      // The rescan settles idle waiters itself when it routes; falling through
+      // covers the one that returns early because the page is now disabled.
+      if (freedByDeclines) scan();
+      else if (!dedup.limitNotified) {
+        options.onLimitReached?.();
+        // A slot this drain gave back (a skip, a failure, a dispatch-time
+        // drop) leaves the notice armed for the budget a later scan refills.
+        dedup.limitNotified = seen.size >= maxPerPage;
+      }
+    }
     settleIdle();
   };
 
@@ -477,10 +502,7 @@ export const setupAutoDownloadDiscovery = (
       )
         continue;
       if (seen.size >= maxPerPage) {
-        if (!dedup.limitNotified) {
-          dedup.limitNotified = true;
-          options.onLimitReached?.();
-        }
+        limitPending = true;
         continue;
       }
       seen.add(seenKey);

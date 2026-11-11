@@ -47,13 +47,20 @@ const runSaveCommand = async (command: string): Promise<void> => {
   if (target === null) return;
   const [tab] = await webExtensionApi.tabs.query({ active: true, currentWindow: true });
   if (!tab || tab.url == null) return;
+  const hovered = await readHoveredSource(tab);
+  // An ordinary page always runs the content script once it has loaded under
+  // this version. No answer from one — a tab left over from before an install
+  // or update, or a page still loading — says nothing about the pointer, and
+  // saving the whole page in place of the image the user is pointing at would
+  // be a wrong guess. A page that can never run it has only the page to save.
+  if (hovered === undefined && /^(https?|file):/i.test(tab.url)) return;
   // No frameId: the handler reads a frame-bound click as a real right-click
   // and would look up the image an earlier context menu was opened on.
   await handleContextMenuClick(
     {
       menuItemId: target.menuItemId,
       pageUrl: tab.url,
-      ...hoveredClickInfo(await readHoveredSource(tab)),
+      ...hoveredClickInfo(hovered ?? null),
     },
     tab,
     target.destination,

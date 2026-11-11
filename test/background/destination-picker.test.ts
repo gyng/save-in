@@ -19,7 +19,7 @@ const path = (id: string, title: string, parentId: string | null = null) => ({
 
 const answerTabs = (hovered: unknown, opened: unknown = { opened: true }) => {
   global.browser.tabs.sendMessage = vi.fn((_tabId: number, message: { type: string }) =>
-    Promise.resolve(message.type === "SAVE_IN_HOVERED_SOURCE" ? hovered : opened),
+    Promise.resolve(message.type === "SAVE_IN_HOVERED_SOURCE" ? { hovered } : opened),
   ) as never;
 };
 const openRequests = () =>
@@ -199,6 +199,13 @@ describe("picker source for a tab", () => {
     expect(await pickerSourceForTab(tab)).toEqual(hovered);
 
     answerTabs(null);
+    expect(await pickerSourceForTab(tab)).toBeNull();
+  });
+
+  // The picker needs that same content script to open at all, so a page that
+  // gives no answer is offered as the page rather than refused here.
+  test("reads no answer from the page as nothing hovered", async () => {
+    global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve(undefined)) as never;
     expect(await pickerSourceForTab(tab)).toBeNull();
   });
 

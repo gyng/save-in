@@ -507,10 +507,14 @@ export const handleDownloadMessage = (
 
     // The external DOWNLOAD API may omit info
     const info = requestBody.info || {};
-    // The last download lives only in memory, and the background does not stay
-    // alive between saves. After a restart the persisted Last used record is
-    // the remaining memory of the folder picked from the menu (#238).
-    const last = backgroundRuntime.lastDownloadState ?? rememberedMenuSave(resolvedTab);
+    // The folder a click inherits is the one last picked from the menu, which
+    // is exactly what the Last used record holds: persisted, so it does not
+    // depend on whether the background slept since (#238), and kept apart for
+    // private windows. The in-memory last download is not that — any later
+    // save rewrites it (a routed click re-roots its path, an automatic or
+    // external save replaces it), and it only ever describes regular saves, so
+    // a private click would inherit the regular window's folder.
+    const last = rememberedMenuSave(resolvedTab);
 
     const opts: DownloadInfo = {
       // Prefer the tab the message came from over the tracked global (#172).

@@ -1749,6 +1749,32 @@ describe("addDownloadListener", () => {
       expect(global.browser.contextMenus.update).not.toHaveBeenCalled();
     });
 
+    // A keyboard command names its folder itself, so it saves while the menu
+    // has no Last used item. Updating an item that was never created rejects,
+    // after the download already started.
+    test.each([
+      ["folder choices are hidden", { routeHideFolderChoices: true }],
+      ["Quick save is the only page item", { quickSaveEnabled: true, quickSaveOnly: true }],
+    ])(
+      "a command save leaves the absent Last used item alone when %s",
+      async (_label, overrides) => {
+        Object.assign(options, overrides);
+        vi.mocked(global.browser.contextMenus.update).mockRejectedValue(
+          new Error("Cannot find menu item with id save-in-last-used"),
+        );
+
+        await Menus.handleContextMenuClick(
+          { menuItemId: "save-in-0", pageUrl: "https://example.com/" },
+          { id: 42, title: "Page" },
+          { parsedDir: "Inbox", comment: "", menuIndex: "1", title: "Inbox" },
+        );
+
+        expect(Download.launchDownload).toHaveBeenCalledOnce();
+        expect(global.browser.contextMenus.update).not.toHaveBeenCalled();
+        expect(Menus.getLastUsed().path).toBe("Inbox");
+      },
+    );
+
     test("addLastUsed creates an enabled item once a path has been used", async () => {
       Menus.addPaths(["dir1"], ["link"]);
       await listener(pathClick);

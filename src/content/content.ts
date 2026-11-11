@@ -712,6 +712,14 @@ const setupClickToSave = (
   // unrelated page defaults.
   const suppressFollowUp = (e: MouseEvent) => {
     if (!acceptInput(e)) return;
+    // A click the keyboard made (Enter or Space on a focused control) reports
+    // no click count. It can never be the click that follows a mouse gesture,
+    // so an arm whose own click never arrived — the pressed element was
+    // replaced before release — must not cancel it; that arm is stale.
+    if (e.type === "click" && e.detail === 0) {
+      followUps.disarm();
+      return;
+    }
     if (!followUps.suppress(e.type, e.button)) return;
     e.preventDefault();
     e.stopImmediatePropagation();
@@ -1144,9 +1152,22 @@ try {
       lastContextLinkMetadata = contextLinkMetadataFromEvent(event);
       // Unlike the link record, nothing later checks this address against
       // what the browser reported, so a page-synthesized event must not be
-      // able to choose what a "save page" click saves. E2E drives it instead.
-      lastContextImage =
-        event.isTrusted || SAVE_IN_CONTENT_E2E ? contextImageFromEvent(event) : null;
+      // able to choose what a "save page" click saves — nor erase the record
+      // of the real right-click it follows. E2E drives it instead.
+      if (event.isTrusted || SAVE_IN_CONTENT_E2E) lastContextImage = contextImageFromEvent(event);
+    },
+    { capture: true },
+  );
+  // The record must describe the menu that is open now. A menu can open
+  // without this script seeing its contextmenu event (Firefox's Shift+right-
+  // click bypass, or a page listener that stops the event first), and the
+  // record from an earlier right-click would then be saved in the page's
+  // place. Every such menu still begins with a press, so each press starts
+  // from no record.
+  window.addEventListener(
+    "mousedown",
+    (event) => {
+      if (event.isTrusted) lastContextImage = null;
     },
     { capture: true },
   );
@@ -1339,11 +1360,15 @@ try {
       return;
     }
     if (message?.type === CONTEXT_IMAGE_REQUEST) {
-      sendResponse(lastContextImage);
+      // One menu click asks once; nothing later may reuse this record.
+      const answer = lastContextImage;
+      lastContextImage = null;
+      sendResponse(answer);
       return;
     }
     if (message?.type === HOVERED_SOURCE_REQUEST) {
-      sendResponse(hoveredSourceFromDocument(document, ClickToSave.findSource));
+      // Wrapped so the background can tell "nothing hovered" from no answer.
+      sendResponse({ hovered: hoveredSourceFromDocument(document, ClickToSave.findSource) });
       return;
     }
     if (message?.type === PICKER_OPEN_REQUEST) {

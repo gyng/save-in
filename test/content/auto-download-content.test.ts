@@ -456,6 +456,87 @@ describe("automatic source discovery", () => {
     controller.stop();
   });
 
+  // A scan that stops at the limit drops the sources beyond it. On a page that
+  // never changes nothing else would offer them once declines free the places.
+  test("declines that free the per-visit limit rescan once instead of reporting it", async () => {
+    document.body.innerHTML =
+      '<img src="https://cdn.test/saved-before.png"><img src="https://cdn.test/new.png"><img src="https://cdn.test/over.png">';
+    const limitNoticesAtSend: number[] = [];
+    const onLimitReached = vi.fn();
+    const send = vi.fn((candidate: { sourceUrl: string }) => {
+      limitNoticesAtSend.push(onLimitReached.mock.calls.length);
+      return Promise.resolve<AutoDownloadSendResult>(
+        candidate.sourceUrl.endsWith("saved-before.png") ? "declined" : "started",
+      );
+    });
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 1,
+      send,
+      onLimitReached,
+    });
+    await controller.idle();
+
+    expect(send.mock.calls.map(([candidate]) => candidate.sourceUrl)).toEqual([
+      "https://cdn.test/saved-before.png",
+      "https://cdn.test/new.png",
+    ]);
+    // The limit is reported only once it is really spent: after the rescan.
+    expect(limitNoticesAtSend).toEqual([0, 0]);
+    expect(onLimitReached).toHaveBeenCalledOnce();
+    controller.stop();
+  });
+
+  // A decline that could not be remembered would be offered and declined again
+  // on every rescan, without end.
+  test("a decline the full exclusion set cannot remember reports the limit without a rescan", async () => {
+    document.body.innerHTML =
+      '<img src="https://cdn.test/saved-before.png"><img src="https://cdn.test/over.png">';
+    const dedup = createAutoDownloadDedup();
+    dedup.excluded = new Set(Array.from({ length: 1024 }, (_, index) => `filler-${index}`));
+    dedup.excludedPageUrl = `${window.location}`;
+    const send = vi.fn(() => Promise.resolve<AutoDownloadSendResult>("declined"));
+    const onLimitReached = vi.fn();
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 1,
+      send,
+      dedup,
+      onLimitReached,
+    });
+    await controller.idle();
+
+    expect(send).toHaveBeenCalledOnce();
+    expect(onLimitReached).toHaveBeenCalledOnce();
+    controller.stop();
+  });
+
+  test("settles when the page is disabled before the rescan a decline asked for", async () => {
+    document.body.innerHTML =
+      '<img src="https://cdn.test/saved-before.png"><img src="https://cdn.test/over.png">';
+    let disabled = false;
+    const send = vi.fn(() => {
+      disabled = true;
+      return Promise.resolve<AutoDownloadSendResult>("declined");
+    });
+    const onLimitReached = vi.fn();
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 1,
+      isPageDisabled: () => disabled,
+      send,
+      onLimitReached,
+    });
+    await controller.idle();
+
+    expect(send).toHaveBeenCalledOnce();
+    expect(onLimitReached).not.toHaveBeenCalled();
+    controller.stop();
+  });
+
   test("a backstop-skipped save frees its slot and is re-offered after re-enable", async () => {
     document.body.innerHTML = '<img src="https://cdn.test/cat.png">';
     const results: AutoDownloadSendResult[] = ["skipped", "started"];

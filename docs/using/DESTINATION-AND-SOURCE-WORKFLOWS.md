@@ -88,6 +88,9 @@ private-window handling apply. Keep these points in mind:
   an image that is only visible through an empty overlay, and pages where
   extensions cannot run, saves the page. If **Show an action for the current
   page** is off, nothing is saved in that case.
+- In a tab loaded before Save In was installed or last updated, a command does
+  nothing until you reload the tab: Save In cannot tell what the pointer is
+  over there, and does not save the page in its place.
 - Folders are counted in menu order, skipping separators, disabled lines, and
   folders that only open a submenu. A command for a folder that does not exist
   does nothing.

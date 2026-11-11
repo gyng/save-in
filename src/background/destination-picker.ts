@@ -106,7 +106,9 @@ export const buildPickerMenu = (privateContext: boolean): PickerMenu => {
 export const pickerSourceForTab = async (
   tab: CurrentTab & { url: string },
 ): Promise<PickerSource | null | undefined> => {
-  const hovered = await readHoveredSource(tab);
+  // No answer from the page reads as nothing hovered: the picker itself needs
+  // that same content script and will not open without it.
+  const hovered = (await readHoveredSource(tab)) ?? null;
   const target = resolveClickTarget(
     { pageUrl: tab.url, ...hoveredClickInfo(hovered) },
     options,

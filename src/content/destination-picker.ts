@@ -309,8 +309,13 @@ export const openDestinationPicker = (options: DestinationPickerOptions): boolea
       // A destination's own key, as in the browser menu. Only a bare
       // keystroke counts, so shortcuts and typed capitals with Ctrl, Alt, or
       // Meta held are left to the filter and the browser.
+      // Nor does an auto-repeat: the key that opened the picker by a keyboard
+      // command may still be held after its modifiers are released, and its
+      // repeats would land here as a bare key and save without a choice.
       const keyAction =
-        event.ctrlKey || event.altKey || event.metaKey ? null : pickerKeyAction(state, event.key);
+        event.ctrlKey || event.altKey || event.metaKey || event.repeat
+          ? null
+          : pickerKeyAction(state, event.key);
       if (keyAction !== null) {
         event.preventDefault();
         if (keyAction.kind === "pick") {
@@ -385,6 +390,20 @@ export const openDestinationPicker = (options: DestinationPickerOptions): boolea
     },
     { capture: true, signal },
   );
+
+  // The rows are what the background listed when the picker opened. Left open
+  // behind another tab or window, they go stale: Last used moves on, and a
+  // folder's id is its position in a list that may be edited meanwhile, so a
+  // later Enter would save somewhere other than the row says. A picker the
+  // user walked away from closes instead.
+  document.addEventListener(
+    "visibilitychange",
+    () => {
+      if (document.hidden) close();
+    },
+    { signal },
+  );
+  window.addEventListener("blur", close, { signal });
 
   closeActivePicker = close;
   document.documentElement.append(host);

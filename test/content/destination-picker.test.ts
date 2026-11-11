@@ -196,6 +196,19 @@ describe("destination picker view", () => {
       expect(onPick).not.toHaveBeenCalled();
     });
 
+    // The key that opened the picker by a keyboard command may still be held
+    // after its modifiers are released; its repeats arrive as a bare key.
+    test("an auto-repeating key never saves", () => {
+      open({ model: keyedModel });
+
+      expect(press("e", { repeat: true }).defaultPrevented).toBe(false);
+      expect(onPick).not.toHaveBeenCalled();
+      expect(document.querySelector("save-in-picker")).not.toBeNull();
+
+      press("e");
+      expect(onPick).toHaveBeenCalledWith("save-in-last-used");
+    });
+
     test("once a filter is typed, keys are plain characters and their hints go away", () => {
       open({ model: keyedModel });
       type("ima");
@@ -399,6 +412,25 @@ describe("destination picker view", () => {
       ?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, composed: true }));
     expect(document.querySelector("save-in-picker")).toBeNull();
     expect(onPick).not.toHaveBeenCalled();
+  });
+
+  // The rows are what the background listed when the picker opened; left open
+  // behind another tab or window they would go stale.
+  test("closes without saving when the tab is hidden or the window loses focus", () => {
+    const hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(false);
+    open();
+    document.dispatchEvent(new Event("visibilitychange"));
+    expect(document.querySelector("save-in-picker")).not.toBeNull();
+
+    hidden.mockReturnValue(true);
+    document.dispatchEvent(new Event("visibilitychange"));
+    expect(document.querySelector("save-in-picker")).toBeNull();
+
+    open();
+    window.dispatchEvent(new Event("blur"));
+    expect(document.querySelector("save-in-picker")).toBeNull();
+    expect(onPick).not.toHaveBeenCalled();
+    hidden.mockRestore();
   });
 
   test("returns focus to the page only while the picker still holds it", () => {

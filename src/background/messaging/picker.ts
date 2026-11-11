@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
+import { currentTab, type CurrentTab } from "../../platform/current-tab.ts";
 import { options } from "../../config/options-data.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
 import { parsePickerSource, type PickerSource } from "../../shared/destination-picker.ts";
@@ -19,6 +20,13 @@ type PickerModelRequest = MessageOf<typeof MESSAGE_TYPES.PICKER_MODEL>;
 type PickerSaveRequest = MessageOf<typeof MESSAGE_TYPES.PICKER_SAVE>;
 type OpenPickerRequest = MessageOf<typeof MESSAGE_TYPES.OPEN_PICKER>;
 
+// The click handler that performs the save classifies a click as private when
+// either its own tab or the tracked current tab is private, and reads Last
+// used accordingly. The list is built under the same rule, or a row could name
+// the regular Last used folder while the save lands in the private one.
+const isPrivatePickerTab = (tab: CurrentTab | null | undefined): boolean =>
+  tab?.incognito === true || currentTab?.incognito === true;
+
 export const handlePickerModel = (
   _request: PickerModelRequest,
   sender: MessageSender,
@@ -26,7 +34,7 @@ export const handlePickerModel = (
 ): void => {
   sendResponse({
     type: MESSAGE_TYPES.PICKER_MODEL,
-    body: buildPickerMenu(sender.tab?.incognito === true).model,
+    body: buildPickerMenu(isPrivatePickerTab(sender.tab)).model,
   });
 };
 
@@ -54,7 +62,7 @@ export const handlePickerSave = async (
     pageUrl == null ||
     (rawSource != null && !source) ||
     !isSavableSource(source) ||
-    !buildPickerMenu(tab.incognito === true).selectable.has(menuItemId)
+    !buildPickerMenu(isPrivatePickerTab(tab)).selectable.has(menuItemId)
   ) {
     sendResponse({
       type: MESSAGE_TYPES.PICKER_SAVE,

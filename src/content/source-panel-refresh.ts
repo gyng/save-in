@@ -82,9 +82,13 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
     ctx.render();
   };
   let backgroundScan: ChunkedElementScan | undefined;
+  // Set when a rescan is asked for while one is running. Restarting the scan
+  // each time would never let it finish on a page that keeps changing.
+  let backgroundRescanQueued = false;
   const cancelBackgroundScan = () => {
     backgroundScan?.cancel();
     backgroundScan = undefined;
+    backgroundRescanQueued = false;
   };
   const scheduleBackgroundRefresh = (
     payloadBudget = createPageSourcePayloadBudget(sourceCandidates),
@@ -107,8 +111,13 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
         backgroundScan = undefined;
         backgroundCandidates = nextBackgroundCandidates.values;
         commitSources();
+        if (backgroundRescanQueued) scheduleBackgroundRefresh();
       },
     );
+  };
+  const requestBackgroundRefresh = () => {
+    if (backgroundScan) backgroundRescanQueued = true;
+    else scheduleBackgroundRefresh();
   };
   const refreshSources = () => {
     const payloadBudget = createPageSourcePayloadBudget();
@@ -125,7 +134,7 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
     scheduleBackgroundRefresh(payloadBudget);
     commitSources();
   };
-  const removeSourcesUnder = (root: Element) => {
+  const removeSourcesUnder = (root: Element, keepBackgrounds: boolean) => {
     const retainOutsideRoot = (sources: PageSourceCandidate[]): PageSourceCandidate[] =>
       sources.flatMap((source) => {
         const origins = source.collectorOriginElements;
@@ -139,7 +148,7 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
         return [source];
       });
     sourceCandidates = retainOutsideRoot(sourceCandidates);
-    backgroundCandidates = retainOutsideRoot(backgroundCandidates);
+    if (!keepBackgrounds) backgroundCandidates = retainOutsideRoot(backgroundCandidates);
   };
   const reconcileRoot = (changedRoot: Element) => {
     const mediaOwner = changedRoot.matches("source") ? changedRoot.closest("video, audio") : null;
@@ -147,7 +156,14 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
       ? changedRoot.closest("picture")?.querySelector("img")
       : null;
     const root = mediaOwner || pictureOwner || changedRoot;
-    removeSourcesUnder(root);
+    // A changed attribute on <html> or <body> (scroll-state classes, theme
+    // toggles) makes the whole page the root. Its backgrounds are rescanned in
+    // idle chunks, not inline: scanning inline runs getComputedStyle over
+    // every element in one task on each flush. Until that scan finishes the
+    // rows already listed stay, or every background row — with its selection
+    // and detection order — would vanish on each such change.
+    const wholePage = root === document.documentElement || root === document.body;
+    removeSourcesUnder(root, wholePage);
     const payloadBudget = createPageSourcePayloadBudget([
       ...sourceCandidates,
       ...backgroundCandidates,
@@ -163,12 +179,7 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
       ),
     ]);
     if (ctx.panelOptions.includeBackgrounds !== false) {
-      // A changed attribute on <html> or <body> (scroll-state classes, theme
-      // toggles) makes the whole page the root. Scanning it inline would run
-      // getComputedStyle over every element in one task, repeated on each
-      // flush, which is exactly the work the idle-chunked scan exists to slice.
-      if (backgroundScan || root === document.documentElement || root === document.body)
-        scheduleBackgroundRefresh();
+      if (backgroundScan || wholePage) requestBackgroundRefresh();
       else
         backgroundCandidates = compactPageSourceCandidates([
           ...backgroundCandidates,
@@ -218,7 +229,7 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
       refreshSources();
       return;
     }
-    removedRoots.forEach(removeSourcesUnder);
+    removedRoots.forEach((root) => removeSourcesUnder(root, false));
     removedRoots.clear();
     pendingRoots.forEach((root) => {
       if (root.isConnected) reconcileRoot(root);

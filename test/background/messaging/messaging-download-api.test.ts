@@ -17,7 +17,18 @@ import * as DownloadDisposition from "../../../src/downloads/download-dispositio
 import * as Collector from "../../../src/background/script-media-collector.ts";
 import { menuState } from "../../../src/background/menu-build.ts";
 
-beforeEach(() => setupGlobals());
+const resetLastUsed = () => {
+  menuState.lastUsedPath = null;
+  menuState.lastUsedMeta = null;
+  menuState.privateLastUsedPath = null;
+  menuState.privateLastUsedMeta = null;
+};
+
+beforeEach(() => {
+  setupGlobals();
+  resetLastUsed();
+});
+afterEach(resetLastUsed);
 
 describe("handleDownloadMessage", () => {
   const request = (overrides = {}) => ({
@@ -361,9 +372,10 @@ describe("handleDownloadMessage", () => {
   });
 
   test("reuses the last path and routing metadata, never filenames or routes", () => {
-    const lastPath = new Path("images/cats");
+    menuState.lastUsedPath = "images/cats";
+    menuState.lastUsedMeta = { comment: "0last", menuIndex: "1" };
     backgroundRuntime.lastDownloadState = {
-      path: lastPath,
+      path: new Path("images/cats"),
       scratch: { hasExtension: true },
       route: new Path("stale/route/from/other.png"),
       info: {
@@ -377,7 +389,7 @@ describe("handleDownloadMessage", () => {
     onMessage(request(), {}, vi.fn());
 
     const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
-    expect(state.path).toBe(lastPath);
+    expect(state.path.finalize()).toBe("images/cats");
     // Inheriting the previous route, filename, or scratch would name this
     // download after the previous one (found live by the alt+click e2e)
     expect(state).not.toHaveProperty("route");
@@ -391,9 +403,7 @@ describe("handleDownloadMessage", () => {
     expect(state.info.url).toBe("https://x/file.png");
   });
 
-  test("falls back to the default path when the last state has none", () => {
-    backgroundRuntime.lastDownloadState = { scratch: {}, info: {} } as any;
-
+  test("falls back to the default path when no folder was picked from the menu", () => {
     onMessage(request(), {}, vi.fn());
 
     const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
@@ -401,18 +411,12 @@ describe("handleDownloadMessage", () => {
     expect(state.path.finalize()).toBe(".");
   });
 
-  // #238: the last download is in-memory only, so a restarted background has
-  // nothing to inherit from except the persisted Last used record.
-  describe("after a background restart (#238)", () => {
-    const resetLastUsed = () => {
-      menuState.lastUsedPath = null;
-      menuState.lastUsedMeta = null;
-      menuState.privateLastUsedPath = null;
-      menuState.privateLastUsedMeta = null;
-    };
-    beforeEach(resetLastUsed);
+  // #238: the folder a click inherits is the one last picked from the menu.
+  // That is the persisted Last used record, which survives a background
+  // restart and is kept apart for private windows; the in-memory last download
+  // is neither.
+  describe("inheriting the Last used folder (#238)", () => {
     afterEach(() => {
-      resetLastUsed();
       options.persistPrivateActivity = false;
     });
     const clickState = () => vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
@@ -429,17 +433,55 @@ describe("handleDownloadMessage", () => {
       expect(clickState().scratch.keepInheritedFolder).toBe(true);
     });
 
-    test("prefers the in-memory last download while it exists", () => {
+    // Any later save rewrites the in-memory last download: a routed click
+    // re-roots its path, an automatic or external save replaces it. None of
+    // those is a folder picked from the menu.
+    test("ignores an in-memory last download that a later save overwrote", () => {
       menuState.lastUsedPath = "Image Sorting";
+      menuState.lastUsedMeta = { comment: "category=nature", menuIndex: "1" };
       backgroundRuntime.lastDownloadState = {
-        path: new Path("images/cats"),
+        path: new Path("routed/by/a/rule"),
         scratch: {},
-        info: {},
+        info: { comment: "from-an-automatic-save", menuIndex: "9" },
       } as any;
 
       onMessage(request(), {}, vi.fn());
 
-      expect(clickState().path.finalize()).toBe("images/cats");
+      expect(clickState().path.finalize()).toBe("Image Sorting");
+      expect(clickState().info.comment).toBe("category=nature");
+      expect(clickState().info.menuIndex).toBe("1");
+    });
+
+    test("inherits nothing from an in-memory last download alone", () => {
+      backgroundRuntime.lastDownloadState = {
+        path: new Path("images/cats"),
+        scratch: {},
+        info: { comment: "0last", menuIndex: "1" },
+      } as any;
+
+      onMessage(request(), {}, vi.fn());
+
+      expect(clickState().path.finalize()).toBe(".");
+      expect(clickState().info.comment).toBeUndefined();
+      expect(clickState().info.menuIndex).toBeUndefined();
+      expect(clickState().scratch.keepInheritedFolder).toBeUndefined();
+    });
+
+    // The in-memory last download only ever describes regular saves.
+    test("an isolated private click never inherits the regular folder", () => {
+      menuState.lastUsedPath = "Regular";
+      menuState.lastUsedMeta = { comment: "regular-comment", menuIndex: "2" };
+      backgroundRuntime.lastDownloadState = {
+        path: new Path("Regular"),
+        scratch: {},
+        info: { comment: "regular-comment", menuIndex: "2" },
+      } as any;
+
+      onMessage(request(), { tab: { id: 7, incognito: true } }, vi.fn());
+
+      expect(clickState().path.finalize()).toBe(".");
+      expect(clickState().info.comment).toBeUndefined();
+      expect(clickState().info.menuIndex).toBeUndefined();
     });
 
     test("keeps a private click on the private Last used folder", () => {
@@ -467,11 +509,7 @@ describe("handleDownloadMessage", () => {
   // option opts out of it.
   describe("click-to-save default destination (#162)", () => {
     const seedLastPath = () => {
-      backgroundRuntime.lastDownloadState = {
-        path: new Path("images/cats"),
-        scratch: {},
-        info: {},
-      } as any;
+      menuState.lastUsedPath = "images/cats";
     };
 
     const clickPath = () => {
@@ -514,11 +552,8 @@ describe("handleDownloadMessage", () => {
     // keep that folder under a matched rule.
     describe("pairing the inherited folder with its menu metadata (#238)", () => {
       const seedMenuSave = () => {
-        backgroundRuntime.lastDownloadState = {
-          path: new Path("Image Sorting"),
-          scratch: {},
-          info: { comment: "category=nature", menuIndex: "1" },
-        } as any;
+        menuState.lastUsedPath = "Image Sorting";
+        menuState.lastUsedMeta = { comment: "category=nature", menuIndex: "1" };
       };
       const clickScratch = () => vi.mocked(Download.launchDownload).mock.calls[0]![0]!.scratch;
 

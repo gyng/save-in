@@ -5,6 +5,7 @@ import {
   ExternalDownloadRejections,
   onMessage,
   onMessageExternal,
+  setCurrentTab,
   setupGlobals,
   waitForCall,
 } from "./messaging.fixture.ts";
@@ -24,7 +25,7 @@ const answerTabs = (answers: TabAnswers = {}) => {
   // An explicit undefined is an answer too: a page with no content script.
   const opened = "opened" in answers ? answers.opened : { opened: true };
   global.browser.tabs.sendMessage = vi.fn((_tabId: number, message: { type: string }) =>
-    Promise.resolve(message.type === "SAVE_IN_HOVERED_SOURCE" ? hovered : opened),
+    Promise.resolve(message.type === "SAVE_IN_HOVERED_SOURCE" ? { hovered } : opened),
   ) as never;
 };
 const tabMessages = (): Array<{ type: string; body?: unknown }> =>
@@ -116,6 +117,18 @@ describe("PICKER_MODEL", () => {
     expect((await send(onMessage, { type: "PICKER_MODEL" }, {})).body.lastUsed.title).toBe(
       "wallpapers",
     );
+  });
+
+  // The click handler that performs the save reads the private Last used when
+  // either tab is private, so the list must name that same folder.
+  test("lists the private Last used when only the tracked tab is private", async () => {
+    menuState.lastUsedPath = "wallpapers";
+    menuState.privateLastUsedPath = "private-folder";
+    setCurrentTab({ ...pageTab, incognito: true });
+
+    const model = await send(onMessage, { type: "PICKER_MODEL" }, { tab: pageTab });
+
+    expect(model.body.lastUsed.title).toBe("private-folder");
   });
 
   test("is not an external message", async () => {
@@ -230,6 +243,13 @@ describe("PICKER_SAVE", () => {
     expect(await save({ menuItemId: "save-in-0" }, { tab: privateTab })).toEqual({
       type: MESSAGE_TYPES.OK,
     });
+  });
+
+  test("applies the private menu when only the tracked tab is private", async () => {
+    menuState.lastUsedPath = "wallpapers";
+    setCurrentTab({ ...pageTab, incognito: true });
+
+    expect(await save({ menuItemId: "save-in-last-used" }, { tab: pageTab })).toEqual(refused);
   });
 
   test("ignores a malformed request and is not an external message", async () => {

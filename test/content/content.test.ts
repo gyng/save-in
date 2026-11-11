@@ -1656,11 +1656,15 @@ describe("content.js initialisation", () => {
     vi.useFakeTimers();
     const addEventListener = vi.spyOn(window, "addEventListener");
     await importContentWithOptions({ contentClickToSave: false });
+    // The script's first signal-less mousedown listener is always on: it
+    // resets the right-click image record and is not a long-release listener.
     const pageOwnedListeners = (eventType: string) =>
-      addEventListener.mock.calls.filter(
-        ([type, , options]) =>
-          type === eventType && !(options as AddEventListenerOptions | undefined)?.signal,
-      );
+      addEventListener.mock.calls
+        .filter(
+          ([type, , options]) =>
+            type === eventType && !(options as AddEventListenerOptions | undefined)?.signal,
+        )
+        .slice(eventType === "mousedown" ? 1 : 0);
     expect(pageOwnedListeners("mousedown")).toHaveLength(0);
 
     pushContentOptions({
@@ -1731,11 +1735,15 @@ describe("content.js initialisation", () => {
         { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
       ]),
     });
+    // The script's first signal-less mousedown listener is always on: it
+    // resets the right-click image record and is not a long-release listener.
     const pageOwnedListeners = (eventType: string) =>
-      addEventListener.mock.calls.filter(
-        ([type, , options]) =>
-          type === eventType && !(options as AddEventListenerOptions | undefined)?.signal,
-      );
+      addEventListener.mock.calls
+        .filter(
+          ([type, , options]) =>
+            type === eventType && !(options as AddEventListenerOptions | undefined)?.signal,
+        )
+        .slice(eventType === "mousedown" ? 1 : 0);
     const pageOwnedRemovals = (eventType: string) => {
       const added = pageOwnedListeners(eventType)[0]?.[1];
       return removeEventListener.mock.calls.filter(
@@ -1887,8 +1895,9 @@ describe("content.js initialisation", () => {
       .calls[0]?.[0];
     const respond = vi.fn();
 
+    // Wrapped, so the background can tell "nothing hovered" from no answer.
     runtimeListener?.({ type: "SAVE_IN_HOVERED_SOURCE" }, {}, respond);
-    expect(respond).toHaveBeenLastCalledWith(null);
+    expect(respond).toHaveBeenLastCalledWith({ hovered: null });
 
     const hovered = [document.body, document.querySelector("a"), document.querySelector("img")];
     const query = vi
@@ -1898,9 +1907,59 @@ describe("content.js initialisation", () => {
     query.mockRestore();
 
     expect(respond).toHaveBeenLastCalledWith({
-      media: { url: "http://localhost/thumb.jpg", kind: "image" },
-      linkUrl: "http://localhost/full.jpg",
+      hovered: {
+        media: { url: "http://localhost/thumb.jpg", kind: "image" },
+        linkUrl: "http://localhost/full.jpg",
+      },
     });
+  });
+
+  // The record must describe the menu that is open now: a menu can open
+  // without this script seeing its contextmenu event, and one menu click asks
+  // for it once. A page-synthesized event can neither set nor erase it.
+  test("keeps the context-clicked image only for the menu it opened", async () => {
+    (globalThis as { SAVE_IN_CONTENT_E2E?: boolean }).SAVE_IN_CONTENT_E2E = false;
+    try {
+      const addEventListener = vi.spyOn(window, "addEventListener");
+      await importContentWithOptions({ contentClickToSave: false });
+      document.body.innerHTML = '<img src="/art.png" alt="Sunset"><p>Text</p>';
+      const image = document.querySelector("img");
+      const pageListener = (eventType: string) =>
+        addEventListener.mock.calls.find(
+          ([type, , options]) =>
+            type === eventType && !(options as AddEventListenerOptions | undefined)?.signal,
+        )?.[1] as EventListener;
+      const realRightClick = () =>
+        pageListener("contextmenu")({
+          isTrusted: true,
+          target: image,
+          composedPath: () => [image, document.body],
+        } as unknown as MouseEvent);
+      const runtimeListener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock
+        .calls[0]?.[0];
+      const respond = vi.fn();
+      const record = { src: "http://localhost/art.png", alt: "Sunset" };
+      const ask = () => {
+        runtimeListener?.({ type: "SAVE_IN_CONTEXT_IMAGE" }, {}, respond);
+        return respond.mock.lastCall?.[0];
+      };
+
+      realRightClick();
+      document.querySelector("p")?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true }));
+      expect(ask()).toEqual(record);
+      // Answered once: a later menu click that saw no right-click gets nothing.
+      expect(ask()).toBeNull();
+
+      realRightClick();
+      image?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+      expect(ask()).toEqual(record);
+
+      realRightClick();
+      pageListener("mousedown")({ isTrusted: true } as MouseEvent);
+      expect(ask()).toBeNull();
+    } finally {
+      (globalThis as { SAVE_IN_CONTENT_E2E?: boolean }).SAVE_IN_CONTENT_E2E = true;
+    }
   });
 
   test("ignores a page-synthesized right-click outside E2E builds", async () => {
@@ -3332,8 +3391,9 @@ describe("setupClickToSave", () => {
     expect(downloadsSent()).toHaveLength(0);
   });
 
-  const followUp = (type: string, button: number, target: EventTarget | null) => {
-    const e = new MouseEvent(type, { button, bubbles: true, cancelable: true });
+  // A mouse-made click reports a click count; only a keyboard-made one has none.
+  const followUp = (type: string, button: number, target: EventTarget | null, detail = 1) => {
+    const e = new MouseEvent(type, { button, detail, bubbles: true, cancelable: true });
     vi.spyOn(e, "preventDefault");
     vi.spyOn(e, "stopImmediatePropagation");
     target?.dispatchEvent(e);
@@ -3367,6 +3427,36 @@ describe("setupClickToSave", () => {
     // ...and only once: the arm is one-shot per matched mousedown.
     const later = followUp("auxclick", 1, img);
     expect(later.preventDefault).not.toHaveBeenCalled();
+    remove();
+  });
+
+  // Enter or Space on a focused control makes a click with no click count. It
+  // can never be the click that follows a mouse gesture, so an arm whose own
+  // click never arrived (the pressed element was replaced before release) must
+  // neither cancel it nor outlive it.
+  test("a keyboard-made click passes an armed follow-up and disarms it", () => {
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.MIDDLE, combo: "Ctrl" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+    );
+    const img = document.getElementById("i");
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(img, 4);
+    expect(downloadsSent()).toHaveLength(1);
+
+    const keyboardClick = followUp("click", 1, img, 0);
+    expect(keyboardClick.preventDefault).not.toHaveBeenCalled();
+    expect(keyboardClick.stopImmediatePropagation).not.toHaveBeenCalled();
+
+    const laterClick = followUp("click", 1, img);
+    expect(laterClick.preventDefault).not.toHaveBeenCalled();
     remove();
   });
 

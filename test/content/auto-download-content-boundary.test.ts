@@ -754,8 +754,14 @@ test("teardown returns queued-but-unsent slots and re-arms the limit notice", as
   ];
   const dedup = createAutoDownloadDedup();
   // The first candidate is shifted and in flight (it stays consumed); the
-  // second waits in the queue; the third trips the limit notice.
-  const send = vi.fn(() => new Promise<never>(() => {}));
+  // second waits in the queue; the third is beyond the limit.
+  let release!: () => void;
+  const send = vi.fn(
+    () =>
+      new Promise<"started">((resolve) => {
+        release = () => resolve("started");
+      }),
+  );
   const onLimitReached = vi.fn();
   const controller = setupAutoDownloadDiscovery({
     rules: anyMediaRules,
@@ -765,13 +771,17 @@ test("teardown returns queued-but-unsent slots and re-arms the limit notice", as
     onLimitReached,
     dedup,
   });
-  expect(onLimitReached).toHaveBeenCalledOnce();
 
   controller.stop();
+  release();
+  await Promise.resolve();
+  await Promise.resolve();
 
   // The dedup outlives the instance across a remount: the queued candidate
-  // must return its slot and the limit notice must be able to fire again.
+  // must return its slot and the limit notice must be able to fire again. The
+  // limit is decided when the drain ends, and a stopped drain reports nothing.
   expect(dedup.seen).toEqual(new Set(["https://cdn.test/inflight.png"]));
+  expect(onLimitReached).not.toHaveBeenCalled();
   expect(dedup.limitNotified).toBe(false);
 });
 
@@ -798,7 +808,8 @@ test("a dispatch-time drop re-arms the limit notice with the returned slot", asy
     onLimitReached,
     dedup,
   });
-  expect(onLimitReached).toHaveBeenCalledOnce();
+  // The limit is reported when the drain ends, not while the scan runs.
+  expect(onLimitReached).not.toHaveBeenCalled();
 
   // The page moves onto the disable list while the first send is in flight;
   // the queued candidate is dropped at dispatch and returns its slot.
@@ -807,6 +818,7 @@ test("a dispatch-time drop re-arms the limit notice with the returned slot", asy
   await controller.idle();
 
   expect(send).toHaveBeenCalledOnce();
+  expect(onLimitReached).toHaveBeenCalledOnce();
   expect(dedup.seen).toEqual(new Set(["https://cdn.test/sent.png"]));
   expect(dedup.limitNotified).toBe(false);
   controller.stop();

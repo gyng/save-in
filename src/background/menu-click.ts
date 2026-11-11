@@ -582,7 +582,10 @@ const handleContextMenuClickInternal = async (
           selectedLocation.path,
           selectedLocation.meta,
         );
-        if (options.enableLastLocation) await updateLastUsedMenu();
+        // A keyboard command reaches here for a folder while the menu shows no
+        // Last used item (folder list hidden, Quick save only). Updating an
+        // item that was never created rejects, after the save already started.
+        if (lastUsedMenuExists()) await updateLastUsedMenu();
         if (options.recentDestinationCount > 0 && recentDestinationsChanged) await rebuildMenus();
       } else {
         await queuePrivateLastUsedMutation(async () => {

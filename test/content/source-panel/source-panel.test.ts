@@ -1918,7 +1918,54 @@ describe("Page Sources panel interactions", () => {
     expect(getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".source-link")).toBeNull();
   });
 
-  test("restarts an active background scan after a live page mutation", async () => {
+  // Restarting the scan on every change would never let it finish on a page
+  // that keeps changing: the running scan completes, then one more runs.
+  test("finishes an active background scan, then rescans once for a live page mutation", async () => {
+    vi.useFakeTimers();
+    const idleCallbacks: IdleRequestCallback[] = [];
+    vi.stubGlobal("requestIdleCallback", (callback: IdleRequestCallback) => {
+      idleCallbacks.push(callback);
+      return idleCallbacks.length;
+    });
+    const cancelIdleCallback = vi.fn();
+    vi.stubGlobal("cancelIdleCallback", cancelIdleCallback);
+    document.body.innerHTML = `<div id="poster"></div><div id="banner"></div>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: true });
+    const idle = { didTimeout: false, timeRemaining: () => 50 } as IdleDeadline;
+
+    document.querySelector<HTMLElement>("#poster")!.style.backgroundImage = "url(poster.jpg)";
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+    document.querySelector<HTMLElement>("#banner")!.style.backgroundImage = "url(banner.jpg)";
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    expect(cancelIdleCallback).not.toHaveBeenCalled();
+    expect(idleCallbacks).toHaveLength(1);
+
+    idleCallbacks[0]!(idle);
+    expect(idleCallbacks).toHaveLength(2);
+
+    idleCallbacks[1]!(idle);
+    expect(idleCallbacks).toHaveLength(2);
+    expect(
+      [
+        ...getSourcePanelHostForTesting()!.shadowRoot!.querySelectorAll<HTMLAnchorElement>(
+          ".source-link",
+        ),
+      ].map(({ href }) => href),
+    ).toEqual(
+      expect.arrayContaining(["http://localhost/poster.jpg", "http://localhost/banner.jpg"]),
+    );
+  });
+
+  // A changed attribute on <html> or <body> makes the whole page the root, and
+  // its backgrounds are rescanned in idle chunks. Stripping the listed rows
+  // meanwhile would drop every background row on each scroll-state class flip.
+  test.each([
+    ["<html>", () => document.documentElement],
+    ["<body>", () => document.body],
+  ])("keeps background rows listed while a %s change is rescanned", async (_label, root) => {
     vi.useFakeTimers();
     const idleCallbacks: IdleRequestCallback[] = [];
     vi.stubGlobal("requestIdleCallback", (callback: IdleRequestCallback) => {
@@ -1926,14 +1973,33 @@ describe("Page Sources panel interactions", () => {
       return idleCallbacks.length;
     });
     vi.stubGlobal("cancelIdleCallback", vi.fn());
-    document.body.innerHTML = `<div id="poster"></div>`;
+    document.body.innerHTML = `<div id="poster" style="background-image:url(poster.jpg)"></div>`;
     toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: true });
+    const idle = { didTimeout: false, timeRemaining: () => 50 } as IdleDeadline;
+    const urls = () =>
+      [
+        ...getSourcePanelHostForTesting()!.shadowRoot!.querySelectorAll<HTMLAnchorElement>(
+          ".source-link",
+        ),
+      ].map(({ href }) => href);
+    idleCallbacks[0]!(idle);
+    expect(urls()).toEqual(["http://localhost/poster.jpg"]);
 
-    document.querySelector<HTMLElement>("#poster")!.style.backgroundImage = "url(poster.jpg)";
-    await Promise.resolve();
-    vi.advanceTimersByTime(200);
+    try {
+      // The rescan, not the change itself, is what drops a background that went away.
+      document.querySelector<HTMLElement>("#poster")!.style.backgroundImage = "";
+      root().setAttribute("data-scrolled", "");
+      await Promise.resolve();
+      vi.advanceTimersByTime(200);
 
-    expect(idleCallbacks.length).toBeGreaterThan(1);
+      expect(urls()).toEqual(["http://localhost/poster.jpg"]);
+      expect(idleCallbacks).toHaveLength(2);
+
+      idleCallbacks[1]!(idle);
+      expect(urls()).toEqual([]);
+    } finally {
+      root().removeAttribute("data-scrolled");
+    }
   });
 
   test("re-resolves relative sources after the document base changes", async () => {
