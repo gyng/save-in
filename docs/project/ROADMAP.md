@@ -137,7 +137,7 @@ Not features — release hygiene that gates the close-out of everything above.
   `storage.session` so a worker restart can rehydrate, and merges them into
   whichever Page Sources panel is open.
 
-## Landed after 4.1.0 (unreleased)
+## Landed for 4.2
 
 - Manual saves acquire page-owned `blob:` images and files (#218, MangaDex),
   formerly a non-goal. The page-blob content script that runs in every frame

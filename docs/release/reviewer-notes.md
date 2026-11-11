@@ -5,7 +5,7 @@ why it requests each permission, how to exercise the main flows, and what data
 it does and does not handle. Keep this in sync with `manifest.json` and the
 [store descriptions](../store/descriptions.md) at each release.
 
-- Version: 4.1.0 (in preparation; manifest and package bump at release)
+- Version: 4.2.0
 - Manifest: MV3, one shared `manifest.json` for Firefox (event page) and Chrome
   (service worker). Minimum Firefox 140, minimum Chrome 123.
 

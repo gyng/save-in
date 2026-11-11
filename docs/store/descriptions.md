@@ -12,8 +12,8 @@ have it yet and is scanning search results, so it leads with the action and the
 outcome. Keep the manifest one aligned with `extensionDescription` in
 `_locales/en/messages.json`; the summary answers to the stores alone.
 
-- Version: 4.1.0
-- Last reviewed: 2026-08-15
+- Version: 4.2.0
+- Last reviewed: 2026-11-12
 - Listing name: Save In
 
 ## Manifest description
@@ -93,13 +93,13 @@ Save In does not collect or transmit any data. All data is stored and kept on de
 Requires Chrome 123 or later.
 ```
 
-## Version 4.1.0 release notes
+## Version 4.2.0 release notes
 
 Use this as the store-facing release note. `CHANGELOG.md` remains the complete
 release history.
 
 ```text
-Version 4.1 adds configurable click-to-save gestures, including multiple mouse-button and modifier combinations, double-click saving, configurable long-press saving, and gesture-aware routing. Click-to-save now also honors Prefer links and its page filter. Routing rules gain two actions: end a rule with exclude: true to stop matching saves without downloading, or add after: close-tab to close a save's source tab once the browser accepts the download; menu items can use the same after: spelling for their own tab action. Page Sources can optionally detect media that a page loads with scripts, such as HLS/DASH streams and fetch/XHR media, including from workers and cross-origin frames; this is off by default and asks for an optional network-access permission only when turned on. Notifications about private-browsing saves never include the URL, filename, or destination, and History Move now survives background restarts without losing files. Last used remains reliable through private-window background sleeps while staying isolated by default, and a separate opt-in can use ordinary browser Save As subfolders inside Downloads as Last used without enabling browser-download History. Completed History retention is configurable from 0 to 10,000 entries; lowering it asks for confirmation, and active saves remain visible until they finish. History rows can now replay a save in the Route debugger against the current rules. Interactive link rules can use the link's HTML title and suggested download filename without changing existing link-text behavior. A new off-by-default option can remember private saves in local Last used, Recent locations, History, diagnostics, and restart recovery; webhooks and browser credentials remain disabled in private windows. History, Page Sources, and the Chrome/Firefox test harness also receive further performance and reliability improvements.
+Version 4.2 adds an optional in-page folder picker: a list of your Save menu folders that opens at the pointer from its own click gesture, a keyboard command, or an approved extension, with the same access keys as the context menu. It is off by default and does not replace the browser context menu. New keyboard commands save what is under the pointer to Last used or to one of the first three folders. Routing rules can name or route a save by an image's alt text (alttext) or by the text of a page element chosen with a CSS selector (pagetext). A new off-by-default setting skips addresses that Save In History already holds as saved, for automatic saves or for all saves. Right-clicking an image that has not finished loading now saves the image instead of the page, click-to-save keeps the folder of the menu item whose rule it reuses, and a left-click gesture no longer also follows the link. Page Sources no longer passes typed keys to the page's shortcuts or takes focus from the page. This release also hardens Save In against hostile pages and servers: a server can no longer give a saved image a program's file name without a Save As dialog, link shortcuts refuse javascript: and file: links, and automatic saves are counted per tab and site so that reloading a page cannot exceed the limit.
 ```
 
 ## Reviewer notes

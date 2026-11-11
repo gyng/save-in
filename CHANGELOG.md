@@ -1,4 +1,45 @@
-# Unreleased
+# 4.2.0
+
+- Right-clicking an image and choosing a Save In folder no longer saves the
+  page in its place when the browser reports only a page (#237). This happened
+  for images that had not finished loading or that sit under an empty overlay.
+  Save In now saves the image the pointer was on.
+- Click-to-save keeps the folder of the menu item whose `comment:` or
+  `menuindex:` rule it reuses (#238), and takes that folder from Last used, so
+  it no longer depends on whether the background had gone idle. Rules that do
+  not match on the menu entry are still rooted at the download folder.
+- A click-to-save gesture on a left click no longer also follows the link or
+  opens the page's own viewer, and `gesture:`, `keys:`, and `css:` rules keep
+  matching after an in-page navigation on single-page sites.
+- New `pagetext:` clause and `:pagetext:` variable name or route a save by the
+  text of one element on the page, chosen with a CSS selector (#211, #191). The
+  text is read only when you save, and only on pages a rule of yours names.
+- New `:alttext:` variable and `alttext:` matcher use the saved image's alt
+  text.
+- New **Skip addresses already saved** setting (off by default) leaves out a
+  save whose address Save In History already holds as completed, for automatic
+  saves only or for all saves. It gives Chrome a way to skip repeats and stops
+  automatic saves downloading the same sources on every visit.
+- The folder picker shows the context menu's own access keys: a folder's number
+  or `(key: x)` saves there at once while the filter is empty, and a submenu's
+  key steps into it. The Click-to-save tab shows a live preview of the picker
+  with your folders.
+- Automatic saves no longer repeat a save that was declined because its file
+  exists, and no longer miss script-loaded media when the background has just
+  started.
+- Page Sources: typing in the panel no longer triggers the page's keyboard
+  shortcuts, the kind filters keep keyboard focus, opening or closing the panel
+  no longer takes focus from the page, and a page that changes its own root
+  attributes no longer empties the background-image rows.
+- Security hardening against hostile pages and servers. A page can no longer
+  read the folder picker's folder names or restyle it out of sight; a server
+  can no longer give a saved image, video, or audio file a program's file name
+  without a Save As dialog; link shortcuts and the context menu refuse
+  `javascript:`, `file:`, and other schemes the downloads pipeline does not
+  accept; a `fetch:` rule's host can no longer be chosen by page text; and
+  automatic saves are counted per tab and site, so reloading a page cannot
+  exceed the limit (three times **Maximum saves per page visit** in ten
+  minutes).
 
 - An optional in-page destination picker lists your Save menu folders at the
   pointer so you can choose where one item goes (#77, #21). It is off by
