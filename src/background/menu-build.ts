@@ -1,3 +1,4 @@
+import type { MenuPathItem } from "../menus/selectable-destinations.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { getMessage } from "../platform/localization.ts";
@@ -43,7 +44,7 @@ export type RecentDestination = {
   path: string;
   meta: { comment: string; menuIndex: string; title: string; prompt?: boolean };
 };
-type MenuPathMapping = {
+export type MenuPathMapping = {
   parsedDir: string;
   comment: string;
   menuIndex: string;
@@ -516,6 +517,18 @@ export const clearPathErrors = () => {
   backgroundRuntime.optionErrors.paths.length = 0;
 };
 
+// What a click on a configured folder saves into. The menu builds one of
+// these per rendered item; a keyboard command builds its own for a folder the
+// menu is currently not showing.
+export const pathMappingFor = (item: MenuPathItem): MenuPathMapping => ({
+  parsedDir: item.parsedDir,
+  comment: item.comment,
+  menuIndex: item.menuIndex,
+  title: item.title,
+  ...(item.prompt === true ? { prompt: true } : {}),
+  ...(item.tabAction ? { tabAction: item.tabAction } : {}),
+});
+
 export const renderPathTree = ({ items, errors }: MenuTree, contexts: readonly MenuContext[]) => {
   errors.forEach((error) => {
     backgroundRuntime.optionErrors.paths.push(error);
@@ -527,14 +540,7 @@ export const renderPathTree = ({ items, errors }: MenuTree, contexts: readonly M
       return;
     }
 
-    menuState.pathMappings[item.id] = {
-      parsedDir: item.parsedDir,
-      comment: item.comment,
-      menuIndex: item.menuIndex,
-      title: item.title,
-      ...(item.prompt === true ? { prompt: true } : {}),
-      ...(item.tabAction ? { tabAction: item.tabAction } : {}),
-    };
+    menuState.pathMappings[item.id] = pathMappingFor(item);
 
     webExtensionApi.contextMenus.create({
       id: item.id,

@@ -10,8 +10,8 @@ import { buildTree } from "../menus/menu-tree.ts";
 import { selectableDestinations } from "../menus/selectable-destinations.ts";
 import { splitLines } from "../shared/util.ts";
 import { backgroundRuntime } from "./runtime.ts";
-import { menuState } from "./menu-build.ts";
-import { handleContextMenuClick, lastUsedMenuExists } from "./menu-click.ts";
+import { pathMappingFor, type MenuPathMapping } from "./menu-build.ts";
+import { handleContextMenuClick } from "./menu-click.ts";
 import { hoveredClickInfo, readHoveredSource } from "./hovered-source.ts";
 import { openPickerForActiveTab } from "./destination-picker.ts";
 
@@ -27,31 +27,36 @@ const isSaveCommand = (command: string): boolean =>
 export const isPointerCommand = (command: string): boolean =>
   command === OPEN_PICKER_COMMAND || isSaveCommand(command);
 
-// A command acts only on an item the menu currently offers. With the folder
-// list hidden, or Last used switched off, there is no such item to pick, and a
-// bound key must not reach a destination the user removed from the menu.
-const commandMenuItemId = (command: string): string | null => {
-  if (command === SAVE_LAST_USED_COMMAND) {
-    return lastUsedMenuExists() ? MENU_IDS.LAST_USED : null;
-  }
+// A bound key is its own opt-in: it names Last used or the Nth configured
+// folder whether or not the context menu is currently showing that item, so
+// hiding the folder list or the Last used item does not silently disarm it.
+const commandTarget = (
+  command: string,
+): { menuItemId: string; destination?: MenuPathMapping } | null => {
+  if (command === SAVE_LAST_USED_COMMAND) return { menuItemId: MENU_IDS.LAST_USED };
   const folderIndex = SAVE_FOLDER_COMMANDS.findIndex((name) => name === command);
   const folder = selectableDestinations(buildTree(splitLines(options.paths)))[folderIndex];
-  return folder && menuState.pathMappings[folder.id] ? folder.id : null;
+  return folder ? { menuItemId: folder.id, destination: pathMappingFor(folder) } : null;
 };
 
 const runSaveCommand = async (command: string): Promise<void> => {
   if (backgroundRuntime.ready) {
     await backgroundRuntime.ready;
   }
-  const menuItemId = commandMenuItemId(command);
-  if (menuItemId === null) return;
+  const target = commandTarget(command);
+  if (target === null) return;
   const [tab] = await webExtensionApi.tabs.query({ active: true, currentWindow: true });
   if (!tab || tab.url == null) return;
   // No frameId: the handler reads a frame-bound click as a real right-click
   // and would look up the image an earlier context menu was opened on.
   await handleContextMenuClick(
-    { menuItemId, pageUrl: tab.url, ...hoveredClickInfo(await readHoveredSource(tab)) },
+    {
+      menuItemId: target.menuItemId,
+      pageUrl: tab.url,
+      ...hoveredClickInfo(await readHoveredSource(tab)),
+    },
     tab,
+    target.destination,
   );
 };
 

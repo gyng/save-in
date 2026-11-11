@@ -91,10 +91,11 @@ private-window handling apply. Keep these points in mind:
 - Folders are counted in menu order, skipping separators, disabled lines, and
   folders that only open a submenu. A command for a folder that does not exist
   does nothing.
-- A command only picks an item the menu currently shows. With **Show last
-  used menu item** off, or with the folder list removed by **Show only Quick
-  save in the context menu** or **Hide folder choices**, the matching commands
-  do nothing.
+- A command works whether or not the context menu is showing its item.
+  Turning off **Show last used menu item**, or removing the folder list with
+  **Show only Quick save in the context menu** or **Hide folder choices**,
+  changes the menu only; a key you bound still saves to Last used or to that
+  folder.
 - The quick save command keeps its own rules: it always saves the page and
   works only while **Show a quick save item** is on.
 

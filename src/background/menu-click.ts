@@ -15,6 +15,7 @@ import {
   setLastUsed,
   setQuickSaveUseDirectory,
   type LastUsedMeta,
+  type MenuPathMapping,
   updateLastUsedMenu,
 } from "./menu-build.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
@@ -304,6 +305,7 @@ const handleContextMenuClickInternal = async (
   clickInfo: ContextMenuClickInfo,
   tab?: CurrentTab,
   privateInvocation?: PrivateMenuInvocation,
+  commandDestination?: MenuPathMapping,
 ): Promise<void> => {
   let info = clickInfo;
   if (Object.values(MENU_IDS.TABSTRIP).some((id) => id === info.menuItemId)) {
@@ -350,7 +352,10 @@ const handleContextMenuClickInternal = async (
   const privateContext = tab?.incognito === true || currentTab?.incognito === true;
   const isolatedPrivateContext = privateContext && !options.persistPrivateActivity;
 
-  const menuInfo = menuState.pathMappings[info.menuItemId];
+  // A keyboard command names a configured folder directly, so it still saves
+  // there while the menu is not showing that folder. A real menu click passes
+  // no destination and can only ever resolve an item the menu built.
+  const menuInfo = menuState.pathMappings[info.menuItemId] ?? commandDestination;
   const isSpecialItem = [MENU_IDS.ROUTE_EXCLUSIVE, MENU_IDS.LAST_USED, MENU_IDS.QUICK_SAVE].some(
     (id) => id === info.menuItemId,
   );
@@ -615,6 +620,7 @@ const handleContextMenuClickInternal = async (
 export const handleContextMenuClick = async (
   info: ContextMenuClickInfo,
   tab?: CurrentTab,
+  commandDestination?: MenuPathMapping,
 ): Promise<void> => {
   const invocationTab = tab || currentTab;
   const privateInvocation: PrivateMenuInvocation | undefined =
@@ -623,7 +629,7 @@ export const handleContextMenuClick = async (
       : undefined;
   if (privateInvocation) activePrivateMenuInvocations.add(privateInvocation);
   try {
-    await handleContextMenuClickInternal(info, tab, privateInvocation);
+    await handleContextMenuClickInternal(info, tab, privateInvocation, commandDestination);
   } finally {
     if (privateInvocation) activePrivateMenuInvocations.delete(privateInvocation);
   }

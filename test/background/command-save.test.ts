@@ -1,33 +1,24 @@
 import { options } from "../../src/config/options-data.ts";
-import { menuState } from "../../src/background/menu-build.ts";
 import { backgroundRuntime } from "../../src/background/runtime.ts";
 import { isPointerCommand, runPointerCommand } from "../../src/background/command-save.ts";
 import { openPickerForActiveTab } from "../../src/background/destination-picker.ts";
 import { hoveredClickInfo, readHoveredSource } from "../../src/background/hovered-source.ts";
-import { handleContextMenuClick, lastUsedMenuExists } from "../../src/background/menu-click.ts";
+import { handleContextMenuClick } from "../../src/background/menu-click.ts";
 
 vi.mock("../../src/background/destination-picker.ts", () => ({
   openPickerForActiveTab: vi.fn(() => Promise.resolve()),
 }));
 vi.mock("../../src/background/menu-click.ts", () => ({
   handleContextMenuClick: vi.fn(() => Promise.resolve()),
-  lastUsedMenuExists: vi.fn(() => true),
 }));
 
 const tab = { id: 9, url: "https://example.com/page", title: "P" };
-const mapping = (parsedDir: string) => ({ parsedDir, comment: "", menuIndex: "1", title: "" });
+const destination = (parsedDir: string) => expect.objectContaining({ parsedDir });
 
 beforeEach(() => {
   vi.mocked(handleContextMenuClick).mockClear();
-  vi.mocked(lastUsedMenuExists).mockReturnValue(true);
   backgroundRuntime.ready = Promise.resolve();
   options.paths = "first\nparent\n>child\n---\nthird";
-  menuState.pathMappings = {
-    "save-in-0": mapping("first"),
-    "save-in-1": mapping("parent"),
-    "save-in-2": mapping("parent/child"),
-    "save-in-4": mapping("third"),
-  };
   global.browser.tabs.query = vi.fn(() => Promise.resolve([tab])) as never;
   global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve(null)) as never;
 });
@@ -63,9 +54,9 @@ describe("save commands", () => {
     await runPointerCommand("save-folder-3");
 
     expect(vi.mocked(handleContextMenuClick).mock.calls).toEqual([
-      [{ menuItemId: "save-in-0", pageUrl: tab.url }, tab],
-      [{ menuItemId: "save-in-2", pageUrl: tab.url }, tab],
-      [{ menuItemId: "save-in-4", pageUrl: tab.url }, tab],
+      [{ menuItemId: "save-in-0", pageUrl: tab.url }, tab, destination("first")],
+      [{ menuItemId: "save-in-2", pageUrl: tab.url }, tab, destination("child")],
+      [{ menuItemId: "save-in-4", pageUrl: tab.url }, tab, destination("third")],
     ]);
     expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(
       9,
@@ -93,25 +84,33 @@ describe("save commands", () => {
         linkUrl: "https://example.com/full",
       },
       tab,
+      undefined,
     );
   });
 
-  test("does nothing for a destination the menu does not offer", async () => {
+  test("does nothing for a folder that is not configured", async () => {
     // A cold start can deliver the command before init assigns the promise.
     Reflect.deleteProperty(backgroundRuntime, "ready");
     options.paths = "only";
     await runPointerCommand("save-folder-2");
-
-    // Folders hidden from the menu have no mapping to pick.
-    menuState.pathMappings = {};
-    await runPointerCommand("save-folder-1");
-
-    vi.mocked(lastUsedMenuExists).mockReturnValue(false);
-    await runPointerCommand("save-last-used");
     await runPointerCommand("unrelated");
 
     expect(handleContextMenuClick).not.toHaveBeenCalled();
     expect(global.browser.tabs.query).not.toHaveBeenCalled();
+  });
+
+  // A bound key is its own opt-in: the command carries the folder it names, so
+  // it does not depend on the menu having rendered that item.
+  test("names its folder itself rather than relying on the rendered menu", async () => {
+    options.paths = "Inbox // (dialog: true)";
+
+    await runPointerCommand("save-folder-1");
+
+    expect(handleContextMenuClick).toHaveBeenCalledWith(
+      { menuItemId: "save-in-0", pageUrl: tab.url },
+      tab,
+      expect.objectContaining({ parsedDir: "Inbox", prompt: true }),
+    );
   });
 
   test("does nothing without an active tab address", async () => {

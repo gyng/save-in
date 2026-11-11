@@ -91,6 +91,19 @@ describe("addDownloadListener", () => {
     expect(Download.launchDownload).not.toHaveBeenCalled();
   });
 
+  test("a keyboard command saves into a folder the menu is not showing", async () => {
+    // Nothing was rendered, so the menu itself could not resolve this id.
+    await Menus.handleContextMenuClick(
+      { menuItemId: "save-in-0", pageUrl: "https://example.com/" },
+      { id: 42, title: "Page" },
+      { parsedDir: "Inbox", comment: "c", menuIndex: "1", title: "Inbox", prompt: true },
+    );
+
+    const state = vi.mocked(Download.launchDownload).mock.calls.at(-1)![0] as DownloadPipelineState;
+    expect(state.path.finalize()).toBe("Inbox");
+    expect(state.info).toMatchObject({ comment: "c", menuIndex: "1", forcePrompt: true });
+  });
+
   test("carries a destination Save As preference into the download plan", async () => {
     Menus.addPaths(["images // (dialog: true)"], ["image"]);
 
