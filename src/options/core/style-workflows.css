@@ -55,8 +55,9 @@
 .click-to-save-binding {
   display: grid;
   /* Wide enough for the longest choice (the picker action in a long locale),
-     and stretching so two columns fill the space beside the picker preview. */
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+     and stretching so the four controls sit two by two beside the picker
+     preview and four across where there is room. */
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
   gap: var(--space-3);
   inline-size: 100%;
 }
