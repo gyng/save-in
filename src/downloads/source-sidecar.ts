@@ -41,6 +41,10 @@ export const launchSourceSidecar = async (
     options.shortcutType,
     options.truncateLength,
   );
+  // Null for a source a shortcut cannot point at, such as a `data:` or `blob:`
+  // address: there is nothing to link back to.
+  const shortcutUrl = makeShortcut(options.shortcutType, request.sourceUrl, request.title);
+  if (shortcutUrl === null) return;
   await launchDownload({
     path: new Path(sidecarDirectory),
     scratch: {},
@@ -49,7 +53,7 @@ export const launchSourceSidecar = async (
       pageUrl: request.pageUrl,
       selectedUrl: request.sourceUrl,
       sourceUrl: request.sourceUrl,
-      url: makeShortcut(options.shortcutType, request.sourceUrl, request.title),
+      url: shortcutUrl,
       suggestedFilename: sidecarFilename,
       context: DOWNLOAD_TYPES.SIDECAR,
       menuItemId: request.menuItemId,

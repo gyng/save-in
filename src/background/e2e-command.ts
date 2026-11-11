@@ -335,7 +335,9 @@ export const handleBackgroundE2EInspectCommand = async (
 
 const resolveDownloadUrl = (request: BackgroundE2EDownload): string => {
   if (request.shortcutUrl) {
-    return makeShortcut(SHORTCUT_TYPES.HTML_REDIRECT, request.shortcutUrl);
+    const shortcut = makeShortcut(SHORTCUT_TYPES.HTML_REDIRECT, request.shortcutUrl);
+    if (shortcut === null) throw new Error("E2E shortcut address is not a web address");
+    return shortcut;
   }
   if (request.content !== undefined) return makeObjectUrl(request.content);
   if (request.url) return request.url;

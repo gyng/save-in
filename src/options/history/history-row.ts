@@ -14,6 +14,7 @@ import { historyMessage, historyTypeLabel } from "./history-messages.ts";
 import { isHistoryColumnVisible } from "./history-columns.ts";
 import { HISTORY_PAGE_SIZE, historyState } from "./history-panel-state.ts";
 import { buildHistoryStatusCell } from "./history-row-actions.ts";
+import { withUrl } from "../../shared/util.ts";
 
 type CellBuilder = (row: HistoryRow, rowIndex: number) => HTMLTableCellElement;
 
@@ -69,17 +70,26 @@ const sourceCell = (row: HistoryRow): HTMLTableCellElement => {
   );
 };
 
+const isWebAddress = (address: string): boolean =>
+  withUrl(address, ({ protocol }) => protocol === "http:" || protocol === "https:", false);
+
 const urlCell = (row: HistoryRow): HTMLTableCellElement => {
   const url = cell("history-url");
-  if (row.url) {
-    const link = document.createElement("a");
-    link.href = row.url;
-    link.target = "_blank";
-    link.rel = "noreferrer";
-    link.textContent = row.url;
-    link.title = row.url;
-    url.append(link);
+  if (!row.url) return url;
+  // A stored address is whatever a page or server supplied. Only a web address
+  // is made a link: clicking a `javascript:` one would run it in this page.
+  if (!isWebAddress(row.url)) {
+    url.textContent = row.url;
+    url.title = row.url;
+    return url;
   }
+  const link = document.createElement("a");
+  link.href = row.url;
+  link.target = "_blank";
+  link.rel = "noreferrer";
+  link.textContent = row.url;
+  link.title = row.url;
+  url.append(link);
   return url;
 };
 

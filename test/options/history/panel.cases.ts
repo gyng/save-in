@@ -882,6 +882,35 @@ describe("history filter controls", () => {
     expect(hidden.checked).toBe(true);
   });
 
+  // A stored address is whatever a page or server supplied; as a link, a
+  // `javascript:` one would run in the options page when clicked.
+  test("shows an address that is not a web address as plain text", async () => {
+    localStorage.setItem("si-history-columns", JSON.stringify(["file", "url"]));
+    document.body.innerHTML = markup();
+    historyPanel.setupHistoryPanel();
+    const addresses = [
+      "javascript:alert(document.domain)",
+      "file://attacker.example/share/x",
+      "data:text/html,<script>alert(1)</script>",
+      "not a url",
+      "http://example.test/plain.png",
+    ];
+    historyRuntime.entries = addresses.map((sourceUrl, index) => ({
+      id: `h-${index}`,
+      finalFullPath: `file-${index}.png`,
+      info: { context: "media", sourceUrl },
+    }));
+    await historyPanel.renderHistory();
+
+    const cells = [...document.querySelectorAll<HTMLElement>(".history-url")];
+    expect(cells.map((cell) => cell.textContent).toSorted()).toEqual(addresses.toSorted());
+    expect(
+      [...document.querySelectorAll<HTMLAnchorElement>(".history-url a")].map((link) =>
+        link.getAttribute("href"),
+      ),
+    ).toEqual(["http://example.test/plain.png"]);
+  });
+
   test("renders and localizes every optional history column", async () => {
     const allColumns = [
       "time",

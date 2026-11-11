@@ -9,6 +9,7 @@ import { makeObjectUrl } from "./download.ts";
 import { sanitizeFilename } from "../routing/path.ts";
 import { EXTENSION_REGEX } from "../routing/filename.ts";
 import { currentTab } from "../platform/current-tab.ts";
+import { withUrl } from "../shared/util.ts";
 
 type ShortcutInfo = {
   srcUrl?: string | undefined;
@@ -55,11 +56,39 @@ export const sourceSidecarPath = (
   };
 };
 
+// A shortcut file navigates to its address when the user opens it, outside the
+// browser's own checks, so the address may only be one a browser tab could
+// have been sent to by a link: a `javascript:` address would run when an HTML
+// shortcut is opened, and `file://host/share` makes Windows authenticate to a
+// remote host. The check lives here, not with any caller, because the address
+// is page-controlled wherever it comes from. `data:` and `blob:` addresses are
+// refused as well: a shortcut to one opens nothing.
+const SHORTCUT_PROTOCOLS: readonly string[] = ["http:", "https:", "ftp:"];
+
+export type ShortcutTarget = {
+  // Set only for the address of a document the browser itself reports as open
+  // in a tab. A page cannot choose that address the way it chooses a link's,
+  // so a shortcut to a local file the user has open stays possible.
+  browserDocument?: boolean;
+};
+
+const isShortcutUrl = (url: string, target: ShortcutTarget = {}): boolean =>
+  withUrl(
+    url,
+    ({ protocol }) =>
+      SHORTCUT_PROTOCOLS.includes(protocol) ||
+      (target.browserDocument === true && protocol === "file:"),
+    false,
+  );
+
+// Null when the address is not one a shortcut may point at.
 export const makeShortcutContent = (
   type: string | undefined,
   url: string,
   title?: string,
-): string => {
+  target: ShortcutTarget = {},
+): string | null => {
+  if (!isShortcutUrl(url, target)) return null;
   switch (type) {
     case SHORTCUT_TYPES.MAC:
       return `[InternetShortcut]\nURL=${escapeInternetShortcutUrl(url)}`;
@@ -107,7 +136,11 @@ export const makeShortcut = (
   type: string | undefined,
   url: string,
   title = currentTab?.title,
-): string => makeObjectUrl(makeShortcutContent(type, url, title), mimeForType(type));
+  target: ShortcutTarget = {},
+): string | null => {
+  const content = makeShortcutContent(type, url, title, target);
+  return content === null ? null : makeObjectUrl(content, mimeForType(type));
+};
 
 export const suggestShortcutFilename = (
   shortcutType: string,

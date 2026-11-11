@@ -28,6 +28,7 @@ import {
   EXTENSION_NOTIFICATION_STREAMS,
 } from "../downloads/notification.ts";
 import { makeShortcut, suggestShortcutFilename } from "../downloads/shortcut.ts";
+import { isValidDownloadUrl } from "./messaging/protocol.ts";
 import { createSourceSidecarRequest } from "../downloads/source-sidecar.ts";
 import { closeRoutingSourceTab } from "./tab-action.ts";
 import { options } from "../config/options-data.ts";
@@ -411,7 +412,15 @@ const handleContextMenuClickInternal = async (
     // decision only reports the text)
     let url = target.selectionText != null ? makeObjectUrl(target.selectionText) : target.url;
     let suggestedFilename = target.suggestedFilename;
-    if (!url) {
+    // A link's or media element's address is whatever the page wrote. Every
+    // other intake admits only schemes the downloads pipeline can fetch, and so
+    // does this one: `javascript:` or `file:` here would otherwise reach a
+    // shortcut file or the downloads API as given. The click then saves
+    // nothing, rather than something else the user did not point at. A page or
+    // selection save has no such address: its URL is the tab's own.
+    const pageWroteAddress =
+      downloadType === DOWNLOAD_TYPES.MEDIA || downloadType === DOWNLOAD_TYPES.LINK;
+    if (!url || (pageWroteAddress && !isValidDownloadUrl(url))) {
       return;
     }
     const originalUrl = url;
@@ -494,7 +503,19 @@ const handleContextMenuClickInternal = async (
       (downloadType === DOWNLOAD_TYPES.PAGE && options.shortcutPage);
 
     if (saveAsShortcut) {
-      url = makeShortcut(options.shortcutType, url, clickTab?.title);
+      const shortcut = makeShortcut(options.shortcutType, url, clickTab?.title, {
+        browserDocument: downloadType === DOWNLOAD_TYPES.PAGE,
+      });
+      // Fetchable but not linkable, such as a `data:` image: a shortcut to it
+      // would open nothing, and saving the media in its place is not what the
+      // option asks for.
+      if (shortcut === null) {
+        void addLogEntry("shortcut not saved: address is not a web address", downloadType, {
+          privateContext,
+        });
+        return;
+      }
+      url = shortcut;
 
       suggestedFilename = suggestShortcutFilename(
         options.shortcutType,

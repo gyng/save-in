@@ -194,6 +194,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
       "HTML_REDIRECT",
       "https://b.test/two",
       "Two",
+      { browserDocument: true },
     );
     expect(vi.mocked(suggestShortcutFilename)).toHaveBeenCalledWith(
       "HTML_REDIRECT",
@@ -204,6 +205,16 @@ describe("addTabMenuListener tabstrip downloads", () => {
     );
     expect(downloads()[0]!.info.url).toBe("blob:mock-shortcut");
     expect(downloads()[0]!.info.suggestedFilename).toBe("shortcut.url");
+  });
+
+  test("shortcutTab skips a tab whose address a shortcut cannot point at", async () => {
+    options.shortcutTab = true;
+    vi.mocked(makeShortcut).mockReturnValueOnce(null);
+
+    await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(downloads()).toHaveLength(0);
   });
 
   test("handles tabstrip clicks when init already completed (no pending Runtime.ready)", async () => {
@@ -231,6 +242,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
       "HTML_REDIRECT",
       "https://c.test/nine",
       "https://c.test/nine",
+      { browserDocument: true },
     );
     expect(vi.mocked(suggestShortcutFilename)).toHaveBeenCalledWith(
       "HTML_REDIRECT",

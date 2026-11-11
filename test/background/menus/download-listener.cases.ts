@@ -13,6 +13,7 @@ import {
   type MenusFixture,
   type TestMenuListener,
 } from "./listeners.fixture.ts";
+import * as Log from "../../../src/background/log.ts";
 import type { DownloadPipelineState } from "../../../src/downloads/download-types.ts";
 import { parseRulesCollecting } from "../../../src/routing/rule-parser.ts";
 
@@ -1827,6 +1828,7 @@ describe("addDownloadListener", () => {
         "HTML_REDIRECT",
         "https://example.com/i.png",
         undefined,
+        { browserDocument: false },
       );
       expect(vi.mocked(suggestShortcutFilename)).toHaveBeenCalledWith(
         "HTML_REDIRECT",
@@ -1853,6 +1855,7 @@ describe("addDownloadListener", () => {
         "HTML_REDIRECT",
         "https://example.com/f.png",
         undefined,
+        { browserDocument: false },
       );
       expect(lastState().info.url).toBe("blob:mock-shortcut");
     });
@@ -1870,6 +1873,7 @@ describe("addDownloadListener", () => {
         "HTML_REDIRECT",
         "https://example.com/",
         "Title",
+        { browserDocument: true },
       );
       expect(lastState().info.url).toBe("blob:mock-shortcut");
       expect(lastState().info.suggestedFilename).toBe("shortcut.url");
@@ -1892,7 +1896,108 @@ describe("addDownloadListener", () => {
         "HTML_REDIRECT",
         "https://b.test/page",
         "Clicked tab",
+        { browserDocument: true },
       );
+    });
+
+    // A link's href is whatever the page wrote. Opening the saved shortcut
+    // would run a `javascript:` address or authenticate to a remote share.
+    test.each([
+      ["a script", "javascript:alert(document.domain)"],
+      ["a remote file share", "file://attacker.example/share/x"],
+      ["an extension page", "chrome-extension://abcdefghijklmnop/options.html"],
+      ["no address at all", "not a url"],
+    ])("a link to %s is never saved, as a shortcut or as a download", async (_label, linkUrl) => {
+      vi.mocked(makeShortcut).mockClear();
+      Menus.addPaths(["dir1"], ["link"]);
+      const click = { menuItemId: "save-in-0", linkUrl, pageUrl: "https://example.com/" };
+
+      options.shortcutLink = true;
+      await listener(click);
+      options.shortcutLink = false;
+      await listener(click);
+
+      expect(vi.mocked(makeShortcut)).not.toHaveBeenCalled();
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+    });
+
+    test("a refused link does not fall through to the media, page, or selection", async () => {
+      options.preferLinks = true;
+      Menus.addPaths(["dir1"], ["image"]);
+
+      await listener({
+        ...mediaClick,
+        linkUrl: "javascript:alert(1)",
+        selectionText: "selected",
+      });
+
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+    });
+
+    test("media whose address the pipeline cannot fetch is not saved", async () => {
+      vi.mocked(makeShortcut).mockClear();
+      options.shortcutMedia = true;
+      Menus.addPaths(["dir1"], ["image"]);
+
+      await listener({ ...mediaClick, srcUrl: "file://attacker.example/share/x.png" });
+
+      expect(vi.mocked(makeShortcut)).not.toHaveBeenCalled();
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+    });
+
+    test("fetchable media that a shortcut cannot point at saves nothing and is logged", async () => {
+      options.shortcutMedia = true;
+      vi.mocked(makeShortcut).mockReturnValueOnce(null);
+      const log = vi.spyOn(Log, "addLogEntry").mockResolvedValue(undefined);
+      Menus.addPaths(["dir1"], ["image"]);
+
+      await listener({ ...mediaClick, srcUrl: "data:image/png;base64,AAAA" });
+
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+      expect(log).toHaveBeenCalledWith(
+        "shortcut not saved: address is not a web address",
+        DOWNLOAD_TYPES.MEDIA,
+        { privateContext: false },
+      );
+    });
+
+    // The tab's own address is not the page's to choose, so these keep working.
+    test.each([
+      ["downloaded", false],
+      ["saved as a shortcut", true],
+    ])("a local page is still %s", async (_label, shortcutPage) => {
+      options.shortcutPage = shortcutPage;
+      Menus.addPaths(["dir1"], ["page"]);
+
+      await listener(
+        { menuItemId: "save-in-0", pageUrl: "file:///home/user/notes.html" },
+        { id: 5, title: "Notes" },
+      );
+
+      expect(Download.launchDownload).toHaveBeenCalledOnce();
+      expect(lastState().info.url).toBe(
+        shortcutPage ? "blob:mock-shortcut" : "file:///home/user/notes.html",
+      );
+      if (shortcutPage) {
+        expect(vi.mocked(makeShortcut)).toHaveBeenCalledWith(
+          "HTML_REDIRECT",
+          "file:///home/user/notes.html",
+          "Notes",
+          { browserDocument: true },
+        );
+      }
+    });
+
+    test("a selection is still saved from a page with any address", async () => {
+      Menus.addPaths(["dir1"], ["selection"]);
+
+      await listener(
+        { menuItemId: "save-in-0", selectionText: "chosen words", pageUrl: "about:blank" },
+        { id: 5, title: "Notes" },
+      );
+
+      expect(Download.launchDownload).toHaveBeenCalledOnce();
+      expect(lastState().info.context).toBe(DOWNLOAD_TYPES.SELECTION);
     });
   });
 

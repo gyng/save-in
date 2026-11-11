@@ -119,7 +119,13 @@ export const handleTabMenuClick = async (
       let suggestedFilename = null;
 
       if (options.shortcutTab) {
-        url = makeShortcut(options.shortcutType, url, t.title || t.url);
+        const shortcut = makeShortcut(options.shortcutType, t.url, t.title || t.url, {
+          browserDocument: true,
+        });
+        // Not an address a shortcut may point at; saving the tab itself in its
+        // place is not what the option asks for.
+        if (shortcut === null) continue;
+        url = shortcut;
 
         suggestedFilename = suggestShortcutFilename(
           options.shortcutType,

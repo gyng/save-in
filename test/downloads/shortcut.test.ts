@@ -91,8 +91,8 @@ describe("shortcut content creation", () => {
   });
 
   test("creates a HTML redirect shortcut", () => {
-    const expected = 'window.location.href = "foo"';
-    expect(makeShortcutContent(SHORTCUT_TYPES.HTML_REDIRECT, "foo")).toContain(expected);
+    const expected = 'window.location.href = "https://x/foo"';
+    expect(makeShortcutContent(SHORTCUT_TYPES.HTML_REDIRECT, "https://x/foo")).toContain(expected);
   });
 
   test("escapes the URL so a hostile link cannot inject script", () => {
@@ -100,37 +100,39 @@ describe("shortcut content creation", () => {
     const content = makeShortcutContent(SHORTCUT_TYPES.HTML_REDIRECT, hostile);
     // No literal </script> can appear to break out of the <script> element
     // (except the single legitimate one closing our own script tag)
-    expect(content.match(/<\/script>/g)).toHaveLength(1);
+    expect(content?.match(/<\/script>/g)).toHaveLength(1);
     expect(content).not.toContain("<script>alert(1)");
   });
 
   test("creates a Mac URL shortcut", () => {
-    const expected = "[InternetShortcut]\nURL=foo";
-    expect(makeShortcutContent(SHORTCUT_TYPES.MAC, "foo")).toBe(expected);
+    const expected = "[InternetShortcut]\nURL=https://x/foo";
+    expect(makeShortcutContent(SHORTCUT_TYPES.MAC, "https://x/foo")).toBe(expected);
   });
 
   test("creates a Windows URL shortcut", () => {
-    const expected = "[InternetShortcut]\r\nURL=foo";
-    expect(makeShortcutContent(SHORTCUT_TYPES.WINDOWS, "foo")).toBe(expected);
+    const expected = "[InternetShortcut]\r\nURL=https://x/foo";
+    expect(makeShortcutContent(SHORTCUT_TYPES.WINDOWS, "https://x/foo")).toBe(expected);
   });
 
   test("creates a native macOS webloc without changing legacy MAC output", () => {
     const content = makeShortcutContent(SHORTCUT_TYPES.MAC_WEBLOC, "https://example.com/?a&b");
     expect(content).toContain("<key>URL</key>");
     expect(content).toContain("https://example.com/?a&amp;b");
-    expect(makeShortcutContent(SHORTCUT_TYPES.MAC, "foo")).toBe("[InternetShortcut]\nURL=foo");
+    expect(makeShortcutContent(SHORTCUT_TYPES.MAC, "https://x/foo")).toBe(
+      "[InternetShortcut]\nURL=https://x/foo",
+    );
   });
 
   test("creates a Freedesktop URL shortcut without a title", () => {
     const expected =
-      "[Desktop Entry]\nEncoding=UTF-8\nIcon=text-html\nType=Link\nName=foo\nTitle=foo\nURL=foo\n[InternetShortcut]\nURL=foo";
-    expect(makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "foo")).toBe(expected);
+      "[Desktop Entry]\nEncoding=UTF-8\nIcon=text-html\nType=Link\nName=https://x/foo\nTitle=https://x/foo\nURL=https://x/foo\n[InternetShortcut]\nURL=https://x/foo";
+    expect(makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "https://x/foo")).toBe(expected);
   });
 
   test("creates a Freedesktop URL shortcut with a title", () => {
     const expected =
-      "[Desktop Entry]\nEncoding=UTF-8\nIcon=text-html\nType=Link\nName=bar\nTitle=bar\nURL=foo\n[InternetShortcut]\nURL=foo";
-    expect(makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "foo", "bar")).toBe(expected);
+      "[Desktop Entry]\nEncoding=UTF-8\nIcon=text-html\nType=Link\nName=bar\nTitle=bar\nURL=https://x/foo\n[InternetShortcut]\nURL=https://x/foo";
+    expect(makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "https://x/foo", "bar")).toBe(expected);
   });
 
   test("escapes control characters in Freedesktop shortcut fields", () => {
@@ -148,6 +150,73 @@ describe("shortcut content creation", () => {
     expect(makeShortcutContent("SOME_UNKNOWN_TYPE", "https://example.com")).toBe(
       "https://example.com",
     );
+  });
+});
+
+// A shortcut navigates to its address when the user opens the file, so a page
+// that controls a link's href must not be able to put a script or a remote
+// file share into one.
+describe("shortcut address allowlist", () => {
+  const types = [undefined, ...Object.values(SHORTCUT_TYPES)];
+
+  test.each([
+    "javascript:alert(document.domain)",
+    " JavaScript:alert(1)",
+    "java\tscript:alert(1)",
+    "file://attacker.example/share/x",
+    "file:///etc/passwd",
+    "\\\\attacker.example\\share\\x",
+    "data:text/html,<script>alert(1)</script>",
+    "blob:https://example.com/0b1c",
+    "vbscript:msgbox(1)",
+    "ms-msdt:/id",
+    "about:blank",
+    "chrome://settings/",
+    "relative/path",
+    "",
+  ])("refuses %j for every shortcut type", (address) => {
+    const makeObjectUrl = vi.spyOn(Download, "makeObjectUrl");
+    for (const type of types) {
+      expect(makeShortcutContent(type, address)).toBeNull();
+      expect(shortcut.makeShortcut(type, address, "Title")).toBeNull();
+    }
+    expect(makeObjectUrl).not.toHaveBeenCalled();
+  });
+
+  test.each(["http://example.com/a", "https://example.com/a?b#c", "ftp://example.com/file"])(
+    "accepts %j for every shortcut type",
+    (address) => {
+      for (const type of types) expect(makeShortcutContent(type, address)).toContain(address);
+    },
+  );
+
+  test("a local file is accepted only as the address of an open document", () => {
+    const local = "file:///home/user/notes.html";
+
+    expect(makeShortcutContent(SHORTCUT_TYPES.WINDOWS, local)).toBeNull();
+    expect(
+      makeShortcutContent(SHORTCUT_TYPES.WINDOWS, local, "", { browserDocument: false }),
+    ).toBeNull();
+    expect(
+      makeShortcutContent(SHORTCUT_TYPES.WINDOWS, local, "", { browserDocument: true }),
+    ).toContain(local);
+    // Being the open document admits nothing else.
+    expect(
+      makeShortcutContent(SHORTCUT_TYPES.WINDOWS, "javascript:alert(1)", "", {
+        browserDocument: true,
+      }),
+    ).toBeNull();
+  });
+
+  test("a source that cannot be linked gets no sidecar", async () => {
+    options.saveSourceSidecar = true;
+    options.shortcutType = SHORTCUT_TYPES.WINDOWS;
+    const launch = vi.spyOn(Download, "launchDownload").mockClear();
+
+    await launchSourceSidecar({ sourceUrl: "blob:https://example.com/0b1c" }, "gallery/a.png");
+    await launchSourceSidecar({ sourceUrl: "data:image/png;base64,AAAA" }, "gallery/a.png");
+
+    expect(launch).not.toHaveBeenCalled();
   });
 });
 
