@@ -4727,16 +4727,19 @@
   "pickerNoMatches": {
     "message": "Nessuna cartella corrispondente"
   },
-  "o_lClickToSaveAction": {
-    "message": "Azione"
+  "o_sFolderPicker": {
+    "message": "Selettore di cartelle"
   },
-  "o_lClickToSaveActionSave": {
-    "message": "Salva subito"
+  "o_cPickerGesture": {
+    "message": "Apri il selettore di cartelle con un gesto di clic"
   },
-  "o_lClickToSaveActionPicker": {
-    "message": "Mostra il selettore di cartelle"
+  "o_lPickerGestureConflict": {
+    "message": "«Salvataggio con clic» usa già questo gesto, quindi salva invece di aprire il selettore di cartelle. Scegli qui un altro gesto."
+  },
+  "o_lPickerOtherWays": {
+    "message": "Il selettore di cartelle si apre anche con il comando da tastiera «Mostra il selettore di cartelle» e dalle estensioni approvate."
   },
   "o_cClickToSavePickerHelp": {
-    "message": "Un gesto con l’azione «Mostra il selettore di cartelle» apre le cartelle del tuo Menu di salvataggio accanto al puntatore. Scegline una per salvare lì oppure premi Esc per annullare. Il menu contestuale del browser non cambia."
+    "message": "Il gesto apre le cartelle del tuo Menu di salvataggio accanto al puntatore. Scegline una per salvare lì oppure premi Esc per annullare. Il menu contestuale del browser non cambia."
   }
 }

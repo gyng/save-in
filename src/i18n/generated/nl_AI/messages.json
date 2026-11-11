@@ -4727,16 +4727,19 @@
   "pickerNoMatches": {
     "message": "Geen overeenkomende mappen"
   },
-  "o_lClickToSaveAction": {
-    "message": "Actie"
+  "o_sFolderPicker": {
+    "message": "Mapkiezer"
   },
-  "o_lClickToSaveActionSave": {
-    "message": "Direct opslaan"
+  "o_cPickerGesture": {
+    "message": "De mapkiezer openen met een klikgebaar"
   },
-  "o_lClickToSaveActionPicker": {
-    "message": "De mapkiezer tonen"
+  "o_lPickerGestureConflict": {
+    "message": "‘Klikken om op te slaan’ gebruikt dit gebaar al en slaat dus op in plaats van de mapkiezer te openen. Kies hier een ander gebaar."
+  },
+  "o_lPickerOtherWays": {
+    "message": "De mapkiezer opent ook met de toetsenbordopdracht ‘De mapkiezer tonen’ en vanuit goedgekeurde extensies."
   },
   "o_cClickToSavePickerHelp": {
-    "message": "Een gebaar met de actie ‘De mapkiezer tonen’ opent de mappen van uw Opslagmenu bij de aanwijzer. Kies een map om daar op te slaan of druk op Esc om te annuleren. Het contextmenu van de browser verandert niet."
+    "message": "Het gebaar opent de mappen van uw Opslagmenu bij de aanwijzer. Kies een map om daar op te slaan of druk op Esc om te annuleren. Het contextmenu van de browser verandert niet."
   }
 }

@@ -128,6 +128,7 @@ test("keeps core feature help separate from checkbox accessible names", () => {
   for (const [controlId, helpId] of [
     ["page", "save-page-help"],
     ["contentClickToSave", "click-to-save-help"],
+    ["contentPickerGesture", "picker-gesture-help"],
     ["saveSourceSidecar", "save-source-sidecar-help"],
     ["persistPrivateActivity", "persist-private-activity-help"],
   ] as const) {
@@ -192,8 +193,29 @@ test("preserves backward-compatible option defaults", () => {
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier")?.value).toBe("Alt");
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier2")?.value).toBe("");
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveButton")?.value).toBe("left-click");
-  // A gesture saves immediately unless its row says otherwise.
-  expect(document.querySelector<HTMLSelectElement>("#clickToSaveAction")?.value).toBe("save");
+  // A click-to-save row is three selects; the folder picker has its own
+  // switch and gesture row instead of an action on these.
+  expect(
+    [...document.querySelectorAll(".click-to-save-controls .click-to-save-row")].map((row) =>
+      [...row.querySelectorAll("select")].map(({ id }) => id),
+    ),
+  ).toEqual([
+    ["clickToSaveModifier", "clickToSaveModifier2", "clickToSaveButton"],
+    ["pickerGestureModifier", "pickerGestureModifier2", "pickerGestureButton"],
+  ]);
+  expect(document.querySelector<HTMLInputElement>("#contentPickerGesture")?.checked).toBe(false);
+  expect(document.querySelector<HTMLSelectElement>("#pickerGestureModifier")?.value).toBe("Alt");
+  expect(document.querySelector<HTMLSelectElement>("#pickerGestureModifier2")?.value).toBe("Shift");
+  expect(document.querySelector<HTMLSelectElement>("#pickerGestureButton")?.value).toBe(
+    "left-click",
+  );
+  const pickerStatus = document.querySelector<HTMLElement>("#pickerGestureStatus");
+  expect(pickerStatus?.getAttribute("role")).toBe("status");
+  expect(pickerStatus?.hidden).toBe(true);
+  // The picture sits beside the picker's own settings, not click-to-save's.
+  const pickerBlock = document.querySelector("#contentPickerGesture")?.closest(".picker-overview");
+  expect(pickerBlock?.querySelector(".picker-demo")).not.toBeNull();
+  expect(document.querySelector("#contentClickToSave")?.closest(".picker-overview")).toBeNull();
   const longPress = document.querySelector<HTMLInputElement>("#contentClickToSaveLongPressMs");
   expect(longPress?.value).toBe("500");
   expect(longPress?.min).toBe("250");

@@ -3,7 +3,12 @@ import { CLICK_TYPES } from "../../src/shared/constants.ts";
 import {
   CLICK_ACTIONS,
   CLICK_GESTURES,
+  DEFAULT_PICKER_BINDINGS,
+  clickBindingsConflict,
   clickKeysForCombo,
+  effectiveClickBindings,
+  isStoredPickerBindings,
+  resolvePickerBindings,
   contentClickComboToKeyCodes,
   isClickKeys,
   normalizeClickKeys,
@@ -38,97 +43,22 @@ describe("click-to-save gesture bindings", () => {
     expect(parseClickToSaveBindings(serializeClickToSaveBindings(bindings))).toEqual(bindings);
   });
 
-  test("round-trips a picker action beside an immediate save", () => {
-    const bindings = [
-      { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
-      { gesture: CLICK_GESTURES.LEFT, combo: "Alt+Shift", action: CLICK_ACTIONS.PICKER },
-    ];
-    const serialized = serializeClickToSaveBindings(bindings);
-
-    expect(serialized).toBe(
-      '{"version":1,"bindings":[{"gesture":"left-click","combo":"Alt"},' +
-        '{"gesture":"left-click","combo":"Alt+Shift","action":"picker"}]}',
-    );
-    expect(parseClickToSaveBindings(serialized)).toEqual(bindings);
-  });
-
-  test("a profile that never used the picker keeps its stored bytes", () => {
+  // A per-binding action was an unreleased shape. A development profile that
+  // still stores one keeps its gestures as ordinary bindings.
+  test("ignores a stored property it does not know and never writes it back", () => {
     const stored =
-      '{"version":1,"bindings":[{"gesture":"middle-click","combo":"Alt"},' +
-      '{"gesture":"long-left-click","combo":18}]}';
+      '{"version":1,"bindings":[{"gesture":"middle-click","combo":"Alt","action":"picker"},' +
+      '{"gesture":"long-left-click","combo":18,"action":7}]}';
     const parsed = parseClickToSaveBindings(stored);
 
     expect(parsed).toEqual([
       { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt" },
       { gesture: CLICK_GESTURES.LONG_LEFT, combo: 18 },
     ]);
-    expect(serializeClickToSaveBindings(parsed ?? [])).toBe(stored);
-  });
-
-  // Only "picker" is an action; everything else, including what a newer
-  // version might store, saves at once without invalidating the gesture list.
-  test.each([
-    ["picker", CLICK_ACTIONS.PICKER],
-    ["save", undefined],
-    [undefined, undefined],
-    [null, undefined],
-    ["", undefined],
-    ["PICKER", undefined],
-    ["copy-link", undefined],
-    [1, undefined],
-    [true, undefined],
-    [["picker"], undefined],
-    [{ type: "picker" }, undefined],
-  ] as const)("parses a stored action of %j as %j", (stored, action) => {
-    const parsed = parseClickToSaveBindings(
-      JSON.stringify({
-        version: 1,
-        bindings: [
-          { gesture: "middle-click", combo: "Alt", action: stored },
-          { gesture: "right-click", combo: "" },
-        ],
-      }),
-    );
-
-    expect(parsed).toEqual([
-      { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt", ...(action ? { action } : {}) },
-      { gesture: CLICK_GESTURES.RIGHT, combo: "" },
-    ]);
-    expect(parsed?.[0] && "action" in parsed[0]).toBe(action !== undefined);
-  });
-
-  test("serializes only the picker action and nothing else a caller attached", () => {
-    const withExtras = [
-      { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt", keyCodes: [18] },
-      { gesture: CLICK_GESTURES.RIGHT, combo: "", action: CLICK_ACTIONS.PICKER, clickKeys: "none" },
-    ];
-
-    expect(trySerializeClickToSaveBindings(withExtras)).toBe(
+    expect(serializeClickToSaveBindings(parsed ?? [])).toBe(
       '{"version":1,"bindings":[{"gesture":"middle-click","combo":"Alt"},' +
-        '{"gesture":"right-click","combo":"","action":"picker"}]}',
+        '{"gesture":"long-left-click","combo":18}]}',
     );
-  });
-
-  test("the action is not part of a binding's identity", () => {
-    const bindings = [
-      { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt" },
-      { gesture: CLICK_GESTURES.MIDDLE, combo: "alt", action: CLICK_ACTIONS.PICKER },
-    ];
-
-    expect(trySerializeClickToSaveBindings(bindings)).toBeNull();
-    expect(parseClickToSaveBindings(JSON.stringify({ version: 1, bindings }))).toBeNull();
-    expect(
-      trySerializeClickToSaveBindings([
-        { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
-        { gesture: CLICK_GESTURES.LONG_LEFT, combo: "Ctrl", action: CLICK_ACTIONS.PICKER },
-      ]),
-    ).toBeNull();
-  });
-
-  test("the legacy pair resolves to an immediate save", () => {
-    expect(resolveClickToSaveBindings("", "Ctrl", CLICK_TYPES.MIDDLE_CLICK)).toEqual([
-      { gesture: CLICK_GESTURES.MIDDLE, combo: "Ctrl" },
-    ]);
   });
 
   test("allows one gesture with different keys (#15)", () => {
@@ -298,4 +228,127 @@ describe("click-to-save gesture bindings", () => {
       expect(isClickKeys(value)).toBe(false);
     },
   );
+});
+
+describe("folder picker gesture", () => {
+  const { LEFT, MIDDLE, DOUBLE_LEFT, LONG_LEFT } = CLICK_GESTURES;
+  const save = (gesture: (typeof CLICK_GESTURES)[keyof typeof CLICK_GESTURES], combo: string) => ({
+    gesture,
+    combo,
+    action: CLICK_ACTIONS.SAVE,
+  });
+  const picker = (
+    gesture: (typeof CLICK_GESTURES)[keyof typeof CLICK_GESTURES],
+    combo: string,
+  ) => ({ gesture, combo, action: CLICK_ACTIONS.PICKER });
+
+  test("defaults to Alt+Shift with a left click", () => {
+    expect(DEFAULT_PICKER_BINDINGS).toBe(
+      '{"version":1,"bindings":[{"gesture":"left-click","combo":"Alt+Shift"}]}',
+    );
+    expect(resolvePickerBindings(DEFAULT_PICKER_BINDINGS)).toEqual([
+      { gesture: LEFT, combo: "Alt+Shift" },
+    ]);
+  });
+
+  test("reads a stored gesture", () => {
+    const stored = serializeClickToSaveBindings([{ gesture: LONG_LEFT, combo: "" }]);
+
+    expect(isStoredPickerBindings(stored)).toBe(true);
+    expect(resolvePickerBindings(stored)).toEqual([{ gesture: LONG_LEFT, combo: "" }]);
+  });
+
+  // Unlike the click-to-save list, empty has no legacy meaning here.
+  test.each([
+    undefined,
+    null,
+    "",
+    "   ",
+    "{",
+    7,
+    {},
+    '{"version":2,"bindings":[{"gesture":"left-click","combo":"Alt"}]}',
+    '{"version":1,"bindings":[]}',
+    '{"version":1,"bindings":[{"gesture":"tap","combo":"Alt"}]}',
+    '{"version":1,"bindings":[{"gesture":"left-click","combo":"garbage"}]}',
+  ])("falls back to the default for the stored value %j", (stored) => {
+    expect(isStoredPickerBindings(stored)).toBe(false);
+    expect(resolvePickerBindings(stored)).toEqual([{ gesture: LEFT, combo: "Alt+Shift" }]);
+  });
+
+  test.each([
+    [LEFT, "Alt", LEFT, "alt", true],
+    [LEFT, "Alt", LEFT, "Alt+Shift", false],
+    [MIDDLE, "", MIDDLE, "none", true],
+    [MIDDLE, "Alt", LEFT, "Alt", false],
+    [LEFT, "Alt", DOUBLE_LEFT, "Ctrl", true],
+    [DOUBLE_LEFT, "Ctrl", LEFT, "Alt", true],
+    [LEFT, "Alt", LONG_LEFT, "", true],
+    [LONG_LEFT, "", LEFT, "Alt", true],
+    [DOUBLE_LEFT, "", LONG_LEFT, "", false],
+    [LONG_LEFT, "Alt", LONG_LEFT, "Shift", false],
+  ] as const)("%s %j beside %s %j conflicts: %j", (gesture, combo, other, otherCombo, expected) => {
+    expect(clickBindingsConflict({ gesture, combo }, { gesture: other, combo: otherCombo })).toBe(
+      expected,
+    );
+  });
+
+  test.each([
+    ["both off", null, null, []],
+    ["click-to-save alone", [{ gesture: LEFT, combo: "Alt" }], null, [save(LEFT, "Alt")]],
+    [
+      "the picker alone",
+      null,
+      [{ gesture: LEFT, combo: "Alt+Shift" }],
+      [picker(LEFT, "Alt+Shift")],
+    ],
+    [
+      "both on",
+      [
+        { gesture: LEFT, combo: "Alt" },
+        { gesture: MIDDLE, combo: "" },
+      ],
+      [{ gesture: LEFT, combo: "Alt+Shift" }],
+      [save(LEFT, "Alt"), save(MIDDLE, ""), picker(LEFT, "Alt+Shift")],
+    ],
+    [
+      "the same gesture and keys",
+      [{ gesture: MIDDLE, combo: "Alt" }],
+      [{ gesture: MIDDLE, combo: "alt" }],
+      [save(MIDDLE, "Alt")],
+    ],
+    [
+      "a long left click for the picker beside a single left click",
+      [{ gesture: LEFT, combo: "Alt" }],
+      [{ gesture: LONG_LEFT, combo: "" }],
+      [save(LEFT, "Alt")],
+    ],
+    [
+      "a single left click for the picker beside a double left click",
+      [{ gesture: DOUBLE_LEFT, combo: "" }],
+      [{ gesture: LEFT, combo: "Alt+Shift" }],
+      [save(DOUBLE_LEFT, "")],
+    ],
+    [
+      "only the conflicting picker binding",
+      [{ gesture: MIDDLE, combo: "" }],
+      [
+        { gesture: MIDDLE, combo: "" },
+        { gesture: MIDDLE, combo: "Shift" },
+      ],
+      [save(MIDDLE, ""), picker(MIDDLE, "Shift")],
+    ],
+  ] as const)(
+    "merges %s, with click-to-save keeping a shared gesture",
+    (_, saves, pickers, expected) => {
+      expect(effectiveClickBindings(saves, pickers)).toEqual(expected);
+    },
+  );
+
+  test("carries nothing but the gesture, its keys, and the action", () => {
+    const withExtras = [{ gesture: MIDDLE, combo: "", action: "picker", keyCodes: [1] }];
+
+    expect(effectiveClickBindings(withExtras, null)).toEqual([save(MIDDLE, "")]);
+    expect(effectiveClickBindings(null, withExtras)).toEqual([picker(MIDDLE, "")]);
+  });
 });

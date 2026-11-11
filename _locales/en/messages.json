@@ -6063,20 +6063,24 @@
     "message": "No matching folders",
     "description": "Status shown in the in-page folder picker when the typed filter matches none of the Save menu folders. Used in src/background/destination-picker.ts."
   },
-  "o_lClickToSaveAction": {
-    "message": "Action",
-    "description": "Label above the select that chooses what one click-to-save gesture does: save at once, or show the in-page folder picker. Shown beside the modifier and click gesture selects of each gesture row. Used in src/options/options.html and src/options/core/shortcut-options.ts."
+  "o_sFolderPicker": {
+    "message": "Folder picker",
+    "description": "Section heading on the Click-to-save options tab, above the settings for the in-page folder picker's own click gesture. Reuse the translation of \"folder picker\" from the \"Show the folder picker\" command. Used in src/options/options.html."
   },
-  "o_lClickToSaveActionSave": {
-    "message": "Save immediately",
-    "description": "Option in the Action select of a click-to-save gesture row: the gesture saves the clicked item at once, without showing the folder picker. Used in src/options/options.html and src/options/core/shortcut-options.ts."
+  "o_cPickerGesture": {
+    "message": "Open the folder picker with a click gesture",
+    "description": "Option checkbox label under the Folder picker heading. When on, the click gesture chosen below it shows the in-page list of Save menu folders at the pointer. It is separate from, and independent of, Enable click-to-save. Used in src/options/options.html."
   },
-  "o_lClickToSaveActionPicker": {
-    "message": "Show the folder picker",
-    "description": "Option in the Action select of a click-to-save gesture row: the gesture shows the in-page list of Save menu folders at the pointer instead of saving at once. Reuse the wording of the \"Show the folder picker\" command. Used in src/options/options.html and src/options/core/shortcut-options.ts."
+  "o_lPickerGestureConflict": {
+    "message": "Click-to-save already uses this gesture, so it saves instead of opening the folder picker. Choose a different gesture here.",
+    "description": "Warning shown under the folder picker's gesture controls when the chosen gesture is also a current click-to-save gesture while both features are on: click-to-save keeps the gesture and saves immediately. Click-to-save is the feature name; reuse its translation. Used in src/options/options.html."
+  },
+  "o_lPickerOtherWays": {
+    "message": "The folder picker also opens with the Show the folder picker keyboard command and from approved extensions.",
+    "description": "Help text under the folder picker's gesture controls listing the other ways to open the picker. \"Show the folder picker\" is the name of the browser keyboard command and \"approved extensions\" are the browser extensions allowed under External integrations; reuse their translations. Used in src/options/options.html."
   },
   "o_cClickToSavePickerHelp": {
-    "message": "A gesture set to Show the folder picker opens your Save menu folders at the pointer. Choose one to save there, or press Esc to cancel. The browser context menu is not changed.",
-    "description": "Caption under the click-to-save gesture rows, explaining what a gesture whose Action is \"Show the folder picker\" does. \"Save menu\" is the options tab name and click-to-save is the feature name; reuse their translations. Keep the key name Esc. Used in src/options/options.html."
+    "message": "The gesture opens your Save menu folders at the pointer. Choose one to save there, or press Esc to cancel. The browser context menu is not changed.",
+    "description": "Help text under the \"Open the folder picker with a click gesture\" checkbox, describing what the gesture chosen in that section does. \"Save menu\" is the options tab name; reuse its translation. Keep the key name Esc. Used in src/options/options.html."
   }
 }

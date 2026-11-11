@@ -47,22 +47,18 @@
 
 /* Trigger rows mirror the Page Sources shortcut fields exactly
    (.source-shortcut-fields in style-source-settings.css) so the two shortcut
-   configurators read as one control system. Keep the track metrics in
-   lockstep. A gesture row also carries its action and, when added, a remove
-   button, so its tracks wrap instead of being counted: four fields and a
-   button do not fit beside the picker preview at every width. */
+   configurators read as one control system; a binding row only adds the auto
+   column for its remove button. Keep the metrics in lockstep. */
 .click-to-save-row,
 .click-to-save-binding {
   display: grid;
-  /* Wide enough for the longest choice (the picker action in a long locale),
-     and stretching so the four controls sit two by two beside the picker
-     preview and four across where there is room. */
-  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  grid-template-columns: repeat(3, minmax(7rem, 12rem));
   gap: var(--space-3);
   inline-size: 100%;
 }
 
 .click-to-save-binding {
+  grid-template-columns: repeat(3, minmax(7rem, 12rem)) auto;
   align-items: end;
   padding-block-start: var(--space-2);
   border-block-start: 1px solid var(--color-border);
@@ -102,7 +98,6 @@
 .click-to-save-binding > button {
   white-space: nowrap;
   align-self: end;
-  justify-self: start;
   block-size: var(--control-height);
 }
 
@@ -110,6 +105,10 @@
   .click-to-save-row,
   .click-to-save-binding {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .click-to-save-binding > button {
+    justify-self: start;
   }
 }
 

@@ -16,18 +16,9 @@ export const CLICK_GESTURES = {
 
 export type ClickGesture = (typeof CLICK_GESTURES)[keyof typeof CLICK_GESTURES];
 
-// What a matched gesture does. Saving at once is the absence of an action, so
-// a profile written before actions existed keeps its meaning and re-serializes
-// to the same bytes; only the picker is ever spelled out.
-export const CLICK_ACTIONS = {
-  SAVE: "save",
-  PICKER: "picker",
-} as const;
-
 export type ClickToSaveBinding = {
   gesture: ClickGesture;
   combo: string | number;
-  action?: typeof CLICK_ACTIONS.PICKER;
 };
 
 export type ClickToSaveBindings = [ClickToSaveBinding, ...ClickToSaveBinding[]];
@@ -161,19 +152,27 @@ export const normalizeClickKeys = (value: unknown): string | undefined =>
 export const isClickKeys = (value: unknown): value is string =>
   typeof value === "string" && normalizeClickKeys(value) === value;
 
-const hasBindingConflicts = (bindings: ClickToSaveBinding[]): boolean => {
-  const identities = new Set(
-    bindings.map(({ gesture, combo }) => `${gesture} ${clickKeysForCombo(combo)}`),
+// A single left click resolves on mousedown, before a double or long left
+// click can be recognized, so those conflict whatever their keys. Every other
+// pair conflicts only on the same gesture with the same keys (#15).
+const gestureFamilyConflicts = (gesture: ClickGesture, other: ClickGesture): boolean =>
+  (gesture === CLICK_GESTURES.LEFT &&
+    (other === CLICK_GESTURES.DOUBLE_LEFT || other === CLICK_GESTURES.LONG_LEFT)) ||
+  (other === CLICK_GESTURES.LEFT &&
+    (gesture === CLICK_GESTURES.DOUBLE_LEFT || gesture === CLICK_GESTURES.LONG_LEFT));
+
+export const clickBindingsConflict = (
+  binding: ClickToSaveBinding,
+  other: ClickToSaveBinding,
+): boolean =>
+  gestureFamilyConflicts(binding.gesture, other.gesture) ||
+  (binding.gesture === other.gesture &&
+    clickKeysForCombo(binding.combo) === clickKeysForCombo(other.combo));
+
+const hasBindingConflicts = (bindings: ClickToSaveBinding[]): boolean =>
+  bindings.some((binding, index) =>
+    bindings.slice(index + 1).some((other) => clickBindingsConflict(binding, other)),
   );
-  const gestures = new Set(bindings.map(({ gesture }) => gesture));
-  // A single left click resolves on mousedown, before a double or long left
-  // click can be recognized, so those still conflict whatever their keys.
-  return (
-    identities.size !== bindings.length ||
-    (gestures.has(CLICK_GESTURES.LEFT) &&
-      (gestures.has(CLICK_GESTURES.DOUBLE_LEFT) || gestures.has(CLICK_GESTURES.LONG_LEFT)))
-  );
-};
 
 export const parseClickToSaveBindings = (value: unknown): ClickToSaveBindings | null => {
   if (typeof value !== "string" || !value.trim()) return null;
@@ -197,14 +196,11 @@ export const parseClickToSaveBindings = (value: unknown): ClickToSaveBindings | 
       ) {
         return null;
       }
-      bindings.push({
-        gesture: candidate.gesture,
-        combo: candidate.combo,
-        // An action this version does not know saves at once rather than
-        // invalidating the list: a newer version's profile must keep its
-        // gestures here instead of falling back to the legacy pair.
-        ...(candidate.action === CLICK_ACTIONS.PICKER ? { action: CLICK_ACTIONS.PICKER } : {}),
-      });
+      // Only the gesture and its keys are read, so a property this version
+      // does not know (a development profile's per-binding action, or a newer
+      // version's addition) leaves an ordinary binding instead of
+      // invalidating the list.
+      bindings.push({ gesture: candidate.gesture, combo: candidate.combo });
     }
     // The length guard above proves this branded non-empty collection.
     return hasBindingConflicts(bindings) ? null : (bindings as ClickToSaveBindings);
@@ -224,11 +220,7 @@ export const trySerializeClickToSaveBindings = (bindings: ClickToSaveBinding[]):
     ? null
     : JSON.stringify({
         version: CLICK_TO_SAVE_BINDINGS_VERSION,
-        bindings: bindings.map(({ gesture, combo, action }) => ({
-          gesture,
-          combo,
-          ...(action === CLICK_ACTIONS.PICKER ? { action } : {}),
-        })),
+        bindings: bindings.map(({ gesture, combo }) => ({ gesture, combo })),
       });
 
 export const serializeClickToSaveBindings = (bindings: ClickToSaveBinding[]): string => {
@@ -259,3 +251,46 @@ export const resolveClickToSaveBindings = (
       combo: isContentClickCombo(legacyCombo) ? legacyCombo : DEFAULT_CONTENT_CLICK_COMBO,
     },
   ];
+
+// The folder picker's gesture is its own setting, stored in the click-to-save
+// bindings format so one parser guards both. It has no legacy pair to fall
+// back to: anything unreadable, or empty, is the default gesture.
+const DEFAULT_PICKER_BINDING: ClickToSaveBinding = {
+  gesture: CLICK_GESTURES.LEFT,
+  combo: "Alt+Shift",
+};
+
+export const DEFAULT_PICKER_BINDINGS = serializeClickToSaveBindings([DEFAULT_PICKER_BINDING]);
+
+export const isStoredPickerBindings = (value: unknown): value is string =>
+  parseClickToSaveBindings(value) !== null;
+
+export const resolvePickerBindings = (serialized: unknown): ClickToSaveBindings =>
+  parseClickToSaveBindings(serialized) ?? [DEFAULT_PICKER_BINDING];
+
+export const CLICK_ACTIONS = {
+  SAVE: "save",
+  PICKER: "picker",
+} as const;
+
+export type EffectiveClickBinding = ClickToSaveBinding & {
+  action: (typeof CLICK_ACTIONS)[keyof typeof CLICK_ACTIONS];
+};
+
+// What the content gesture engine listens for. Each feature contributes its
+// bindings only while it is on (null when off). The engine resolves one
+// binding per input, so a picker binding that conflicts with a live
+// click-to-save binding cannot coexist with it: click-to-save keeps the
+// gesture and the picker binding is dropped.
+export const effectiveClickBindings = (
+  saveBindings: readonly ClickToSaveBinding[] | null,
+  pickerBindings: readonly ClickToSaveBinding[] | null,
+): EffectiveClickBinding[] => {
+  const saves = saveBindings ?? [];
+  return [
+    ...saves.map(({ gesture, combo }) => ({ gesture, combo, action: CLICK_ACTIONS.SAVE })),
+    ...(pickerBindings ?? [])
+      .filter((binding) => !saves.some((save) => clickBindingsConflict(binding, save)))
+      .map(({ gesture, combo }) => ({ gesture, combo, action: CLICK_ACTIONS.PICKER })),
+  ];
+};

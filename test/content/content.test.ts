@@ -6,8 +6,8 @@ import {
 } from "../../src/shared/source-panel-copy.ts";
 import { DATA_URL_MAX_LENGTH } from "../../src/shared/data-url.ts";
 import {
-  CLICK_ACTIONS,
   CLICK_GESTURES,
+  DEFAULT_PICKER_BINDINGS,
   serializeClickToSaveBindings,
   type ClickToSaveBinding,
 } from "../../src/shared/click-gesture.ts";
@@ -2265,11 +2265,13 @@ describe("content.js initialisation", () => {
 describe("setupClickToSave", () => {
   const acceptTestInput = () => true;
 
-  // One listener set for the whole block: setupClickToSave registers window
-  // listeners that cannot be removed, so state is reset between tests by
-  // firing the same events a real page would (focus, keyup)
+  // One listener set for the whole block, so state is reset between tests by
+  // firing the same events a real page would (focus, keyup). It is removed
+  // with the block: left in place, its Alt+click would claim that gesture
+  // from every later test in the file.
+  let removeShared = () => {};
   beforeAll(() => {
-    ClickToSave.setupClickToSave(
+    removeShared = ClickToSave.setupClickToSave(
       {
         contentClickToSaveCombo: 18,
         contentClickToSaveButton: "LEFT_CLICK",
@@ -2278,6 +2280,7 @@ describe("setupClickToSave", () => {
       acceptTestInput,
     );
   });
+  afterAll(() => removeShared());
 
   let sendMessage =
     vi.fn<(message: Record<string, any>, callback?: (response?: unknown) => void) => void>();
@@ -3788,79 +3791,29 @@ describe("destination picker", () => {
     vi.useRealTimers();
   });
 
-  test("a picker binding hands its source and position to the picker", async () => {
-    vi.useFakeTimers();
-    const openPicker = vi.fn();
-    const remove = ClickToSave.setupClickToSave(
-      {
-        contentClickToSaveBindings: serializeClickToSaveBindings([
-          { gesture: CLICK_GESTURES.MIDDLE, combo: "", action: CLICK_ACTIONS.PICKER },
-          { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "", action: CLICK_ACTIONS.PICKER },
-        ]),
-        contentClickToSaveCombo: "Alt",
-        contentClickToSaveButton: "LEFT_CLICK",
-        links: false,
-      },
-      acceptTestInput,
-      undefined,
-      undefined,
-      openPicker,
-    );
-    const image = document.getElementById("i");
-
-    press(image, { button: 1, buttons: 4 });
-    expect(openPicker).toHaveBeenLastCalledWith(
-      { url: "http://x.test/pic.png", kind: "image" },
-      { x: 40, y: 60 },
-    );
-    // The element is in hand, so its alt text travels with the picker's save.
-    image?.setAttribute("alt", "Misty forest");
-    press(image, { detail: 1 });
-    press(image, { detail: 2, clientX: 7, clientY: 9 });
-    expect(openPicker).toHaveBeenLastCalledWith(
-      { url: "http://x.test/pic.png", kind: "image", alt: "Misty forest" },
-      { x: 7, y: 9 },
-    );
-    image?.removeAttribute("alt");
-    expect(openPicker).toHaveBeenCalledTimes(2);
-    expect(sentTypes()).not.toContain("DOWNLOAD");
-    remove();
-
-    const removeLong = ClickToSave.setupClickToSave(
-      {
-        contentClickToSaveBindings: serializeClickToSaveBindings([
-          { gesture: CLICK_GESTURES.LONG_LEFT, combo: "", action: CLICK_ACTIONS.PICKER },
-        ]),
-        contentClickToSaveCombo: "Alt",
-        contentClickToSaveButton: "LEFT_CLICK",
-        contentClickToSaveLongPressMs: 500,
-        links: false,
-      },
-      acceptTestInput,
-      undefined,
-      undefined,
-      openPicker,
-    );
-    press(image, { clientX: 11, clientY: 12 });
-    await vi.advanceTimersByTimeAsync(500);
-    expect(openPicker).toHaveBeenLastCalledWith(
-      { url: "http://x.test/pic.png", kind: "image" },
-      { x: 11, y: 12 },
-    );
-    expect(sentTypes()).not.toContain("DOWNLOAD");
-    removeLong();
-  });
-
-  // The action belongs to the binding (one shortcut saves, another opens the
-  // picker), so each gesture kind is exercised with both in one configuration.
-  const downloads = () => sentTypes().filter((type) => type === "DOWNLOAD").length;
-  const setupMixed = (bindings: ClickToSaveBinding[], openPicker: () => void) =>
+  // The picker's gesture is its own setting beside click-to-save. The engine
+  // listens for whichever of the two is on; `saves`/`picker` of null is off.
+  const downloads = () =>
+    sendMessage.mock.calls.map(([message]) => message).filter(({ type }) => type === "DOWNLOAD");
+  const setupGestures = (
+    saves: ClickToSaveBinding[] | null,
+    picker: ClickToSaveBinding[] | string | null,
+    openPicker?: () => void,
+  ) =>
     ClickToSave.setupClickToSave(
       {
-        contentClickToSaveBindings: serializeClickToSaveBindings(bindings),
+        contentClickToSave: saves !== null,
+        ...(saves ? { contentClickToSaveBindings: serializeClickToSaveBindings(saves) } : {}),
         contentClickToSaveCombo: "Alt",
         contentClickToSaveButton: "LEFT_CLICK",
         contentClickToSaveLongPressMs: 500,
+        contentPickerGesture: picker !== null,
+        ...(picker === null
+          ? {}
+          : {
+              contentPickerBindings:
+                typeof picker === "string" ? picker : serializeClickToSaveBindings(picker),
+            }),
         links: false,
       },
       acceptTestInput,
@@ -3874,119 +3827,177 @@ describe("destination picker", () => {
     document.dispatchEvent(event);
   };
 
-  test("a single click saves or opens the picker by its own binding", () => {
-    const openPicker = vi.fn();
-    const remove = setupMixed(
-      [
-        { gesture: CLICK_GESTURES.MIDDLE, combo: "" },
-        { gesture: CLICK_GESTURES.MIDDLE, combo: "Shift", action: CLICK_ACTIONS.PICKER },
-        { gesture: CLICK_GESTURES.RIGHT, combo: "", action: CLICK_ACTIONS.PICKER },
-      ],
-      openPicker,
-    );
-    const image = document.getElementById("i");
-
-    press(image, { button: 1, buttons: 4 });
-    expect(downloads()).toBe(1);
-    expect(openPicker).not.toHaveBeenCalled();
-
-    key("keydown", 16);
-    press(image, { button: 1, buttons: 4 });
-    key("keyup", 16);
-    expect(openPicker).toHaveBeenCalledTimes(1);
-    expect(downloads()).toBe(1);
-
-    press(image, { button: 2, buttons: 2 });
-    expect(openPicker).toHaveBeenCalledTimes(2);
-    expect(downloads()).toBe(1);
-    remove();
-  });
-
-  test("a double click saves or opens the picker by its own binding", () => {
-    const openPicker = vi.fn();
-    const remove = setupMixed(
-      [
-        { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "" },
-        { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Shift", action: CLICK_ACTIONS.PICKER },
-      ],
-      openPicker,
-    );
-    const image = document.getElementById("i");
-
-    press(image, { detail: 1 });
-    press(image, { detail: 2 });
-    expect(downloads()).toBe(1);
-    expect(openPicker).not.toHaveBeenCalled();
-
-    key("keydown", 16);
-    press(image, { detail: 1 });
-    press(image, { detail: 2 });
-    key("keyup", 16);
-    expect(openPicker).toHaveBeenCalledTimes(1);
-    expect(downloads()).toBe(1);
-    remove();
-  });
-
-  test("a long press saves or opens the picker by its own binding", async () => {
+  test("the picker gesture alone opens the picker and saves nothing", async () => {
     vi.useFakeTimers();
     const openPicker = vi.fn();
-    const remove = setupMixed(
+    const image = document.getElementById("i");
+    // Click-to-save is off, so its stored Alt+click must stay inert.
+    const remove = setupGestures(null, DEFAULT_PICKER_BINDINGS, openPicker);
+
+    key("keydown", 18);
+    press(image);
+    expect(openPicker).not.toHaveBeenCalled();
+    key("keydown", 16);
+    press(image);
+    expect(openPicker).toHaveBeenLastCalledWith(
+      { url: "http://x.test/pic.png", kind: "image" },
+      { x: 40, y: 60 },
+    );
+    key("keyup", 16);
+    key("keyup", 18);
+    remove();
+
+    const removeOthers = setupGestures(
+      null,
       [
-        { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
-        { gesture: CLICK_GESTURES.LONG_LEFT, combo: "Shift", action: CLICK_ACTIONS.PICKER },
+        { gesture: CLICK_GESTURES.MIDDLE, combo: "" },
+        { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "" },
       ],
       openPicker,
     );
-    const image = document.getElementById("i");
+    press(image, { button: 1, buttons: 4 });
+    expect(openPicker).toHaveBeenCalledTimes(2);
+    // The element is in hand, so its alt text travels with the picker's save.
+    image?.setAttribute("alt", "Misty forest");
+    press(image, { detail: 1 });
+    press(image, { detail: 2, clientX: 7, clientY: 9 });
+    expect(openPicker).toHaveBeenLastCalledWith(
+      { url: "http://x.test/pic.png", kind: "image", alt: "Misty forest" },
+      { x: 7, y: 9 },
+    );
+    image?.removeAttribute("alt");
+    removeOthers();
 
-    press(image);
+    const removeLong = setupGestures(
+      null,
+      [{ gesture: CLICK_GESTURES.LONG_LEFT, combo: "" }],
+      openPicker,
+    );
+    press(image, { clientX: 11, clientY: 12 });
     await vi.advanceTimersByTimeAsync(500);
-    expect(downloads()).toBe(1);
+    expect(openPicker).toHaveBeenLastCalledWith(
+      { url: "http://x.test/pic.png", kind: "image" },
+      { x: 11, y: 12 },
+    );
+    removeLong();
+
+    expect(openPicker).toHaveBeenCalledTimes(4);
+    expect(downloads()).toEqual([]);
+  });
+
+  test("with both on, each gesture does its own thing", async () => {
+    vi.useFakeTimers();
+    const openPicker = vi.fn();
+    const image = document.getElementById("i");
+    const remove = setupGestures(
+      [
+        { gesture: CLICK_GESTURES.MIDDLE, combo: "" },
+        { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
+      ],
+      [{ gesture: CLICK_GESTURES.MIDDLE, combo: "Shift" }],
+      openPicker,
+    );
+
+    press(image, { button: 1, buttons: 4 });
+    expect(downloads()).toHaveLength(1);
+    // Only a save carries gesture and keys evidence for routing.
+    expect(downloads()[0]?.body.info).toMatchObject({ gesture: "middle-click", clickKeys: "none" });
     expect(openPicker).not.toHaveBeenCalled();
 
     key("keydown", 16);
-    press(image);
-    await vi.advanceTimersByTimeAsync(500);
+    press(image, { button: 1, buttons: 4 });
     key("keyup", 16);
     expect(openPicker).toHaveBeenCalledTimes(1);
-    expect(downloads()).toBe(1);
+    expect(openPicker).toHaveBeenLastCalledWith(
+      { url: "http://x.test/pic.png", kind: "image" },
+      { x: 40, y: 60 },
+    );
+    expect(downloads()).toHaveLength(1);
+
+    press(image);
+    await vi.advanceTimersByTimeAsync(500);
+    expect(downloads()).toHaveLength(2);
+    expect(openPicker).toHaveBeenCalledTimes(1);
     remove();
   });
 
-  test("a picker binding with nothing to open still saves at once", () => {
-    const remove = ClickToSave.setupClickToSave(
-      {
-        contentClickToSaveBindings: serializeClickToSaveBindings([
-          { gesture: CLICK_GESTURES.MIDDLE, combo: "", action: CLICK_ACTIONS.PICKER },
-        ]),
-        contentClickToSaveCombo: "Alt",
-        contentClickToSaveButton: "LEFT_CLICK",
-        links: false,
-      },
-      acceptTestInput,
+  test("click-to-save keeps a gesture the picker also claims", async () => {
+    vi.useFakeTimers();
+    const openPicker = vi.fn();
+    const image = document.getElementById("i");
+    const remove = setupGestures(
+      [{ gesture: CLICK_GESTURES.MIDDLE, combo: "" }],
+      [{ gesture: CLICK_GESTURES.MIDDLE, combo: "" }],
+      openPicker,
     );
+    press(image, { button: 1, buttons: 4 });
+    expect(downloads()).toHaveLength(1);
+    remove();
+
+    // A single left click resolves on mousedown, so a long left click for the
+    // picker cannot coexist with it and is dropped rather than half-working.
+    const removeFamily = setupGestures(
+      [{ gesture: CLICK_GESTURES.LEFT, combo: "Alt" }],
+      [{ gesture: CLICK_GESTURES.LONG_LEFT, combo: "" }],
+      openPicker,
+    );
+    press(image);
+    await vi.advanceTimersByTimeAsync(500);
+    expect(downloads()).toHaveLength(1);
+    key("keydown", 18);
+    press(image);
+    key("keyup", 18);
+    expect(downloads()).toHaveLength(2);
+    removeFamily();
+
+    expect(openPicker).not.toHaveBeenCalled();
+  });
+
+  test("an unreadable stored picker gesture falls back to Alt+Shift+click", () => {
+    const openPicker = vi.fn();
+    const remove = setupGestures(null, '{"version":1,"bindings":[]}', openPicker);
+    const image = document.getElementById("i");
+
+    press(image);
+    expect(openPicker).not.toHaveBeenCalled();
+    key("keydown", 18);
+    key("keydown", 16);
+    press(image);
+    key("keyup", 16);
+    key("keyup", 18);
+
+    expect(openPicker).toHaveBeenCalledTimes(1);
+    expect(downloads()).toEqual([]);
+    remove();
+  });
+
+  test("a picker gesture with nothing to open does not save instead", () => {
+    const remove = setupGestures(null, [{ gesture: CLICK_GESTURES.MIDDLE, combo: "" }]);
 
     press(document.getElementById("i"), { button: 1, buttons: 4 });
 
-    expect(sentTypes()).toContain("DOWNLOAD");
+    expect(downloads()).toEqual([]);
     remove();
   });
 
-  test("a real picker gesture opens the picker and its choice is saved", async () => {
+  test("a real picker gesture opens the picker without click-to-save, and its choice is saved", async () => {
     const addEventListener = vi.spyOn(window, "addEventListener");
     await importContentWithOptions({
-      contentClickToSave: true,
-      contentClickToSaveBindings: serializeClickToSaveBindings([
-        { gesture: CLICK_GESTURES.MIDDLE, combo: "", action: CLICK_ACTIONS.PICKER },
+      contentClickToSave: false,
+      contentPickerGesture: true,
+      contentPickerBindings: serializeClickToSaveBindings([
+        { gesture: CLICK_GESTURES.MIDDLE, combo: "" },
       ]),
     });
     answerPicker();
     document.body.innerHTML = '<img id="i" src="http://x.test/pic.png">';
     const image = document.getElementById("i");
-    const mousedown = addEventListener.mock.calls.findLast(
+    const engine = addEventListener.mock.calls.findLast(
       ([type, , options]) =>
         type === "mousedown" && Boolean((options as AddEventListenerOptions | undefined)?.signal),
-    )?.[1] as (event: unknown) => void;
+    );
+    const mousedown = engine?.[1] as (event: unknown) => void;
+    const signal = (engine?.[2] as AddEventListenerOptions | undefined)?.signal;
 
     mousedown({
       isTrusted: true,
@@ -4016,6 +4027,11 @@ describe("destination picker", () => {
         source: { media: { url: "http://x.test/pic.png", kind: "image" } },
       },
     });
+
+    // Switching the gesture off on an open page takes its listeners with it.
+    expect(signal?.aborted).toBe(false);
+    pushContentOptions({ contentPickerGesture: false });
+    expect(signal?.aborted).toBe(true);
     addEventListener.mockRestore();
   });
 

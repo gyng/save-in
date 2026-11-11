@@ -4727,16 +4727,19 @@
   "pickerNoMatches": {
     "message": "Aucun dossier correspondant"
   },
-  "o_lClickToSaveAction": {
-    "message": "Action"
+  "o_sFolderPicker": {
+    "message": "Sélecteur de dossiers"
   },
-  "o_lClickToSaveActionSave": {
-    "message": "Enregistrer immédiatement"
+  "o_cPickerGesture": {
+    "message": "Ouvrir le sélecteur de dossiers avec un geste de clic"
   },
-  "o_lClickToSaveActionPicker": {
-    "message": "Afficher le sélecteur de dossiers"
+  "o_lPickerGestureConflict": {
+    "message": "« Enregistrement au clic » utilise déjà ce geste : il enregistre au lieu d’ouvrir le sélecteur de dossiers. Choisissez ici un autre geste."
+  },
+  "o_lPickerOtherWays": {
+    "message": "Le sélecteur de dossiers s’ouvre aussi avec la commande clavier « Afficher le sélecteur de dossiers » et depuis les extensions approuvées."
   },
   "o_cClickToSavePickerHelp": {
-    "message": "Un geste dont l’action est « Afficher le sélecteur de dossiers » ouvre les dossiers de votre Menu d’enregistrement à l’emplacement du pointeur. Choisissez-en un pour y enregistrer, ou appuyez sur Esc pour annuler. Le menu contextuel du navigateur reste inchangé."
+    "message": "Le geste ouvre les dossiers de votre Menu d’enregistrement à l’emplacement du pointeur. Choisissez-en un pour y enregistrer, ou appuyez sur Esc pour annuler. Le menu contextuel du navigateur reste inchangé."
   }
 }

@@ -4727,16 +4727,19 @@
   "pickerNoMatches": {
     "message": "Inga matchande mappar"
   },
-  "o_lClickToSaveAction": {
-    "message": "Åtgärd"
+  "o_sFolderPicker": {
+    "message": "Mappväljare"
   },
-  "o_lClickToSaveActionSave": {
-    "message": "Spara direkt"
+  "o_cPickerGesture": {
+    "message": "Öppna mappväljaren med en klickgest"
   },
-  "o_lClickToSaveActionPicker": {
-    "message": "Visa mappväljaren"
+  "o_lPickerGestureConflict": {
+    "message": "”Klicka för att spara” använder redan den här gesten och sparar därför i stället för att öppna mappväljaren. Välj en annan gest här."
+  },
+  "o_lPickerOtherWays": {
+    "message": "Mappväljaren öppnas också med tangentbordskommandot ”Visa mappväljaren” och från godkända tillägg."
   },
   "o_cClickToSavePickerHelp": {
-    "message": "En gest med åtgärden ”Visa mappväljaren” öppnar mapparna i din Sparmeny vid pekaren. Välj en mapp för att spara där, eller tryck på Esc för att avbryta. Webbläsarens snabbmeny ändras inte."
+    "message": "Gesten öppnar mapparna i din Sparmeny vid pekaren. Välj en mapp för att spara där, eller tryck på Esc för att avbryta. Webbläsarens snabbmeny ändras inte."
   }
 }

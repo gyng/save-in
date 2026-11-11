@@ -14,6 +14,7 @@ import { setupDebugLogPanel, updateDebugLog } from "../integrations/debug-log-pa
 import { renderVariablesPreview, setupVariablesPreview } from "../reference/variables-preview.ts";
 import { setupResetOptions } from "./reset-options.ts";
 import { setupShortcutOptions } from "./shortcut-options.ts";
+import { setupPickerGesture } from "./picker-gesture.ts";
 import { setupCheckboxRows } from "../ui/checkbox-rows.ts";
 import { setupSettingsTransfer } from "./settings-transfer.ts";
 import { setupHelpDisclosures } from "../ui/disclosure-help.ts";
@@ -264,6 +265,7 @@ export const setupOptionsPage = bootstrapOptionsPage({
     routingPreview.setupRulesValidationWiring,
     setupSeeVariablesButton,
     setupShortcutOptions,
+    setupPickerGesture,
     setupCheckboxRows,
     setupThemePicker,
     pendingChanges.setupAllFieldsAutosave,

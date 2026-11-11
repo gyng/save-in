@@ -39,13 +39,22 @@ export const setupOptionDependencies = () => {
         "clickToSaveModifier",
         "clickToSaveModifier2",
         "contentClickToSaveButton",
-        "contentClickToSaveLongPressMs",
         "clickToSaveButton",
-        "clickToSaveAction",
         "clickToSaveApply",
         "clickToSaveAdd",
         "clickToSaveReset",
       ],
+    },
+    {
+      parent: "contentPickerGesture",
+      children: ["pickerGestureModifier", "pickerGestureModifier2", "pickerGestureButton"],
+    },
+    // Both gestures can be a long left click, and they share one hold duration.
+    {
+      parent: "contentClickToSave",
+      watches: ["contentPickerGesture"],
+      children: ["contentClickToSaveLongPressMs"],
+      when: () => checked("contentClickToSave") || checked("contentPickerGesture"),
     },
     {
       parent: "autoDownloadEnabled",

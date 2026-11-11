@@ -4727,16 +4727,19 @@
   "pickerNoMatches": {
     "message": "Ninguna carpeta coincide"
   },
-  "o_lClickToSaveAction": {
-    "message": "Acción"
+  "o_sFolderPicker": {
+    "message": "Selector de carpetas"
   },
-  "o_lClickToSaveActionSave": {
-    "message": "Guardar de inmediato"
+  "o_cPickerGesture": {
+    "message": "Abrir el selector de carpetas con un gesto de clic"
   },
-  "o_lClickToSaveActionPicker": {
-    "message": "Mostrar el selector de carpetas"
+  "o_lPickerGestureConflict": {
+    "message": "«Clic para guardar» ya usa este gesto, así que guarda en lugar de abrir el selector de carpetas. Elija aquí otro gesto."
+  },
+  "o_lPickerOtherWays": {
+    "message": "El selector de carpetas también se abre con el comando de teclado «Mostrar el selector de carpetas» y desde las extensiones aprobadas."
   },
   "o_cClickToSavePickerHelp": {
-    "message": "Un gesto con la acción «Mostrar el selector de carpetas» abre las carpetas de su Menú de guardado junto al puntero. Elija una para guardar en ella o pulse Esc para cancelar. El menú contextual del navegador no cambia."
+    "message": "El gesto abre las carpetas de su Menú de guardado junto al puntero. Elija una para guardar en ella o pulse Esc para cancelar. El menú contextual del navegador no cambia."
   }
 }

@@ -1,5 +1,31 @@
-/* The Click-to-save tab's picture of the in-page folder picker, laid out like
-   the Page Sources overview: settings first, the picture beside them. */
+/* The Click-to-save tab's folder picker block: its own gesture setting with a
+   picture of the in-page picker, laid out like the Page Sources overview:
+   settings first, the picture beside them. */
+.picker-gesture {
+  margin-block-start: var(--space-5);
+}
+
+.picker-gesture > .section-task-heading {
+  margin-block-end: var(--space-3);
+}
+
+/* Beside the picture there is no room for three tracks that fit a long
+   locale's gesture names, so the two modifiers share a row and the click
+   gesture takes the full width below them. */
+.picker-gesture .click-to-save-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+}
+
+.picker-gesture .click-to-save-row > label:last-child {
+  grid-column: 1 / -1;
+}
+
+#pickerGestureStatus {
+  max-inline-size: 100%;
+  margin-block-start: var(--space-3);
+}
+
 .picker-overview {
   display: grid;
   grid-template-columns: minmax(340px, 2fr) minmax(240px, 1fr);
@@ -133,7 +159,8 @@
 }
 
 @container options-panel (max-width: 640px) {
-  .picker-overview {
+  .picker-overview,
+  .picker-gesture .click-to-save-row {
     grid-template-columns: minmax(0, 1fr);
   }
 }

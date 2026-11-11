@@ -4727,16 +4727,19 @@
   "pickerNoMatches": {
     "message": "没有匹配的文件夹"
   },
-  "o_lClickToSaveAction": {
-    "message": "操作"
+  "o_sFolderPicker": {
+    "message": "文件夹选择器"
   },
-  "o_lClickToSaveActionSave": {
-    "message": "立即保存"
+  "o_cPickerGesture": {
+    "message": "使用点击手势打开文件夹选择器"
   },
-  "o_lClickToSaveActionPicker": {
-    "message": "显示文件夹选择器"
+  "o_lPickerGestureConflict": {
+    "message": "“点击保存”已使用此手势，因此会直接保存而不会打开文件夹选择器。请在此处选择其他手势。"
+  },
+  "o_lPickerOtherWays": {
+    "message": "也可以通过“显示文件夹选择器”键盘命令或已批准的扩展程序打开文件夹选择器。"
   },
   "o_cClickToSavePickerHelp": {
-    "message": "操作设为“显示文件夹选择器”的手势会在指针位置打开保存菜单中的文件夹。选择一个文件夹即可保存到其中，按 Esc 可取消。浏览器的上下文菜单不会改变。"
+    "message": "此手势会在指针位置打开保存菜单中的文件夹。选择一个文件夹即可保存到其中，按 Esc 可取消。浏览器的上下文菜单不会改变。"
   }
 }

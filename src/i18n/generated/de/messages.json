@@ -4727,16 +4727,19 @@
   "pickerNoMatches": {
     "message": "Keine passenden Ordner"
   },
-  "o_lClickToSaveAction": {
-    "message": "Aktion"
+  "o_sFolderPicker": {
+    "message": "Ordnerauswahl"
   },
-  "o_lClickToSaveActionSave": {
-    "message": "Sofort speichern"
+  "o_cPickerGesture": {
+    "message": "Ordnerauswahl mit einer Klickgeste öffnen"
   },
-  "o_lClickToSaveActionPicker": {
-    "message": "Ordnerauswahl anzeigen"
+  "o_lPickerGestureConflict": {
+    "message": "„Speichern per Klick“ verwendet diese Geste bereits und speichert daher, statt die Ordnerauswahl zu öffnen. Wählen Sie hier eine andere Geste."
+  },
+  "o_lPickerOtherWays": {
+    "message": "Die Ordnerauswahl lässt sich auch mit dem Tastaturbefehl „Ordnerauswahl anzeigen“ und von zugelassenen Erweiterungen öffnen."
   },
   "o_cClickToSavePickerHelp": {
-    "message": "Eine Geste mit der Aktion „Ordnerauswahl anzeigen“ öffnet die Ordner Ihres Speichermenüs am Mauszeiger. Wählen Sie einen Ordner, um dort zu speichern, oder drücken Sie Esc, um abzubrechen. Das Kontextmenü des Browsers bleibt unverändert."
+    "message": "Die Geste öffnet die Ordner Ihres Speichermenüs am Mauszeiger. Wählen Sie einen Ordner, um dort zu speichern, oder drücken Sie Esc, um abzubrechen. Das Kontextmenü des Browsers bleibt unverändert."
   }
 }

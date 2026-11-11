@@ -43,7 +43,10 @@ import {
   CLICK_ACTIONS,
   CLICK_GESTURES,
   clickKeysForCombo,
+  effectiveClickBindings,
   resolveClickToSaveBindings,
+  resolvePickerBindings,
+  type EffectiveClickBinding,
   type ClickGesture,
 } from "../shared/click-gesture.ts";
 import {
@@ -293,8 +296,31 @@ type ResolvedClickToSaveOptions = Pick<
       | "preferLinksFilterEnabled"
       | "preferLinksFilter"
     >
-  > & { contentClickToSaveBindings?: string; filenamePatterns?: string };
+  > & {
+    // Absent means on: the engine is only ever set up for a gesture to listen
+    // for, and its direct callers predate the picker's separate switch.
+    contentClickToSave?: boolean;
+    contentClickToSaveBindings?: string;
+    contentPickerGesture?: boolean;
+    contentPickerBindings?: string;
+    filenamePatterns?: string;
+  };
 type GesturePoint = { x: number; y: number };
+// Click-to-save and the folder picker are separate settings that share one
+// gesture engine: each contributes its gestures only while it is on.
+const activeClickBindings = (options: ResolvedClickToSaveOptions): EffectiveClickBinding[] =>
+  effectiveClickBindings(
+    options.contentClickToSave === false
+      ? null
+      : resolveClickToSaveBindings(
+          options.contentClickToSaveBindings,
+          options.contentClickToSaveCombo,
+          options.contentClickToSaveButton,
+        ),
+    options.contentPickerGesture === true
+      ? resolvePickerBindings(options.contentPickerBindings)
+      : null,
+  );
 type ResolvedAutoDownloadOptions = Pick<
   ResolvedContentOptions,
   | "autoDownloadLive"
@@ -316,8 +342,8 @@ const setupClickToSave = (
   acceptInput: (event: KeyboardEvent | MouseEvent) => boolean = (event) => event.isTrusted,
   isDisabled: () => boolean = () => false,
   sharedLongReleaseSuppression?: ReturnType<typeof createLongClickReleaseSuppressor>,
-  // A matched gesture whose binding asks for the picker shows the destination
-  // picker at the pointer instead of saving at once.
+  // A matched folder picker gesture shows the destination picker at the
+  // pointer; it never saves by itself.
   openPicker?: (
     source: { url: string; kind: PageSource["kind"]; alt?: string },
     point: GesturePoint,
@@ -334,11 +360,7 @@ const setupClickToSave = (
       preferLinkPatterns.entries.some(({ value }) => value.test(`${window.location}`)));
   const controller = new AbortController();
   const listenerOptions = { capture: true, signal: controller.signal };
-  const shortcutOptions = resolveClickToSaveBindings(
-    options.contentClickToSaveBindings,
-    options.contentClickToSaveCombo,
-    options.contentClickToSaveButton,
-  ).map((binding) => ({
+  const shortcutOptions = activeClickBindings(options).map((binding) => ({
     ...binding,
     keyCodes: contentClickComboToKeyCodes(binding.combo),
     clickKeys: clickKeysForCombo(binding.combo),
@@ -375,9 +397,9 @@ const setupClickToSave = (
     linkMetadata: ContextLinkMetadata | null,
     point: GesturePoint,
   ): void => {
-    if (binding.action === CLICK_ACTIONS.PICKER && openPicker) {
+    if (binding.action === CLICK_ACTIONS.PICKER) {
       const { altText } = altTextInfo([source.element]);
-      openPicker(
+      openPicker?.(
         { url: source.url, kind: source.kind, ...(altText ? { alt: altText } : {}) },
         point,
       );
@@ -979,6 +1001,8 @@ const applyOptions = (next: ContentOptions) => {
       "contentClickToSaveCombo",
       "contentClickToSaveButton",
       "contentClickToSaveLongPressMs",
+      "contentPickerGesture",
+      "contentPickerBindings",
       "links",
       "preferLinks",
       "preferLinksFilterEnabled",
@@ -1036,12 +1060,10 @@ const applyOptions = (next: ContentOptions) => {
     removeClickToSave?.();
     removeClickToSave = null;
     let hasLongPress = false;
-    if (currentOptions.contentClickToSave) {
-      hasLongPress = resolveClickToSaveBindings(
-        currentOptions.contentClickToSaveBindings,
-        currentOptions.contentClickToSaveCombo,
-        currentOptions.contentClickToSaveButton,
-      ).some(({ gesture }) => gesture === CLICK_GESTURES.LONG_LEFT);
+    if (currentOptions.contentClickToSave || currentOptions.contentPickerGesture) {
+      hasLongPress = activeClickBindings(currentOptions).some(
+        ({ gesture }) => gesture === CLICK_GESTURES.LONG_LEFT,
+      );
       if (hasLongPress) ensurePageLongReleaseListeners();
       removeClickToSave = setupClickToSave(
         currentOptions,

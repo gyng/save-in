@@ -10,7 +10,7 @@ import {
   normalizeUiTheme,
   type UiTheme,
 } from "./content-options.ts";
-import { isStoredClickToSaveBindings } from "../shared/click-gesture.ts";
+import { isStoredClickToSaveBindings, isStoredPickerBindings } from "../shared/click-gesture.ts";
 import { parseAutoDownloadRules } from "../automation/auto-download-rules.ts";
 
 // Background-only schema metadata. The content bundle imports the shared
@@ -150,6 +150,17 @@ export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
     name: "contentClickToSaveUseDefault",
     type: "BOOL",
     default: CONTENT_OPTION_DEFAULTS.contentClickToSaveUseDefault,
+  },
+  {
+    name: "contentPickerGesture",
+    type: "BOOL",
+    default: CONTENT_OPTION_DEFAULTS.contentPickerGesture,
+  },
+  {
+    name: "contentPickerBindings",
+    type: "VALUE",
+    validate: isStoredPickerBindings,
+    default: CONTENT_OPTION_DEFAULTS.contentPickerBindings,
   },
   {
     // Stored as raw newline-delimited match patterns: the content bundle parses

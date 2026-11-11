@@ -139,12 +139,14 @@ There are three ways to open it:
 - **A keyboard command.** Bind **Show the folder picker** as described under
   [Keyboard commands](#keyboard-commands). It opens centered, for what the
   pointer is over or else for the page.
-- **A click-to-save gesture.** Under **Options → Click-to-save**, set a
-  gesture's **Action** to **Show the folder picker** and apply. That gesture
-  then opens the picker at the pointer for the clicked item instead of saving
-  it. Each gesture has its own action, so Alt+click can keep saving
-  immediately while Alt+Shift+click, or a long left click on an image, shows
-  your folders (#77).
+- **A click gesture.** Under **Options → Click-to-save → Folder picker**, turn
+  on **Open the folder picker with a click gesture** and choose the gesture:
+  Alt+Shift+click by default, or for example a long left click on an image
+  (#77). It opens the picker at the pointer for the clicked item. This is a
+  separate setting from **Enable click-to-save**, so either works without the
+  other: with both on, Alt+click can save immediately while Alt+Shift+click
+  shows your folders. If both are set to the same gesture, click-to-save keeps
+  it and the options page says so.
 - **Another extension**, such as a mouse-gesture add-on you have approved. See
   [Opening the destination picker](../integrating/INTEGRATIONS.md#opening-the-destination-picker).
 

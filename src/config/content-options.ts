@@ -1,8 +1,10 @@
 import { CLICK_TYPES, type ClickType } from "../shared/constants.ts";
 import {
+  DEFAULT_PICKER_BINDINGS,
   contentClickComboToKeyCodes,
   isContentClickCombo,
   isStoredClickToSaveBindings,
+  isStoredPickerBindings,
 } from "../shared/click-gesture.ts";
 import { isSelectableLocale, type SelectableLocale } from "../shared/generated-locales.ts";
 import { isStringKeyedRecord, isStringMember } from "../shared/util.ts";
@@ -102,6 +104,8 @@ export type ResolvedContentOptions = {
   contentClickToSaveButton: ClickType;
   contentClickToSaveLongPressMs: number;
   contentClickToSaveUseDefault: boolean;
+  contentPickerGesture: boolean;
+  contentPickerBindings: string;
   links: boolean;
   preferLinks: boolean;
   preferLinksFilterEnabled: boolean;
@@ -147,6 +151,11 @@ export const CONTENT_OPTION_DEFAULTS: ResolvedContentOptions = {
   // opt out of: picking one other folder from the menu silently redirects every
   // later click. Off keeps the inheriting behavior that predates this option.
   contentClickToSaveUseDefault: false,
+  // The in-page destination picker's own click gesture (#77). It is separate
+  // from click-to-save so either can be on without the other; off keeps the
+  // picker to its keyboard command and approved extensions.
+  contentPickerGesture: false,
+  contentPickerBindings: DEFAULT_PICKER_BINDINGS,
   links: true,
   preferLinks: false,
   preferLinksFilterEnabled: false,
@@ -238,6 +247,9 @@ const CONTENT_OPTION_NORMALIZERS: ContentOptionNormalizers = {
   contentClickToSaveCombo: (stored) =>
     isContentClickCombo(stored) ? stored : CONTENT_OPTION_DEFAULTS.contentClickToSaveCombo,
   contentClickToSaveUseDefault: booleanOption(CONTENT_OPTION_DEFAULTS.contentClickToSaveUseDefault),
+  contentPickerGesture: booleanOption(CONTENT_OPTION_DEFAULTS.contentPickerGesture),
+  contentPickerBindings: (stored) =>
+    isStoredPickerBindings(stored) ? stored : CONTENT_OPTION_DEFAULTS.contentPickerBindings,
   quickSaveOnly: booleanOption(CONTENT_OPTION_DEFAULTS.quickSaveOnly),
   contentClickToSaveButton: (stored) =>
     isClickType(stored) ? stored : CONTENT_OPTION_DEFAULTS.contentClickToSaveButton,

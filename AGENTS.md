@@ -127,10 +127,12 @@ synthesized click, so routing, Last used, prompts, private isolation, and
 History stay the menu's. A command has no pointer position, so
 `background/hovered-source.ts` asks the top-frame content script for the
 deepest `:hover` element on demand; do not add a mousemove listener for it. The
-picker is opt-in at every entry point (an unbound command, the
-per-binding `action: "picker"` of a click-to-save gesture, the allowlisted external `OPEN_PICKER`
+picker is opt-in at every entry point (an unbound command, its own
+`contentPickerGesture` click gesture, the allowlisted external `OPEN_PICKER`
 message) and must not become a default replacement for the browser context
-menu. The page side receives only ids and titles and returns only an id, which
+menu. That gesture is a separate setting from click-to-save and shares its
+content gesture engine; `effectiveClickBindings` merges the two, and an enabled
+click-to-save binding wins a gesture both claim. The page side receives only ids and titles and returns only an id, which
 `messaging/picker.ts` checks against what the picker would list for that tab
 before saving; never accept a path from it. The picker lives in a closed shadow
 root and acts only on browser-trusted events.

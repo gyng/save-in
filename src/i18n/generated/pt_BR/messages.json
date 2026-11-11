@@ -4727,16 +4727,19 @@
   "pickerNoMatches": {
     "message": "Nenhuma pasta correspondente"
   },
-  "o_lClickToSaveAction": {
-    "message": "Ação"
+  "o_sFolderPicker": {
+    "message": "Seletor de pastas"
   },
-  "o_lClickToSaveActionSave": {
-    "message": "Salvar imediatamente"
+  "o_cPickerGesture": {
+    "message": "Abrir o seletor de pastas com um gesto de clique"
   },
-  "o_lClickToSaveActionPicker": {
-    "message": "Mostrar o seletor de pastas"
+  "o_lPickerGestureConflict": {
+    "message": "“Clique para salvar” já usa este gesto, então ele salva em vez de abrir o seletor de pastas. Escolha outro gesto aqui."
+  },
+  "o_lPickerOtherWays": {
+    "message": "O seletor de pastas também abre pelo comando de teclado “Mostrar o seletor de pastas” e por extensões aprovadas."
   },
   "o_cClickToSavePickerHelp": {
-    "message": "Um gesto com a ação “Mostrar o seletor de pastas” abre as pastas do seu Menu de salvamento junto ao ponteiro. Escolha uma para salvar nela ou pressione Esc para cancelar. O menu de contexto do navegador não muda."
+    "message": "O gesto abre as pastas do seu Menu de salvamento junto ao ponteiro. Escolha uma para salvar nela ou pressione Esc para cancelar. O menu de contexto do navegador não muda."
   }
 }

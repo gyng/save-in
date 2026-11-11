@@ -11,7 +11,11 @@ import { OPTION_KEYS } from "../../src/config/option-schema.ts";
 import { resolveHistoryRetentionLimit } from "../../src/config/history-retention.ts";
 import { MAX_RECENT_DESTINATIONS } from "../../src/shared/constants.ts";
 import { CONTENT_FEATURE_OPTION_DEFINITIONS } from "../../src/config/content-option-schema.ts";
-import { CLICK_GESTURES, serializeClickToSaveBindings } from "../../src/shared/click-gesture.ts";
+import {
+  CLICK_GESTURES,
+  parseClickToSaveBindings,
+  serializeClickToSaveBindings,
+} from "../../src/shared/click-gesture.ts";
 
 test("content option definitions stay aligned with the background schema", () => {
   const schema = new Map(OPTION_KEYS.map((definition) => [definition.name, definition.default]));
@@ -136,20 +140,32 @@ test.each([
   }
 });
 
-// The global picker toggle never shipped; a development profile that still
-// stores it must read as if the key were absent, and a binding carries the
-// action instead.
-test("ignores the removed global picker option and keeps a binding's action", () => {
-  const bindings = serializeClickToSaveBindings([
-    { gesture: CLICK_GESTURES.LONG_LEFT, combo: "", action: "picker" },
+// The picker's gesture is its own pair of options. The earlier unreleased
+// shapes (a global toggle, then a per-binding action) may linger in a
+// development profile and must read as an ordinary click-to-save profile.
+test("resolves the folder picker gesture options and ignores the shapes they replaced", () => {
+  expect(CONTENT_OPTION_DEFAULTS.contentPickerGesture).toBe(false);
+  expect(parseClickToSaveBindings(CONTENT_OPTION_DEFAULTS.contentPickerBindings)).toEqual([
+    { gesture: CLICK_GESTURES.LEFT, combo: "Alt+Shift" },
   ]);
-  const stored = { contentClickToSavePicker: true, contentClickToSaveBindings: bindings };
+  const picker = serializeClickToSaveBindings([{ gesture: CLICK_GESTURES.LONG_LEFT, combo: "" }]);
+  expect(
+    resolveContentOptions({ contentPickerGesture: true, contentPickerBindings: picker }),
+  ).toMatchObject({ contentPickerGesture: true, contentPickerBindings: picker });
+  for (const stored of ["", "{", 7, null, '{"version":1,"bindings":[]}']) {
+    expect(
+      resolveContentOptions({ contentPickerGesture: "yes", contentPickerBindings: stored }),
+    ).toEqual(CONTENT_OPTION_DEFAULTS);
+  }
 
+  const legacy =
+    '{"version":1,"bindings":[{"gesture":"long-left-click","combo":"","action":"picker"}]}';
+  const stored = { contentClickToSavePicker: true, contentClickToSaveBindings: legacy };
   expect(resolveContentOptions(stored)).toEqual({
     ...CONTENT_OPTION_DEFAULTS,
-    contentClickToSaveBindings: bindings,
+    contentClickToSaveBindings: legacy,
   });
-  expect(normalizeContentOptionsPatch(stored)).toEqual({ contentClickToSaveBindings: bindings });
+  expect(normalizeContentOptionsPatch(stored)).toEqual({ contentClickToSaveBindings: legacy });
 });
 
 test("falls back safely when a stored shortcut string contains unknown keys", () => {

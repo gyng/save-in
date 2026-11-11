@@ -8,9 +8,12 @@ describe("option dependencies", () => {
       <input id="contentClickToSaveCombo">
       <select id="clickToSaveModifier"></select>
       <select id="clickToSaveModifier2"></select>
-      <select id="clickToSaveAction"></select>
       <select id="contentClickToSaveButton"></select>
       <input id="contentClickToSaveLongPressMs">
+      <input type="checkbox" id="contentPickerGesture">
+      <select id="pickerGestureModifier"></select>
+      <select id="pickerGestureModifier2"></select>
+      <select id="pickerGestureButton"></select>
       <input type="checkbox" id="autoDownloadEnabled">
       <input type="checkbox" id="autoDownloadLive">
       <input type="checkbox" id="autoDownloadPrivate">
@@ -59,7 +62,6 @@ describe("option dependencies", () => {
     expect((document.querySelector("#clickToSaveModifier") as HTMLSelectElement).disabled).toBe(
       true,
     );
-    expect((document.querySelector("#clickToSaveAction") as HTMLSelectElement).disabled).toBe(true);
     expect(
       (document.querySelector("#contentClickToSaveLongPressMs") as HTMLInputElement).disabled,
     ).toBe(true);
@@ -95,6 +97,34 @@ describe("option dependencies", () => {
     expect(
       (document.querySelector("#sourcePanelShortcutApply") as HTMLButtonElement).disabled,
     ).toBe(true);
+  });
+
+  test("enables the folder picker gesture by its own switch, not click-to-save's", () => {
+    setupOptionDependencies();
+    const control = (id: string) =>
+      document.querySelector(`#${id}`) as HTMLInputElement | HTMLSelectElement;
+    const toggle = (id: string, checked: boolean) => {
+      (control(id) as HTMLInputElement).checked = checked;
+      control(id).dispatchEvent(new Event("change"));
+    };
+    const pickerRow = ["pickerGestureModifier", "pickerGestureModifier2", "pickerGestureButton"];
+    expect(pickerRow.map((id) => control(id).disabled)).toEqual([true, true, true]);
+
+    toggle("contentClickToSave", true);
+    expect(pickerRow.map((id) => control(id).disabled)).toEqual([true, true, true]);
+    expect(control("clickToSaveModifier").disabled).toBe(false);
+
+    toggle("contentClickToSave", false);
+    toggle("contentPickerGesture", true);
+    expect(pickerRow.map((id) => control(id).disabled)).toEqual([false, false, false]);
+    expect(control("clickToSaveModifier").disabled).toBe(true);
+    // Either gesture can be a long left click, so either keeps its duration.
+    expect(control("contentClickToSaveLongPressMs").disabled).toBe(false);
+
+    toggle("contentPickerGesture", false);
+    expect(control("contentClickToSaveLongPressMs").disabled).toBe(true);
+    toggle("contentClickToSave", true);
+    expect(control("contentClickToSaveLongPressMs").disabled).toBe(false);
   });
 
   test("enables Page Sources browsing controls when their master is enabled", () => {

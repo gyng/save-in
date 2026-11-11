@@ -1,20 +1,19 @@
 import { SHORTCUT_EXTENSIONS, isShortcutType, type ShortcutType } from "../../shared/constants.ts";
 import { getMessage } from "../../platform/localization.ts";
-import { isClickType } from "../../config/content-options.ts";
 import {
-  CLICK_ACTIONS,
   CLICK_GESTURES,
   LEGACY_CLICK_TO_SAVE_DISABLED_COMBO,
-  clickKeysForCombo,
+  clickBindingsConflict,
   gestureToClickType,
   isClickGesture,
-  resolveClickToSaveBindings,
+  resolvePickerBindings,
   serializeClickToSaveBindings,
   trySerializeClickToSaveBindings,
   type ClickGesture,
   type ClickToSaveBinding,
 } from "../../shared/click-gesture.ts";
 import { CLICK_TYPES } from "../../shared/constants.ts";
+import { readGestureBinding, storedClickToSaveBindings, writeGestureCombo } from "./gesture-row.ts";
 
 const EFFECTIVE_ACCESS_KEY = /^[a-z0-9]$/i;
 const FORMAT_GUIDANCE = {
@@ -104,11 +103,12 @@ export const setupShortcutOptions = () => {
   const modifier = document.querySelector<HTMLSelectElement>("#clickToSaveModifier");
   const modifier2 = document.querySelector<HTMLSelectElement>("#clickToSaveModifier2");
   const button = document.querySelector<HTMLSelectElement>("#clickToSaveButton");
-  const action = document.querySelector<HTMLSelectElement>("#clickToSaveAction");
   const apply = document.querySelector<HTMLButtonElement>("#clickToSaveApply");
   const reset = document.querySelector<HTMLButtonElement>("#clickToSaveReset");
   const status = document.querySelector<HTMLElement>("#clickToSaveStatus");
   const clickToSave = document.querySelector<HTMLInputElement>("#contentClickToSave");
+  const pickerGesture = document.querySelector<HTMLInputElement>("#contentPickerGesture");
+  const pickerBindingsField = document.querySelector<HTMLInputElement>("#contentPickerBindings");
   const warning = document.querySelector<HTMLElement>("#click-to-save-warning");
   const doubleWarning = document.querySelector<HTMLElement>("#click-to-save-double-warning");
   const longWarning = document.querySelector<HTMLElement>("#click-to-save-long-warning");
@@ -122,13 +122,12 @@ export const setupShortcutOptions = () => {
     modifier: HTMLSelectElement;
     modifier2: HTMLSelectElement;
     gesture: HTMLSelectElement;
-    action: HTMLSelectElement;
     remove: HTMLButtonElement | null;
   };
   const extraControls: BindingControls[] = [];
   const primaryControls =
-    modifier && modifier2 && button && action
-      ? { row: null, modifier, modifier2, gesture: button, action, remove: null }
+    modifier && modifier2 && button
+      ? { row: null, modifier, modifier2, gesture: button, remove: null }
       : null;
   const gestureLabelKeys: Record<ClickGesture, string> = {
     [CLICK_GESTURES.LEFT]: "o_cKeyboardShortcutModifierLeftClick",
@@ -155,57 +154,10 @@ export const setupShortcutOptions = () => {
     ["Ctrl", "html_ctrl"],
     ["Meta", "html_commandWindowsKey"],
   ] as const;
-  const actionOptions = [
-    [CLICK_ACTIONS.SAVE, "o_lClickToSaveActionSave"],
-    [CLICK_ACTIONS.PICKER, "o_lClickToSaveActionPicker"],
-  ] as const;
-  const writeAction = (controls: BindingControls, binding: ClickToSaveBinding): void => {
-    controls.action.value = binding.action ?? CLICK_ACTIONS.SAVE;
-  };
   const allControls = (): BindingControls[] =>
     primaryControls ? [primaryControls, ...extraControls] : [];
-  const writeCombo = (controls: BindingControls, value: string | number): void => {
-    const text = String(value);
-    const parts = text.split("+").filter(Boolean);
-    const known = new Set(["Alt", "Ctrl", "Shift", "Meta"]);
-    const unknown = parts.find((part) => !known.has(part));
-    controls.modifier.querySelector("[data-legacy]")?.remove();
-    if (unknown) {
-      const option = document.createElement("option");
-      option.value = text;
-      option.textContent = getMessage("o_lShortcutLegacyValue", text) || `Legacy value: ${text}`;
-      option.dataset.legacy = "true";
-      controls.modifier.append(option);
-      controls.modifier.value = text;
-      controls.modifier2.value = "";
-      return;
-    }
-    controls.modifier.value = parts[0] || "";
-    controls.modifier2.value = parts[1] || "";
-  };
-  const readBinding = (controls: BindingControls): ClickToSaveBinding => {
-    if (controls.modifier2.value === controls.modifier.value) controls.modifier2.value = "";
-    return {
-      gesture: isClickGesture(controls.gesture.value)
-        ? controls.gesture.value
-        : CLICK_GESTURES.LEFT,
-      combo: [controls.modifier.value, controls.modifier2.value].filter(Boolean).join("+"),
-      ...(controls.action.value === CLICK_ACTIONS.PICKER ? { action: CLICK_ACTIONS.PICKER } : {}),
-    };
-  };
-  const selectedBindings = (): ClickToSaveBinding[] => allControls().map(readBinding);
+  const selectedBindings = (): ClickToSaveBinding[] => allControls().map(readGestureBinding);
   let baselineSerialized = "";
-  // A gesture may repeat with different keys (#15); only a single left click
-  // beside a double or long left click conflicts whatever the keys are.
-  const gestureFamilyConflicts = (gesture: ClickGesture, other: ClickGesture): boolean =>
-    (gesture === CLICK_GESTURES.LEFT && other === CLICK_GESTURES.DOUBLE_LEFT) ||
-    (gesture === CLICK_GESTURES.DOUBLE_LEFT && other === CLICK_GESTURES.LEFT) ||
-    (gesture === CLICK_GESTURES.LEFT && other === CLICK_GESTURES.LONG_LEFT) ||
-    (gesture === CLICK_GESTURES.LONG_LEFT && other === CLICK_GESTURES.LEFT);
-  const bindingConflicts = (binding: ClickToSaveBinding, other: ClickToSaveBinding): boolean =>
-    gestureFamilyConflicts(binding.gesture, other.gesture) ||
-    (binding.gesture === other.gesture &&
-      clickKeysForCombo(binding.combo) === clickKeysForCombo(other.combo));
   // Added rows keep their historical default — the first unused gesture with
   // Alt — and only then reuse a gesture with other keys.
   const ADDED_ROW_COMBOS = ["Alt", "Ctrl", "Shift", "Meta", "Ctrl+Shift", "Alt+Shift"] as const;
@@ -236,8 +188,17 @@ export const setupShortcutOptions = () => {
     }
     const hasLongPress = bindings.some(({ gesture }) => gesture === CLICK_GESTURES.LONG_LEFT);
     if (longWarning) longWarning.hidden = !clickToSave?.checked || !hasLongPress;
-    if (longTiming) longTiming.hidden = !hasLongPress;
-    if (longDuration) longDuration.disabled = clickToSave?.checked !== true || !hasLongPress;
+    // The folder picker's own gesture uses the same hold duration, so the
+    // field stays available while either feature has a long left click.
+    const pickerLongPress = resolvePickerBindings(pickerBindingsField?.value).some(
+      ({ gesture }) => gesture === CLICK_GESTURES.LONG_LEFT,
+    );
+    if (longTiming) longTiming.hidden = !hasLongPress && !pickerLongPress;
+    if (longDuration)
+      longDuration.disabled = !(
+        (clickToSave?.checked === true && hasLongPress) ||
+        (pickerGesture?.checked === true && pickerLongPress)
+      );
   };
   const syncClickControls = () => {
     if (!primaryControls) return;
@@ -252,9 +213,9 @@ export const setupShortcutOptions = () => {
           controls.some(
             (other) =>
               other !== current &&
-              bindingConflicts(
-                { gesture: value, combo: readBinding(current).combo },
-                readBinding(other),
+              clickBindingsConflict(
+                { gesture: value, combo: readGestureBinding(current).combo },
+                readGestureBinding(other),
               ),
           );
         // Only touch the option when its state actually flips: a redundant
@@ -268,7 +229,6 @@ export const setupShortcutOptions = () => {
       current.modifier.disabled = !enabled;
       current.modifier2.disabled = !enabled;
       current.gesture.disabled = !enabled;
-      current.action.disabled = !enabled;
       if (current.remove) current.remove.disabled = !enabled;
     });
     // Dim the group via a class the controller owns, not a CSS
@@ -314,7 +274,7 @@ export const setupShortcutOptions = () => {
     label.append(caption, select);
     return { label, select };
   };
-  // Every added row repeats the same four control labels, so assistive tech
+  // Every added row repeats the same three control labels, so assistive tech
   // needs the row itself to carry the distinguishing context. The primary
   // controls are gesture 1; added rows count from 2 and renumber on removal.
   const renumberBindingRows = (): void => {
@@ -342,8 +302,7 @@ export const setupShortcutOptions = () => {
       "o_lClickToSaveButton",
       Object.values(CLICK_GESTURES).map((value) => [value, gestureLabelKeys[value]] as const),
     );
-    const rowAction = labeledSelect("o_lClickToSaveAction", actionOptions);
-    [first.select, second.select, gesture.select, rowAction.select].forEach((select) =>
+    [first.select, second.select, gesture.select].forEach((select) =>
       select.setAttribute("aria-describedby", "clickToSaveStatus"),
     );
     const remove = document.createElement("button");
@@ -354,13 +313,11 @@ export const setupShortcutOptions = () => {
       modifier: first.select,
       modifier2: second.select,
       gesture: gesture.select,
-      action: rowAction.select,
       remove,
     };
-    writeCombo(controls, binding.combo);
+    writeGestureCombo(controls, binding.combo);
     controls.gesture.value = binding.gesture;
-    writeAction(controls, binding);
-    [controls.modifier, controls.modifier2, controls.gesture, controls.action].forEach((select) =>
+    [controls.modifier, controls.modifier2, controls.gesture].forEach((select) =>
       select.addEventListener("change", syncClickControls),
     );
     remove.addEventListener("click", () => {
@@ -370,7 +327,7 @@ export const setupShortcutOptions = () => {
       renumberBindingRows();
       syncClickControls();
     });
-    row.append(first.label, second.label, gesture.label, rowAction.label, remove);
+    row.append(first.label, second.label, gesture.label, remove);
     additional.append(row);
     extraControls.push(controls);
     renumberBindingRows();
@@ -381,22 +338,21 @@ export const setupShortcutOptions = () => {
   };
   const showClickCombo = () => {
     if (!combo || !primaryControls) return;
-    const legacyButton =
-      storedButton && isClickType(storedButton.value) ? storedButton.value : "LEFT_CLICK";
-    const bindings = resolveClickToSaveBindings(bindingsField?.value, combo.value, legacyButton);
+    const bindings = storedClickToSaveBindings();
     clearAdditional();
     const [first, ...remaining] = bindings;
-    writeCombo(primaryControls, first.combo);
+    writeGestureCombo(primaryControls, first.combo);
     primaryControls.gesture.value = first.gesture;
-    writeAction(primaryControls, first);
     remaining.forEach(addBindingRow);
     baselineSerialized = serializeClickToSaveBindings(bindings);
     syncClickControls();
   };
-  [button, modifier, modifier2, action].forEach((control) =>
+  [button, modifier, modifier2].forEach((control) =>
     control?.addEventListener("change", syncClickControls),
   );
   clickToSave?.addEventListener("change", syncClickControls);
+  pickerGesture?.addEventListener("change", syncGestureWarning);
+  pickerBindingsField?.addEventListener("change", syncGestureWarning);
   const applyGesture = () => {
     if (!bindingsField || !combo || !storedButton) return;
     const bindings = selectedBindings();
@@ -443,9 +399,8 @@ export const setupShortcutOptions = () => {
   reset?.addEventListener("click", () => {
     if (!primaryControls) return;
     clearAdditional();
-    writeCombo(primaryControls, "Alt");
+    writeGestureCombo(primaryControls, "Alt");
     primaryControls.gesture.value = CLICK_GESTURES.LEFT;
-    primaryControls.action.value = CLICK_ACTIONS.SAVE;
     applyGesture();
     if (status)
       status.textContent =

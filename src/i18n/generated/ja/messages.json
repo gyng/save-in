@@ -4727,16 +4727,19 @@
   "pickerNoMatches": {
     "message": "一致するフォルダーはありません"
   },
-  "o_lClickToSaveAction": {
-    "message": "動作"
+  "o_sFolderPicker": {
+    "message": "フォルダー選択"
   },
-  "o_lClickToSaveActionSave": {
-    "message": "すぐに保存"
+  "o_cPickerGesture": {
+    "message": "クリック操作でフォルダー選択を開く"
   },
-  "o_lClickToSaveActionPicker": {
-    "message": "フォルダー選択を表示"
+  "o_lPickerGestureConflict": {
+    "message": "このクリック操作は「クリックして保存」ですでに使われているため、フォルダー選択は開かずに保存されます。ここでは別の操作を選んでください。"
+  },
+  "o_lPickerOtherWays": {
+    "message": "フォルダー選択は、キーボードコマンド「フォルダー選択を表示」や承認済みの拡張機能からも開けます。"
   },
   "o_cClickToSavePickerHelp": {
-    "message": "動作を「フォルダー選択を表示」にしたジェスチャーを行うと、保存メニューのフォルダーがポインターの位置に表示されます。フォルダーを選ぶとそこに保存され、Esc キーで取り消せます。ブラウザーのコンテキストメニューは変わりません。"
+    "message": "このクリック操作を行うと、保存メニューのフォルダーがポインターの位置に表示されます。フォルダーを選ぶとそこに保存され、Esc キーで取り消せます。ブラウザーのコンテキストメニューは変わりません。"
   }
 }

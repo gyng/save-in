@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { setupShortcutOptions } from "../../../src/options/core/shortcut-options.ts";
 import {
-  CLICK_ACTIONS,
   CLICK_GESTURES,
   parseClickToSaveBindings,
   serializeClickToSaveBindings,
@@ -118,7 +117,6 @@ describe("shortcut option controller", () => {
       <select id="clickToSaveModifier"><option></option><option selected>Alt</option><option>Ctrl</option></select>
       <select id="clickToSaveModifier2"><option></option><option selected>Alt</option><option>Shift</option></select>
       <select id="clickToSaveButton"><option value="left-click">Left</option><option value="right-click">Right</option></select>
-      <select id="clickToSaveAction"><option value="save">Save</option><option value="picker">Picker</option></select>
       <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>
       <span id="clickToSaveStatus"></span><div id="click-to-save-warning"></div>`;
     setupShortcutOptions();
@@ -155,7 +153,6 @@ describe("shortcut option controller", () => {
       <select id="clickToSaveModifier"><option></option><option>Alt</option></select>
       <select id="clickToSaveModifier2"><option></option></select>
       <select id="clickToSaveButton"><option value="left-click">Left</option><option value="right-click">Right</option></select>
-      <select id="clickToSaveAction"><option value="save">Save</option><option value="picker">Picker</option></select>
       <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>
       <div id="click-to-save-warning" hidden></div></fieldset>`;
     setupShortcutOptions();
@@ -188,7 +185,6 @@ describe("shortcut option controller", () => {
         <option value="left-click">Left</option><option value="middle-click">Middle</option>
         <option value="double-left-click">Double left</option>
       </select>
-      <select id="clickToSaveAction"><option value="save">Save</option><option value="picker">Picker</option></select>
       <div id="clickToSaveAdditionalBindings"></div>
       <button id="clickToSaveAdd"></button><button id="clickToSaveApply"></button>
       <button id="clickToSaveReset"></button><span id="clickToSaveStatus"></span>
@@ -250,7 +246,6 @@ describe("shortcut option controller", () => {
         <option value="left-click">Left</option><option value="middle-click">Middle</option>
         <option value="right-click">Right</option>
       </select>
-      <select id="clickToSaveAction"><option value="save">Save</option><option value="picker">Picker</option></select>
       <div id="clickToSaveAdditionalBindings"></div>
       <button id="clickToSaveAdd"></button><button id="clickToSaveApply"></button>
       <button id="clickToSaveReset"></button><span id="clickToSaveStatus"></span>
@@ -291,13 +286,6 @@ describe("shortcut option controller", () => {
       "Meta",
     ]);
     expect(selects[2]!.getAttribute("aria-describedby")).toBe("clickToSaveStatus");
-    // The action is the fourth control of every row, built like the others.
-    expect(selects).toHaveLength(4);
-    expect([...selects[3]!.options].map((option) => option.value)).toEqual(["save", "picker"]);
-    expect(selects[3]!.value).toBe("save");
-    expect(selects[3]!.dataset.runtimeControl).toBe("true");
-    expect(selects[3]!.getAttribute("aria-describedby")).toBe("clickToSaveStatus");
-    expect(selects[3]!.closest("label")?.querySelector(".shortcut-control-label")).not.toBeNull();
 
     rows[0]!.querySelector("button")!.click();
     // The remaining row renumbers so its accessible context stays truthful.
@@ -306,138 +294,6 @@ describe("shortcut option controller", () => {
     expect(remaining.querySelector("button")?.getAttribute("aria-label")).toBe(
       "Remove click gesture 2",
     );
-  });
-
-  describe("per-gesture action", () => {
-    const mount = (stored: string, enabled = true): void => {
-      vi.mocked(browser.i18n.getMessage).mockReturnValue("");
-      document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" ${enabled ? "checked" : ""}>
-        <input id="contentClickToSaveBindings" value='${stored}'>
-        <input id="contentClickToSaveCombo" value="Alt">
-        <input id="contentClickToSaveButton" value="LEFT_CLICK">
-        <select id="clickToSaveModifier"><option></option><option value="Alt">Alt</option><option value="Ctrl">Ctrl</option></select>
-        <select id="clickToSaveModifier2"><option></option><option value="Shift">Shift</option></select>
-        <select id="clickToSaveButton">
-          <option value="left-click">Left</option><option value="middle-click">Middle</option>
-          <option value="long-left-click">Long</option>
-        </select>
-        <select id="clickToSaveAction"><option value="save">Save</option><option value="picker">Picker</option></select>
-        <div id="clickToSaveAdditionalBindings"></div>
-        <button id="clickToSaveAdd"></button><button id="clickToSaveApply"></button>
-        <button id="clickToSaveReset"></button><span id="clickToSaveStatus"></span>`;
-      setupShortcutOptions();
-    };
-    const primaryAction = () => document.querySelector<HTMLSelectElement>("#clickToSaveAction")!;
-    const rowActions = () =>
-      [...document.querySelectorAll<HTMLElement>(".click-to-save-binding")].map(
-        (row) => row.querySelectorAll<HTMLSelectElement>("select")[3]!,
-      );
-    const apply = () => document.querySelector<HTMLButtonElement>("#clickToSaveApply")!;
-    const stored = () => document.querySelector<HTMLInputElement>("#contentClickToSaveBindings")!;
-
-    test("shows each stored binding's action in its own row", () => {
-      mount(
-        serializeClickToSaveBindings([
-          { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt", action: CLICK_ACTIONS.PICKER },
-          { gesture: CLICK_GESTURES.MIDDLE, combo: "Ctrl" },
-          { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt+Shift", action: CLICK_ACTIONS.PICKER },
-        ]),
-      );
-
-      expect(primaryAction().value).toBe("picker");
-      expect(rowActions().map((select) => select.value)).toEqual(["save", "picker"]);
-      expect(apply().disabled).toBe(true);
-    });
-
-    test("an action change alone is a change to apply, and is stored per binding", () => {
-      const before = serializeClickToSaveBindings([
-        { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
-        { gesture: CLICK_GESTURES.LEFT, combo: "Alt+Shift" },
-      ]);
-      mount(before);
-      const changed = vi.fn();
-      stored().addEventListener("change", changed);
-
-      rowActions()[0]!.value = "picker";
-      change(rowActions()[0]!);
-      expect(apply().disabled).toBe(false);
-      expect(document.querySelector("#clickToSaveStatus")!.textContent).toBe("Ready to apply.");
-      apply().click();
-
-      expect(parseClickToSaveBindings(stored().value)).toEqual([
-        { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
-        { gesture: CLICK_GESTURES.LEFT, combo: "Alt+Shift", action: CLICK_ACTIONS.PICKER },
-      ]);
-      expect(changed).toHaveBeenCalledTimes(1);
-      expect(apply().disabled).toBe(true);
-      // The pre-4.1 mirror has no action: it keeps naming the first
-      // legacy-representable binding.
-      expect(document.querySelector<HTMLInputElement>("#contentClickToSaveCombo")!.value).toBe(
-        "Alt",
-      );
-
-      primaryAction().value = "picker";
-      change(primaryAction());
-      expect(apply().disabled).toBe(false);
-      primaryAction().value = "save";
-      change(primaryAction());
-      expect(apply().disabled).toBe(true);
-
-      rowActions()[0]!.value = "save";
-      change(rowActions()[0]!);
-      apply().click();
-      expect(stored().value).toBe(before);
-    });
-
-    test("restoring defaults returns the first gesture to an immediate save", () => {
-      mount(
-        serializeClickToSaveBindings([
-          { gesture: CLICK_GESTURES.MIDDLE, combo: "Ctrl", action: CLICK_ACTIONS.PICKER },
-          { gesture: CLICK_GESTURES.LONG_LEFT, combo: "", action: CLICK_ACTIONS.PICKER },
-        ]),
-      );
-
-      document.querySelector<HTMLButtonElement>("#clickToSaveReset")!.click();
-
-      expect(primaryAction().value).toBe("save");
-      expect(rowActions()).toEqual([]);
-      expect(stored().value).toBe(
-        serializeClickToSaveBindings([{ gesture: CLICK_GESTURES.LEFT, combo: "Alt" }]),
-      );
-    });
-
-    test("is disabled with the rest of the row while click-to-save is off", () => {
-      mount(
-        serializeClickToSaveBindings([
-          { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt" },
-          { gesture: CLICK_GESTURES.LONG_LEFT, combo: "", action: CLICK_ACTIONS.PICKER },
-        ]),
-        false,
-      );
-      const toggle = document.querySelector<HTMLInputElement>("#contentClickToSave")!;
-
-      expect(primaryAction().disabled).toBe(true);
-      expect(rowActions().map((select) => select.disabled)).toEqual([true]);
-      // A stored action is still shown while the feature is off.
-      expect(rowActions()[0]!.value).toBe("picker");
-
-      toggle.checked = true;
-      change(toggle);
-      expect(primaryAction().disabled).toBe(false);
-      expect(rowActions().map((select) => select.disabled)).toEqual([false]);
-    });
-
-    test("a row added by the user saves immediately until told otherwise", () => {
-      mount(
-        serializeClickToSaveBindings([
-          { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt", action: CLICK_ACTIONS.PICKER },
-        ]),
-      );
-
-      document.querySelector<HTMLButtonElement>("#clickToSaveAdd")!.click();
-
-      expect(rowActions().map((select) => select.value)).toEqual(["save"]);
-    });
   });
 
   test("allows long-left beside double-left and reveals its duration control", () => {
@@ -455,7 +311,6 @@ describe("shortcut option controller", () => {
         <option value="left-click">Left</option><option value="double-left-click">Double</option>
         <option value="long-left-click">Long</option>
       </select>
-      <select id="clickToSaveAction"><option value="save">Save</option><option value="picker">Picker</option></select>
       <div id="clickToSaveAdditionalBindings"></div>
       <div id="clickToSaveLongPressTiming" hidden><input id="contentClickToSaveLongPressMs" value="500"></div>
       <button id="clickToSaveAdd"></button><button id="clickToSaveApply"></button>
@@ -485,6 +340,80 @@ describe("shortcut option controller", () => {
     ).toBe(true);
   });
 
+  test("keeps the hold duration available for a folder picker long press", () => {
+    const pickerLong = serializeClickToSaveBindings([
+      { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
+    ]);
+    const pickerMiddle = serializeClickToSaveBindings([
+      { gesture: CLICK_GESTURES.MIDDLE, combo: "" },
+    ]);
+    document.body.innerHTML = `<input type="checkbox" id="contentClickToSave">
+      <input id="contentClickToSaveBindings" value="">
+      <input id="contentClickToSaveCombo" value="Alt">
+      <input id="contentClickToSaveButton" value="LEFT_CLICK">
+      <select id="clickToSaveModifier"><option></option><option value="Alt">Alt</option></select>
+      <select id="clickToSaveModifier2"><option></option></select>
+      <select id="clickToSaveButton"><option value="left-click">Left</option></select>
+      <input type="checkbox" id="contentPickerGesture" checked>
+      <input id="contentPickerBindings" value='${pickerLong}'>
+      <div id="clickToSaveLongPressTiming" hidden><input id="contentClickToSaveLongPressMs" value="500"></div>
+      <div id="click-to-save-long-warning" hidden></div>`;
+    setupShortcutOptions();
+    const timing = document.querySelector<HTMLElement>("#clickToSaveLongPressTiming")!;
+    const duration = document.querySelector<HTMLInputElement>("#contentClickToSaveLongPressMs")!;
+    const pickerGesture = document.querySelector<HTMLInputElement>("#contentPickerGesture")!;
+    const pickerBindings = document.querySelector<HTMLInputElement>("#contentPickerBindings")!;
+
+    expect(timing.hidden).toBe(false);
+    expect(duration.disabled).toBe(false);
+    // The warning describes a click-to-save long press, which is not set.
+    expect(document.querySelector<HTMLElement>("#click-to-save-long-warning")?.hidden).toBe(true);
+
+    pickerGesture.checked = false;
+    change(pickerGesture);
+    expect(timing.hidden).toBe(false);
+    expect(duration.disabled).toBe(true);
+
+    pickerGesture.checked = true;
+    pickerBindings.value = pickerMiddle;
+    change(pickerBindings);
+    expect(timing.hidden).toBe(true);
+    expect(duration.disabled).toBe(true);
+  });
+
+  // The folder picker has its own switch and gesture row, so a click-to-save
+  // row is the two modifiers and the click gesture, and nothing else.
+  test("gives every click-to-save row three selects and stores no action", () => {
+    document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>
+      <input id="contentClickToSaveBindings" value='{"version":1,"bindings":[{"gesture":"left-click","combo":"Alt","action":"picker"},{"gesture":"middle-click","combo":"Alt","action":"picker"}]}'>
+      <input id="contentClickToSaveCombo" value="Alt">
+      <input id="contentClickToSaveButton" value="LEFT_CLICK">
+      <select id="clickToSaveModifier"><option></option><option value="Alt">Alt</option><option value="Ctrl">Ctrl</option></select>
+      <select id="clickToSaveModifier2"><option></option></select>
+      <select id="clickToSaveButton"><option value="left-click">Left</option></select>
+      <div id="clickToSaveAdditionalBindings"></div>
+      <button id="clickToSaveApply"></button><span id="clickToSaveStatus"></span>`;
+    setupShortcutOptions();
+
+    const row = document.querySelector<HTMLElement>(".click-to-save-binding")!;
+    expect(row.querySelectorAll("select")).toHaveLength(3);
+    expect([...row.children].map(({ tagName }) => tagName)).toEqual([
+      "LABEL",
+      "LABEL",
+      "LABEL",
+      "BUTTON",
+    ]);
+
+    const modifier = document.querySelector<HTMLSelectElement>("#clickToSaveModifier")!;
+    modifier.value = "Ctrl";
+    change(modifier);
+    document.querySelector<HTMLButtonElement>("#clickToSaveApply")?.click();
+    expect(document.querySelector<HTMLInputElement>("#contentClickToSaveBindings")?.value).toBe(
+      '{"version":1,"bindings":[{"gesture":"left-click","combo":"Ctrl"},' +
+        '{"gesture":"middle-click","combo":"Alt"}]}',
+    );
+  });
+
   test("writes the disabled legacy mirror when no binding is legacy-representable", () => {
     vi.mocked(browser.i18n.getMessage).mockReturnValue("");
     document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>
@@ -496,7 +425,6 @@ describe("shortcut option controller", () => {
       <select id="clickToSaveButton">
         <option value="right-click">Right</option><option value="double-left-click">Double left</option>
       </select>
-      <select id="clickToSaveAction"><option value="save">Save</option><option value="picker">Picker</option></select>
       <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>`;
     setupShortcutOptions();
 
@@ -535,7 +463,6 @@ describe("shortcut option controller", () => {
       <select id="clickToSaveButton">
         <option value="left-click">Left</option><option value="middle-click">Middle</option>
       </select>
-      <select id="clickToSaveAction"><option value="save">Save</option><option value="picker">Picker</option></select>
       <div id="clickToSaveAdditionalBindings"></div>
       <button id="clickToSaveAdd"></button><button id="clickToSaveApply"></button>
       <button id="clickToSaveReset"></button><span id="clickToSaveStatus"></span>`;
@@ -585,7 +512,6 @@ describe("shortcut option controller", () => {
         <option value="right-click">Right</option><option value="back-click">Back</option>
         <option value="forward-click">Forward</option><option value="double-left-click">Double</option>
       </select>
-      <select id="clickToSaveAction"><option value="save">Save</option><option value="picker">Picker</option></select>
       <div id="clickToSaveAdditionalBindings"></div><button id="clickToSaveAdd"></button>
       <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>
       <span id="clickToSaveStatus"></span>`;
@@ -657,7 +583,6 @@ describe("shortcut option controller", () => {
         <option value="right-click">Right</option><option value="back-click">Back</option>
         <option value="forward-click">Forward</option><option value="double-left-click">Double</option>
       </select>
-      <select id="clickToSaveAction"><option value="save">Save</option><option value="picker">Picker</option></select>
       <div id="clickToSaveAdditionalBindings"></div><button id="clickToSaveAdd"></button>
       <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>`;
     setupShortcutOptions();
@@ -679,8 +604,7 @@ describe("shortcut option controller", () => {
     document.body.innerHTML = `<input id="contentClickToSaveCombo" value="90">
       <select id="clickToSaveModifier"><option></option></select>
       <select id="clickToSaveModifier2"><option></option></select>
-      <select id="clickToSaveButton"><option value="left-click">Left</option></select>
-      <select id="clickToSaveAction"><option value="save">Save</option><option value="picker">Picker</option></select>`;
+      <select id="clickToSaveButton"><option value="left-click">Left</option></select>`;
     setupShortcutOptions();
     const modifier = document.querySelector<HTMLSelectElement>("#clickToSaveModifier")!;
     expect(modifier.value).toBe("90");
