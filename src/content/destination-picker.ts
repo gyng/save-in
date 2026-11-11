@@ -4,12 +4,15 @@ import {
   createPickerState,
   flattenPickerModel,
   hasPickerDestinations,
+  isPickerKeyLive,
+  leavePickerScope,
   movePickerActive,
-  pickerKeyTarget,
+  pickerKeyAction,
   setPickerActive,
   setPickerQuery,
   splitPickerMatches,
   type PickerRow,
+  type PickerState,
   type PickerSubject,
 } from "./destination-picker-model.ts";
 import { createSourceKindIcon } from "./source-panel-icons.ts";
@@ -73,12 +76,25 @@ const rowIcon = (icon: keyof typeof ROW_ICON_PATHS): SVGSVGElement => {
   return svg;
 };
 
+// A key is shown only while it works: within the submenu level the keys are
+// currently in, and never once a filter is being typed.
+const appendLiveKey = (element: HTMLElement, row: PickerRow, state: PickerState): void => {
+  if (row.kind === "separator" || row.key === undefined || !isPickerKeyLive(state, row)) return;
+  const key = document.createElement("kbd");
+  key.className = "row-key";
+  key.textContent = row.key;
+  key.setAttribute("aria-hidden", "true");
+  if (row.kind === "destination") element.setAttribute("aria-keyshortcuts", row.key);
+  element.append(key);
+};
+
 const renderRow = (
   row: PickerRow,
   index: number,
   lastUsedHint: string,
-  query: string,
+  state: PickerState,
 ): HTMLElement => {
+  const { query } = state;
   const element = document.createElement("div");
   if (row.kind === "separator") {
     element.className = "separator";
@@ -89,7 +105,13 @@ const renderRow = (
   if (row.kind === "heading") {
     element.className = "heading";
     element.setAttribute("role", "presentation");
-    element.textContent = row.title;
+    // The submenu the keys have stepped into reads as the current one.
+    if (state.scope === row.id) element.dataset.scope = "current";
+    const heading = document.createElement("span");
+    heading.className = "heading-title";
+    heading.textContent = row.title;
+    element.append(heading);
+    appendLiveKey(element, row, state);
     return element;
   }
   element.className = "option";
@@ -118,15 +140,7 @@ const renderRow = (
     element.setAttribute("aria-describedby", hint.id);
     element.append(hint);
   }
-  // Shown only while it works: a key picks nothing once a filter is typed.
-  if (row.key && query === "") {
-    const key = document.createElement("kbd");
-    key.className = "row-key";
-    key.textContent = row.key;
-    key.setAttribute("aria-hidden", "true");
-    element.setAttribute("aria-keyshortcuts", row.key);
-    element.append(key);
-  }
+  appendLiveKey(element, row, state);
   return element;
 };
 
@@ -244,7 +258,7 @@ export const openDestinationPicker = (options: DestinationPickerOptions): boolea
   };
   const render = (): void => {
     list.replaceChildren(
-      ...state.visible.map((row, index) => renderRow(row, index, copy.lastUsed, state.query)),
+      ...state.visible.map((row, index) => renderRow(row, index, copy.lastUsed, state)),
     );
     empty.hidden = state.visible.length > 0;
     showActive();
@@ -292,11 +306,22 @@ export const openDestinationPicker = (options: DestinationPickerOptions): boolea
       // A destination's own key, as in the browser menu. Only a bare
       // keystroke counts, so shortcuts and typed capitals with Ctrl, Alt, or
       // Meta held are left to the filter and the browser.
-      const keyTarget =
-        event.ctrlKey || event.altKey || event.metaKey ? null : pickerKeyTarget(state, event.key);
-      if (keyTarget !== null) {
+      const keyAction =
+        event.ctrlKey || event.altKey || event.metaKey ? null : pickerKeyAction(state, event.key);
+      if (keyAction !== null) {
         event.preventDefault();
-        pick(keyTarget);
+        if (keyAction.kind === "pick") {
+          pick(keyAction.id);
+        } else {
+          // A submenu heading's key steps into it, as it opens that submenu in
+          // the browser menu; its children's keys are the live ones now.
+          state = keyAction.state;
+          render();
+        }
+      } else if (event.key === "Backspace" && state.query === "" && state.scope !== null) {
+        event.preventDefault();
+        state = leavePickerScope(state);
+        render();
       } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
         event.preventDefault();
         state = movePickerActive(state, event.key === "ArrowDown" ? 1 : -1);

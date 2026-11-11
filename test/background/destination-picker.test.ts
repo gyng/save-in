@@ -93,13 +93,13 @@ describe("picker menu", () => {
     expect(buildPickerMenu(false).model.lastUsed).toBeNull();
   });
 
-  test("gives destinations the keys the context menu would, once each", () => {
-    options.paths = "First\nGroup\n>Nested // (key: N)\nThird // (key: 1)\nFourth // (key: )";
+  test("gives every item the key the context menu shows for it", () => {
+    options.paths = "First\nGroup\n>Nested\n>Keyed // (key: N)\nThird // (key: )\nFourth";
     options.enableNumberedItems = true;
     options.keyLastUsed = "E";
     menuState.lastUsedPath = "wallpapers";
     menuState.pathMappings = Object.fromEntries(
-      [0, 1, 2, 3, 4].map((index) => [`save-in-${index}`, mapping(`dir-${index}`)]),
+      [0, 1, 2, 3, 4, 5].map((index) => [`save-in-${index}`, mapping(`dir-${index}`)]),
     );
 
     const { model } = buildPickerMenu(false);
@@ -108,28 +108,37 @@ describe("picker menu", () => {
     expect(
       model.items.map((item) => (item.kind === "path" ? [item.title, item.key] : null)),
     ).toEqual([
-      // The explicit "1" on Third wins the key, so First goes without.
-      ["First", undefined],
-      ["Group", undefined],
-      ["Nested", "n"],
-      ["Third", "1"],
+      ["First", "1"],
+      // A submenu keeps its own number, and its children are numbered within it.
+      ["Group", "2"],
+      ["Nested", "1"],
+      ["Keyed", "n"],
       // An empty key asks for none, numbering included.
-      ["Fourth", undefined],
+      ["Third", undefined],
+      ["Fourth", "4"],
     ]);
   });
 
-  test("numbers the first nine folders in the order the folder commands count them", () => {
-    options.paths = Array.from({ length: 11 }, (_, index) => `Folder ${index + 1}`).join("\n");
-    options.enableNumberedItems = true;
+  test("an explicit key still applies with numbering off, and a tenth item has none", () => {
+    options.paths = [
+      "Keyed // (key: K)",
+      ...Array.from({ length: 10 }, (_, index) => `Folder ${index + 2}`),
+    ].join("\n");
     menuState.pathMappings = Object.fromEntries(
       Array.from({ length: 11 }, (_, index) => [`save-in-${index}`, mapping(`dir-${index}`)]),
     );
 
-    const keys = buildPickerMenu(false).model.items.map((item) =>
-      item.kind === "path" ? item.key : null,
-    );
+    const keysOf = () =>
+      buildPickerMenu(false).model.items.map((item) => (item.kind === "path" ? item.key : null));
 
-    expect(keys).toEqual(["1", "2", "3", "4", "5", "6", "7", "8", "9", undefined, undefined]);
+    expect(keysOf()[0]).toBe("k");
+    expect(
+      keysOf()
+        .slice(1)
+        .every((key) => key === undefined),
+    ).toBe(true);
+    options.enableNumberedItems = true;
+    expect(keysOf()).toEqual(["k", "2", "3", "4", "5", "6", "7", "8", "9", undefined, undefined]);
   });
 
   test("offers no keys when numbering and the Last used key are off", () => {

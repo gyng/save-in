@@ -4,7 +4,9 @@ import {
   flattenPickerModel,
   hasPickerDestinations,
   movePickerActive,
-  pickerKeyTarget,
+  isPickerKeyLive,
+  leavePickerScope,
+  pickerKeyAction,
   setPickerActive,
   setPickerQuery,
   pickerSubject,
@@ -37,6 +39,7 @@ const destination = (
   label: title,
   depth: 0,
   lastUsed: false,
+  parentId: null,
   ...overrides,
 });
 
@@ -59,10 +62,10 @@ describe("flattening the picker model", () => {
       destination("last", "Wallpapers", { lastUsed: true }),
       { kind: "separator" },
       destination("a", "Images"),
-      { kind: "heading", title: "Work", depth: 0 },
-      { kind: "heading", title: "Reports", depth: 1 },
-      destination("d", "2026", { depth: 2, label: "Work / Reports / 2026" }),
-      destination("e", "Invoices", { depth: 1, label: "Work / Invoices" }),
+      { kind: "heading", id: "b", title: "Work", depth: 0, parentId: null },
+      { kind: "heading", id: "c", title: "Reports", depth: 1, parentId: "b" },
+      destination("d", "2026", { depth: 2, label: "Work / Reports / 2026", parentId: "c" }),
+      destination("e", "Invoices", { depth: 1, label: "Work / Invoices", parentId: "b" }),
       { kind: "separator" },
       destination("f", "Read later"),
     ]);
@@ -93,7 +96,11 @@ describe("flattening the picker model", () => {
 
   test("knows whether anything can be picked", () => {
     expect(hasPickerDestinations(flattenPickerModel(nested))).toBe(true);
-    expect(hasPickerDestinations([{ kind: "heading", title: "Work", depth: 0 }])).toBe(false);
+    expect(
+      hasPickerDestinations([
+        { kind: "heading", id: "w", title: "Work", depth: 0, parentId: null },
+      ]),
+    ).toBe(false);
     expect(hasPickerDestinations([])).toBe(false);
   });
 });
@@ -108,7 +115,10 @@ describe("filtering", () => {
 
   test("matches every term against the full label, in any order and case", () => {
     expect(filterPickerRows(rows, "REPORTS work")).toEqual([
-      destination("d", "Work / Reports / 2026", { label: "Work / Reports / 2026" }),
+      destination("d", "Work / Reports / 2026", {
+        label: "Work / Reports / 2026",
+        parentId: "c",
+      }),
     ]);
     expect(
       filterPickerRows(rows, "w").map((row) => (row.kind === "destination" ? row.id : "")),
@@ -117,7 +127,7 @@ describe("filtering", () => {
 
   test("a filtered list is flat and can be empty", () => {
     expect(filterPickerRows(rows, "invoices")).toEqual([
-      destination("e", "Work / Invoices", { label: "Work / Invoices" }),
+      destination("e", "Work / Invoices", { label: "Work / Invoices", parentId: "b" }),
     ]);
     expect(filterPickerRows(rows, "nothing here")).toEqual([]);
   });
@@ -127,7 +137,13 @@ describe("keyboard state", () => {
   const rows = flattenPickerModel(nested);
 
   test("starts on the first destination, or on nothing", () => {
-    expect(createPickerState(rows)).toEqual({ rows, visible: rows, query: "", activeId: "last" });
+    expect(createPickerState(rows)).toEqual({
+      rows,
+      visible: rows,
+      query: "",
+      activeId: "last",
+      scope: null,
+    });
     expect(createPickerState([]).activeId).toBeNull();
   });
 
@@ -247,28 +263,98 @@ describe("filter match marks", () => {
   });
 });
 
-describe("destination keys", () => {
+describe("menu keys", () => {
+  // Images=1, Work=2 (a submenu: Reports=1, Archive=2 (a submenu: 2026=1)), Notes has none.
   const keyed: PickerModel = {
     lastUsed: { id: "save-in-last-used", title: "Wallpapers", key: "e" },
     items: [
-      { kind: "path", id: "save-in-0", title: "Images", parentId: null, key: "1" },
-      { kind: "path", id: "save-in-1", title: "Notes", parentId: null },
+      { kind: "path", id: "images", title: "Images", parentId: null, key: "1" },
+      { kind: "path", id: "work", title: "Work", parentId: null, key: "2" },
+      { kind: "path", id: "reports", title: "Reports", parentId: "work", key: "1" },
+      { kind: "path", id: "archive", title: "Archive", parentId: "work", key: "2" },
+      { kind: "path", id: "y2026", title: "2026", parentId: "archive", key: "1" },
+      { kind: "path", id: "notes", title: "Notes", parentId: null },
     ],
     copy,
   };
   const state = () => createPickerState(flattenPickerModel(keyed));
+  const enter = (from: ReturnType<typeof state>, key: string) => {
+    const action = pickerKeyAction(from, key);
+    if (action?.kind !== "enter") throw new Error(`key ${key} did not enter a submenu`);
+    return action.state;
+  };
 
-  test("a key picks its destination in either case", () => {
-    expect(pickerKeyTarget(state(), "1")).toBe("save-in-0");
-    expect(pickerKeyTarget(state(), "E")).toBe("save-in-last-used");
+  test("a top-level key picks its destination in either case", () => {
+    expect(pickerKeyAction(state(), "1")).toEqual({ kind: "pick", id: "images" });
+    expect(pickerKeyAction(state(), "E")).toEqual({ kind: "pick", id: "save-in-last-used" });
   });
 
-  test("a key no destination owns picks nothing", () => {
-    expect(pickerKeyTarget(state(), "x")).toBeNull();
-    expect(pickerKeyTarget(state(), "Enter")).toBeNull();
+  test("a submenu's key steps into it, and the same digit then means its child", () => {
+    const inWork = enter(state(), "2");
+
+    expect(inWork.scope).toBe("work");
+    expect(inWork.activeId).toBe("reports");
+    expect(pickerKeyAction(inWork, "1")).toEqual({ kind: "pick", id: "reports" });
   });
 
-  test("keys stop once a filter is being typed, even one that still shows the row", () => {
-    expect(pickerKeyTarget(setPickerQuery(state(), "ima"), "1")).toBeNull();
+  test("nested submenus step in one level at a time and back out the same way", () => {
+    const inArchive = enter(enter(state(), "2"), "2");
+
+    expect(inArchive.scope).toBe("archive");
+    expect(inArchive.activeId).toBe("y2026");
+    expect(pickerKeyAction(inArchive, "1")).toEqual({ kind: "pick", id: "y2026" });
+    expect(leavePickerScope(inArchive).scope).toBe("work");
+    expect(leavePickerScope(leavePickerScope(inArchive)).scope).toBeNull();
+    expect(leavePickerScope(state())).toEqual(state());
+  });
+
+  test("a submenu with nothing to pick keeps the highlight where it was", () => {
+    const empty = createPickerState([
+      {
+        kind: "destination",
+        id: "a",
+        title: "A",
+        label: "A",
+        depth: 0,
+        lastUsed: false,
+        parentId: null,
+      },
+      { kind: "heading", id: "h", title: "H", depth: 0, parentId: null, key: "9" },
+      { kind: "separator" },
+      { kind: "heading", id: "inner", title: "Inner", depth: 1, parentId: "h" },
+    ]);
+
+    expect(enter(empty, "9")).toMatchObject({ scope: "h", activeId: "a" });
+  });
+
+  test("leaving a submenu whose heading is gone returns to the top", () => {
+    expect(leavePickerScope({ ...state(), scope: "missing" }).scope).toBeNull();
+  });
+
+  test("a key nothing at this level owns does nothing", () => {
+    expect(pickerKeyAction(state(), "x")).toBeNull();
+    expect(pickerKeyAction(state(), "Enter")).toBeNull();
+    // Reports is 1 only inside Work; at the top level 1 is Images.
+    expect(pickerKeyAction(enter(state(), "2"), "e")).toBeNull();
+  });
+
+  test("keys stop once a filter is typed, and typing leaves any submenu", () => {
+    const filtered = setPickerQuery(enter(state(), "2"), "ima");
+
+    expect(filtered.scope).toBeNull();
+    expect(pickerKeyAction(filtered, "1")).toBeNull();
+  });
+
+  test("a key is live only at the level the keys are in", () => {
+    const rows = flattenPickerModel(keyed);
+    const live = (from: ReturnType<typeof state>) =>
+      rows.flatMap((row) =>
+        row.kind !== "separator" && isPickerKeyLive(from, row) ? [row.id] : [],
+      );
+
+    expect(live(state())).toEqual(["save-in-last-used", "images", "work"]);
+    expect(live(enter(state(), "2"))).toEqual(["reports", "archive"]);
+    expect(live(setPickerQuery(state(), "i"))).toEqual([]);
+    expect(isPickerKeyLive(state(), { kind: "separator" })).toBe(false);
   });
 });

@@ -128,26 +128,30 @@ describe("destination picker view", () => {
     ]);
   });
 
-  describe("destination keys", () => {
+  describe("menu keys", () => {
     const keyedModel: PickerModel = {
       ...model,
       lastUsed: { id: "save-in-last-used", title: "Wallpapers", key: "e" },
       items: [
         { kind: "path", id: "save-in-0", title: "Images", parentId: null, key: "1" },
+        { kind: "path", id: "save-in-1", title: "Work", parentId: null, key: "2" },
+        { kind: "path", id: "save-in-2", title: "Reports", parentId: "save-in-1", key: "1" },
         { kind: "path", id: "save-in-4", title: "Read later", parentId: null },
       ],
     };
+    const shownKeys = (): Array<string | null> =>
+      [...root().querySelectorAll("kbd.row-key")].map((key) => key.textContent);
 
-    test("a row shows its key and announces it as a shortcut", () => {
+    test("rows show the keys of the current menu level and announce them", () => {
       open({ model: keyedModel });
 
-      const keyed = option("save-in-0");
-      expect(keyed.querySelector("kbd.row-key")?.textContent).toBe("1");
-      expect(keyed.getAttribute("aria-keyshortcuts")).toBe("1");
+      expect(shownKeys()).toEqual(["e", "1", "2"]);
+      expect(option("save-in-0").getAttribute("aria-keyshortcuts")).toBe("1");
+      expect(option("save-in-2").querySelector("kbd.row-key")).toBeNull();
       expect(option("save-in-4").querySelector("kbd.row-key")).toBeNull();
     });
 
-    test("pressing a key with the filter empty saves there at once", () => {
+    test("pressing a destination's key with the filter empty saves there at once", () => {
       open({ model: keyedModel });
 
       const event = press("E");
@@ -155,6 +159,29 @@ describe("destination picker view", () => {
       expect(event.defaultPrevented).toBe(true);
       expect(onPick).toHaveBeenCalledWith("save-in-last-used");
       expect(document.querySelector("save-in-picker")).toBeNull();
+    });
+
+    test("a submenu's key steps into it, then its child's key saves", () => {
+      open({ model: keyedModel });
+
+      expect(press("2").defaultPrevented).toBe(true);
+      expect(onPick).not.toHaveBeenCalled();
+      expect(root().querySelector('.heading[data-scope="current"]')?.textContent).toContain("Work");
+      expect(shownKeys()).toEqual(["1"]);
+      expect(activeId()).toBe("save-in-2");
+
+      press("1");
+      expect(onPick).toHaveBeenCalledWith("save-in-2");
+    });
+
+    test("Backspace on an empty filter steps back out, and is otherwise the filter's", () => {
+      open({ model: keyedModel });
+      expect(press("Backspace").defaultPrevented).toBe(false);
+
+      press("2");
+      expect(press("Backspace").defaultPrevented).toBe(true);
+      expect(root().querySelector('.heading[data-scope="current"]')).toBeNull();
+      expect(shownKeys()).toEqual(["e", "1", "2"]);
     });
 
     test("a key held with a modifier, or one no row owns, is left to the filter", () => {
@@ -171,7 +198,7 @@ describe("destination picker view", () => {
       open({ model: keyedModel });
       type("ima");
 
-      expect(option("save-in-0").querySelector("kbd.row-key")).toBeNull();
+      expect(shownKeys()).toEqual([]);
       expect(option("save-in-0").hasAttribute("aria-keyshortcuts")).toBe(false);
       expect(press("1").defaultPrevented).toBe(false);
       expect(onPick).not.toHaveBeenCalled();

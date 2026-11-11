@@ -90,8 +90,9 @@ describe("PICKER_MODEL", () => {
       body: {
         lastUsed: { id: "save-in-last-used", title: "wallpapers", key: "e" },
         items: [
-          { kind: "path", id: "save-in-0", title: "Images", parentId: null, key: "1" },
-          { kind: "path", id: "save-in-1", title: "Work", parentId: null, key: "2" },
+          // The fixture's menu tree numbers items from zero.
+          { kind: "path", id: "save-in-0", title: "Images", parentId: null, key: "0" },
+          { kind: "path", id: "save-in-1", title: "Work", parentId: null, key: "1" },
         ],
         copy: {
           title: "Translated<pickerTitle>",

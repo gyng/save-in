@@ -16,8 +16,9 @@ const MAX_PICKER_ITEMS = 2_000;
 const MAX_PICKER_TEXT_LENGTH = 1_024;
 
 export type PickerCopy = { title: string; filter: string; empty: string; lastUsed: string };
-// `key` picks the destination with one keystroke while the filter is empty,
-// the way an access key does in the browser's own menu.
+// `key` is the item's access key in the browser's own menu. In the picker it
+// picks a destination, or steps into a submenu heading, with one keystroke
+// while the filter is empty.
 export type PickerItem =
   | { kind: "path"; id: string; title: string; parentId: string | null; key?: string }
   | { kind: "separator" };

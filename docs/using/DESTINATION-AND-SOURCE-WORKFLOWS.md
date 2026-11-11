@@ -116,16 +116,18 @@ opens a submenu appears as a heading.
 | Narrow the list                   | Type part of a folder name or of its parent |
 | Save to the highlighted folder    | Enter, or click the folder                  |
 | Save to a folder straight away    | Its key, shown at the end of its row        |
+| Step into or out of a submenu     | The submenu's key, then Backspace           |
 | Close without saving              | Esc, or click anywhere outside the picker   |
 
-Folder keys work like the context menu's access keys. With **Add number-key
-shortcuts to context submenu items** on, the first nine folders you can pick
-are 1 to 9, in the same order the folder keyboard commands count them. A
-folder's own `(key: x)` and the **Last-used context submenu item** key work
-too. Because the picker is one flat list, a key belongs to the first folder
-that claims it. Keys act only while the filter box is empty; once you start
-typing a name, every character filters, so to filter by a name that begins
-with a folder's key, type a different part of the name first.
+Folder keys are the context menu's own access keys, so the keystrokes you
+already use there work here. With **Add number-key shortcuts to context submenu
+items** on, each folder has the number it has in the menu; a folder's own
+`(key: x)` and the **Last-used context submenu item** key apply too. A folder
+that opens a submenu keeps its key as well: pressing it steps into that submenu,
+whose folders' keys then apply, and Backspace steps back out. The keys in
+effect are the ones shown. They act only while the filter box is empty; once
+you start typing a name, every character filters, so to filter by a name that
+begins with a folder's key, type a different part of the name first.
 
 Choosing a folder saves exactly as choosing it from the context menu would:
 routing rules, per-destination Save As, Last used, recent locations, History,

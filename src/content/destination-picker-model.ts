@@ -15,10 +15,19 @@ export type PickerRow =
       label: string;
       depth: number;
       lastUsed: boolean;
-      // Picks this destination with one keystroke while nothing is typed.
+      // The submenu heading this row sits under, or null at the top level.
+      parentId: string | null;
+      // Its access key within that level, as in the browser menu.
       key?: string;
     }
-  | { kind: "heading"; title: string; depth: number }
+  | {
+      kind: "heading";
+      id: string;
+      title: string;
+      depth: number;
+      parentId: string | null;
+      key?: string;
+    }
   | { kind: "separator" };
 
 export type PickerDestination = Extract<PickerRow, { kind: "destination" }>;
@@ -28,6 +37,9 @@ export type PickerState = {
   visible: PickerRow[];
   query: string;
   activeId: string | null;
+  // The submenu heading whose keys are live, entered by pressing that
+  // heading's own key; null is the top level of the menu.
+  scope: string | null;
 };
 
 const LABEL_SEPARATOR = " / ";
@@ -52,6 +64,7 @@ export const flattenPickerModel = ({ lastUsed, items }: PickerModel): PickerRow[
       label: lastUsed.title,
       depth: 0,
       lastUsed: true,
+      parentId: null,
       ...(lastUsed.key ? { key: lastUsed.key } : {}),
     });
     pushSeparator(rows);
@@ -67,18 +80,17 @@ export const flattenPickerModel = ({ lastUsed, items }: PickerModel): PickerRow[
     const depth = parent ? parent.depth + 1 : 0;
     const label = parent ? `${parent.label}${LABEL_SEPARATOR}${item.title}` : item.title;
     placed.set(item.id, { depth, label });
+    const shared = {
+      id: item.id,
+      title: item.title,
+      depth,
+      parentId: parent ? item.parentId : null,
+      ...(item.key ? { key: item.key } : {}),
+    };
     rows.push(
       parents.has(item.id)
-        ? { kind: "heading", title: item.title, depth }
-        : {
-            kind: "destination",
-            id: item.id,
-            title: item.title,
-            label,
-            depth,
-            lastUsed: false,
-            ...(item.key ? { key: item.key } : {}),
-          },
+        ? { kind: "heading", ...shared }
+        : { kind: "destination", ...shared, label, lastUsed: false },
     );
   }
   if (rows[rows.length - 1]?.kind === "separator") rows.pop();
@@ -110,13 +122,15 @@ export const createPickerState = (rows: PickerRow[]): PickerState => ({
   visible: rows,
   query: "",
   activeId: firstDestinationId(rows),
+  scope: null,
 });
 
 // A new query always starts from its best match, so Enter saves what the user
 // just narrowed to rather than a row that happened to survive the filter.
 export const setPickerQuery = (state: PickerState, query: string): PickerState => {
   const visible = filterPickerRows(state.rows, query);
-  return { ...state, query, visible, activeId: firstDestinationId(visible) };
+  // Typing a name leaves any submenu the keys had stepped into.
+  return { ...state, query, visible, activeId: firstDestinationId(visible), scope: null };
 };
 
 export const movePickerActive = (state: PickerState, delta: 1 | -1): PickerState => {
@@ -195,11 +209,53 @@ export const splitPickerMatches = (
   return parts;
 };
 
-// The destination a single keystroke picks, as an access key does in the
-// browser's own menu. Keys act only while the filter is empty: once the user
-// is typing a name, every character belongs to that name.
-export const pickerKeyTarget = (state: PickerState, key: string): string | null => {
+const isKeyed = (
+  row: PickerRow,
+): row is Exclude<PickerRow, { kind: "separator" }> & { key: string } =>
+  row.kind !== "separator" && row.key !== undefined;
+
+// The first destination anywhere beneath a heading, in menu order.
+const firstDestinationUnder = (rows: readonly PickerRow[], headingId: string): string | null => {
+  const inside = new Set([headingId]);
+  for (const row of rows) {
+    if (row.kind === "separator" || row.parentId === null || !inside.has(row.parentId)) continue;
+    if (row.kind === "destination") return row.id;
+    inside.add(row.id);
+  }
+  return null;
+};
+
+export type PickerKeyAction = { kind: "pick"; id: string } | { kind: "enter"; state: PickerState };
+
+// What a single keystroke does, as an access key does in the browser's own
+// menu: it picks a destination of the current level, or steps into a submenu
+// whose own keys then apply. Keys act only while the filter is empty; once a
+// name is being typed, every character belongs to that name.
+export const pickerKeyAction = (state: PickerState, key: string): PickerKeyAction | null => {
   if (state.query !== "") return null;
   const pressed = key.toLowerCase();
-  return state.rows.filter(isDestination).find((row) => row.key === pressed)?.id ?? null;
+  const row = state.rows
+    .filter(isKeyed)
+    .find((candidate) => candidate.parentId === state.scope && candidate.key === pressed);
+  if (!row) return null;
+  if (row.kind === "destination") return { kind: "pick", id: row.id };
+  return {
+    kind: "enter",
+    state: {
+      ...state,
+      scope: row.id,
+      activeId: firstDestinationUnder(state.rows, row.id) ?? state.activeId,
+    },
+  };
 };
+
+// Backspace on an empty filter steps back out one submenu level.
+export const leavePickerScope = (state: PickerState): PickerState => {
+  if (state.scope === null) return state;
+  const heading = state.rows.find((row) => row.kind === "heading" && row.id === state.scope);
+  return { ...state, scope: heading && heading.kind === "heading" ? heading.parentId : null };
+};
+
+// Whether a row's key is live right now, which is when the view shows it.
+export const isPickerKeyLive = (state: PickerState, row: PickerRow): boolean =>
+  state.query === "" && isKeyed(row) && row.parentId === state.scope;
