@@ -652,17 +652,17 @@ describe("handleDownloadMessage", () => {
       info: {
         pageUrl: "https://x/",
         srcUrl: "https://x/file.png",
-        capturedCssText: [["header .author", "example author"]],
+        capturedPageText: [["header .author", "example author"]],
         // A message may carry evidence, never the value a rule resolved to.
-        cssText: "forged",
+        pageText: "forged",
       },
     });
     const launchedInfo = () => vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info;
 
     test("is accepted from the page's own top-frame content script", () => {
       onMessage(textRequest, { url: "https://x/", tab: { id: 8, url: "https://x/" } }, vi.fn());
-      expect(launchedInfo().capturedCssText).toEqual([["header .author", "example author"]]);
-      expect(launchedInfo().cssText).toBeUndefined();
+      expect(launchedInfo().capturedPageText).toEqual([["header .author", "example author"]]);
+      expect(launchedInfo().pageText).toBeUndefined();
     });
 
     test.each([
@@ -682,27 +682,27 @@ describe("handleDownloadMessage", () => {
     ])("is dropped when sent by %s", (_label, sender) => {
       onMessage(textRequest, sender, vi.fn());
       expect(Download.launchDownload).toHaveBeenCalledOnce();
-      expect(launchedInfo().capturedCssText).toBeUndefined();
-      expect(launchedInfo().cssText).toBeUndefined();
+      expect(launchedInfo().capturedPageText).toBeUndefined();
+      expect(launchedInfo().pageText).toBeUndefined();
     });
 
     test("is dropped from an external extension", async () => {
       const response = vi.fn();
       onMessageExternal(textRequest, { id: "trusted-extension", tab: { id: 9 } }, response);
       await waitForCall(response);
-      expect(launchedInfo().capturedCssText).toBeUndefined();
-      expect(launchedInfo().cssText).toBeUndefined();
+      expect(launchedInfo().capturedPageText).toBeUndefined();
+      expect(launchedInfo().pageText).toBeUndefined();
     });
 
     test("an unbounded or malformed capture rejects the whole request", () => {
-      for (const capturedCssText of [
+      for (const capturedPageText of [
         [["header .author", "x".repeat(513)]],
         [["header .author", " padded "]],
         "example author",
       ]) {
         onMessage(
           request({
-            info: { pageUrl: "https://x/", srcUrl: "https://x/file.png", capturedCssText },
+            info: { pageUrl: "https://x/", srcUrl: "https://x/file.png", capturedPageText },
           }),
           { url: "https://x/", tab: { id: 8, url: "https://x/" } },
           vi.fn(),
@@ -1133,13 +1133,13 @@ into: automatic/
 context: ^auto$
 pageurl: ^https://example\\.test/gallery/
 sourcekind: image
-csstext: header .author
-into: authors/:csstext:/
+pagetext: header .author
+into: authors/:pagetext:/
 `).rules;
     const senderTab = { id: 7, url: request.body.pageUrl, incognito: false };
     const withText = {
       ...request,
-      body: { ...request.body, capturedCssText: [["header .author", "example author"]] },
+      body: { ...request.body, capturedPageText: [["header .author", "example author"]] },
     };
 
     const missing = vi.fn();
@@ -1162,14 +1162,14 @@ into: authors/:csstext:/
     await waitForCall(matched);
     expect(Download.launchDownload).toHaveBeenCalledOnce();
     const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
-    expect(state.scratch.routeTemplateRaw).toBe("authors/:csstext:/");
+    expect(state.scratch.routeTemplateRaw).toBe("authors/:pagetext:/");
     expect(state.info).toMatchObject({
-      cssText: "example author",
-      capturedCssText: [["header .author", "example author"]],
+      pageText: "example author",
+      capturedPageText: [["header .author", "example author"]],
     });
   });
 
-  test("an automatic rule without csstext: launches with no page text", async () => {
+  test("an automatic rule without pagetext: launches with no page text", async () => {
     options.autoDownloadEnabled = true;
     options.autoDownloadPrivate = false;
     options.filenamePatterns = parseRulesCollecting(`
@@ -1185,7 +1185,7 @@ into: automatic/
     await waitForCall(sendResponse);
 
     expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info).not.toHaveProperty(
-      "cssText",
+      "pageText",
     );
   });
 

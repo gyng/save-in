@@ -251,10 +251,10 @@ selector matches.
 
 Some pages state who or what a file belongs to somewhere other than the file's
 own address: a profile page shows an account name in its header while its
-images have opaque CDN names. `csstext:` lets a rule use that text. Like
+images have opaque CDN names. `pagetext:` lets a rule use that text. Like
 `css:`, its value is a CSS selector rather than a regular expression. The
 clause matches when the page has an element for the selector that contains
-text, and `:csstext:` then expands to that text in the same rule's `into:` or
+text, and `:pagetext:` then expands to that text in the same rule's `into:` or
 `rename:`.
 
 For example, on a photo site whose post pages show the account in
@@ -264,9 +264,9 @@ image with the account and file it under a folder of the same name:
 ```text
 pagedomain: (^|\.)photos\.example$
 sourcekind: ^image$
-csstext: header a.account-name
-rename: ^ -> :csstext:_
-into: Photos/:csstext:/:filename:
+pagetext: header a.account-name
+rename: ^ -> :pagetext:_
+into: Photos/:pagetext:/:filename:
 ```
 
 Saving `8f3a91.jpg` from that page produces
@@ -278,17 +278,17 @@ ordinary destination applies.
   not inside shadow roots. The first matching element that has text is used.
   For a `<meta>` element its `content` attribute is the text, which is often
   the most stable place a page states an author or title, for example
-  `csstext: meta[property="og:title"]`.
+  `pagetext: meta[property="og:title"]`.
 - **When it is read.** The page is read at the moment you save. With automatic
   Page Sources saves it is read when discovery evaluates a source it has not
   decided yet, so a page that keeps adding sources is read again as they
   appear. Either way only rules whose own `pageurl:`, `pagedomain:`, or
-  `pagerootdomain:` conditions fit that page are looked up: give a `csstext:`
+  `pagerootdomain:` conditions fit that page are looked up: give a `pagetext:`
   rule a page condition so its selector is not read on unrelated sites. No page
-  is read when no rule uses `csstext:`.
+  is read when no rule uses `pagetext:`.
 - **What the text can do.** Page text is untrusted. Surrounding whitespace is
   trimmed, runs of whitespace become one space, and at most 512 characters are
-  kept. `:csstext:` always becomes a single folder or file name: path
+  kept. `:pagetext:` always becomes a single folder or file name: path
   separators and other unsafe characters are replaced like in any other
   variable, so page text cannot add folders or leave the destination. Text
   that happens to look like `:filename:` or `:$1:` stays literal.
@@ -299,12 +299,12 @@ ordinary destination applies.
   the rule does not match and the save continues with your other rules, the
   same as `css:` without page-element context. Tab-strip saves, ordinary
   browser downloads, external-extension requests, and **Move save** in History
-  carry no page text, so a `csstext:` rule never matches them.
-- **Limits.** One `csstext:` clause per rule and 64 across the configuration;
-  the validator rejects more. `:csstext:` is accepted only in a rule that has a
-  `csstext:` clause, and `csstext:` cannot be a `capture:` target.
+  carry no page text, so a `pagetext:` rule never matches them.
+- **Limits.** One `pagetext:` clause per rule and 64 across the configuration;
+  the validator rejects more. `:pagetext:` is accepted only in a rule that has a
+  `pagetext:` clause, and `pagetext:` cannot be a `capture:` target.
 - **Testing.** The Route debugger's **Captured page text** field stands in for
-  every `csstext:` selector, since the debugger has no page to read. History
+  every `pagetext:` selector, since the debugger has no page to read. History
   records the text that named a save, so **Debug this save** replays it.
 
 Sites change their markup without notice, so a selector that works today can

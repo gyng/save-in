@@ -32,8 +32,8 @@ test("history keeps the remaining compact inputs needed to replay routing decisi
       gesture: "left-click",
       clickKeys: "ctrl+shift",
       altText: "Harbor sunset",
-      cssText: "example author",
-      capturedCssText: [["header .author", "example author"]],
+      pageText: "example author",
+      capturedPageText: [["header .author", "example author"]],
     },
   });
 
@@ -50,7 +50,7 @@ test("history keeps the remaining compact inputs needed to replay routing decisi
       gesture: "left-click",
       keys: "ctrl+shift",
       alttext: "Harbor sunset",
-      csstext: "example author",
+      pagetext: "example author",
     }),
   );
   // Only the text that named the save is recorded, never the page's answers

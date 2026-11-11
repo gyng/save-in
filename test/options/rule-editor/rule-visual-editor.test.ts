@@ -155,10 +155,10 @@ describe("routing visual editor", () => {
     expect(document.querySelector(".rule-clause-flag")).toBeNull();
   });
 
-  test("shows a selector example and no regex controls for a csstext: row", () => {
+  test("shows a selector example and no regex controls for a pagetext: row", () => {
     element<HTMLTextAreaElement>("#filenamePatterns").value =
-      "csstext: header .author\ninto: authors/:csstext:/";
-    setupRuleVisualEditor({ matchers: ["csstext"] });
+      "pagetext: header .author\ninto: authors/:pagetext:/";
+    setupRuleVisualEditor({ matchers: ["pagetext"] });
 
     const value = element<HTMLInputElement>(".rule-clause-value");
     expect(value.value).toBe("header .author");

@@ -59,15 +59,15 @@ describe("getFilenameFromContentDisposition", () => {
   });
 });
 
-describe("page text of the winning csstext: rule", () => {
-  const routeMatch = (cssText?: string): RuleMatch => ({
+describe("page text of the winning pagetext: rule", () => {
+  const routeMatch = (pageText?: string): RuleMatch => ({
     outcome: "route",
     rule: routingRule(),
-    destination: "authors/:csstext:/",
+    destination: "authors/:pagetext:/",
     fetch: null,
     rename: null,
     tabAction: null,
-    ...(cssText ? { cssText } : {}),
+    ...(pageText ? { pageText } : {}),
   });
 
   test.each([
@@ -90,15 +90,15 @@ describe("page text of the winning csstext: rule", () => {
 
     vi.mocked(router.matchRulesDetailed).mockReturnValue(routeMatch("example author"));
     match(state);
-    expect(state.info.cssText).toBe("example author");
+    expect(state.info.pageText).toBe("example author");
 
     // A later pass can select a rule that captured nothing, an exclusion, or
     // no rule: none of them may inherit the earlier rule's text.
     vi.mocked(router.matchRulesDetailed).mockReturnValue(routeMatch());
     match(state);
-    expect(state.info).not.toHaveProperty("cssText");
+    expect(state.info).not.toHaveProperty("pageText");
 
-    state.info.cssText = "stale";
+    state.info.pageText = "stale";
     vi.mocked(router.matchRulesDetailed).mockReturnValue({
       outcome: "exclude",
       rule: routingRule(),
@@ -108,12 +108,12 @@ describe("page text of the winning csstext: rule", () => {
       tabAction: null,
     });
     match(state);
-    expect(state.info).not.toHaveProperty("cssText");
+    expect(state.info).not.toHaveProperty("pageText");
 
-    state.info.cssText = "stale";
+    state.info.pageText = "stale";
     vi.mocked(router.matchRulesDetailed).mockReturnValue(null);
     match(state);
-    expect(state.info).not.toHaveProperty("cssText");
+    expect(state.info).not.toHaveProperty("pageText");
   });
 });
 

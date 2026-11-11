@@ -16,8 +16,8 @@ import type {
   RuleErrorLocation,
   RoutingRule,
 } from "./rule-types.ts";
-import { isCssTextMatcherClause, isRegexMatcherClause } from "./rule-types.ts";
-import { MAX_CSS_TEXT_SELECTORS } from "../shared/css-text-capture.ts";
+import { isPageTextMatcherClause, isRegexMatcherClause } from "./rule-types.ts";
+import { MAX_PAGE_TEXT_SELECTORS } from "../shared/page-text-capture.ts";
 import { SPECIAL_DIRS } from "../shared/constants.ts";
 import {
   MAX_CSS_SELECTOR_LENGTH,
@@ -27,7 +27,7 @@ import {
 import { automaticRuleClauseIssues, isAutomaticRuleClauses } from "./automatic-rule.ts";
 import { findBannedFetchVariables, findUnknownPathVariables } from "./path-variables.ts";
 import { RENAME_SEPARATOR, splitRenameValue } from "./rename.ts";
-import { capturedCssTextFor, isRenameOnlyEligibleRule } from "./rule-matcher.ts";
+import { capturedPageTextFor, isRenameOnlyEligibleRule } from "./rule-matcher.ts";
 import { isSafeRoutingRegex } from "./regex-safety.ts";
 import { isUsableFetchTemplate } from "./fetch-url.ts";
 import { invalidDestinationRange } from "./destination-safety.ts";
@@ -152,7 +152,7 @@ const clauseAcceptsRegexFlags = (line: RoutingRuleNode["clauses"][number]): bool
     "capture",
     "capturegroups",
     "css",
-    "csstext",
+    "pagetext",
     "disabled",
     "exclude",
     "fetch",
@@ -176,17 +176,18 @@ const issueFallsWithinRule = (issue: RuleSyntaxIssue, rule: RoutingRuleNode): bo
 const isMatcherName = (name: string): name is keyof typeof matcherFunctions =>
   Object.hasOwn(matcherFunctions, name);
 
-const cssTextMatcher = (selector: string): MatcherClause["matcher"] => {
+const pageTextMatcher = (selector: string): MatcherClause["matcher"] => {
   const matcher = (info: Parameters<MatcherClause["matcher"]>[0]) => {
-    const text = capturedCssTextFor(info, selector);
+    const text = capturedPageTextFor(info, selector);
     return text ? /^([\s\S]*)$/.exec(text) : null;
   };
   return matcher;
 };
 
-// The variable is filled from the rule's own csstext: clause, so using it
+// The variable is filled from the rule's own pagetext: clause, so using it
 // without one can only ever expand to nothing.
-const usesCssTextVariable = (template: string): boolean => template.includes(SPECIAL_DIRS.CSS_TEXT);
+const usesPageTextVariable = (template: string): boolean =>
+  template.includes(SPECIAL_DIRS.PAGE_TEXT);
 
 const cssMatcher = (selector: string): MatcherClause["matcher"] => {
   const matcher = (info: Parameters<MatcherClause["matcher"]>[0]) =>
@@ -261,13 +262,13 @@ const parseSemanticRule = (
     );
     return false;
   }
-  const extraCssTextLine = lines.filter((line) => line.name === "csstext")[1];
-  if (extraCssTextLine) {
+  const extraPageTextLine = lines.filter((line) => line.name === "pagetext")[1];
+  if (extraPageTextLine) {
     appendError(
       errors,
-      routingPorts.getMessage("ruleExtraCssText"),
-      extraCssTextLine.value.trim(),
-      extraCssTextLine.span,
+      routingPorts.getMessage("ruleExtraPageText"),
+      extraPageTextLine.value.trim(),
+      extraPageTextLine.span,
     );
     return false;
   }
@@ -364,7 +365,7 @@ const parseSemanticRule = (
       };
     }
 
-    if (name === "css" || name === "csstext") {
+    if (name === "css" || name === "pagetext") {
       // CSS permits escaped trailing whitespace (for example an ID ending in
       // a space). The syntax parser already removes the grammar's one trivia
       // space after the colon, so preserve the selector value byte-for-byte.
@@ -378,12 +379,12 @@ const parseSemanticRule = (
         );
         return false;
       }
-      if (name === "csstext") {
+      if (name === "pagetext") {
         return {
           name,
           value: selector,
           type: RULE_TYPES.MATCHER,
-          matcher: cssTextMatcher(selector),
+          matcher: pageTextMatcher(selector),
         };
       }
       return {
@@ -690,7 +691,7 @@ const parseSemanticRule = (
     return false;
   }
   if (
-    !valid.some((clause) => clause.type === RULE_TYPES.MATCHER && isCssTextMatcherClause(clause))
+    !valid.some((clause) => clause.type === RULE_TYPES.MATCHER && isPageTextMatcherClause(clause))
   ) {
     const unfilled = [
       { template: destinationNode.value, span: destinationNode.valueSpan },
@@ -698,12 +699,12 @@ const parseSemanticRule = (
       ...(renameClause && renameNode
         ? [{ template: renameClause.replacement, span: renameNode.valueSpan }]
         : []),
-    ].filter(({ template }) => usesCssTextVariable(template));
+    ].filter(({ template }) => usesPageTextVariable(template));
     for (const { span } of unfilled) {
       appendError(
         errors,
-        routingPorts.getMessage("ruleCssTextMissingClause"),
-        SPECIAL_DIRS.CSS_TEXT,
+        routingPorts.getMessage("rulePageTextMissingClause"),
+        SPECIAL_DIRS.PAGE_TEXT,
         span,
       );
     }
@@ -845,15 +846,15 @@ export const parseRulesCollecting = (
     );
     return { rules: [], errors };
   }
-  const excessCssTextNode = parsedRules.flatMap(({ ast }) =>
-    ast.clauses.filter((clause) => clause.name === "csstext"),
-  )[MAX_CSS_TEXT_SELECTORS];
-  if (excessCssTextNode) {
+  const excessPageTextNode = parsedRules.flatMap(({ ast }) =>
+    ast.clauses.filter((clause) => clause.name === "pagetext"),
+  )[MAX_PAGE_TEXT_SELECTORS];
+  if (excessPageTextNode) {
     appendError(
       errors,
-      routingPorts.getMessage("ruleTooManyCssTextSelectors"),
-      excessCssTextNode.value.trim(),
-      excessCssTextNode.valueSpan,
+      routingPorts.getMessage("ruleTooManyPageTextSelectors"),
+      excessPageTextNode.value.trim(),
+      excessPageTextNode.valueSpan,
     );
     return { rules: [], errors };
   }

@@ -4378,11 +4378,11 @@
   "html_cssMatcherDescription": {
     "message": "比對找到該來源的頁面元素。適用於自動頁面來源、點選儲存，以及從「頁面來源」面板儲存。"
   },
-  "html_cssTextMatcherDescription": {
-    "message": "當頁面中有符合此 CSS 選取器且包含文字的元素時比對成功，並保留該文字供 :csstext: 使用。適用於上下文選單、點選儲存、從「頁面來源」面板儲存，以及自動頁面來源。"
+  "html_pageTextMatcherDescription": {
+    "message": "當頁面中有符合此 CSS 選取器且包含文字的元素時比對成功，並保留該文字供 :pagetext: 使用。適用於上下文選單、點選儲存、從「頁面來源」面板儲存，以及自動頁面來源。"
   },
   "html_cssMatcherSyntax": {
-    "message": "css: 與 csstext: 比對器使用 CSS 選取器語法，而非規則運算式，且不接受旗標。"
+    "message": "css: 與 pagetext: 比對器使用 CSS 選取器語法，而非規則運算式，且不接受旗標。"
   },
   "ruleInvalidCssSelector": {
     "message": "無效的 CSS 選取器"
@@ -4450,14 +4450,14 @@
   "ruleTooManyCssSelectors": {
     "message": "不同的 css: 選取器過多"
   },
-  "ruleExtraCssText": {
-    "message": "一條規則只能包含一個 csstext: 子句"
+  "ruleExtraPageText": {
+    "message": "一條規則只能包含一個 pagetext: 子句"
   },
-  "ruleTooManyCssTextSelectors": {
-    "message": "csstext: 子句過多"
+  "ruleTooManyPageTextSelectors": {
+    "message": "pagetext: 子句過多"
   },
-  "ruleCssTextMissingClause": {
-    "message": ":csstext: 需要同一條規則中有 csstext: 子句"
+  "rulePageTextMissingClause": {
+    "message": ":pagetext: 需要同一條規則中有 pagetext: 子句"
   },
   "ruleClauseFlags": {
     "message": "此子句不接受規則運算式旗標"
@@ -4528,8 +4528,8 @@
   "html_altTextVariableDescription": {
     "message": "頁面提供時，所儲存圖片的 alt 屬性。"
   },
-  "html_cssTextVariableDescription": {
-    "message": "規則的 csstext: 選取器所找到頁面元素的文字。"
+  "html_pageTextVariableDescription": {
+    "message": "規則的 pagetext: 選取器所找到頁面元素的文字。"
   },
   "html_linkTitleMatcherDescription": {
     "message": "比對所點選連結的 title 屬性。"
@@ -4549,7 +4549,7 @@
   "routeDebuggerAltText": {
     "message": "圖片替代文字"
   },
-  "routeDebuggerCssText": {
+  "routeDebuggerPageText": {
     "message": "擷取的頁面文字"
   },
   "notificationRuleExcludedMessage": {

@@ -365,8 +365,8 @@ test("automatic candidates carry page text read once per scan, and only when a r
 context: ^auto$
 pageurl: ^http://localhost/
 sourcekind: image
-csstext: header .author
-into: authors/:csstext:/
+pagetext: header .author
+into: authors/:pagetext:/
 `;
   const controller = setupAutoDownloadDiscovery({
     rules: textRules,
@@ -378,9 +378,9 @@ into: authors/:csstext:/
 
   expect(send).toHaveBeenCalledTimes(2);
   for (const [candidate] of send.mock.calls) {
-    expect(candidate.capturedCssText).toEqual([["header .author", "example author"]]);
+    expect(candidate.capturedPageText).toEqual([["header .author", "example author"]]);
     expect(matchAutomaticRoutingRule(parseRulesCollecting(textRules).rules, candidate)).toEqual(
-      expect.objectContaining({ destination: "authors/:csstext:/", cssText: "example author" }),
+      expect.objectContaining({ destination: "authors/:pagetext:/", pageText: "example author" }),
     );
   }
   expect(query.mock.calls.filter(([selector]) => selector === "header .author")).toHaveLength(1);

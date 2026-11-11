@@ -128,8 +128,8 @@ describe("routing visual editor model", () => {
       "css: jpg\ninto: images",
     );
     // A selector clause takes no flags, so switching to one drops /i.
-    expect(updateRoutingClause("filename/i: jpg\ninto: images", 0, 0, { name: "csstext" })).toBe(
-      "csstext: jpg\ninto: images",
+    expect(updateRoutingClause("filename/i: jpg\ninto: images", 0, 0, { name: "pagetext" })).toBe(
+      "pagetext: jpg\ninto: images",
     );
     expect(updateRoutingClause("filename: pdf\ninto:", 0, 1, { value: ":filename:" })).toBe(
       "filename: pdf\ninto: :filename:",
@@ -409,7 +409,7 @@ describe("routing visual editor model", () => {
   test.each([
     "filename/x: jpg\ninto: images",
     "css/i: img\ninto: images",
-    "csstext/i: .author\ninto: images",
+    "pagetext/i: .author\ninto: images",
     "disabled: maybe\nfilename: jpg\ninto: images",
     "disabled/i: false\nfilename: jpg\ninto: images",
     "into/i: images\nfilename: jpg",

@@ -308,7 +308,7 @@ describe("syntax editor model", () => {
         "exclude",
         "after",
         "css",
-        "csstext",
+        "pagetext",
       ],
     };
     expect(completeRoutingSyntax("capture:", 8, augmented, true)?.suggestions).toEqual([

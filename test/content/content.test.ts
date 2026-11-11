@@ -1840,16 +1840,16 @@ describe("content.js initialisation", () => {
     const respond = vi.fn();
 
     runtimeListener?.(
-      { type: "SAVE_IN_CSS_TEXT", body: { selectors: ["header .author", ".absent"] } },
+      { type: "SAVE_IN_PAGE_TEXT", body: { selectors: ["header .author", ".absent"] } },
       {},
       respond,
     );
     expect(respond).toHaveBeenLastCalledWith([["header .author", "example author"]]);
 
     for (const message of [
-      { type: "SAVE_IN_CSS_TEXT" },
-      { type: "SAVE_IN_CSS_TEXT", body: { selectors: "h1" } },
-      { type: "SAVE_IN_CSS_TEXT", body: { selectors: ["h1", 7] } },
+      { type: "SAVE_IN_PAGE_TEXT" },
+      { type: "SAVE_IN_PAGE_TEXT", body: { selectors: "h1" } },
+      { type: "SAVE_IN_PAGE_TEXT", body: { selectors: ["h1", 7] } },
     ]) {
       runtimeListener?.(message, {}, respond);
       expect(respond).toHaveBeenLastCalledWith([]);
@@ -2126,7 +2126,7 @@ describe("content.js initialisation", () => {
     ).toHaveLength(3);
   });
 
-  test("a Page Sources save carries the page text its csstext: rule captures", async () => {
+  test("a Page Sources save carries the page text its pagetext: rule captures", async () => {
     let runtimeListener: ((message: any) => void) | undefined;
     vi.resetModules();
     document.getElementById("save-in-source-panel")?.remove();
@@ -2139,7 +2139,7 @@ describe("content.js initialisation", () => {
         sourcePanelEnabled: true,
         sourcePanelBackgrounds: false,
         sourcePanelLive: false,
-        filenamePatterns: "csstext: h1.author\ninto: authors/:csstext:/",
+        filenamePatterns: "pagetext: h1.author\ninto: authors/:pagetext:/",
       }),
     ) as any;
     (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
@@ -2158,7 +2158,7 @@ describe("content.js initialisation", () => {
         type: "DOWNLOAD",
         body: expect.objectContaining({
           info: expect.objectContaining({
-            capturedCssText: [["h1.author", "example author"]],
+            capturedPageText: [["h1.author", "example author"]],
           }),
         }),
       }),
@@ -2467,7 +2467,7 @@ describe("setupClickToSave", () => {
     remove();
   });
 
-  test("click-to-save reads page text only for a csstext: rule that applies to the page", () => {
+  test("click-to-save reads page text only for a pagetext: rule that applies to the page", () => {
     const setup = (filenamePatterns: string) =>
       ClickToSave.setupClickToSave(
         {
@@ -2489,26 +2489,26 @@ describe("setupClickToSave", () => {
     };
     const query = vi.spyOn(document, "querySelectorAll");
 
-    let remove = setup("csstext: header .author\ninto: authors/:csstext:/:filename:");
+    let remove = setup("pagetext: header .author\ninto: authors/:pagetext:/:filename:");
     window.dispatchEvent(keyEvent("keydown", 17));
     mousedown(document.getElementById("i"), 8);
-    expect(lastInfo().capturedCssText).toEqual([["header .author", "example author"]]);
+    expect(lastInfo().capturedPageText).toEqual([["header .author", "example author"]]);
     remove();
 
     // The selector found no text: the rule cannot match, so nothing is sent.
-    remove = setup("csstext: .blank\ninto: authors/:csstext:/:filename:");
+    remove = setup("pagetext: .blank\ninto: authors/:pagetext:/:filename:");
     window.dispatchEvent(keyEvent("keydown", 17));
     mousedown(document.getElementById("i"), 8);
-    expect(lastInfo()).not.toHaveProperty("capturedCssText");
+    expect(lastInfo()).not.toHaveProperty("capturedPageText");
     remove();
 
     query.mockClear();
     remove = setup(
-      "pagedomain: ^elsewhere\\.test$\ncsstext: header .author\ninto: authors/:csstext:/:filename:",
+      "pagedomain: ^elsewhere\\.test$\npagetext: header .author\ninto: authors/:pagetext:/:filename:",
     );
     window.dispatchEvent(keyEvent("keydown", 17));
     mousedown(document.getElementById("i"), 8);
-    expect(lastInfo()).not.toHaveProperty("capturedCssText");
+    expect(lastInfo()).not.toHaveProperty("capturedPageText");
     expect(query).not.toHaveBeenCalledWith("header .author");
     remove();
     query.mockRestore();

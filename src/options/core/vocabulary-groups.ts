@@ -35,7 +35,7 @@ const VARIABLE_ORDER = [
   "linktitle",
   "linkdownload",
   "alttext",
-  "csstext",
+  "pagetext",
   "selectiontext",
   "menupath",
   "sourceurl",
@@ -73,7 +73,7 @@ export const variableGroup = (variable: string): VariableGroup => {
     )
   )
     return "Date and time";
-  if (/^(page|frame|selection|link|alttext$|csstext$|menu|title$)/.test(name))
+  if (/^(page|frame|selection|link|alttext$|pagetext$|menu|title$)/.test(name))
     return "Page context";
   if (/^(source|url$|tld|naive|urlfileext)/.test(name)) return "Source URL";
   if (
@@ -120,7 +120,7 @@ const CLAUSE_ORDER = [
   "pagetitle",
   "frameurl",
   "css",
-  "csstext",
+  "pagetext",
   "sourceurl",
   "sourcedomain",
   "sourcerootdomain",
@@ -148,7 +148,7 @@ export const clauseGroup = (clause: string): ClauseGroup => {
   if (["into", "exclude", "after", "fetch", "rename"].includes(name)) return "Output";
   if (name === "capture" || name === "capturegroups") return "Capture setup";
   if (
-    /^(context|gesture|keys|menuindex|comment|directory|linktext|linktitle|linkdownload|alttext|selectiontext|css|csstext)$/.test(
+    /^(context|gesture|keys|menuindex|comment|directory|linktext|linktitle|linkdownload|alttext|selectiontext|css|pagetext)$/.test(
       name,
     )
   )

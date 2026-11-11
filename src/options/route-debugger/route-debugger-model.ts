@@ -70,7 +70,7 @@ export type RouteDebuggerFields = {
   linkTitle?: string | undefined;
   linkDownload?: string | undefined;
   altText?: string | undefined;
-  cssText?: string | undefined;
+  pageText?: string | undefined;
   selectionText?: string | undefined;
   mediaType?: string | undefined;
   sourceKind?: PageSourceKind | "" | undefined;
@@ -319,7 +319,7 @@ export const routeDebuggerInfo = (fields: RouteDebuggerFields): ValidationInfo =
   if (fields.linkTitle) info.linkTitle = fields.linkTitle;
   if (fields.linkDownload) info.linkDownload = fields.linkDownload;
   if (fields.altText) info.altText = fields.altText;
-  if (fields.cssText) info.cssText = fields.cssText;
+  if (fields.pageText) info.pageText = fields.pageText;
   if (fields.selectionText) info.selectionText = fields.selectionText;
   const mediaType = fields.mediaType || (automatic ? fields.sourceKind : "");
   if (mediaType) info.mediaType = mediaType;

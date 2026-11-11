@@ -4378,11 +4378,11 @@
   "html_cssMatcherDescription": {
     "message": "ソースを検出したページ要素に一致します。自動ページソース、クリック保存、ページソースパネルからの保存で利用できます。"
   },
-  "html_cssTextMatcherDescription": {
-    "message": "この CSS セレクターに該当し、テキストを含む要素がページにある場合に一致し、そのテキストを :csstext: 用に保持します。コンテキストメニュー、クリック保存、ページソースパネルからの保存、自動ページソースで利用できます。"
+  "html_pageTextMatcherDescription": {
+    "message": "この CSS セレクターに該当し、テキストを含む要素がページにある場合に一致し、そのテキストを :pagetext: 用に保持します。コンテキストメニュー、クリック保存、ページソースパネルからの保存、自動ページソースで利用できます。"
   },
   "html_cssMatcherSyntax": {
-    "message": "css: と csstext: のマッチャーは正規表現ではなく CSS セレクター構文を使用し、フラグは指定できません。"
+    "message": "css: と pagetext: のマッチャーは正規表現ではなく CSS セレクター構文を使用し、フラグは指定できません。"
   },
   "ruleInvalidCssSelector": {
     "message": "CSS セレクターが無効です"
@@ -4450,14 +4450,14 @@
   "ruleTooManyCssSelectors": {
     "message": "異なる css: セレクターが多すぎます"
   },
-  "ruleExtraCssText": {
-    "message": "ルールには csstext: 句を 1 つだけ含めることができます"
+  "ruleExtraPageText": {
+    "message": "ルールには pagetext: 句を 1 つだけ含めることができます"
   },
-  "ruleTooManyCssTextSelectors": {
-    "message": "csstext: 句が多すぎます"
+  "ruleTooManyPageTextSelectors": {
+    "message": "pagetext: 句が多すぎます"
   },
-  "ruleCssTextMissingClause": {
-    "message": ":csstext: を使うには、同じルールに csstext: 句が必要です"
+  "rulePageTextMissingClause": {
+    "message": ":pagetext: を使うには、同じルールに pagetext: 句が必要です"
   },
   "ruleClauseFlags": {
     "message": "この句には正規表現フラグを指定できません"
@@ -4528,8 +4528,8 @@
   "html_altTextVariableDescription": {
     "message": "保存した画像にページで指定された alt 属性です。"
   },
-  "html_cssTextVariableDescription": {
-    "message": "ルールの csstext: セレクターが見つけたページ要素のテキストです。"
+  "html_pageTextVariableDescription": {
+    "message": "ルールの pagetext: セレクターが見つけたページ要素のテキストです。"
   },
   "html_linkTitleMatcherDescription": {
     "message": "クリックしたリンクの title 属性に一致します。"
@@ -4549,7 +4549,7 @@
   "routeDebuggerAltText": {
     "message": "画像の代替テキスト"
   },
-  "routeDebuggerCssText": {
+  "routeDebuggerPageText": {
     "message": "キャプチャしたページのテキスト"
   },
   "notificationRuleExcludedMessage": {

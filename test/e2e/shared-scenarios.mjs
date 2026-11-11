@@ -1198,7 +1198,7 @@ into: routed/:linktitle:/:linkdownload:/`,
 };
 
 /**
- * A csstext: rule names a save after text elsewhere on its page, and :alttext:
+ * A pagetext: rule names a save after text elsewhere on its page, and :alttext:
  * after the saved image's own alt attribute. Both live only in the page: the
  * production menu command asks the real content script for them, which is why
  * this runs in a browser. The captured text carries a path separator, so the
@@ -1237,8 +1237,8 @@ export const runPageTextRoutingScenario = async ({ control, evaluatePage }) => {
     await control.options.set({
       paths: "e2e/page-text",
       filenamePatterns: `pageurl: /page-text$
-csstext: header .author
-into: captured/:csstext:/:alttext:/`,
+pagetext: header .author
+into: captured/:pagetext:/:alttext:/`,
     });
     const created = await control.tabs.create({ url: pageUrl, active: true });
     tabId = created.id;
@@ -1283,7 +1283,7 @@ into: captured/:csstext:/:alttext:/`,
       expect.arrayContaining([
         expect.objectContaining({
           variables: expect.objectContaining({
-            csstext: "example/author",
+            pagetext: "example/author",
             alttext: "Harbor sunset",
           }),
         }),

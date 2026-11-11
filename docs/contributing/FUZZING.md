@@ -2,7 +2,7 @@
 
 Run the bounded property suite with `npm run test:fuzz`. It spends one second
 across directory parsing and edits, routing syntax and semantics, filename
-safety, page-text containment for `:csstext:`, webhook URL policy, and menu
+safety, page-text containment for `:pagetext:`, webhook URL policy, and menu
 access-key markup. Set `FUZZ_TIME_MS` for a
 longer campaign.
 

@@ -85,10 +85,10 @@ Accepted URL schemes are `http`, `https`, `ftp`, `data`, and `blob`. A `blob` UR
 inputs. The latter two correspond to an HTML anchor's `title` and `download`
 attributes; Save In does not reinterpret `linkText` as either attribute.
 `altText` is the optional `alt` attribute of a saved image, matched by
-`alttext:` and expanded by `:alttext:`. Page text for `csstext:` rules is
-accepted only from Save In's own content script, so a `csstext:` rule never
-matches an external `DOWNLOAD` request; `VALIDATE` accepts an `info.cssText`
-string that stands in for every `csstext:` selector in the trace.
+`alttext:` and expanded by `:alttext:`. Page text for `pagetext:` rules is
+accepted only from Save In's own content script, so a `pagetext:` rule never
+matches an external `DOWNLOAD` request; `VALIDATE` accepts an `info.pageText`
+string that stands in for every `pagetext:` selector in the trace.
 
 Download errors are `UNAUTHORIZED`, `BAD_REQUEST`, or `INVALID_URL`; unknown external message types return `UNKNOWN_TYPE`. `OPEN_PICKER` adds `UNAVAILABLE`, described [below](#opening-the-destination-picker). Treat `UNAUTHORIZED` as a request for user configuration, not as a transient error to retry repeatedly.
 

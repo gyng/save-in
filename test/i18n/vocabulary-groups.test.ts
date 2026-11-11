@@ -16,7 +16,7 @@ test("groups variables by user task rather than implementation scope", () => {
   expect(variableGroup(":menupath:")).toBe("Page context");
   expect(variableGroup(":linktitle:")).toBe("Page context");
   expect(variableGroup(":alttext:")).toBe("Page context");
-  expect(variableGroup(":csstext:")).toBe("Page context");
+  expect(variableGroup(":pagetext:")).toBe("Page context");
   expect(variableGroup(":sourceurl:")).toBe("Source URL");
   expect(variableGroup(":filename:")).toBe("Resolved file");
   expect(variableGroup(":sha256full:")).toBe("Resolved file");
@@ -33,7 +33,7 @@ test("groups clauses by routing intent", () => {
   expect(clauseGroup("context:")).toBe("Page and menu context");
   expect(clauseGroup("linkdownload:")).toBe("Page and menu context");
   expect(clauseGroup("alttext:")).toBe("Page and menu context");
-  expect(clauseGroup("csstext:")).toBe("Page and menu context");
+  expect(clauseGroup("pagetext:")).toBe("Page and menu context");
   expect(clauseGroup("sourceurl:")).toBe("URL and source matching");
   expect(clauseGroup("filename:")).toBe("Filename and content matching");
 });

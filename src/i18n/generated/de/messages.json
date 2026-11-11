@@ -4378,11 +4378,11 @@
   "html_cssMatcherDescription": {
     "message": "Entspricht dem Seitenelement, das die Quelle erkannt hat. Verfügbar für automatische Seitenquellen, Speichern per Klick und Speichern im Seitenquellen-Bereich."
   },
-  "html_cssTextMatcherDescription": {
-    "message": "Trifft zu, wenn die Seite ein Element für diesen CSS-Selektor enthält, das Text enthält, und merkt sich diesen Text für :csstext:. Verfügbar für Kontextmenü, Speichern per Klick, Speichern im Seitenquellen-Bereich und automatische Seitenquellen."
+  "html_pageTextMatcherDescription": {
+    "message": "Trifft zu, wenn die Seite ein Element für diesen CSS-Selektor enthält, das Text enthält, und merkt sich diesen Text für :pagetext:. Verfügbar für Kontextmenü, Speichern per Klick, Speichern im Seitenquellen-Bereich und automatische Seitenquellen."
   },
   "html_cssMatcherSyntax": {
-    "message": "Die Matcher css: und csstext: verwenden CSS-Selektorsyntax anstelle eines regulären Ausdrucks und akzeptieren keine Flags."
+    "message": "Die Matcher css: und pagetext: verwenden CSS-Selektorsyntax anstelle eines regulären Ausdrucks und akzeptieren keine Flags."
   },
   "ruleInvalidCssSelector": {
     "message": "Ungültiger CSS-Selektor"
@@ -4450,14 +4450,14 @@
   "ruleTooManyCssSelectors": {
     "message": "Zu viele unterschiedliche css:-Selektoren"
   },
-  "ruleExtraCssText": {
-    "message": "Eine Regel kann nur eine csstext:-Klausel enthalten"
+  "ruleExtraPageText": {
+    "message": "Eine Regel kann nur eine pagetext:-Klausel enthalten"
   },
-  "ruleTooManyCssTextSelectors": {
-    "message": "Zu viele csstext:-Klauseln"
+  "ruleTooManyPageTextSelectors": {
+    "message": "Zu viele pagetext:-Klauseln"
   },
-  "ruleCssTextMissingClause": {
-    "message": ":csstext: benötigt eine csstext:-Klausel in derselben Regel"
+  "rulePageTextMissingClause": {
+    "message": ":pagetext: benötigt eine pagetext:-Klausel in derselben Regel"
   },
   "ruleClauseFlags": {
     "message": "Diese Klausel akzeptiert keine Flags für reguläre Ausdrücke"
@@ -4528,8 +4528,8 @@
   "html_altTextVariableDescription": {
     "message": "Das alt-Attribut des gespeicherten Bildes, wenn die Seite es angibt."
   },
-  "html_cssTextVariableDescription": {
-    "message": "Der Text des Seitenelements, das der csstext:-Selektor der Regel gefunden hat."
+  "html_pageTextVariableDescription": {
+    "message": "Der Text des Seitenelements, das der pagetext:-Selektor der Regel gefunden hat."
   },
   "html_linkTitleMatcherDescription": {
     "message": "Entspricht dem title-Attribut des angeklickten Links."
@@ -4549,7 +4549,7 @@
   "routeDebuggerAltText": {
     "message": "Bild-Alternativtext"
   },
-  "routeDebuggerCssText": {
+  "routeDebuggerPageText": {
     "message": "Erfasster Seitentext"
   },
   "notificationRuleExcludedMessage": {

@@ -4378,11 +4378,11 @@
   "html_cssMatcherDescription": {
     "message": "Coincide con el elemento de la página que detectó la fuente. Disponible para Fuentes de página automáticas, Clic para guardar y guardar desde el panel Fuentes de página."
   },
-  "html_cssTextMatcherDescription": {
-    "message": "Coincide cuando la página tiene un elemento para este selector CSS que contiene texto, y conserva ese texto para :csstext:. Disponible para el menú contextual, Clic para guardar, guardar desde el panel Fuentes de página y Fuentes de página automáticas."
+  "html_pageTextMatcherDescription": {
+    "message": "Coincide cuando la página tiene un elemento para este selector CSS que contiene texto, y conserva ese texto para :pagetext:. Disponible para el menú contextual, Clic para guardar, guardar desde el panel Fuentes de página y Fuentes de página automáticas."
   },
   "html_cssMatcherSyntax": {
-    "message": "Los comparadores css: y csstext: usan sintaxis de selector CSS en lugar de una expresión regular y no admiten indicadores."
+    "message": "Los comparadores css: y pagetext: usan sintaxis de selector CSS en lugar de una expresión regular y no admiten indicadores."
   },
   "ruleInvalidCssSelector": {
     "message": "Selector CSS no válido"
@@ -4450,14 +4450,14 @@
   "ruleTooManyCssSelectors": {
     "message": "Demasiados selectores css: distintos"
   },
-  "ruleExtraCssText": {
-    "message": "Una regla solo puede contener una cláusula csstext:"
+  "ruleExtraPageText": {
+    "message": "Una regla solo puede contener una cláusula pagetext:"
   },
-  "ruleTooManyCssTextSelectors": {
-    "message": "Demasiadas cláusulas csstext:"
+  "ruleTooManyPageTextSelectors": {
+    "message": "Demasiadas cláusulas pagetext:"
   },
-  "ruleCssTextMissingClause": {
-    "message": ":csstext: necesita una cláusula csstext: en la misma regla"
+  "rulePageTextMissingClause": {
+    "message": ":pagetext: necesita una cláusula pagetext: en la misma regla"
   },
   "ruleClauseFlags": {
     "message": "Esta cláusula no admite indicadores de expresiones regulares"
@@ -4528,8 +4528,8 @@
   "html_altTextVariableDescription": {
     "message": "El atributo alt de la imagen guardada, si la página lo proporciona."
   },
-  "html_cssTextVariableDescription": {
-    "message": "El texto del elemento de la página encontrado por el selector csstext: de la regla."
+  "html_pageTextVariableDescription": {
+    "message": "El texto del elemento de la página encontrado por el selector pagetext: de la regla."
   },
   "html_linkTitleMatcherDescription": {
     "message": "Coincide con el atributo title del enlace pulsado."
@@ -4549,7 +4549,7 @@
   "routeDebuggerAltText": {
     "message": "Texto alternativo de la imagen"
   },
-  "routeDebuggerCssText": {
+  "routeDebuggerPageText": {
     "message": "Texto capturado de la página"
   },
   "notificationRuleExcludedMessage": {

@@ -4378,11 +4378,11 @@
   "html_cssMatcherDescription": {
     "message": "Komt overeen met het pagina-element dat de bron heeft gevonden. Beschikbaar voor automatische paginabronnen, klikken om op te slaan en opslaan via het paneel Paginabronnen."
   },
-  "html_cssTextMatcherDescription": {
-    "message": "Komt overeen wanneer de pagina een element voor deze CSS-selector heeft dat tekst bevat, en bewaart die tekst voor :csstext:. Beschikbaar voor het contextmenu, klikken om op te slaan, opslaan via het paneel Paginabronnen en automatische paginabronnen."
+  "html_pageTextMatcherDescription": {
+    "message": "Komt overeen wanneer de pagina een element voor deze CSS-selector heeft dat tekst bevat, en bewaart die tekst voor :pagetext:. Beschikbaar voor het contextmenu, klikken om op te slaan, opslaan via het paneel Paginabronnen en automatische paginabronnen."
   },
   "html_cssMatcherSyntax": {
-    "message": "De matchers css: en csstext: gebruiken CSS-selectorsyntaxis in plaats van een reguliere expressie en accepteren geen vlaggen."
+    "message": "De matchers css: en pagetext: gebruiken CSS-selectorsyntaxis in plaats van een reguliere expressie en accepteren geen vlaggen."
   },
   "ruleInvalidCssSelector": {
     "message": "Ongeldige CSS-selector"
@@ -4450,14 +4450,14 @@
   "ruleTooManyCssSelectors": {
     "message": "Te veel verschillende css:-selectors"
   },
-  "ruleExtraCssText": {
-    "message": "Een regel kan slechts één csstext:-clausule bevatten"
+  "ruleExtraPageText": {
+    "message": "Een regel kan slechts één pagetext:-clausule bevatten"
   },
-  "ruleTooManyCssTextSelectors": {
-    "message": "Te veel csstext:-clausules"
+  "ruleTooManyPageTextSelectors": {
+    "message": "Te veel pagetext:-clausules"
   },
-  "ruleCssTextMissingClause": {
-    "message": ":csstext: vereist een csstext:-clausule in dezelfde regel"
+  "rulePageTextMissingClause": {
+    "message": ":pagetext: vereist een pagetext:-clausule in dezelfde regel"
   },
   "ruleClauseFlags": {
     "message": "Deze clausule accepteert geen vlaggen voor reguliere expressies"
@@ -4528,8 +4528,8 @@
   "html_altTextVariableDescription": {
     "message": "Het alt-attribuut van de opgeslagen afbeelding, wanneer de pagina dit opgeeft."
   },
-  "html_cssTextVariableDescription": {
-    "message": "De tekst van het pagina-element dat de csstext:-selector van de regel heeft gevonden."
+  "html_pageTextVariableDescription": {
+    "message": "De tekst van het pagina-element dat de pagetext:-selector van de regel heeft gevonden."
   },
   "html_linkTitleMatcherDescription": {
     "message": "Komt overeen met het title-attribuut van de aangeklikte link."
@@ -4549,7 +4549,7 @@
   "routeDebuggerAltText": {
     "message": "Alternatieve tekst van afbeelding"
   },
-  "routeDebuggerCssText": {
+  "routeDebuggerPageText": {
     "message": "Vastgelegde paginatekst"
   },
   "notificationRuleExcludedMessage": {

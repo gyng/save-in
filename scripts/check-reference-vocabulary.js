@@ -75,9 +75,9 @@ const missing = [
   ...(variableReference.includes("capturegroups:")
     ? []
     : ["src/options/options.html: missing capturegroups variable"]),
-  // css: and csstext: take a selector, so the parser owns them instead of the
+  // css: and pagetext: take a selector, so the parser owns them instead of the
   // regex matcher registry this script reads.
-  ...[...matcherTokens, "css:", "csstext:", "capture:", "capturegroups:", "into:", "fetch:"]
+  ...[...matcherTokens, "css:", "pagetext:", "capture:", "capturegroups:", "into:", "fetch:"]
     .filter((token) => !matcherReference.includes(token))
     .map((token) => `src/options/clauselist.html: missing routing clause ${token}`),
   ...(variableReference.includes("fetch:")

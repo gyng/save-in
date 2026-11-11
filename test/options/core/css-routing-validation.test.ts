@@ -18,13 +18,13 @@ test("Options uses the browser selector parser to reject invalid css matchers", 
   expect(cssSelectorErrors("css: #escaped\\ \ninto: escaped/", escaped)).toEqual([]);
 });
 
-test("Options rejects an invalid csstext selector the same way", () => {
-  expect(cssSelectorErrors("csstext: header .author\ninto: authors/:csstext:/")).toEqual([]);
-  expect(cssSelectorErrors("csstext: [\ninto: authors/:csstext:/")).toEqual([
+test("Options rejects an invalid pagetext selector the same way", () => {
+  expect(cssSelectorErrors("pagetext: header .author\ninto: authors/:pagetext:/")).toEqual([]);
+  expect(cssSelectorErrors("pagetext: [\ninto: authors/:pagetext:/")).toEqual([
     expect.objectContaining({
       message: "Translated<ruleInvalidCssSelector>",
       error: "[",
-      location: { start: 9, end: 10, line: 1, column: 9 },
+      location: { start: 10, end: 11, line: 1, column: 10 },
     }),
   ]);
 });

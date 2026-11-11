@@ -668,8 +668,8 @@ describe("renameAndDownload: browserDownload", () => {
         url: `data:image/png;base64,${"a".repeat(16_384)}`,
         sourceUrl: `data:image/png;base64,${"b".repeat(16_384)}`,
         selectionText: "s".repeat(16_384),
-        capturedCssText: [["header .author", "example author"]],
-        cssText: "example author",
+        capturedPageText: [["header .author", "example author"]],
+        pageText: "example author",
         currentTab: {
           url: `https://page.example/${"u".repeat(16_384)}`,
         },
@@ -700,8 +700,8 @@ describe("renameAndDownload: browserDownload", () => {
     });
     // The winning text stays for the route debugger; the page's other answers
     // are evidence for one match and are not retained.
-    expect(backgroundRuntime.lastDownloadState?.info.cssText).toBe("example author");
-    expect(backgroundRuntime.lastDownloadState?.info).not.toHaveProperty("capturedCssText");
+    expect(backgroundRuntime.lastDownloadState?.info.pageText).toBe("example author");
+    expect(backgroundRuntime.lastDownloadState?.info).not.toHaveProperty("capturedPageText");
     expect(backgroundRuntime.lastDownloadState?.info.filename?.length).toBeLessThan(
       state.info.filename?.length ?? 0,
     );

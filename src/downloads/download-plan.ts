@@ -33,15 +33,15 @@ import {
   requireDownloadUrl,
 } from "./download-pipeline-state.ts";
 
-// :csstext: expands to what the winning rule's csstext: clause captured, so
+// :pagetext: expands to what the winning rule's pagetext: clause captured, so
 // every fresh match replaces it: a rule that lost on a later pass must not
 // leave its text behind to name another rule's file.
-const recordMatchedCssText = (
+const recordMatchedPageText = (
   info: DownloadPipelineState["info"],
   match: RuleMatch | null,
 ): void => {
-  if (match?.outcome === "route" && match.cssText) info.cssText = match.cssText;
-  else delete info.cssText;
+  if (match?.outcome === "route" && match.pageText) info.pageText = match.pageText;
+  else delete info.pageText;
 };
 
 export const getRoutingMatch = (state: Pick<DownloadPipelineState, "info">): RuleMatch | null => {
@@ -52,7 +52,7 @@ export const getRoutingMatch = (state: Pick<DownloadPipelineState, "info">): Rul
   }
 
   const match = matchRulesDetailed(filenamePatterns, state.info);
-  recordMatchedCssText(state.info, match);
+  recordMatchedPageText(state.info, match);
   return match;
 };
 
@@ -89,7 +89,7 @@ export const getRoutingMatches = (
     isRenameOnlyEligibleRule,
     isRenameOnlyEligibleMatch,
   );
-  recordMatchedCssText(state.info, match);
+  recordMatchedPageText(state.info, match);
   if (match?.outcome === "exclude") {
     state.scratch.routeOutcome = "exclude";
     return null;

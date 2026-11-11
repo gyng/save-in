@@ -53,11 +53,11 @@ import {
 } from "../shared/context-link-metadata.ts";
 import { isBrowserTabId } from "../shared/message-protocol.ts";
 import {
-  CSS_TEXT_REQUEST,
-  parseCssTextCapture,
-  type CssTextCapture,
-} from "../shared/css-text-capture.ts";
-import { cssTextSelectorsForPage } from "../routing/css-text.ts";
+  PAGE_TEXT_REQUEST,
+  parsePageTextCapture,
+  type PageTextCapture,
+} from "../shared/page-text-capture.ts";
+import { pageTextSelectorsForPage } from "../routing/page-text.ts";
 
 export { resolveClickTarget } from "./menu-target.ts";
 
@@ -188,20 +188,20 @@ const readContextImage = async (
   return parseContextImage(await askPage(tab.id, { type: CONTEXT_IMAGE_REQUEST }, 0));
 };
 
-// csstext: rules name a save after text on its page. The top-level document is
+// pagetext: rules name a save after text on its page. The top-level document is
 // asked only when a rule that can apply to this page uses one, and only for
 // those rules' selectors. An unanswered question leaves the capture absent, so
 // such a rule does not match — the same outcome as css: without an attestation.
-const readCssText = async (
+const readPageText = async (
   info: ContextMenuClickInfo,
   tab: CurrentTab | null | undefined,
-): Promise<CssTextCapture | undefined> => {
+): Promise<PageTextCapture | undefined> => {
   const rules = options.filenamePatterns;
   if (!isBrowserTabId(tab?.id) || !Array.isArray(rules)) return undefined;
-  const selectors = cssTextSelectorsForPage(rules, info.pageUrl);
+  const selectors = pageTextSelectorsForPage(rules, info.pageUrl);
   if (selectors.length === 0) return undefined;
-  return parseCssTextCapture(
-    await askPage(tab.id, { type: CSS_TEXT_REQUEST, body: { selectors } }, 0),
+  return parsePageTextCapture(
+    await askPage(tab.id, { type: PAGE_TEXT_REQUEST, body: { selectors } }, 0),
     selectors,
   );
 };
@@ -395,7 +395,7 @@ const handleContextMenuClickInternal = async (
       const image = recoveredImage ?? (await readContextImage(info, clickTab));
       if (image && image.src === boundedContextImageUrl(info.srcUrl)) altText = image.alt;
     }
-    const capturedCssText = await readCssText(info, clickTab);
+    const capturedPageText = await readPageText(info, clickTab);
     // A text selection is saved as an object URL of its text (the pure
     // decision only reports the text)
     let url = target.selectionText != null ? makeObjectUrl(target.selectionText) : target.url;
@@ -509,7 +509,7 @@ const handleContextMenuClickInternal = async (
       linkTitle: contextLinkMetadata?.title,
       linkDownload: contextLinkMetadata?.download,
       altText,
-      ...(capturedCssText ? { capturedCssText } : {}),
+      ...(capturedPageText ? { capturedPageText } : {}),
       mediaType: info.mediaType,
       now: new Date(),
       pageUrl: info.pageUrl,

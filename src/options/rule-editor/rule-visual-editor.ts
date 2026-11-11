@@ -65,7 +65,7 @@ const DEFAULT_MATCHERS = [
   "pagetitle",
   "frameurl",
   "css",
-  "csstext",
+  "pagetext",
   "sourceurl",
   "sourcedomain",
   "sourcerootdomain",
@@ -475,7 +475,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
             ? "find -> replacement"
             : clause.name === "css"
               ? "article img, .gallery video"
-              : clause.name === "csstext"
+              : clause.name === "pagetext"
                 ? "header .author"
                 : ".*";
     value.setAttribute(

@@ -4378,11 +4378,11 @@
   "html_cssMatcherDescription": {
     "message": "Correspond à l’élément de page qui a détecté la source. Disponible pour les Sources de page automatiques, l’enregistrement par clic et les enregistrements depuis le panneau Sources de page."
   },
-  "html_cssTextMatcherDescription": {
-    "message": "Correspond lorsque la page comporte un élément pour ce sélecteur CSS qui contient du texte, et conserve ce texte pour :csstext:. Disponible pour le menu contextuel, l’enregistrement par clic, les enregistrements depuis le panneau Sources de page et les Sources de page automatiques."
+  "html_pageTextMatcherDescription": {
+    "message": "Correspond lorsque la page comporte un élément pour ce sélecteur CSS qui contient du texte, et conserve ce texte pour :pagetext:. Disponible pour le menu contextuel, l’enregistrement par clic, les enregistrements depuis le panneau Sources de page et les Sources de page automatiques."
   },
   "html_cssMatcherSyntax": {
-    "message": "Les critères css: et csstext: utilisent la syntaxe des sélecteurs CSS au lieu d’une expression régulière et n’acceptent aucun indicateur."
+    "message": "Les critères css: et pagetext: utilisent la syntaxe des sélecteurs CSS au lieu d’une expression régulière et n’acceptent aucun indicateur."
   },
   "ruleInvalidCssSelector": {
     "message": "Sélecteur CSS non valide"
@@ -4450,14 +4450,14 @@
   "ruleTooManyCssSelectors": {
     "message": "Trop de sélecteurs css: distincts"
   },
-  "ruleExtraCssText": {
-    "message": "Une règle ne peut contenir qu’une seule clause csstext:"
+  "ruleExtraPageText": {
+    "message": "Une règle ne peut contenir qu’une seule clause pagetext:"
   },
-  "ruleTooManyCssTextSelectors": {
-    "message": "Trop de clauses csstext:"
+  "ruleTooManyPageTextSelectors": {
+    "message": "Trop de clauses pagetext:"
   },
-  "ruleCssTextMissingClause": {
-    "message": ":csstext: nécessite une clause csstext: dans la même règle"
+  "rulePageTextMissingClause": {
+    "message": ":pagetext: nécessite une clause pagetext: dans la même règle"
   },
   "ruleClauseFlags": {
     "message": "Cette clause n’accepte pas les indicateurs d’expression régulière"
@@ -4528,8 +4528,8 @@
   "html_altTextVariableDescription": {
     "message": "L’attribut alt de l’image que vous avez enregistrée, lorsque la page le fournit."
   },
-  "html_cssTextVariableDescription": {
-    "message": "Le texte de l’élément de page trouvé par le sélecteur csstext: de la règle."
+  "html_pageTextVariableDescription": {
+    "message": "Le texte de l’élément de page trouvé par le sélecteur pagetext: de la règle."
   },
   "html_linkTitleMatcherDescription": {
     "message": "Correspond à l’attribut title du lien sur lequel vous avez cliqué."
@@ -4549,7 +4549,7 @@
   "routeDebuggerAltText": {
     "message": "Texte alternatif de l’image"
   },
-  "routeDebuggerCssText": {
+  "routeDebuggerPageText": {
     "message": "Texte capturé sur la page"
   },
   "notificationRuleExcludedMessage": {

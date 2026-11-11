@@ -116,7 +116,7 @@ export const registerSharedBrowserCases = (adapters) => {
     await runLinkMetadataRoutingScenario({ control, evaluatePage });
   });
 
-  test("a csstext rule names an image save after text on its page", async () => {
+  test("a pagetext rule names an image save after text on its page", async () => {
     await runPageTextRoutingScenario({ control, evaluatePage });
   });
 

@@ -1054,7 +1054,7 @@ describe("addDownloadListener", () => {
     expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
   });
 
-  describe("page text for csstext: rules", () => {
+  describe("page text for pagetext: rules", () => {
     const pageUrl = "https://photos.example/post/1";
     const imageClick = {
       menuItemId: "save-in-0",
@@ -1071,11 +1071,11 @@ describe("addDownloadListener", () => {
       global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve(value));
     };
     const AUTHOR_RULE =
-      "pagedomain: ^photos\\.example$\ncsstext: header .author\ninto: authors/:csstext:/";
+      "pagedomain: ^photos\\.example$\npagetext: header .author\ninto: authors/:pagetext:/";
 
     test("asks the top-level page for the selectors of rules that apply to it", async () => {
       useRules(
-        `${AUTHOR_RULE}\n\npagedomain: ^elsewhere\\.test$\ncsstext: .other\ninto: other/:csstext:/`,
+        `${AUTHOR_RULE}\n\npagedomain: ^elsewhere\\.test$\npagetext: .other\ninto: other/:pagetext:/`,
       );
       answer([["header .author", "example author"]]);
       Menus.addPaths(["dir1"], ["image"]);
@@ -1086,10 +1086,10 @@ describe("addDownloadListener", () => {
       expect(global.browser.tabs.sendMessage).toHaveBeenCalledOnce();
       expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(
         42,
-        { type: "SAVE_IN_CSS_TEXT", body: { selectors: ["header .author"] } },
+        { type: "SAVE_IN_PAGE_TEXT", body: { selectors: ["header .author"] } },
         { frameId: 0 },
       );
-      expect(lastState().info.capturedCssText).toEqual([["header .author", "example author"]]);
+      expect(lastState().info.capturedPageText).toEqual([["header .author", "example author"]]);
     });
 
     test("keeps only bounded answers for the selectors it asked about", async () => {
@@ -1101,7 +1101,7 @@ describe("addDownloadListener", () => {
         [".unasked", "other"],
       ]);
       await listener(imageClick, tab);
-      expect(lastState().info.capturedCssText).toEqual([["header .author", "example author"]]);
+      expect(lastState().info.capturedPageText).toEqual([["header .author", "example author"]]);
 
       for (const malformed of [
         [["header .author", "x".repeat(513)]],
@@ -1112,7 +1112,7 @@ describe("addDownloadListener", () => {
       ]) {
         answer(malformed);
         await listener({ ...imageClick, menuItemId: Menus.IDS.ROUTE_EXCLUSIVE }, tab);
-        expect(lastState().info).not.toHaveProperty("capturedCssText");
+        expect(lastState().info).not.toHaveProperty("capturedPageText");
       }
     });
 
@@ -1139,11 +1139,11 @@ describe("addDownloadListener", () => {
       await listener(click, clickTab);
 
       expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
-      expect(lastState().info).not.toHaveProperty("capturedCssText");
+      expect(lastState().info).not.toHaveProperty("capturedPageText");
     });
 
     test("does not ask when rules are not parsed yet", async () => {
-      options.filenamePatterns = "csstext: header .author\ninto: x/:csstext:";
+      options.filenamePatterns = "pagetext: header .author\ninto: x/:pagetext:";
       answer([["header .author", "example author"]]);
       Menus.addPaths(["dir1"], ["image"]);
 
@@ -1161,7 +1161,7 @@ describe("addDownloadListener", () => {
       });
       await listener(imageClick, tab);
       expect(Download.launchDownload).toHaveBeenCalledTimes(1);
-      expect(lastState().info).not.toHaveProperty("capturedCssText");
+      expect(lastState().info).not.toHaveProperty("capturedPageText");
 
       vi.useFakeTimers();
       try {
@@ -1173,7 +1173,7 @@ describe("addDownloadListener", () => {
         vi.useRealTimers();
       }
       expect(Download.launchDownload).toHaveBeenCalledTimes(2);
-      expect(lastState().info).not.toHaveProperty("capturedCssText");
+      expect(lastState().info).not.toHaveProperty("capturedPageText");
     });
 
     test("a keyboard Quick save asks for the active tab's page text", async () => {
@@ -1186,10 +1186,10 @@ describe("addDownloadListener", () => {
 
       expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(
         42,
-        { type: "SAVE_IN_CSS_TEXT", body: { selectors: ["header .author"] } },
+        { type: "SAVE_IN_PAGE_TEXT", body: { selectors: ["header .author"] } },
         { frameId: 0 },
       );
-      expect(lastState().info.capturedCssText).toEqual([["header .author", "example author"]]);
+      expect(lastState().info.capturedPageText).toEqual([["header .author", "example author"]]);
     });
   });
 

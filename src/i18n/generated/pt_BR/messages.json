@@ -4378,11 +4378,11 @@
   "html_cssMatcherDescription": {
     "message": "Corresponde ao elemento da página que descobriu a fonte. Disponível para Fontes da página automáticas, Clique para salvar e salvamentos pelo painel Fontes da página."
   },
-  "html_cssTextMatcherDescription": {
-    "message": "Corresponde quando a página tem um elemento para este seletor CSS que contém texto, e guarda esse texto para :csstext:. Disponível para o menu de contexto, Clique para salvar, salvamentos pelo painel Fontes da página e Fontes da página automáticas."
+  "html_pageTextMatcherDescription": {
+    "message": "Corresponde quando a página tem um elemento para este seletor CSS que contém texto, e guarda esse texto para :pagetext:. Disponível para o menu de contexto, Clique para salvar, salvamentos pelo painel Fontes da página e Fontes da página automáticas."
   },
   "html_cssMatcherSyntax": {
-    "message": "Os correspondentes css: e csstext: usam a sintaxe de seletor CSS em vez de uma expressão regular e não aceitam sinalizadores."
+    "message": "Os correspondentes css: e pagetext: usam a sintaxe de seletor CSS em vez de uma expressão regular e não aceitam sinalizadores."
   },
   "ruleInvalidCssSelector": {
     "message": "Seletor CSS inválido"
@@ -4450,14 +4450,14 @@
   "ruleTooManyCssSelectors": {
     "message": "Seletores css: distintos em excesso"
   },
-  "ruleExtraCssText": {
-    "message": "Uma regra pode conter apenas uma cláusula csstext:"
+  "ruleExtraPageText": {
+    "message": "Uma regra pode conter apenas uma cláusula pagetext:"
   },
-  "ruleTooManyCssTextSelectors": {
-    "message": "Cláusulas csstext: em excesso"
+  "ruleTooManyPageTextSelectors": {
+    "message": "Cláusulas pagetext: em excesso"
   },
-  "ruleCssTextMissingClause": {
-    "message": ":csstext: precisa de uma cláusula csstext: na mesma regra"
+  "rulePageTextMissingClause": {
+    "message": ":pagetext: precisa de uma cláusula pagetext: na mesma regra"
   },
   "ruleClauseFlags": {
     "message": "Esta cláusula não aceita sinalizadores de expressão regular"
@@ -4528,8 +4528,8 @@
   "html_altTextVariableDescription": {
     "message": "O atributo alt da imagem salva, quando fornecido pela página."
   },
-  "html_cssTextVariableDescription": {
-    "message": "O texto do elemento da página encontrado pelo seletor csstext: da regra."
+  "html_pageTextVariableDescription": {
+    "message": "O texto do elemento da página encontrado pelo seletor pagetext: da regra."
   },
   "html_linkTitleMatcherDescription": {
     "message": "Corresponde ao atributo title do link clicado."
@@ -4549,7 +4549,7 @@
   "routeDebuggerAltText": {
     "message": "Texto alternativo da imagem"
   },
-  "routeDebuggerCssText": {
+  "routeDebuggerPageText": {
     "message": "Texto capturado da página"
   },
   "notificationRuleExcludedMessage": {

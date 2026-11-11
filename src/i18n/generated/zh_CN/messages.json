@@ -4378,11 +4378,11 @@
   "html_cssMatcherDescription": {
     "message": "匹配发现该来源的页面元素。适用于自动页面来源、点击保存以及从“页面来源”面板保存。"
   },
-  "html_cssTextMatcherDescription": {
-    "message": "当页面中有符合此 CSS 选择器且包含文本的元素时匹配，并保留该文本供 :csstext: 使用。适用于上下文菜单、点击保存、从“页面来源”面板保存以及自动页面来源。"
+  "html_pageTextMatcherDescription": {
+    "message": "当页面中有符合此 CSS 选择器且包含文本的元素时匹配，并保留该文本供 :pagetext: 使用。适用于上下文菜单、点击保存、从“页面来源”面板保存以及自动页面来源。"
   },
   "html_cssMatcherSyntax": {
-    "message": "css: 和 csstext: 匹配器使用 CSS 选择器语法，而不是正则表达式，并且不接受标志。"
+    "message": "css: 和 pagetext: 匹配器使用 CSS 选择器语法，而不是正则表达式，并且不接受标志。"
   },
   "ruleInvalidCssSelector": {
     "message": "CSS 选择器无效"
@@ -4450,14 +4450,14 @@
   "ruleTooManyCssSelectors": {
     "message": "不同的 css: 选择器过多"
   },
-  "ruleExtraCssText": {
-    "message": "一条规则只能包含一个 csstext: 子句"
+  "ruleExtraPageText": {
+    "message": "一条规则只能包含一个 pagetext: 子句"
   },
-  "ruleTooManyCssTextSelectors": {
-    "message": "csstext: 子句过多"
+  "ruleTooManyPageTextSelectors": {
+    "message": "pagetext: 子句过多"
   },
-  "ruleCssTextMissingClause": {
-    "message": ":csstext: 需要同一条规则中有 csstext: 子句"
+  "rulePageTextMissingClause": {
+    "message": ":pagetext: 需要同一条规则中有 pagetext: 子句"
   },
   "ruleClauseFlags": {
     "message": "此子句不接受正则表达式标志"
@@ -4528,8 +4528,8 @@
   "html_altTextVariableDescription": {
     "message": "页面提供时，所保存图片的 alt 属性。"
   },
-  "html_cssTextVariableDescription": {
-    "message": "规则的 csstext: 选择器找到的页面元素的文本。"
+  "html_pageTextVariableDescription": {
+    "message": "规则的 pagetext: 选择器找到的页面元素的文本。"
   },
   "html_linkTitleMatcherDescription": {
     "message": "匹配所点击链接的 title 属性。"
@@ -4549,7 +4549,7 @@
   "routeDebuggerAltText": {
     "message": "图片替代文本"
   },
-  "routeDebuggerCssText": {
+  "routeDebuggerPageText": {
     "message": "捕获的页面文本"
   },
   "notificationRuleExcludedMessage": {

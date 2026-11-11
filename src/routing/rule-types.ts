@@ -3,7 +3,7 @@ import type { ContentFetchResult } from "../shared/content-fetch-types.ts";
 import type { LazyDownloadMetadata } from "../shared/lazy-download-metadata.ts";
 import type { PageSourceKind } from "../shared/page-source.ts";
 import type { ClickGesture } from "../shared/click-gesture.ts";
-import type { CssTextCapture } from "../shared/css-text-capture.ts";
+import type { PageTextCapture } from "../shared/page-text-capture.ts";
 
 export type RoutingContent = ContentFetchResult;
 
@@ -52,12 +52,12 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   onContentFetchStart?: ((requestId: string) => void | Promise<void>) | undefined;
   contentFetchDisabled?: boolean | undefined;
   matchedCssSelectorsByOrigin?: string[][] | undefined;
-  // What the page reported for the configured csstext: selectors. Evidence
+  // What the page reported for the configured pagetext: selectors. Evidence
   // for matching only: like the CSS attestation it is never persisted.
-  capturedCssText?: CssTextCapture | undefined;
-  // The text the winning rule's csstext: selector captured; :csstext: expands
+  capturedPageText?: PageTextCapture | undefined;
+  // The text the winning rule's pagetext: selector captured; :pagetext: expands
   // to it. Set by whoever selects the rule, never taken from a message.
-  cssText?: string | undefined;
+  pageText?: string | undefined;
 };
 
 export type RuleErrorLocation = {
@@ -108,17 +108,17 @@ export type CssMatcherClause = {
   type: typeof RULE_TYPES.MATCHER;
   matcher: RuleMatcher;
 };
-export type CssTextMatcherClause = {
-  name: "csstext";
+export type PageTextMatcherClause = {
+  name: "pagetext";
   value: string;
   type: typeof RULE_TYPES.MATCHER;
   matcher: RuleMatcher;
 };
-export type MatcherClause = RegexMatcherClause | CssMatcherClause | CssTextMatcherClause;
+export type MatcherClause = RegexMatcherClause | CssMatcherClause | PageTextMatcherClause;
 
 // Matchers whose value is a CSS selector rather than a regular expression:
 // they take no flags and cannot be a capture: target.
-export const SELECTOR_MATCHER_NAMES = ["css", "csstext"] as const;
+export const SELECTOR_MATCHER_NAMES = ["css", "pagetext"] as const;
 
 export const isSelectorMatcherName = (
   name: string,
@@ -128,11 +128,11 @@ export const isSelectorMatcherName = (
 export const isCssMatcherClause = (clause: MatcherClause): clause is CssMatcherClause =>
   clause.name === "css";
 
-export const isCssTextMatcherClause = (clause: MatcherClause): clause is CssTextMatcherClause =>
-  clause.name === "csstext";
+export const isPageTextMatcherClause = (clause: MatcherClause): clause is PageTextMatcherClause =>
+  clause.name === "pagetext";
 
 export const isRegexMatcherClause = (clause: MatcherClause): clause is RegexMatcherClause =>
-  !isCssMatcherClause(clause) && !isCssTextMatcherClause(clause);
+  !isCssMatcherClause(clause) && !isPageTextMatcherClause(clause);
 export type CaptureClause = {
   name: "capture" | "capturegroups";
   value: string;

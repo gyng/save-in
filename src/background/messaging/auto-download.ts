@@ -136,15 +136,15 @@ export const handleAutoDownloadSource = async (
     : undefined;
   // The same sender rule: only the page's own top-frame content script can
   // say what that page's elements contain.
-  const capturedCssText = isPageContentSender(sender, request.body.pageUrl)
-    ? request.body.capturedCssText
+  const capturedPageText = isPageContentSender(sender, request.body.pageUrl)
+    ? request.body.capturedPageText
     : undefined;
   const match = matchAutomaticRoutingRule(rules, {
     pageUrl: senderTab.url,
     sourceUrl,
     sourceKind: request.body.sourceKind,
     matchedCssSelectorsByOrigin: cssAttestation,
-    capturedCssText,
+    capturedPageText,
     // Carries the private marker, so this re-match is suppressed from the debug
     // log exactly like the launchDownload below it.
     currentTab: senderTab,
@@ -173,10 +173,10 @@ export const handleAutoDownloadSource = async (
       sourceUrl,
       sourceKind: request.body.sourceKind,
       matchedCssSelectorsByOrigin: cssAttestation,
-      capturedCssText,
+      capturedPageText,
       // The plan reuses this match instead of matching again, so the text its
-      // csstext: clause captured travels with the route it selected.
-      ...(match.cssText ? { cssText: match.cssText } : {}),
+      // pagetext: clause captured travels with the route it selected.
+      ...(match.pageText ? { pageText: match.pageText } : {}),
       url: sourceUrl,
       context: DOWNLOAD_TYPES.AUTO,
       ...(isDataUrl(sourceUrl) ? { suggestedFilename: "download" } : {}),

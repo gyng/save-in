@@ -18,7 +18,7 @@ import {
   RULE_TYPES,
   SPECIAL_DIRS,
 } from "../../src/shared/constants.ts";
-import { normalizeCssText } from "../../src/shared/css-text-capture.ts";
+import { normalizePageText } from "../../src/shared/page-text-capture.ts";
 import { transformers } from "../../src/routing/variable.ts";
 import { validateWebhookUrl } from "../../src/shared/webhook.ts";
 import {
@@ -479,7 +479,7 @@ const filenameSafety: FuzzTarget = {
     ),
 };
 
-// :csstext: places text a page controls. Whatever the page says, the text
+// :pagetext: places text a page controls. Whatever the page says, the text
 // must stay the one path component the rule gave it: it may not add a
 // directory level, climb out of one, or disturb its neighbours.
 const pageTextContainment: FuzzTarget = {
@@ -493,14 +493,16 @@ const pageTextContainment: FuzzTarget = {
         ),
         fc.boolean(),
         (pageText, asFilename) => {
-          const segment = transformers[SPECIAL_DIRS.CSS_TEXT](
-            { cssText: normalizeCssText(pageText), now: new Date(0) },
-            { type: PATH_SEGMENT_TYPES.VARIABLE, val: SPECIAL_DIRS.CSS_TEXT },
+          const segment = transformers[SPECIAL_DIRS.PAGE_TEXT](
+            { pageText: normalizePageText(pageText), now: new Date(0) },
+            { type: PATH_SEGMENT_TYPES.VARIABLE, val: SPECIAL_DIRS.PAGE_TEXT },
             0,
             [],
           );
-          invariant(!(segment instanceof Promise), ":csstext: must expand synchronously");
-          const path = new Path(asFilename ? "captured/kept/:csstext:" : "captured/:csstext:/kept");
+          invariant(!(segment instanceof Promise), ":pagetext: must expand synchronously");
+          const path = new Path(
+            asFilename ? "captured/kept/:pagetext:" : "captured/:pagetext:/kept",
+          );
           path.buf = path.buf.map((token) =>
             token.type === PATH_SEGMENT_TYPES.VARIABLE ? segment : token,
           );

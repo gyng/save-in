@@ -539,7 +539,7 @@ export const handleDownloadMessage = (
         ? { matchedCssSelectorsByOrigin: info.matchedCssSelectorsByOrigin }
         : {}),
       // Page text is evidence only the page's own content script can give.
-      ...(internal && info.capturedCssText ? { capturedCssText: info.capturedCssText } : {}),
+      ...(internal && info.capturedPageText ? { capturedPageText: info.capturedPageText } : {}),
       url,
       context: DOWNLOAD_TYPES.CLICK,
     };

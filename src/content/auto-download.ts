@@ -22,9 +22,9 @@ import {
 } from "./source-panel-model.ts";
 import { startChunkedElementScan, type ChunkedElementScan } from "./chunked-element-scan.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
-import { cssTextSelectorsForPage } from "../routing/css-text.ts";
-import { captureCssText } from "./css-text.ts";
-import type { CssTextCapture } from "../shared/css-text-capture.ts";
+import { pageTextSelectorsForPage } from "../routing/page-text.ts";
+import { capturePageText } from "./page-text.ts";
+import type { PageTextCapture } from "../shared/page-text-capture.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { normalizeAutoDownloadLimit } from "../config/content-options.ts";
 import { isPageSourceKind } from "../shared/page-source.ts";
@@ -131,7 +131,7 @@ const AUTO_FAILED_RETRY_LIMIT = 1;
 const AUTO_FAILED_ATTEMPT_LIMIT = 1024;
 const MUTABLE_AUTOMATIC_MATCHERS = new Set([
   "css",
-  "csstext",
+  "pagetext",
   "mediatype",
   "pagetitle",
   "sourcekind",
@@ -415,18 +415,18 @@ export const setupAutoDownloadDiscovery = (
     }
     // Page text is read at most once per scan, and only once a source that has
     // not been decided yet needs routing: a rescan of an unchanged page, or a
-    // page no csstext: rule applies to, reads nothing.
-    let scanCssText: CssTextCapture | undefined;
-    const cssTextForScan = (): CssTextCapture => {
-      scanCssText ??= captureCssText(document, cssTextSelectorsForPage(automaticRules, pageUrl));
-      return scanCssText;
+    // page no pagetext: rule applies to, reads nothing.
+    let scanPageText: PageTextCapture | undefined;
+    const pageTextForScan = (): PageTextCapture => {
+      scanPageText ??= capturePageText(document, pageTextSelectorsForPage(automaticRules, pageUrl));
+      return scanPageText;
     };
     for (const [sourceUrl, sources] of sourcesByUrl) {
       // A long data: URL keys the dedup set on its hash so the set never holds a
       // megabyte string; http(s) and short data: URLs key on the string itself.
       const seenKey = seenKeyFor(sourceUrl);
       if (seen.has(seenKey) || excluded.has(seenKey)) continue;
-      const capturedCssText = cssTextForScan();
+      const capturedPageText = pageTextForScan();
       const firstSource = sources[0];
       const cssAttestation =
         cssSelectors.length > 0
@@ -443,7 +443,7 @@ export const setupAutoDownloadDiscovery = (
         sourceKind: source.kind,
         ...(source.channel ? { sourceChannel: source.channel } : {}),
         ...(cssAttestation ? { matchedCssSelectorsByOrigin: cssAttestation } : {}),
-        ...(capturedCssText.length > 0 ? { capturedCssText } : {}),
+        ...(capturedPageText.length > 0 ? { capturedPageText } : {}),
       }));
       let selected: AutomaticRoutingCandidate | undefined;
       let excludedByRule = false;

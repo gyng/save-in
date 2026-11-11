@@ -216,7 +216,7 @@ export const isSafeExternalRegex = (regex: RegExp | string): boolean => {
 // rule the response refuses to name.
 export const unsafeExternalRegexSources = (rule: RoutingRule): string[] =>
   rule.flatMap((clause) => {
-    // Only a compiled pattern can be named: a css: or csstext: matcher's value
+    // Only a compiled pattern can be named: a css: or pagetext: matcher's value
     // is a selector, where `+` is a combinator and `*=` an attribute operator,
     // and isSafeExternalRegex accepts every string outright rather than read
     // those as quantifiers. Skipping them here says that in the type instead of

@@ -1,8 +1,11 @@
 // @vitest-environment jsdom
-import { captureCssText } from "../../src/content/css-text.ts";
-import { MAX_CSS_TEXT_LENGTH, MAX_CSS_TEXT_SELECTORS } from "../../src/shared/css-text-capture.ts";
+import { capturePageText } from "../../src/content/page-text.ts";
+import {
+  MAX_PAGE_TEXT_LENGTH,
+  MAX_PAGE_TEXT_SELECTORS,
+} from "../../src/shared/page-text-capture.ts";
 
-describe("page text capture for csstext: rules", () => {
+describe("page text capture for pagetext: rules", () => {
   afterEach(() => {
     document.head.replaceChildren();
     document.body.replaceChildren();
@@ -15,7 +18,7 @@ describe("page text capture for csstext: rules", () => {
       <h1 class="title">A   title</h1>
       <p class="empty">   </p>`;
 
-    expect(captureCssText(document, ["header .author", ".title", ".empty", ".absent"])).toEqual([
+    expect(capturePageText(document, ["header .author", ".title", ".empty", ".absent"])).toEqual([
       ["header .author", "example author"],
       [".title", "A title"],
     ]);
@@ -25,22 +28,22 @@ describe("page text capture for csstext: rules", () => {
     document.body.innerHTML =
       '<span class="name"> </span><span class="name">second</span><span class="name">third</span>';
 
-    expect(captureCssText(document, [".name"])).toEqual([[".name", "second"]]);
+    expect(capturePageText(document, [".name"])).toEqual([[".name", "second"]]);
   });
 
   test("gives up on a selector after its first sixteen elements", () => {
     document.body.innerHTML = `${'<i class="name"></i>'.repeat(16)}<i class="name">late</i>`;
-    expect(captureCssText(document, [".name"])).toEqual([]);
+    expect(capturePageText(document, [".name"])).toEqual([]);
 
     document.body.innerHTML = `${'<i class="name"></i>'.repeat(15)}<i class="name">in time</i>`;
-    expect(captureCssText(document, [".name"])).toEqual([[".name", "in time"]]);
+    expect(capturePageText(document, [".name"])).toEqual([[".name", "in time"]]);
   });
 
   test("uses a meta element's content, which has no text of its own", () => {
     document.head.innerHTML =
       '<meta property="og:title" content="  Example   Author  "><meta name="empty" content=" ">';
 
-    expect(captureCssText(document, ['meta[property="og:title"]', 'meta[name="empty"]'])).toEqual([
+    expect(capturePageText(document, ['meta[property="og:title"]', 'meta[name="empty"]'])).toEqual([
       ['meta[property="og:title"]', "Example Author"],
     ]);
   });
@@ -50,26 +53,26 @@ describe("page text capture for csstext: rules", () => {
     const long = document.querySelector(".long");
     const padded = document.querySelector(".padded");
     if (!long || !padded) throw new Error("fixture missing");
-    long.textContent = "x".repeat(MAX_CSS_TEXT_LENGTH * 20);
+    long.textContent = "x".repeat(MAX_PAGE_TEXT_LENGTH * 20);
     // Text that starts beyond the examined prefix is not searched for.
-    padded.textContent = `${" ".repeat(MAX_CSS_TEXT_LENGTH * 8)}late`;
+    padded.textContent = `${" ".repeat(MAX_PAGE_TEXT_LENGTH * 8)}late`;
 
-    expect(captureCssText(document, [".long", ".padded"])).toEqual([
-      [".long", "x".repeat(MAX_CSS_TEXT_LENGTH)],
+    expect(capturePageText(document, [".long", ".padded"])).toEqual([
+      [".long", "x".repeat(MAX_PAGE_TEXT_LENGTH)],
     ]);
   });
 
   test("an invalid selector captures nothing and does not stop the others", () => {
     document.body.innerHTML = '<p class="name">kept</p>';
 
-    expect(captureCssText(document, ["p:not(", ".name", "::"])).toEqual([[".name", "kept"]]);
+    expect(capturePageText(document, ["p:not(", ".name", "::"])).toEqual([[".name", "kept"]]);
   });
 
   test("reads a repeated selector once", () => {
     document.body.innerHTML = '<p class="name">kept</p>';
     const spy = vi.spyOn(document, "querySelectorAll");
 
-    expect(captureCssText(document, [".name", ".name"])).toEqual([[".name", "kept"]]);
+    expect(capturePageText(document, [".name", ".name"])).toEqual([[".name", "kept"]]);
     expect(spy).toHaveBeenCalledOnce();
     spy.mockRestore();
   });
@@ -82,13 +85,13 @@ describe("page text capture for csstext: rules", () => {
     ["an oversized selector", ["x".repeat(513)]],
     [
       "more selectors than the bound",
-      Array.from({ length: MAX_CSS_TEXT_SELECTORS + 1 }, () => ".name"),
+      Array.from({ length: MAX_PAGE_TEXT_SELECTORS + 1 }, () => ".name"),
     ],
   ])("reads nothing for a request that is %s", (_label, selectors) => {
     document.body.innerHTML = '<p class="name">kept</p>';
     const spy = vi.spyOn(document, "querySelectorAll");
 
-    expect(captureCssText(document, selectors)).toEqual([]);
+    expect(capturePageText(document, selectors)).toEqual([]);
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });
@@ -101,7 +104,7 @@ describe("page text capture for csstext: rules", () => {
     const scope = document.querySelector("#scope");
     if (!scope) throw new Error("fixture missing");
 
-    expect(captureCssText(document, [".framed"])).toEqual([]);
-    expect(captureCssText(scope, [".name"])).toEqual([[".name", "inside"]]);
+    expect(capturePageText(document, [".framed"])).toEqual([]);
+    expect(capturePageText(scope, [".name"])).toEqual([[".name", "inside"]]);
   });
 });

@@ -1,11 +1,11 @@
 import {
-  isCssTextCapture,
-  isCssTextSelectorList,
-  MAX_CSS_TEXT_LENGTH,
-  MAX_CSS_TEXT_SELECTORS,
-  normalizeCssText,
-  parseCssTextCapture,
-} from "../../src/shared/css-text-capture.ts";
+  isPageTextCapture,
+  isPageTextSelectorList,
+  MAX_PAGE_TEXT_LENGTH,
+  MAX_PAGE_TEXT_SELECTORS,
+  normalizePageText,
+  parsePageTextCapture,
+} from "../../src/shared/page-text-capture.ts";
 
 describe("captured page text contract", () => {
   test.each([
@@ -13,20 +13,20 @@ describe("captured page text contract", () => {
     ["first\n\t  second third", "first second third"],
     ["", ""],
     [" \n\t ", ""],
-    ["x".repeat(MAX_CSS_TEXT_LENGTH + 40), "x".repeat(MAX_CSS_TEXT_LENGTH)],
+    ["x".repeat(MAX_PAGE_TEXT_LENGTH + 40), "x".repeat(MAX_PAGE_TEXT_LENGTH)],
     // The bound must not leave a trailing space behind for the cut it made.
-    [`${"x".repeat(MAX_CSS_TEXT_LENGTH - 1)} tail`, "x".repeat(MAX_CSS_TEXT_LENGTH - 1)],
+    [`${"x".repeat(MAX_PAGE_TEXT_LENGTH - 1)} tail`, "x".repeat(MAX_PAGE_TEXT_LENGTH - 1)],
   ])("normalizes %j", (value, expected) => {
-    expect(normalizeCssText(value)).toBe(expected);
-    expect(normalizeCssText(expected)).toBe(expected);
+    expect(normalizePageText(value)).toBe(expected);
+    expect(normalizePageText(expected)).toBe(expected);
   });
 
   test("accepts a bounded list of non-empty selectors", () => {
-    expect(isCssTextSelectorList([])).toBe(true);
-    expect(isCssTextSelectorList(["header .author", "x".repeat(512)])).toBe(true);
+    expect(isPageTextSelectorList([])).toBe(true);
+    expect(isPageTextSelectorList(["header .author", "x".repeat(512)])).toBe(true);
     expect(
-      isCssTextSelectorList(
-        Array.from({ length: MAX_CSS_TEXT_SELECTORS }, (_value, i) => `.s${i}`),
+      isPageTextSelectorList(
+        Array.from({ length: MAX_PAGE_TEXT_SELECTORS }, (_value, i) => `.s${i}`),
       ),
     ).toBe(true);
   });
@@ -39,19 +39,19 @@ describe("captured page text contract", () => {
     ["an oversized selector", ["x".repeat(513)]],
     [
       "more selectors than rules may capture",
-      Array.from({ length: MAX_CSS_TEXT_SELECTORS + 1 }, (_value, i) => `.s${i}`),
+      Array.from({ length: MAX_PAGE_TEXT_SELECTORS + 1 }, (_value, i) => `.s${i}`),
     ],
   ])("rejects a selector list that is %s", (_label, value) => {
-    expect(isCssTextSelectorList(value)).toBe(false);
+    expect(isPageTextSelectorList(value)).toBe(false);
   });
 
   test("accepts canonical selector and text pairs", () => {
-    expect(isCssTextCapture([])).toBe(true);
-    expect(isCssTextCapture([["header .author", "example author"]])).toBe(true);
-    expect(isCssTextCapture([["a", "x".repeat(MAX_CSS_TEXT_LENGTH)]])).toBe(true);
+    expect(isPageTextCapture([])).toBe(true);
+    expect(isPageTextCapture([["header .author", "example author"]])).toBe(true);
+    expect(isPageTextCapture([["a", "x".repeat(MAX_PAGE_TEXT_LENGTH)]])).toBe(true);
     expect(
-      isCssTextCapture(
-        Array.from({ length: MAX_CSS_TEXT_SELECTORS }, (_value, i) => [`.s${i}`, "text"]),
+      isPageTextCapture(
+        Array.from({ length: MAX_PAGE_TEXT_SELECTORS }, (_value, i) => [`.s${i}`, "text"]),
       ),
     ).toBe(true);
   });
@@ -69,19 +69,19 @@ describe("captured page text contract", () => {
     ["an empty text", [["a", ""]]],
     ["text with outer whitespace", [["a", " example "]]],
     ["text with uncollapsed whitespace", [["a", "first\nsecond"]]],
-    ["text over the length bound", [["a", "x".repeat(MAX_CSS_TEXT_LENGTH + 1)]]],
+    ["text over the length bound", [["a", "x".repeat(MAX_PAGE_TEXT_LENGTH + 1)]]],
     [
       "more pairs than rules may capture",
-      Array.from({ length: MAX_CSS_TEXT_SELECTORS + 1 }, (_value, i) => [`.s${i}`, "text"]),
+      Array.from({ length: MAX_PAGE_TEXT_SELECTORS + 1 }, (_value, i) => [`.s${i}`, "text"]),
     ],
   ])("rejects a capture that is %s", (_label, value) => {
-    expect(isCssTextCapture(value)).toBe(false);
-    expect(parseCssTextCapture(value, ["a", "header .author"])).toBeUndefined();
+    expect(isPageTextCapture(value)).toBe(false);
+    expect(parsePageTextCapture(value, ["a", "header .author"])).toBeUndefined();
   });
 
   test("a bridge answer speaks only for the selectors that were asked about", () => {
     expect(
-      parseCssTextCapture(
+      parsePageTextCapture(
         [
           ["header .author", "example"],
           [".unasked", "other"],
@@ -89,6 +89,6 @@ describe("captured page text contract", () => {
         ["header .author", ".absent"],
       ),
     ).toEqual([["header .author", "example"]]);
-    expect(parseCssTextCapture([], ["header .author"])).toEqual([]);
+    expect(parsePageTextCapture([], ["header .author"])).toEqual([]);
   });
 });

@@ -21,7 +21,7 @@ import {
   isCssSelectorAttestation,
   type CssSelectorAttestation,
 } from "./css-selector-attestation.ts";
-import { isCssTextCapture, type CssTextCapture } from "./css-text-capture.ts";
+import { isPageTextCapture, type PageTextCapture } from "./page-text-capture.ts";
 import { isClickGesture, isClickKeys, type ClickGesture } from "./click-gesture.ts";
 
 export { isStringKeyedRecord } from "./util.ts";
@@ -43,7 +43,7 @@ export type WireDownloadInfo = {
   linkTitle?: string | undefined;
   linkDownload?: string | undefined;
   altText?: string | undefined;
-  cssText?: string | undefined;
+  pageText?: string | undefined;
   mediaType?: string | undefined;
   sourceKind?: PageSourceKind | undefined;
   mime?: string | undefined;
@@ -96,7 +96,7 @@ export const WIRE_INFO_STRING_FIELDS = [
   "linkTitle",
   "linkDownload",
   "altText",
-  "cssText",
+  "pageText",
   "mediaType",
   "mime",
   "filename",
@@ -339,7 +339,7 @@ export type DownloadRequestBody = {
       > & {
         srcUrl?: string | undefined;
         matchedCssSelectorsByOrigin?: CssSelectorAttestation | undefined;
-        capturedCssText?: CssTextCapture | undefined;
+        capturedPageText?: PageTextCapture | undefined;
       })
     | undefined;
   comment?: string | undefined;
@@ -368,7 +368,7 @@ export type AutoDownloadSourceRequestBody = {
   // backstop can re-check admission against trusted, current options.
   sourceChannel?: PageSourceChannel | undefined;
   matchedCssSelectorsByOrigin?: CssSelectorAttestation | undefined;
-  capturedCssText?: CssTextCapture | undefined;
+  capturedPageText?: PageTextCapture | undefined;
   // Script-media candidates only: when the sending page's visit began (epoch
   // ms; see ScriptMediaVisit). Without it the background adopts nothing from
   // the collector for that candidate.
@@ -551,8 +551,8 @@ const hasOptionalString = (record: Record<string, unknown>, key: string): boolea
 const hasOptionalNullableString = (record: Record<string, unknown>, key: string): boolean =>
   record[key] == null || typeof record[key] === "string";
 
-const hasOptionalCssTextCapture = (record: Record<string, unknown>): boolean =>
-  typeof record.capturedCssText === "undefined" || isCssTextCapture(record.capturedCssText);
+const hasOptionalPageTextCapture = (record: Record<string, unknown>): boolean =>
+  typeof record.capturedPageText === "undefined" || isPageTextCapture(record.capturedPageText);
 
 const isDownloadInfo = (value: unknown): boolean => {
   if (!isStringKeyedRecord(value)) {
@@ -578,7 +578,7 @@ const isDownloadInfo = (value: unknown): boolean => {
     hasOptionalString(value, "clickKeys") &&
     (typeof value.matchedCssSelectorsByOrigin === "undefined" ||
       isCssSelectorAttestation(value.matchedCssSelectorsByOrigin)) &&
-    hasOptionalCssTextCapture(value) &&
+    hasOptionalPageTextCapture(value) &&
     ["suggestedFilename", "menuIndex", "comment"].every((key) =>
       hasOptionalNullableString(value, key),
     ) &&
@@ -616,7 +616,7 @@ const isValidationInfo = (value: unknown): value is ValidationInfo =>
   // key otherwise, so guard it here as the other two entry points already do.
   (typeof value.matchedCssSelectorsByOrigin === "undefined" ||
     isCssSelectorAttestation(value.matchedCssSelectorsByOrigin)) &&
-  hasOptionalCssTextCapture(value) &&
+  hasOptionalPageTextCapture(value) &&
   (typeof value.currentTab === "undefined" ||
     value.currentTab === null ||
     isWireCurrentTab(value.currentTab));
@@ -716,7 +716,7 @@ const isMessageBodyValid = (message: Record<string, unknown> & { type: string })
           isPageSourceChannel(message.body.sourceChannel)) &&
         (typeof message.body.matchedCssSelectorsByOrigin === "undefined" ||
           isCssSelectorAttestation(message.body.matchedCssSelectorsByOrigin)) &&
-        hasOptionalCssTextCapture(message.body) &&
+        hasOptionalPageTextCapture(message.body) &&
         (typeof message.body.scriptMediaVisitStart === "undefined" ||
           isEpochMs(message.body.scriptMediaVisitStart))
       );

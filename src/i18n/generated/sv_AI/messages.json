@@ -4378,11 +4378,11 @@
   "html_cssMatcherDescription": {
     "message": "Matchar sidelementet som hittade källan. Tillgängligt för automatiska sidkällor, klicka för att spara och sparningar från panelen Sidkällor."
   },
-  "html_cssTextMatcherDescription": {
-    "message": "Matchar när sidan har ett element för den här CSS-selektorn som innehåller text, och behåller den texten för :csstext:. Tillgängligt för snabbmenyn, klicka för att spara, sparningar från panelen Sidkällor och automatiska sidkällor."
+  "html_pageTextMatcherDescription": {
+    "message": "Matchar när sidan har ett element för den här CSS-selektorn som innehåller text, och behåller den texten för :pagetext:. Tillgängligt för snabbmenyn, klicka för att spara, sparningar från panelen Sidkällor och automatiska sidkällor."
   },
   "html_cssMatcherSyntax": {
-    "message": "Matcharna css: och csstext: använder CSS-selektorsyntax i stället för ett reguljärt uttryck och accepterar inga flaggor."
+    "message": "Matcharna css: och pagetext: använder CSS-selektorsyntax i stället för ett reguljärt uttryck och accepterar inga flaggor."
   },
   "ruleInvalidCssSelector": {
     "message": "Ogiltig CSS-selektor"
@@ -4450,14 +4450,14 @@
   "ruleTooManyCssSelectors": {
     "message": "För många olika css:-väljare"
   },
-  "ruleExtraCssText": {
-    "message": "En regel kan bara innehålla en csstext:-sats"
+  "ruleExtraPageText": {
+    "message": "En regel kan bara innehålla en pagetext:-sats"
   },
-  "ruleTooManyCssTextSelectors": {
-    "message": "För många csstext:-satser"
+  "ruleTooManyPageTextSelectors": {
+    "message": "För många pagetext:-satser"
   },
-  "ruleCssTextMissingClause": {
-    "message": ":csstext: kräver en csstext:-sats i samma regel"
+  "rulePageTextMissingClause": {
+    "message": ":pagetext: kräver en pagetext:-sats i samma regel"
   },
   "ruleClauseFlags": {
     "message": "Den här satsen accepterar inte flaggor för reguljära uttryck"
@@ -4528,8 +4528,8 @@
   "html_altTextVariableDescription": {
     "message": "Alt-attributet för bilden du sparade, när sidan anger det."
   },
-  "html_cssTextVariableDescription": {
-    "message": "Texten i sidelementet som regelns csstext:-selektor hittade."
+  "html_pageTextVariableDescription": {
+    "message": "Texten i sidelementet som regelns pagetext:-selektor hittade."
   },
   "html_linkTitleMatcherDescription": {
     "message": "Matchar title-attributet för länken du klickade på."
@@ -4549,7 +4549,7 @@
   "routeDebuggerAltText": {
     "message": "Alternativtext för bild"
   },
-  "routeDebuggerCssText": {
+  "routeDebuggerPageText": {
     "message": "Fångad sidtext"
   },
   "notificationRuleExcludedMessage": {

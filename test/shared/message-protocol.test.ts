@@ -11,11 +11,11 @@ import {
 
 describe("message protocol runtime validation", () => {
   test("accepts bounded page text on the three entry points that route with it", () => {
-    const capturedCssText = [["header .author", "example author"]];
+    const capturedPageText = [["header .author", "example author"]];
     expect(
       isInternalMessage({
         type: MESSAGE_TYPES.DOWNLOAD,
-        body: { url: "https://x/a.png", info: { capturedCssText } },
+        body: { url: "https://x/a.png", info: { capturedPageText } },
       }),
     ).toBe(true);
     expect(
@@ -25,18 +25,18 @@ describe("message protocol runtime validation", () => {
           pageUrl: "https://x/",
           sourceUrl: "https://x/a.png",
           sourceKind: "image",
-          capturedCssText,
+          capturedPageText,
         },
       }),
     ).toBe(true);
     expect(
       isInternalMessage({
         type: MESSAGE_TYPES.VALIDATE,
-        body: { info: { capturedCssText, cssText: "example author" } },
+        body: { info: { capturedPageText, pageText: "example author" } },
       }),
     ).toBe(true);
     expect(
-      isWireDownloadState({ info: { cssText: "example author", altText: "Harbor sunset" } }),
+      isWireDownloadState({ info: { pageText: "example author", altText: "Harbor sunset" } }),
     ).toBe(true);
   });
 
@@ -220,14 +220,14 @@ describe("message protocol runtime validation", () => {
     },
     // Page text reaches the matcher as selector/text pairs; anything else
     // would be read as a pair and compared against a rule's selector.
-    { type: MESSAGE_TYPES.VALIDATE, body: { info: { capturedCssText: "example" } } },
-    { type: MESSAGE_TYPES.VALIDATE, body: { info: { capturedCssText: [["a", " padded "]] } } },
-    { type: MESSAGE_TYPES.VALIDATE, body: { info: { cssText: 7 } } },
-    { type: MESSAGE_TYPES.DOWNLOAD, body: { info: { capturedCssText: [["a"]] } } },
-    { type: MESSAGE_TYPES.DOWNLOAD, body: { info: { capturedCssText: { a: "text" } } } },
+    { type: MESSAGE_TYPES.VALIDATE, body: { info: { capturedPageText: "example" } } },
+    { type: MESSAGE_TYPES.VALIDATE, body: { info: { capturedPageText: [["a", " padded "]] } } },
+    { type: MESSAGE_TYPES.VALIDATE, body: { info: { pageText: 7 } } },
+    { type: MESSAGE_TYPES.DOWNLOAD, body: { info: { capturedPageText: [["a"]] } } },
+    { type: MESSAGE_TYPES.DOWNLOAD, body: { info: { capturedPageText: { a: "text" } } } },
     {
       type: MESSAGE_TYPES.DOWNLOAD,
-      body: { info: { capturedCssText: [["a", "x".repeat(513)]] } },
+      body: { info: { capturedPageText: [["a", "x".repeat(513)]] } },
     },
     {
       type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
@@ -235,7 +235,7 @@ describe("message protocol runtime validation", () => {
         pageUrl: "https://x/",
         sourceUrl: "https://x/a.png",
         sourceKind: "image",
-        capturedCssText: [["a", ""]],
+        capturedPageText: [["a", ""]],
       },
     },
     {

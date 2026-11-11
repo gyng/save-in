@@ -4378,11 +4378,11 @@
   "html_cssMatcherDescription": {
     "message": "Corrisponde all'elemento della pagina che ha rilevato la sorgente. Disponibile per Sorgenti pagina automatiche, salvataggio con clic e salvataggi dal pannello Sorgenti pagina."
   },
-  "html_cssTextMatcherDescription": {
-    "message": "Corrisponde quando la pagina ha un elemento per questo selettore CSS che contiene testo, e conserva quel testo per :csstext:. Disponibile per menu contestuale, salvataggio con clic, salvataggi dal pannello Sorgenti pagina e Sorgenti pagina automatiche."
+  "html_pageTextMatcherDescription": {
+    "message": "Corrisponde quando la pagina ha un elemento per questo selettore CSS che contiene testo, e conserva quel testo per :pagetext:. Disponibile per menu contestuale, salvataggio con clic, salvataggi dal pannello Sorgenti pagina e Sorgenti pagina automatiche."
   },
   "html_cssMatcherSyntax": {
-    "message": "I criteri css: e csstext: usano la sintassi dei selettori CSS invece di un'espressione regolare e non accettano flag."
+    "message": "I criteri css: e pagetext: usano la sintassi dei selettori CSS invece di un'espressione regolare e non accettano flag."
   },
   "ruleInvalidCssSelector": {
     "message": "Selettore CSS non valido"
@@ -4450,14 +4450,14 @@
   "ruleTooManyCssSelectors": {
     "message": "Troppi selettori css: distinti"
   },
-  "ruleExtraCssText": {
-    "message": "Una regola può contenere una sola clausola csstext:"
+  "ruleExtraPageText": {
+    "message": "Una regola può contenere una sola clausola pagetext:"
   },
-  "ruleTooManyCssTextSelectors": {
-    "message": "Troppe clausole csstext:"
+  "ruleTooManyPageTextSelectors": {
+    "message": "Troppe clausole pagetext:"
   },
-  "ruleCssTextMissingClause": {
-    "message": ":csstext: richiede una clausola csstext: nella stessa regola"
+  "rulePageTextMissingClause": {
+    "message": ":pagetext: richiede una clausola pagetext: nella stessa regola"
   },
   "ruleClauseFlags": {
     "message": "Questa clausola non accetta flag per espressioni regolari"
@@ -4528,8 +4528,8 @@
   "html_altTextVariableDescription": {
     "message": "L’attributo alt dell’immagine salvata, quando la pagina lo fornisce."
   },
-  "html_cssTextVariableDescription": {
-    "message": "Il testo dell’elemento della pagina trovato dal selettore csstext: della regola."
+  "html_pageTextVariableDescription": {
+    "message": "Il testo dell’elemento della pagina trovato dal selettore pagetext: della regola."
   },
   "html_linkTitleMatcherDescription": {
     "message": "Corrisponde all’attributo title del collegamento selezionato."
@@ -4549,7 +4549,7 @@
   "routeDebuggerAltText": {
     "message": "Testo alternativo dell’immagine"
   },
-  "routeDebuggerCssText": {
+  "routeDebuggerPageText": {
     "message": "Testo acquisito dalla pagina"
   },
   "notificationRuleExcludedMessage": {
