@@ -896,6 +896,53 @@ into: automatic/:pagedomain:/
     });
   });
 
+  test.each(["skipped", "failed"] as const)(
+    "holds the page's once-per-visit slot when the pipeline answers %s after launching",
+    async (status) => {
+      configure();
+      vi.mocked(Download.launchDownload).mockResolvedValueOnce({ status });
+      const sendResponse = vi.fn();
+
+      onMessage(
+        request,
+        { tab: { id: 7, url: "https://example.test/gallery/", incognito: false } },
+        sendResponse,
+      );
+      await waitForCall(sendResponse);
+
+      // A declined save (existing file, dismissed Save As) was consumed; only a
+      // pre-launch gate may tell the page to offer the candidate again.
+      expect(sendResponse).toHaveBeenCalledWith({
+        type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+        body: { status: status === "skipped" ? "started" : "failed" },
+      });
+    },
+  );
+
+  test("a script-media replay waits for cold-start initialization", async () => {
+    let finish!: () => void;
+    backgroundRuntime.ready = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    const forTab = vi.spyOn(Collector, "automaticScriptMediaForTab").mockResolvedValue([]);
+    const sendResponse = vi.fn();
+
+    onMessage(
+      { type: MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY, body: { visitStart: 1 } },
+      { tab: { id: 7, url: "https://example.test/gallery/", incognito: false } },
+      sendResponse,
+    );
+    await Promise.resolve();
+    expect(sendResponse).not.toHaveBeenCalled();
+
+    // Options load during init; the gate must read them only afterwards.
+    options.autoDownloadEnabled = true;
+    options.autoDownloadScriptMedia = true;
+    finish();
+    await waitForCall(sendResponse);
+    expect(forTab).toHaveBeenCalled();
+  });
+
   test("revalidates a terminal exclusion without launching a download", async () => {
     configure();
     options.filenamePatterns = parseRulesCollecting(`

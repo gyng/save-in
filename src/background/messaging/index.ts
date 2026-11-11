@@ -520,6 +520,9 @@ const READY_MESSAGE_TYPES = new Set<InternalMessage["type"]>([
   MESSAGE_TYPES.CHECK_ROUTES,
   MESSAGE_TYPES.DOWNLOAD,
   MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+  // Its gate reads the automatic-save toggles, which are still the seeded
+  // "off" defaults until init: an ungated replay answers "nothing buffered".
+  MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY,
   MESSAGE_TYPES.CREATE_SOURCE_RULE,
   // A move re-downloads through the routing rules and then deletes the
   // original, so an ungated handler on a failed init would route with seeded
