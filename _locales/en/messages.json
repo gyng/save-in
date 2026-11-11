@@ -5990,5 +5990,21 @@
   "notificationPrivateSavedSourceSkippedMessage": {
     "message": "A private browsing item was not saved again because History holds a completed save of it.",
     "description": "Privacy-preserving notification body when a private save was skipped because Save In History already holds a completed save of the same web address. Do not identify the item. Used in src/downloads/saved-source.ts."
+  },
+  "manifestCommandSaveLastUsed": {
+    "message": "Save to the last used location",
+    "description": "Description of the browser keyboard command that saves the media or link under the pointer, or else the page, to the Last used location. Reuse the translation of the \"Last used\" menu item. Used in manifest.json."
+  },
+  "manifestCommandSaveFolder1": {
+    "message": "Save to the first folder in the menu",
+    "description": "Description of the browser keyboard command that saves the media or link under the pointer, or else the page, to the first destination folder of the Save In menu. Used in manifest.json."
+  },
+  "manifestCommandSaveFolder2": {
+    "message": "Save to the second folder in the menu",
+    "description": "Description of the browser keyboard command that saves the media or link under the pointer, or else the page, to the second destination folder of the Save In menu. Used in manifest.json."
+  },
+  "manifestCommandSaveFolder3": {
+    "message": "Save to the third folder in the menu",
+    "description": "Description of the browser keyboard command that saves the media or link under the pointer, or else the page, to the third destination folder of the Save In menu. Used in manifest.json."
   }
 }

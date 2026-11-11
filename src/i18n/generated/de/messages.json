@@ -4672,5 +4672,17 @@
   },
   "notificationPrivateSavedSourceSkippedMessage": {
     "message": "Ein Element aus einem privaten Fenster wurde nicht erneut gespeichert, weil der Verlauf bereits einen abgeschlossenen Speichervorgang dafür enthält."
+  },
+  "manifestCommandSaveLastUsed": {
+    "message": "Am zuletzt verwendeten Ort speichern"
+  },
+  "manifestCommandSaveFolder1": {
+    "message": "Im ersten Ordner des Menüs speichern"
+  },
+  "manifestCommandSaveFolder2": {
+    "message": "Im zweiten Ordner des Menüs speichern"
+  },
+  "manifestCommandSaveFolder3": {
+    "message": "Im dritten Ordner des Menüs speichern"
   }
 }

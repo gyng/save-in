@@ -4672,5 +4672,17 @@
   },
   "notificationPrivateSavedSourceSkippedMessage": {
     "message": "Een item uit privénavigatie is niet opnieuw opgeslagen omdat de geschiedenis er al een voltooide opslagactie van bevat."
+  },
+  "manifestCommandSaveLastUsed": {
+    "message": "Opslaan op de laatst gebruikte locatie"
+  },
+  "manifestCommandSaveFolder1": {
+    "message": "Opslaan in de eerste map van het menu"
+  },
+  "manifestCommandSaveFolder2": {
+    "message": "Opslaan in de tweede map van het menu"
+  },
+  "manifestCommandSaveFolder3": {
+    "message": "Opslaan in de derde map van het menu"
   }
 }

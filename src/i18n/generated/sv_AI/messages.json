@@ -4672,5 +4672,17 @@
   },
   "notificationPrivateSavedSourceSkippedMessage": {
     "message": "Ett objekt från privat surfning sparades inte igen eftersom historiken redan innehåller en slutförd sparning av det."
+  },
+  "manifestCommandSaveLastUsed": {
+    "message": "Spara på den senast använda platsen"
+  },
+  "manifestCommandSaveFolder1": {
+    "message": "Spara i menyns första mapp"
+  },
+  "manifestCommandSaveFolder2": {
+    "message": "Spara i menyns andra mapp"
+  },
+  "manifestCommandSaveFolder3": {
+    "message": "Spara i menyns tredje mapp"
   }
 }

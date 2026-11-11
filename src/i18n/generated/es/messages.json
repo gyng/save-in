@@ -4672,5 +4672,17 @@
   },
   "notificationPrivateSavedSourceSkippedMessage": {
     "message": "No se volvió a guardar un elemento de navegación privada porque el historial ya contiene un guardado completado de él."
+  },
+  "manifestCommandSaveLastUsed": {
+    "message": "Guardar en la última ubicación"
+  },
+  "manifestCommandSaveFolder1": {
+    "message": "Guardar en la primera carpeta del menú"
+  },
+  "manifestCommandSaveFolder2": {
+    "message": "Guardar en la segunda carpeta del menú"
+  },
+  "manifestCommandSaveFolder3": {
+    "message": "Guardar en la tercera carpeta del menú"
   }
 }

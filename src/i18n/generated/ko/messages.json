@@ -4672,5 +4672,17 @@
   },
   "notificationPrivateSavedSourceSkippedMessage": {
     "message": "기록에 완료된 저장이 이미 있어 비공개 브라우징 항목을 다시 저장하지 않았습니다."
+  },
+  "manifestCommandSaveLastUsed": {
+    "message": "마지막으로 사용한 위치에 저장"
+  },
+  "manifestCommandSaveFolder1": {
+    "message": "메뉴의 첫 번째 폴더에 저장"
+  },
+  "manifestCommandSaveFolder2": {
+    "message": "메뉴의 두 번째 폴더에 저장"
+  },
+  "manifestCommandSaveFolder3": {
+    "message": "메뉴의 세 번째 폴더에 저장"
   }
 }

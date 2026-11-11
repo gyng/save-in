@@ -4672,5 +4672,17 @@
   },
   "notificationPrivateSavedSourceSkippedMessage": {
     "message": "Un elemento di navigazione privata non è stato salvato di nuovo perché la cronologia ne contiene già un salvataggio completato."
+  },
+  "manifestCommandSaveLastUsed": {
+    "message": "Salva nell'ultima destinazione usata"
+  },
+  "manifestCommandSaveFolder1": {
+    "message": "Salva nella prima cartella del menu"
+  },
+  "manifestCommandSaveFolder2": {
+    "message": "Salva nella seconda cartella del menu"
+  },
+  "manifestCommandSaveFolder3": {
+    "message": "Salva nella terza cartella del menu"
   }
 }

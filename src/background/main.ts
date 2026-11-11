@@ -9,6 +9,7 @@ import { enforceHistoryRetention, setHistoryStatus } from "./history.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { restoreLastUsed, restorePrivateLastUsed } from "./menu-build.ts";
 import { addDownloadListener, quickSaveActiveTab } from "./menu-click.ts";
+import { isSaveCommand, runSaveCommand } from "./command-save.ts";
 import { addTabMenuListener } from "./menu-tabs.ts";
 import {
   LAST_USED_META_STORAGE_KEY,
@@ -163,6 +164,9 @@ export const start = () => {
     }
     if (command === QUICK_SAVE_COMMAND) {
       return runBackgroundTask("quick save command failed", quickSaveActiveTab);
+    }
+    if (isSaveCommand(command)) {
+      return runBackgroundTask("save command failed", () => runSaveCommand(command));
     }
     return undefined;
   });

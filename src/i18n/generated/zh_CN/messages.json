@@ -4672,5 +4672,17 @@
   },
   "notificationPrivateSavedSourceSkippedMessage": {
     "message": "由于历史记录中已有已完成的保存，未再次保存一个隐私浏览项目。"
+  },
+  "manifestCommandSaveLastUsed": {
+    "message": "保存到上次使用的位置"
+  },
+  "manifestCommandSaveFolder1": {
+    "message": "保存到菜单中的第一个文件夹"
+  },
+  "manifestCommandSaveFolder2": {
+    "message": "保存到菜单中的第二个文件夹"
+  },
+  "manifestCommandSaveFolder3": {
+    "message": "保存到菜单中的第三个文件夹"
   }
 }

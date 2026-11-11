@@ -64,6 +64,8 @@ import { contextLinkMetadataFromEvent } from "./context-link-metadata.ts";
 import { contextImageFromEvent } from "./context-image.ts";
 import { isSourcePanelHost } from "./source-panel-host.ts";
 import { CONTEXT_IMAGE_REQUEST, type ContextImage } from "../shared/context-image.ts";
+import { HOVERED_SOURCE_REQUEST } from "../shared/hovered-source.ts";
+import { hoveredSourceFromDocument } from "./hovered-source.ts";
 import {
   CONTEXT_LINK_METADATA_REQUEST,
   parseContextLinkMetadata,
@@ -1243,6 +1245,10 @@ try {
     }
     if (message?.type === CONTEXT_IMAGE_REQUEST) {
       sendResponse(lastContextImage);
+      return;
+    }
+    if (message?.type === HOVERED_SOURCE_REQUEST) {
+      sendResponse(hoveredSourceFromDocument(document, ClickToSave.findSource));
       return;
     }
     if (message?.type === CONTENT_OPTIONS_CHANGED_MESSAGE) {

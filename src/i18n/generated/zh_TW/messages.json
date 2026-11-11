@@ -4672,5 +4672,17 @@
   },
   "notificationPrivateSavedSourceSkippedMessage": {
     "message": "由於歷史記錄中已有已完成的儲存，因此未再次儲存一個隱私瀏覽項目。"
+  },
+  "manifestCommandSaveLastUsed": {
+    "message": "儲存至上次使用的位置"
+  },
+  "manifestCommandSaveFolder1": {
+    "message": "儲存至選單中的第一個資料夾"
+  },
+  "manifestCommandSaveFolder2": {
+    "message": "儲存至選單中的第二個資料夾"
+  },
+  "manifestCommandSaveFolder3": {
+    "message": "儲存至選單中的第三個資料夾"
   }
 }

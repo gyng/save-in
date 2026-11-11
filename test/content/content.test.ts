@@ -1839,6 +1839,29 @@ describe("content.js initialisation", () => {
     expect(respond).toHaveBeenLastCalledWith(null);
   });
 
+  test("answers a hovered-source request from the element under the pointer", async () => {
+    await importContentWithOptions({ contentClickToSave: false });
+    document.body.innerHTML = '<a href="/full.jpg"><img src="/thumb.jpg"></a>';
+    const runtimeListener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock
+      .calls[0]?.[0];
+    const respond = vi.fn();
+
+    runtimeListener?.({ type: "SAVE_IN_HOVERED_SOURCE" }, {}, respond);
+    expect(respond).toHaveBeenLastCalledWith(null);
+
+    const hovered = [document.body, document.querySelector("a"), document.querySelector("img")];
+    const query = vi
+      .spyOn(document, "querySelectorAll")
+      .mockReturnValue(hovered as unknown as NodeListOf<Element>);
+    runtimeListener?.({ type: "SAVE_IN_HOVERED_SOURCE" }, {}, respond);
+    query.mockRestore();
+
+    expect(respond).toHaveBeenLastCalledWith({
+      media: { url: "http://localhost/thumb.jpg", kind: "image" },
+      linkUrl: "http://localhost/full.jpg",
+    });
+  });
+
   test("ignores a page-synthesized right-click outside E2E builds", async () => {
     (globalThis as { SAVE_IN_CONTENT_E2E?: boolean }).SAVE_IN_CONTENT_E2E = false;
     try {

@@ -4672,5 +4672,17 @@
   },
   "notificationPrivateSavedSourceSkippedMessage": {
     "message": "Un élément de navigation privée n’a pas été enregistré de nouveau, car l’historique en contient déjà un enregistrement terminé."
+  },
+  "manifestCommandSaveLastUsed": {
+    "message": "Enregistrer dans le dernier emplacement"
+  },
+  "manifestCommandSaveFolder1": {
+    "message": "Enregistrer dans le premier dossier du menu"
+  },
+  "manifestCommandSaveFolder2": {
+    "message": "Enregistrer dans le deuxième dossier du menu"
+  },
+  "manifestCommandSaveFolder3": {
+    "message": "Enregistrer dans le troisième dossier du menu"
   }
 }

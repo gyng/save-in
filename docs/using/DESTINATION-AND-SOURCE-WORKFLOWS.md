@@ -62,6 +62,40 @@ Private-window saves are not added unless **Remember private browsing activity**
 is enabled. Rule-selected destinations are also not added because no explicit
 menu destination was chosen.
 
+## Keyboard commands
+
+Save In registers browser keyboard commands that you bind yourself. Only
+**Show or hide Page Sources** has a suggested key; the others have none until
+you assign one in Firefox under **Add-ons and themes → ⚙ → Manage Extension
+Shortcuts**, or in Chrome at `chrome://extensions/shortcuts`.
+
+| Command                               | What it saves                             | Where it saves                              |
+| ------------------------------------- | ----------------------------------------- | ------------------------------------------- |
+| Quick save the current page           | The page in the active tab                | The Quick save destination                  |
+| Save to the last used location        | What is under the pointer, else the page  | **Last used**                               |
+| Save to the first folder in the menu  | What is under the pointer, else the page  | The first folder you can pick in the menu   |
+| Save to the second folder in the menu | What is under the pointer, else the page  | The second folder you can pick in the menu  |
+| Save to the third folder in the menu  | What is under the pointer, else the page  | The third folder you can pick in the menu   |
+
+The Last used and folder commands (#15) act as if you had opened the context
+menu on what the pointer is over and chosen that item: the same routing rules,
+per-destination Save As, Last used and recent-location updates, History, and
+private-window handling apply. Keep these points in mind:
+
+- "Under the pointer" means an image, video, audio element, or link in the
+  page's top frame. Anything else, including content inside an embedded frame,
+  an image that is only visible through an empty overlay, and pages where
+  extensions cannot run, saves the page. If page saves are turned off under
+  **Options → Save menu**, nothing is saved in that case.
+- Folders are counted in menu order, skipping separators, disabled lines, and
+  folders that only open a submenu. A command for a folder that does not exist
+  does nothing.
+- A command only picks an item the menu currently shows. With **Last used**
+  turned off, or with the folder list hidden by Quick save only or by
+  routing-only menus, the matching commands do nothing.
+- The quick save command keeps its own rules: it always saves the page and
+  works only while **Show a quick save item** is on.
+
 ## Click-to-save folders
 
 **Options → Click-to-save** saves the clicked media without opening the context

@@ -4672,5 +4672,17 @@
   },
   "notificationPrivateSavedSourceSkippedMessage": {
     "message": "Um item da navegação privativa não foi salvo novamente porque o histórico já contém um salvamento concluído dele."
+  },
+  "manifestCommandSaveLastUsed": {
+    "message": "Salvar no último local"
+  },
+  "manifestCommandSaveFolder1": {
+    "message": "Salvar na primeira pasta do menu"
+  },
+  "manifestCommandSaveFolder2": {
+    "message": "Salvar na segunda pasta do menu"
+  },
+  "manifestCommandSaveFolder3": {
+    "message": "Salvar na terceira pasta do menu"
   }
 }

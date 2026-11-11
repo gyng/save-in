@@ -65,6 +65,18 @@
     },
     "quick-save": {
       "description": "__MSG_manifestCommandQuickSave__"
+    },
+    "save-last-used": {
+      "description": "__MSG_manifestCommandSaveLastUsed__"
+    },
+    "save-folder-1": {
+      "description": "__MSG_manifestCommandSaveFolder1__"
+    },
+    "save-folder-2": {
+      "description": "__MSG_manifestCommandSaveFolder2__"
+    },
+    "save-folder-3": {
+      "description": "__MSG_manifestCommandSaveFolder3__"
     }
   },
   "icons": {

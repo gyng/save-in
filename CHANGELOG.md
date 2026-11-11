@@ -1,5 +1,10 @@
 # Unreleased
 
+- New keyboard commands save to **Last used** and to the first, second, and
+  third folder of the menu (#15). Each saves the image, video, audio, or link
+  under the pointer, or else the page, exactly as choosing that menu item
+  would. They have no default keys; assign them in the browser's extension
+  shortcut settings.
 - With browser-download History on, a page-built `data:` download now stores a
   shortened URL instead of its whole payload, which could be megabytes. Like
   automatic `data:` saves, such rows can no longer be moved from History.

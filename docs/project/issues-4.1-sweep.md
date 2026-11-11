@@ -138,4 +138,4 @@ general native interception that preserves arbitrary request context.
 | [#25](https://github.com/gyng/save-in/issues/25) [Feature Request] Consider using native messaging to save outside the downloads folder | Native messaging for arbitrary filesystem destinations is not implemented. |
 | [#21](https://github.com/gyng/save-in/issues/21) Feature Request: Move menu to top level, top of menu | Browser-owned menu ordering/top placement remains unsupported. |
 | [#18](https://github.com/gyng/save-in/issues/18) Feature request:  Overwrite or Rename if file already exists | Firefox native conflict prompts/skip-existing remain unsupported. |
-| [#15](https://github.com/gyng/save-in/issues/15) Please add keyboard shortcut support! | Access keys and gestures exist, but direct modifier combinations bound to individual folders are not implemented. |
+| [#15](https://github.com/gyng/save-in/issues/15) Please add keyboard shortcut support! | Access keys and gestures exist. Unreleased work adds unbound browser commands for Last used and the first three folders; arbitrary per-folder bindings beyond those are not implemented. |

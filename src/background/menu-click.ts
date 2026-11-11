@@ -191,7 +191,7 @@ const getContextMenuRefresh = (): (() => Promise<void>) | null => {
     Promise.resolve(Reflect.apply(refresh, webExtensionApi.contextMenus, [])).then(() => {});
 };
 
-const lastUsedMenuExists = (): boolean =>
+export const lastUsedMenuExists = (): boolean =>
   options.enableLastLocation &&
   !options.routeHideFolderChoices &&
   !(options.quickSaveEnabled && options.quickSaveOnly);

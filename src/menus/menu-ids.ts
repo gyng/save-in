@@ -33,3 +33,7 @@ export const MENU_IDS = {
 // Keyboard command name; must match the manifest `commands` key. Distinct from
 // the MENU_IDS.QUICK_SAVE menu-item id.
 export const QUICK_SAVE_COMMAND = "quick-save";
+// Unbound by default (#15). The folder commands are positional: the Nth name
+// saves to the Nth destination the menu offers.
+export const SAVE_LAST_USED_COMMAND = "save-last-used";
+export const SAVE_FOLDER_COMMANDS = ["save-folder-1", "save-folder-2", "save-folder-3"] as const;

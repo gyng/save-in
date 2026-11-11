@@ -4672,5 +4672,17 @@
   },
   "notificationPrivateSavedSourceSkippedMessage": {
     "message": "履歴に完了した保存がすでにあるため、プライベートブラウジングの項目は再度保存されませんでした。"
+  },
+  "manifestCommandSaveLastUsed": {
+    "message": "最後に使用した場所に保存"
+  },
+  "manifestCommandSaveFolder1": {
+    "message": "メニューの 1 番目のフォルダーに保存"
+  },
+  "manifestCommandSaveFolder2": {
+    "message": "メニューの 2 番目のフォルダーに保存"
+  },
+  "manifestCommandSaveFolder3": {
+    "message": "メニューの 3 番目のフォルダーに保存"
   }
 }
