@@ -4513,17 +4513,26 @@
   "html_linkDownloadVariableDescription": {
     "message": "O nome de download sugerido pelo link, quando fornecido pela página."
   },
+  "html_altTextVariableDescription": {
+    "message": "O atributo alt da imagem salva, quando fornecido pela página."
+  },
   "html_linkTitleMatcherDescription": {
     "message": "Corresponde ao atributo title do link clicado."
   },
   "html_linkDownloadMatcherDescription": {
     "message": "Corresponde ao nome de download sugerido pelo link."
   },
+  "html_altTextMatcherDescription": {
+    "message": "Corresponde ao atributo alt da imagem salva."
+  },
   "routeDebuggerLinkTitle": {
     "message": "Título do link"
   },
   "routeDebuggerLinkDownload": {
     "message": "Nome de download do link"
+  },
+  "routeDebuggerAltText": {
+    "message": "Texto alternativo da imagem"
   },
   "notificationRuleExcludedMessage": {
     "message": "$URL$ não foi salvo porque uma regra de roteamento o excluiu.",

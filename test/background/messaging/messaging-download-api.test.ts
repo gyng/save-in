@@ -627,6 +627,26 @@ describe("handleDownloadMessage", () => {
     ).toBeUndefined();
   });
 
+  test("routes on the image alt text a save request supplies", () => {
+    onMessage(
+      request({
+        info: { pageUrl: "https://x/", srcUrl: "https://x/file.png", altText: "Sunset" },
+      }),
+      { url: "https://x/", tab: { id: 8, url: "https://x/" } },
+      vi.fn(),
+    );
+    expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.altText).toBe("Sunset");
+
+    vi.mocked(Download.launchDownload).mockClear();
+    const rejected = vi.fn();
+    onMessage(
+      request({ info: { pageUrl: "https://x/", srcUrl: "https://x/file.png", altText: 7 } }),
+      { url: "https://x/", tab: { id: 8, url: "https://x/" } },
+      rejected,
+    );
+    expect(Download.launchDownload).not.toHaveBeenCalled();
+  });
+
   test("accepts gesture provenance only from the trusted content channel", async () => {
     const gestureRequest = request({
       info: {

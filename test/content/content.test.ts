@@ -1833,7 +1833,7 @@ describe("content.js initialisation", () => {
 
   test("returns only the most recently context-clicked image (#237)", async () => {
     await importContentWithOptions({ contentClickToSave: false });
-    document.body.innerHTML = '<img src="/art.png"><p>Text</p>';
+    document.body.innerHTML = '<img src="/art.png" alt="Sunset"><p>Text</p>';
     const runtimeListener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock
       .calls[0]?.[0];
     const respond = vi.fn();
@@ -1843,7 +1843,7 @@ describe("content.js initialisation", () => {
 
     document.querySelector("img")?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true }));
     runtimeListener?.({ type: "SAVE_IN_CONTEXT_IMAGE" }, {}, respond);
-    expect(respond).toHaveBeenLastCalledWith({ src: "http://localhost/art.png" });
+    expect(respond).toHaveBeenLastCalledWith({ src: "http://localhost/art.png", alt: "Sunset" });
 
     document.querySelector("p")?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true }));
     runtimeListener?.({ type: "SAVE_IN_CONTEXT_IMAGE" }, {}, respond);
@@ -2118,7 +2118,7 @@ describe("content.js initialisation", () => {
       }),
     ) as any;
     (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
-    document.body.innerHTML = `<img src="cat.jpg">`;
+    document.body.innerHTML = `<img src="cat.jpg" alt="A sleeping cat">`;
     await import("../../src/content/content.ts");
     runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
     vi.mocked(global.chrome.runtime.sendMessage).mockClear();
@@ -2132,7 +2132,10 @@ describe("content.js initialisation", () => {
       expect.objectContaining({
         type: "DOWNLOAD",
         body: expect.objectContaining({
-          info: expect.objectContaining({ matchedCssSelectorsByOrigin: [["img"]] }),
+          info: expect.objectContaining({
+            matchedCssSelectorsByOrigin: [["img"]],
+            altText: "A sleeping cat",
+          }),
         }),
       }),
       expect.any(Function),
@@ -2396,6 +2399,26 @@ describe("setupClickToSave", () => {
         },
       },
     });
+    remove();
+  });
+
+  test("click-to-save carries the clicked image's alt text", () => {
+    const remove = ClickToSave.setupClickToSave(
+      { contentClickToSaveCombo: "Ctrl", contentClickToSaveButton: "BACK_CLICK", links: true },
+      acceptTestInput,
+    );
+    document.body.innerHTML =
+      '<img id="named" src="http://x.test/named.png" alt=" Sunset over the harbor "><img id="bare" src="http://x.test/bare.png">';
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(document.getElementById("named"), 8);
+    expect(downloadsSent().at(-1)?.[0]).toMatchObject({
+      body: { url: "http://x.test/named.png", info: { altText: "Sunset over the harbor" } },
+    });
+
+    mousedown(document.getElementById("bare"), 8);
+    const bare = downloadsSent().at(-1)?.[0] as { body: { url: string; info: object } };
+    expect(bare.body.url).toBe("http://x.test/bare.png");
+    expect(bare.body.info).not.toHaveProperty("altText");
     remove();
   });
 

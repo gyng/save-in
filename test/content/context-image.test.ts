@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { contextImageFromEvent } from "../../src/content/context-image.ts";
+import { contextImageFromEvent, imageAltText } from "../../src/content/context-image.ts";
 
 const contextEventOn = (element: Element): MouseEvent => {
   const event = new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 20 });
@@ -41,6 +41,22 @@ describe("context image extraction (#237)", () => {
     expect(contextImageFromEvent(contextEventOn(element("img")))).toEqual({
       src: "http://localhost/art.png",
     });
+  });
+
+  test("records the image's trimmed alt text and omits an empty one", () => {
+    document.body.innerHTML =
+      '<img id="named" src="/art.png" alt="  Sunset over the harbor "><img id="blank" src="/b.png" alt=" "><p>Text</p>';
+
+    expect(contextImageFromEvent(contextEventOn(element("#named")))).toEqual({
+      src: "http://localhost/art.png",
+      alt: "Sunset over the harbor",
+    });
+    expect(contextImageFromEvent(contextEventOn(element("#blank")))).toEqual({
+      src: "http://localhost/b.png",
+    });
+    expect(imageAltText(element("#named"))).toBe("Sunset over the harbor");
+    expect(imageAltText(element("#blank"))).toBeUndefined();
+    expect(imageAltText(element("p"))).toBeUndefined();
   });
 
   test("prefers the candidate the browser selected from a responsive image", () => {

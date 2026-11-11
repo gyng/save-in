@@ -4513,17 +4513,26 @@
   "html_linkDownloadVariableDescription": {
     "message": "リンクにページで指定されたダウンロード名です。"
   },
+  "html_altTextVariableDescription": {
+    "message": "保存した画像にページで指定された alt 属性です。"
+  },
   "html_linkTitleMatcherDescription": {
     "message": "クリックしたリンクの title 属性に一致します。"
   },
   "html_linkDownloadMatcherDescription": {
     "message": "リンクに指定されたダウンロード名に一致します。"
   },
+  "html_altTextMatcherDescription": {
+    "message": "保存した画像の alt 属性に一致します。"
+  },
   "routeDebuggerLinkTitle": {
     "message": "リンクのタイトル"
   },
   "routeDebuggerLinkDownload": {
     "message": "リンクのダウンロード名"
+  },
+  "routeDebuggerAltText": {
+    "message": "画像の代替テキスト"
   },
   "notificationRuleExcludedMessage": {
     "message": "ルーティングルールで除外されたため、$URL$ は保存されませんでした。",

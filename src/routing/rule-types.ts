@@ -12,6 +12,7 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   linkText?: string | undefined;
   linkTitle?: string | undefined;
   linkDownload?: string | undefined;
+  altText?: string | undefined;
   mediaType?: string | undefined;
   sourceKind?: PageSourceKind | undefined;
   mime?: string | undefined;

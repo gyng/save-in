@@ -993,6 +993,10 @@
     "message": "The download name suggested by the link, when the page provides it.",
     "description": "Description of the :linkdownload: filename variable, sourced from an HTML link download attribute for an interactive link save. Used in src/options/options.html."
   },
+  "html_altTextVariableDescription": {
+    "message": "The alt attribute of the image you saved, when the page provides it.",
+    "description": "Description of the :alttext: filename variable. This is the HTML alt attribute (alternative text) of an image saved from the context menu, click-to-save, or the Page Sources panel. Keep the literal attribute name alt. Used in src/options/options.html."
+  },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "The currently selected text on the page",
     "description": "Text in the filename-variable reference. Used in src/options/options.html."
@@ -1164,6 +1168,10 @@
   "html_linkDownloadMatcherDescription": {
     "message": "Matches the download name suggested by the link.",
     "description": "Description of the linkdownload: routing matcher. It is sourced from an HTML link download attribute for an interactive link save. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "html_altTextMatcherDescription": {
+    "message": "Matches the alt attribute of the image you saved.",
+    "description": "Description of the alttext: routing matcher. It is available for interactive image saves when the page supplies an alt attribute. Keep the literal attribute name alt. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_cssMatcherDescription": {
     "message": "Matches the page element that discovered the source. Available for automatic Page Sources, click-to-save, and Page Sources panel saves.",
@@ -4726,6 +4734,10 @@
   "routeDebuggerLinkDownload": {
     "message": "Link download name",
     "description": "Label for the route debugger input that represents an HTML link download attribute. Used in src/options/options.html."
+  },
+  "routeDebuggerAltText": {
+    "message": "Image alt text",
+    "description": "Label for the route debugger input that represents an image's HTML alt attribute (alternative text). Used in src/options/options.html."
   },
   "routeDebuggerSelectionText": {
     "message": "Selected text",

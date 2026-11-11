@@ -294,6 +294,8 @@ const internalHandlers = {
           typeof recordedVariables.linkdownload === "string"
             ? recordedVariables.linkdownload
             : undefined,
+        altText:
+          typeof recordedVariables.alttext === "string" ? recordedVariables.alttext : undefined,
         // Restore whatever matcher evidence the entry actually recorded so a
         // rule keyed on frameurl/referrerurl/mediatype/mime/sourcekind routes
         // the moved copy the same way it routed the original — only recorded

@@ -1268,6 +1268,15 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                             />
                           </label>
                           <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerAltText__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-alt-text"
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
                             <span>__MSG_routeDebuggerSelectionText__</span>
                             <input
                               type="text"
@@ -3683,6 +3692,14 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
               <tr>
                 <td>
+                  <code class="click-to-copy">:alttext:</code>
+                </td>
+                <td>Sunset over the harbor</td>
+                <td>__MSG_html_altTextVariableDescription__</td>
+              </tr>
+
+              <tr>
+                <td>
                   <code class="click-to-copy">:selectiontext:</code>
                 </td>
                 <td>A swan created using</td>
@@ -4086,6 +4103,15 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <code>original-.*\.jpg</code>
                 </td>
                 <td>__MSG_html_linkDownloadMatcherDescription__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">alttext:</code>
+                </td>
+                <td>
+                  <code>sunset|harbor</code>
+                </td>
+                <td>__MSG_html_altTextMatcherDescription__</td>
               </tr>
               <tr>
                 <td>

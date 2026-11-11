@@ -37,6 +37,7 @@ export const SPECIAL_DIRS = {
   LINK_TEXT: ":linktext:",
   LINK_TITLE: ":linktitle:",
   LINK_DOWNLOAD: ":linkdownload:",
+  ALT_TEXT: ":alttext:",
   SELECTION_TEXT: ":selectiontext:",
   MENU_PATH: ":menupath:",
   NAIVE_FILENAME: ":naivefilename:",

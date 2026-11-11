@@ -39,6 +39,7 @@ import { addLogEntry } from "./log.ts";
 import { runBackgroundTask } from "./background-event-task.ts";
 import { resolveClickTarget, type ClickInfo } from "./menu-target.ts";
 import {
+  boundedContextImageUrl,
   CONTEXT_IMAGE_REQUEST,
   parseContextImage,
   type ContextImage,
@@ -66,41 +67,52 @@ type PrivateMenuInvocation = { windowId: number | undefined; invalidated: boolea
 const activePrivateMenuInvocations = new Set<PrivateMenuInvocation>();
 const LINK_METADATA_TIMEOUT_MS = 500;
 
-const usesLinkMetadataVariable = (source: string): boolean => {
-  const normalized = source.toLowerCase();
-  return (
-    normalized.includes(SPECIAL_DIRS.LINK_TITLE) || normalized.includes(SPECIAL_DIRS.LINK_DOWNLOAD)
-  );
+// A routing input the page must be asked for. Each is requested only when the
+// configured syntax can consume it, so an ordinary save never waits on a page.
+type RoutingInputUse = { variables: readonly string[]; matchers: readonly string[] };
+
+const LINK_METADATA_USE: RoutingInputUse = {
+  variables: [SPECIAL_DIRS.LINK_TITLE, SPECIAL_DIRS.LINK_DOWNLOAD],
+  matchers: ["linktitle", "linkdownload"],
+};
+const IMAGE_ALT_USE: RoutingInputUse = {
+  variables: [SPECIAL_DIRS.ALT_TEXT],
+  matchers: ["alttext"],
 };
 
-const capturesLinkMetadata = (source: string): boolean =>
+const usesVariable = (source: string, use: RoutingInputUse): boolean => {
+  const normalized = source.toLowerCase();
+  return use.variables.some((variable) => normalized.includes(variable));
+};
+
+const capturesMatcher = (source: string, use: RoutingInputUse): boolean =>
   source
     .split(",")
     .map((name) => name.trim().toLowerCase())
-    .some((name) => name === "linktitle" || name === "linkdownload");
+    .some((name) => use.matchers.includes(name));
 
-const usesContextLinkMetadata = (storedDestinationPath?: string): boolean => {
-  if (usesLinkMetadataVariable(options.paths)) return true;
+const usesRoutingInput = (use: RoutingInputUse, storedDestinationPath?: string): boolean => {
+  if (usesVariable(options.paths, use)) return true;
   // Last used and recent-destination clicks save into a STORED path string
   // that can still contain :linktitle:/:linkdownload: after the user removed
   // every use of it from options.paths — that stored copy is not options.paths
   // and would otherwise never be scanned here.
-  if (storedDestinationPath && usesLinkMetadataVariable(storedDestinationPath)) return true;
+  if (storedDestinationPath && usesVariable(storedDestinationPath, use)) return true;
   const rules = options.filenamePatterns;
   if (!Array.isArray(rules)) return false;
   return rules.some((rule) =>
     rule.some((clause) => {
       const name = clause.name.toLowerCase();
-      if (name === "linktitle" || name === "linkdownload") return true;
+      if (use.matchers.includes(name)) return true;
       if (name === "capture" || name === "capturegroups") {
-        return typeof clause.value === "string" && capturesLinkMetadata(clause.value);
+        return typeof clause.value === "string" && capturesMatcher(clause.value, use);
       }
       if (name === "into" || name === "fetch") {
-        return typeof clause.value === "string" && usesLinkMetadataVariable(clause.value);
+        return typeof clause.value === "string" && usesVariable(clause.value, use);
       }
       if (name === "rename") {
         const replacement: unknown = Reflect.get(clause, "replacement");
-        return typeof replacement === "string" && usesLinkMetadataVariable(replacement);
+        return typeof replacement === "string" && usesVariable(replacement, use);
       }
       return false;
     }),
@@ -113,7 +125,7 @@ const readContextLinkMetadata = async (
   storedDestinationPath?: string,
 ): Promise<ContextLinkMetadata | null> => {
   if (
-    !usesContextLinkMetadata(storedDestinationPath) ||
+    !usesRoutingInput(LINK_METADATA_USE, storedDestinationPath) ||
     !isBrowserTabId(tab?.id) ||
     typeof info.linkUrl !== "string" ||
     info.linkUrl.length > MAX_CONTEXT_LINK_URL_LENGTH
@@ -329,10 +341,11 @@ const handleContextMenuClickInternal = async (
     let lastUsedMeta: LastUsedMeta | null = null;
 
     let target = resolveClickTarget(info, options, clickTab);
+    let recoveredImage: ContextImage | null = null;
     if (target?.downloadType === DOWNLOAD_TYPES.PAGE) {
-      const image = await readContextImage(info, clickTab);
-      if (image) {
-        info = { ...info, mediaType: "image", srcUrl: image.src };
+      recoveredImage = await readContextImage(info, clickTab);
+      if (recoveredImage) {
+        info = { ...info, mediaType: "image", srcUrl: recoveredImage.src };
         target = resolveClickTarget(info, options, clickTab);
       }
     }
@@ -355,6 +368,13 @@ const handleContextMenuClickInternal = async (
       clickTab,
       storedDestinationPath,
     );
+    // The right-click record names one image; its alt text is used only when it
+    // is the exact image the browser reported for this click.
+    let altText: string | undefined;
+    if (info.mediaType === "image" && usesRoutingInput(IMAGE_ALT_USE, storedDestinationPath)) {
+      const image = recoveredImage ?? (await readContextImage(info, clickTab));
+      if (image && image.src === boundedContextImageUrl(info.srcUrl)) altText = image.alt;
+    }
     // A text selection is saved as an object URL of its text (the pure
     // decision only reports the text)
     let url = target.selectionText != null ? makeObjectUrl(target.selectionText) : target.url;
@@ -467,6 +487,7 @@ const handleContextMenuClickInternal = async (
       linkText: typeof linkTextValue === "string" ? linkTextValue : undefined,
       linkTitle: contextLinkMetadata?.title,
       linkDownload: contextLinkMetadata?.download,
+      altText,
       mediaType: info.mediaType,
       now: new Date(),
       pageUrl: info.pageUrl,

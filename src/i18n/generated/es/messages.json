@@ -4513,17 +4513,26 @@
   "html_linkDownloadVariableDescription": {
     "message": "El nombre de descarga sugerido por el enlace, si la página lo proporciona."
   },
+  "html_altTextVariableDescription": {
+    "message": "El atributo alt de la imagen guardada, si la página lo proporciona."
+  },
   "html_linkTitleMatcherDescription": {
     "message": "Coincide con el atributo title del enlace pulsado."
   },
   "html_linkDownloadMatcherDescription": {
     "message": "Coincide con el nombre de descarga sugerido por el enlace."
   },
+  "html_altTextMatcherDescription": {
+    "message": "Coincide con el atributo alt de la imagen guardada."
+  },
   "routeDebuggerLinkTitle": {
     "message": "Título del enlace"
   },
   "routeDebuggerLinkDownload": {
     "message": "Nombre de descarga del enlace"
+  },
+  "routeDebuggerAltText": {
+    "message": "Texto alternativo de la imagen"
   },
   "notificationRuleExcludedMessage": {
     "message": "$URL$ no se guardó porque una regla de enrutamiento lo excluyó.",

@@ -296,6 +296,7 @@ export const historyDebuggerState = (entry: HistoryEntry): WireDownloadState => 
     linkText: firstVariable("linktext"),
     linkTitle: firstVariable("linktitle"),
     linkDownload: firstVariable("linkdownload"),
+    altText: firstVariable("alttext"),
     selectionText: firstVariable("selectiontext", "selection"),
     mediaType: firstVariable("mediatype"),
     mime: firstVariable("mime", "contenttype"),

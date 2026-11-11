@@ -4513,17 +4513,26 @@
   "html_linkDownloadVariableDescription": {
     "message": "頁面提供時，連結建議的下載名稱。"
   },
+  "html_altTextVariableDescription": {
+    "message": "頁面提供時，所儲存圖片的 alt 屬性。"
+  },
   "html_linkTitleMatcherDescription": {
     "message": "比對所點選連結的 title 屬性。"
   },
   "html_linkDownloadMatcherDescription": {
     "message": "比對連結建議的下載名稱。"
   },
+  "html_altTextMatcherDescription": {
+    "message": "比對所儲存圖片的 alt 屬性。"
+  },
   "routeDebuggerLinkTitle": {
     "message": "連結標題"
   },
   "routeDebuggerLinkDownload": {
     "message": "連結下載名稱"
+  },
+  "routeDebuggerAltText": {
+    "message": "圖片替代文字"
   },
   "notificationRuleExcludedMessage": {
     "message": "由於路由規則將其排除，因此未儲存 $URL$。",

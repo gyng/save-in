@@ -17,6 +17,7 @@ describe("variables", () => {
     linkText: "linkfoobar",
     linkTitle: "Full-size image",
     linkDownload: "original-photo.jpg",
+    altText: "Sunset over the harbor",
     selectionText: "selectionfoobar",
     currentTab: { title: "foobartitle" },
     filename: "lol.jpeg",
@@ -170,6 +171,32 @@ describe("variables", () => {
       const input = new Path.Path(":linktext:/:linktitle:/:linkdownload:");
       const output = (await Variable.applyVariables(input, info)).finalize();
       expect(output).toBe("linkfoobar/Full-size image/original-photo.jpg");
+    });
+
+    test("interpolates :alttext: and leaves it empty without an image", async () => {
+      const output = (
+        await Variable.applyVariables(new Path.Path("images/:alttext:"), info)
+      ).finalize();
+      expect(output).toBe("images/Sunset over the harbor");
+      const empty = (
+        await Variable.applyVariables(new Path.Path("images/:alttext:"), {
+          ...info,
+          altText: undefined,
+        })
+      ).finalize();
+      expect(empty).toBe("images/_");
+    });
+
+    test("keeps page-controlled :alttext: inside one sanitized path component", async () => {
+      const output = (
+        await Variable.applyVariables(new Path.Path("images/:alttext:"), {
+          ...info,
+          altText: "../../etc/passwd\\evil\nname",
+        })
+      ).finalize();
+      // The separators and the newline are replaced, so the traversal attempt
+      // is literal text inside the single component the variable occupies.
+      expect(output).toBe("images/_._.._etc_passwd_evil_name");
     });
 
     test("interpolates :pagetitle:", async () => {

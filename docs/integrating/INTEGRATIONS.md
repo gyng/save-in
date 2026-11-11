@@ -57,6 +57,7 @@ const response = await browser.runtime.sendMessage(SAVE_IN_ID, {
       linkText: "Open photo",
       linkTitle: "View full-size photo",
       linkDownload: "original-photo.jpg",
+      altText: "Sunset over the harbor",
       selectionText: "optional",
       suggestedFilename: "photo.jpg",
       mime: "image/jpeg",
@@ -83,6 +84,8 @@ Accepted URL schemes are `http`, `https`, `ftp`, `data`, and `blob`. A `blob` UR
 `linkText`, `linkTitle`, and `linkDownload` are independent optional routing
 inputs. The latter two correspond to an HTML anchor's `title` and `download`
 attributes; Save In does not reinterpret `linkText` as either attribute.
+`altText` is the optional `alt` attribute of a saved image, matched by
+`alttext:` and expanded by `:alttext:`.
 
 Download errors are `UNAUTHORIZED`, `BAD_REQUEST`, or `INVALID_URL`; unknown external message types return `UNKNOWN_TYPE`. `OPEN_PICKER` adds `UNAVAILABLE`, described [below](#opening-the-destination-picker). Treat `UNAUTHORIZED` as a request for user configuration, not as a transient error to retry repeatedly.
 

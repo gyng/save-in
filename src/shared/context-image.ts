@@ -6,7 +6,17 @@ import { isStringKeyedRecord } from "./util.ts";
 export const CONTEXT_IMAGE_REQUEST = "SAVE_IN_CONTEXT_IMAGE";
 export const MAX_CONTEXT_IMAGE_URL_LENGTH = 8_192;
 
-export type ContextImage = { src: string };
+// Alt text names files, so it is bounded like the link title and download
+// attributes rather than carried at whatever length the page chose.
+export const MAX_CONTEXT_IMAGE_ALT_LENGTH = 4_096;
+
+export type ContextImage = { src: string; alt?: string | undefined };
+
+export const boundedImageAltText = (value: unknown): string | undefined => {
+  if (typeof value !== "string") return undefined;
+  const normalized = value.trim();
+  return normalized ? normalized.slice(0, MAX_CONTEXT_IMAGE_ALT_LENGTH) : undefined;
+};
 
 // Only an address the downloads pipeline can fetch on its own: a page-owned
 // blob: or an inline data: placeholder is not the image the user pointed at.
@@ -25,5 +35,7 @@ export const boundedContextImageUrl = (value: unknown): string | undefined => {
 export const parseContextImage = (value: unknown): ContextImage | null => {
   if (!isStringKeyedRecord(value)) return null;
   const src = boundedContextImageUrl(value.src);
-  return src ? { src } : null;
+  if (!src) return null;
+  const alt = boundedImageAltText(value.alt);
+  return { src, ...(alt ? { alt } : {}) };
 };

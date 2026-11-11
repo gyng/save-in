@@ -4513,17 +4513,26 @@
   "html_linkDownloadVariableDescription": {
     "message": "페이지에서 제공하는 경우 링크가 제안한 다운로드 이름입니다."
   },
+  "html_altTextVariableDescription": {
+    "message": "페이지에서 제공하는 경우 저장한 이미지의 alt 속성입니다."
+  },
   "html_linkTitleMatcherDescription": {
     "message": "클릭한 링크의 title 속성과 일치합니다."
   },
   "html_linkDownloadMatcherDescription": {
     "message": "링크가 제안한 다운로드 이름과 일치합니다."
   },
+  "html_altTextMatcherDescription": {
+    "message": "저장한 이미지의 alt 속성과 일치합니다."
+  },
   "routeDebuggerLinkTitle": {
     "message": "링크 제목"
   },
   "routeDebuggerLinkDownload": {
     "message": "링크 다운로드 이름"
+  },
+  "routeDebuggerAltText": {
+    "message": "이미지 대체 텍스트"
   },
   "notificationRuleExcludedMessage": {
     "message": "라우팅 규칙에서 제외되어 $URL$을(를) 저장하지 않았습니다.",

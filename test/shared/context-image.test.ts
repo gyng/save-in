@@ -1,4 +1,9 @@
-import { MAX_CONTEXT_IMAGE_URL_LENGTH, parseContextImage } from "../../src/shared/context-image.ts";
+import {
+  boundedImageAltText,
+  MAX_CONTEXT_IMAGE_ALT_LENGTH,
+  MAX_CONTEXT_IMAGE_URL_LENGTH,
+  parseContextImage,
+} from "../../src/shared/context-image.ts";
 
 describe("context image contract", () => {
   test("accepts a fetchable image address and canonicalizes it", () => {
@@ -8,6 +13,21 @@ describe("context image contract", () => {
     expect(parseContextImage({ src: "http://example.test/a.png" })).toEqual({
       src: "http://example.test/a.png",
     });
+  });
+
+  test("carries trimmed, bounded alt text and drops anything else", () => {
+    const src = "https://example.test/a.png";
+    expect(parseContextImage({ src, alt: "  Sunset over the harbor " })).toEqual({
+      src,
+      alt: "Sunset over the harbor",
+    });
+    expect(parseContextImage({ src, alt: "x".repeat(MAX_CONTEXT_IMAGE_ALT_LENGTH + 1) })?.alt).toBe(
+      "x".repeat(MAX_CONTEXT_IMAGE_ALT_LENGTH),
+    );
+    for (const alt of ["", "   ", 7, null, ["Sunset"]]) {
+      expect(parseContextImage({ src, alt })).toEqual({ src });
+    }
+    expect(boundedImageAltText(undefined)).toBeUndefined();
   });
 
   test.each([

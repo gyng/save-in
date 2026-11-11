@@ -61,7 +61,7 @@ import {
   sourceOriginElements,
 } from "./css-routing.ts";
 import { contextLinkMetadataFromEvent } from "./context-link-metadata.ts";
-import { contextImageFromEvent } from "./context-image.ts";
+import { contextImageFromEvent, imageAltText } from "./context-image.ts";
 import { isSourcePanelHost } from "./source-panel-host.ts";
 import { CONTEXT_IMAGE_REQUEST, type ContextImage } from "../shared/context-image.ts";
 import { HOVERED_SOURCE_REQUEST } from "../shared/hovered-source.ts";
@@ -221,8 +221,19 @@ type ContentDownloadRequest = {
     clickKeys?: string;
     linkTitle?: string;
     linkDownload?: string;
+    altText?: string;
     matchedCssSelectorsByOrigin?: string[][];
   };
+};
+// The saved element is in hand for click-to-save and panel saves, so its alt
+// text needs no right-click record. A panel row merges every element that
+// declared the URL; the first one carrying alt text names it.
+const altTextInfo = (elements: readonly Element[]): { altText?: string } => {
+  for (const element of elements) {
+    const altText = imageAltText(element);
+    if (altText) return { altText };
+  }
+  return {};
 };
 type DownloadLifecycle = { signal: AbortSignal; retryTimers: Set<number> };
 
@@ -362,6 +373,7 @@ const setupClickToSave = (
           clickKeys: binding.clickKeys,
           ...(linkMetadata?.title ? { linkTitle: linkMetadata.title } : {}),
           ...(linkMetadata?.download ? { linkDownload: linkMetadata.download } : {}),
+          ...altTextInfo([source.element]),
           ...(cssSelectors.length > 0
             ? {
                 matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
@@ -1047,6 +1059,7 @@ const sendDownload = (source: PageSource) => {
       pageUrl: `${window.location}`,
       srcUrl: source.url,
       sourceKind: source.kind,
+      ...altTextInfo(sourceOriginElements(source)),
       ...(hasCssSelectors
         ? {
             matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(

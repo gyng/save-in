@@ -4513,17 +4513,26 @@
   "html_linkDownloadVariableDescription": {
     "message": "Il nome di download suggerito dal collegamento, quando la pagina lo fornisce."
   },
+  "html_altTextVariableDescription": {
+    "message": "L’attributo alt dell’immagine salvata, quando la pagina lo fornisce."
+  },
   "html_linkTitleMatcherDescription": {
     "message": "Corrisponde all’attributo title del collegamento selezionato."
   },
   "html_linkDownloadMatcherDescription": {
     "message": "Corrisponde al nome di download suggerito dal collegamento."
   },
+  "html_altTextMatcherDescription": {
+    "message": "Corrisponde all’attributo alt dell’immagine salvata."
+  },
   "routeDebuggerLinkTitle": {
     "message": "Titolo del collegamento"
   },
   "routeDebuggerLinkDownload": {
     "message": "Nome di download del collegamento"
+  },
+  "routeDebuggerAltText": {
+    "message": "Testo alternativo dell’immagine"
   },
   "notificationRuleExcludedMessage": {
     "message": "$URL$ non è stato salvato perché una regola di instradamento lo ha escluso.",

@@ -523,6 +523,7 @@ export const handleDownloadMessage = (
       linkText: info.linkText,
       linkTitle: info.linkTitle,
       linkDownload: info.linkDownload,
+      altText: info.altText,
       sourceUrl: info.srcUrl,
       menuIndex: info.menuIndex,
       comment: info.comment,

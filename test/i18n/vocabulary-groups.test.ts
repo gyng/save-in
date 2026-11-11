@@ -30,6 +30,7 @@ test("groups clauses by routing intent", () => {
   expect(clauseGroup("capturegroups:")).toBe("Capture setup");
   expect(clauseGroup("context:")).toBe("Page and menu context");
   expect(clauseGroup("linkdownload:")).toBe("Page and menu context");
+  expect(clauseGroup("alttext:")).toBe("Page and menu context");
   expect(clauseGroup("sourceurl:")).toBe("URL and source matching");
   expect(clauseGroup("filename:")).toBe("Filename and content matching");
 });
@@ -69,6 +70,7 @@ test("orders clauses by routing workflow within each task group", () => {
       "context",
       "menuindex",
       "linkdownload",
+      "alttext",
       "linktitle",
       "linktext",
     ]),
@@ -79,6 +81,7 @@ test("orders clauses by routing workflow within each task group", () => {
     "linktext",
     "linktitle",
     "linkdownload",
+    "alttext",
     "selectiontext",
   ]);
   expect(

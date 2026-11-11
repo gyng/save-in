@@ -344,6 +344,7 @@ export const matcherFunctions = {
   linktext: makeInfoMatcherFactory("linkText"),
   linktitle: makeInfoMatcherFactory("linkTitle"),
   linkdownload: makeInfoMatcherFactory("linkDownload"),
+  alttext: makeInfoMatcherFactory("altText"),
   mediatype: makeInfoMatcherFactory("mediaType"),
   mime: mimeMatcher,
   contenttype: mimeMatcher,

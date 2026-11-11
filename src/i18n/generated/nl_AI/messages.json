@@ -4513,17 +4513,26 @@
   "html_linkDownloadVariableDescription": {
     "message": "De downloadnaam die de link voorstelt, wanneer de pagina die opgeeft."
   },
+  "html_altTextVariableDescription": {
+    "message": "Het alt-attribuut van de opgeslagen afbeelding, wanneer de pagina dit opgeeft."
+  },
   "html_linkTitleMatcherDescription": {
     "message": "Komt overeen met het title-attribuut van de aangeklikte link."
   },
   "html_linkDownloadMatcherDescription": {
     "message": "Komt overeen met de downloadnaam die de link voorstelt."
   },
+  "html_altTextMatcherDescription": {
+    "message": "Komt overeen met het alt-attribuut van de opgeslagen afbeelding."
+  },
   "routeDebuggerLinkTitle": {
     "message": "Linktitel"
   },
   "routeDebuggerLinkDownload": {
     "message": "Downloadnaam van de link"
+  },
+  "routeDebuggerAltText": {
+    "message": "Alternatieve tekst van afbeelding"
   },
   "notificationRuleExcludedMessage": {
     "message": "$URL$ is niet opgeslagen omdat een routeringsregel het heeft uitgesloten.",

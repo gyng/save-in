@@ -4513,17 +4513,26 @@
   "html_linkDownloadVariableDescription": {
     "message": "Le nom de téléchargement suggéré par le lien, lorsque la page le fournit."
   },
+  "html_altTextVariableDescription": {
+    "message": "L’attribut alt de l’image que vous avez enregistrée, lorsque la page le fournit."
+  },
   "html_linkTitleMatcherDescription": {
     "message": "Correspond à l’attribut title du lien sur lequel vous avez cliqué."
   },
   "html_linkDownloadMatcherDescription": {
     "message": "Correspond au nom de téléchargement suggéré par le lien."
   },
+  "html_altTextMatcherDescription": {
+    "message": "Correspond à l’attribut alt de l’image que vous avez enregistrée."
+  },
   "routeDebuggerLinkTitle": {
     "message": "Titre du lien"
   },
   "routeDebuggerLinkDownload": {
     "message": "Nom de téléchargement du lien"
+  },
+  "routeDebuggerAltText": {
+    "message": "Texte alternatif de l’image"
   },
   "notificationRuleExcludedMessage": {
     "message": "$URL$ n’a pas été enregistrée, car une règle de routage l’a exclue.",

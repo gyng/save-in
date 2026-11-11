@@ -4513,17 +4513,26 @@
   "html_linkDownloadVariableDescription": {
     "message": "Nedladdningsnamnet som länken föreslår, när sidan anger det."
   },
+  "html_altTextVariableDescription": {
+    "message": "Alt-attributet för bilden du sparade, när sidan anger det."
+  },
   "html_linkTitleMatcherDescription": {
     "message": "Matchar title-attributet för länken du klickade på."
   },
   "html_linkDownloadMatcherDescription": {
     "message": "Matchar nedladdningsnamnet som länken föreslår."
   },
+  "html_altTextMatcherDescription": {
+    "message": "Matchar alt-attributet för bilden du sparade."
+  },
   "routeDebuggerLinkTitle": {
     "message": "Länktitel"
   },
   "routeDebuggerLinkDownload": {
     "message": "Länkens nedladdningsnamn"
+  },
+  "routeDebuggerAltText": {
+    "message": "Alternativtext för bild"
   },
   "notificationRuleExcludedMessage": {
     "message": "$URL$ sparades inte eftersom en routningsregel uteslöt den.",

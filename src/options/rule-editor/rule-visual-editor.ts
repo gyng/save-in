@@ -54,6 +54,7 @@ const DEFAULT_MATCHERS = [
   "linktext",
   "linktitle",
   "linkdownload",
+  "alttext",
   "selectiontext",
   "referrerurl",
   "referrerdomain",

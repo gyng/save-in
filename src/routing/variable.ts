@@ -482,6 +482,8 @@ export const transformers: TransformerRegistry = {
       opts => stringSegment(opts.linkTitle),
     [SPECIAL_DIRS.LINK_DOWNLOAD]:
       opts => stringSegment(opts.linkDownload),
+    [SPECIAL_DIRS.ALT_TEXT]:
+      opts => stringSegment(opts.altText),
     [SPECIAL_DIRS.SELECTION_TEXT]:
       opts => stringSegment((opts.selectionText && opts.selectionText.trim()) || ""),
     [SPECIAL_DIRS.MENU_PATH]:

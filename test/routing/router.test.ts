@@ -37,6 +37,7 @@ describe("filename rewrite and routing", () => {
     linkText: "link text",
     linkTitle: "Full-size image",
     linkDownload: "original.jpg",
+    altText: "Sunset over the harbor",
   };
 
   beforeAll(() => {
@@ -103,14 +104,13 @@ describe("filename rewrite and routing", () => {
     });
 
     test.each([
-      ["linktitle", "Full-size image"],
-      ["linkdownload", "original.jpg"],
-    ] as const)("%s matches explicit link metadata", (name, expected) => {
+      ["linktitle", "linkTitle", "Full-size image"],
+      ["linkdownload", "linkDownload", "original.jpg"],
+      ["alttext", "altText", "Sunset over the harbor"],
+    ] as const)("%s matches explicit element metadata", (name, field, expected) => {
       const matcher = router.matcherFunctions[name](new RegExp(expected));
       expect(expectMatch(matcher(info))[0]).toBe(expected);
-      expect(
-        matcher({ ...info, [name === "linktitle" ? "linkTitle" : "linkDownload"]: undefined }),
-      ).toBeNull();
+      expect(matcher({ ...info, [field]: undefined })).toBeNull();
     });
 
     test("infoMatcherFactory negative", () => {

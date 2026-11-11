@@ -52,6 +52,7 @@ const historyRoutingMetadata = (
       linktext: state.info.linkText,
       linktitle: state.info.linkTitle,
       linkdownload: state.info.linkDownload,
+      alttext: state.info.altText,
       selection: state.info.selectionText,
       mediatype: state.info.mediaType,
       sourcekind: state.info.sourceKind,

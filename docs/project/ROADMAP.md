@@ -112,6 +112,11 @@ Not features — release hygiene that gates the close-out of everything above.
   time out without blocking the download path indefinitely. Click-to-save
   already owns the clicked element and attaches the same bounded attributes
   directly.
+- Interactive image saves expose the image's `alt` attribute as `:alttext:` /
+  `alttext:`, following the same rules: read only at save intent, requested
+  for a right-click save only when configured syntax consumes it and only for
+  the exact image the browser reported, and attached directly by click-to-save
+  and the Page Sources panel.
 - Page Sources can optionally detect media a page loads with scripts (HLS/DASH
   manifests, fetch/XHR media), including from workers and cross-origin frames
   that the DOM scan and Resource Timing miss. Off by default; turning it on

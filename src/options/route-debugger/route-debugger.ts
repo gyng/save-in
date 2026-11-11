@@ -67,6 +67,7 @@ const fieldsFromInfo = (info: WireDownloadInfo): RouteDebuggerFields => ({
   linkText: info.linkText || "",
   linkTitle: info.linkTitle || "",
   linkDownload: info.linkDownload || "",
+  altText: info.altText || "",
   selectionText: info.selectionText || "",
   mediaType: info.mediaType || "",
   sourceKind: info.sourceKind || "",
@@ -91,6 +92,7 @@ const SAMPLE_DOWNLOAD: RouteDebuggerFields = {
   linkText: "",
   linkTitle: "",
   linkDownload: "",
+  altText: "",
   selectionText: "",
   mediaType: "",
   sourceKind: "",
@@ -139,6 +141,8 @@ const matcherSourceLabel = (source: string): string => {
       return localize("routeDebuggerLinkTitle", "Link title");
     case "linkDownload":
       return localize("routeDebuggerLinkDownload", "Link download name");
+    case "altText":
+      return localize("routeDebuggerAltText", "Image alt text");
     case "selectionText":
       return localize("routeDebuggerSelectionText", "Selected text");
     case "mediaType":
@@ -176,6 +180,7 @@ export const setupRouteDebugger = (): void => {
   const linkText = element<HTMLInputElement>("#route-debugger-link-text");
   const linkTitle = element<HTMLInputElement>("#route-debugger-link-title");
   const linkDownload = element<HTMLInputElement>("#route-debugger-link-download");
+  const altText = element<HTMLInputElement>("#route-debugger-alt-text");
   const selectionText = element<HTMLInputElement>("#route-debugger-selection-text");
   const mediaType = element<HTMLSelectElement>("#route-debugger-media-type");
   const sourceKind = element<HTMLSelectElement>("#route-debugger-source-kind");
@@ -205,6 +210,7 @@ export const setupRouteDebugger = (): void => {
     !linkText ||
     !linkTitle ||
     !linkDownload ||
+    !altText ||
     !selectionText ||
     !mediaType ||
     !sourceKind ||
@@ -231,6 +237,7 @@ export const setupRouteDebugger = (): void => {
     linkText,
     linkTitle,
     linkDownload,
+    altText,
     selectionText,
     mediaType,
     sourceKind,
@@ -267,6 +274,7 @@ export const setupRouteDebugger = (): void => {
     linkText: linkText.value.trim(),
     linkTitle: linkTitle.value.trim(),
     linkDownload: linkDownload.value.trim(),
+    altText: altText.value.trim(),
     selectionText: selectionText.value.trim(),
     mediaType: mediaType.value,
     sourceKind: isPageSourceKind(sourceKind.value) ? sourceKind.value : "",
@@ -293,6 +301,7 @@ export const setupRouteDebugger = (): void => {
     linkText.value = fields.linkText || "";
     linkTitle.value = fields.linkTitle || "";
     linkDownload.value = fields.linkDownload || "";
+    altText.value = fields.altText || "";
     selectionText.value = fields.selectionText || "";
     const nextMediaType = fields.mediaType || "";
     mediaType.value = [...mediaType.options].some((option) => option.value === nextMediaType)
@@ -927,6 +936,7 @@ export const setupRouteDebugger = (): void => {
       linkText: "",
       linkTitle: "",
       linkDownload: "",
+      altText: "",
       selectionText: "",
       mediaType: "",
       sourceKind: "",

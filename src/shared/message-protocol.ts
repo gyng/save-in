@@ -41,6 +41,7 @@ export type WireDownloadInfo = {
   linkText?: string | undefined;
   linkTitle?: string | undefined;
   linkDownload?: string | undefined;
+  altText?: string | undefined;
   mediaType?: string | undefined;
   sourceKind?: PageSourceKind | undefined;
   mime?: string | undefined;
@@ -92,6 +93,7 @@ export const WIRE_INFO_STRING_FIELDS = [
   "linkText",
   "linkTitle",
   "linkDownload",
+  "altText",
   "mediaType",
   "mime",
   "filename",
@@ -321,6 +323,7 @@ export type DownloadRequestBody = {
         | "linkText"
         | "linkTitle"
         | "linkDownload"
+        | "altText"
         | "menuIndex"
         | "comment"
         | "modifiers"
@@ -555,6 +558,7 @@ const isDownloadInfo = (value: unknown): boolean => {
       "linkText",
       "linkTitle",
       "linkDownload",
+      "altText",
       "mime",
       "mediaType",
     ].every((key) => hasOptionalString(value, key)) &&

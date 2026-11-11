@@ -1,4 +1,8 @@
-import { boundedContextImageUrl, type ContextImage } from "../shared/context-image.ts";
+import {
+  boundedContextImageUrl,
+  boundedImageAltText,
+  type ContextImage,
+} from "../shared/context-image.ts";
 import { isSourcePanelHost } from "./source-panel-host.ts";
 
 // The browser decides a context menu's context on its own, and reports a plain
@@ -43,5 +47,14 @@ export const contextImageFromEvent = (event: MouseEvent): ContextImage | null =>
   const image = pathImage ?? imageAtPoint(event);
   if (!image) return null;
   const src = boundedContextImageUrl(image.currentSrc || image.src);
-  return src ? { src } : null;
+  if (!src) return null;
+  const alt = imageAltText(image);
+  return { src, ...(alt ? { alt } : {}) };
 };
+
+// Click-to-save and the Page Sources panel hold the saved element itself, so
+// they read its alt text directly instead of through the right-click record.
+export const imageAltText = (element: Element): string | undefined =>
+  element instanceof HTMLImageElement
+    ? boundedImageAltText(element.getAttribute("alt"))
+    : undefined;

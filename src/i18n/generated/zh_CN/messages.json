@@ -4513,17 +4513,26 @@
   "html_linkDownloadVariableDescription": {
     "message": "页面提供时，链接建议的下载名称。"
   },
+  "html_altTextVariableDescription": {
+    "message": "页面提供时，所保存图片的 alt 属性。"
+  },
   "html_linkTitleMatcherDescription": {
     "message": "匹配所点击链接的 title 属性。"
   },
   "html_linkDownloadMatcherDescription": {
     "message": "匹配链接建议的下载名称。"
   },
+  "html_altTextMatcherDescription": {
+    "message": "匹配所保存图片的 alt 属性。"
+  },
   "routeDebuggerLinkTitle": {
     "message": "链接标题"
   },
   "routeDebuggerLinkDownload": {
     "message": "链接下载名称"
+  },
+  "routeDebuggerAltText": {
+    "message": "图片替代文本"
   },
   "notificationRuleExcludedMessage": {
     "message": "由于路由规则将其排除，未保存 $URL$。",

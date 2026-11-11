@@ -30,6 +30,7 @@ const MATCHER_PATTERN_PLACEHOLDERS: Record<string, string> = {
   linktext: "download|save",
   linktitle: "full size|original",
   linkdownload: "\\.(?:jpg|png|webp)$",
+  alttext: "sunset|portrait",
   mediatype: "image|video",
   mime: "^image/(jpeg|png|webp)$",
   contenttype: "^application/pdf$",

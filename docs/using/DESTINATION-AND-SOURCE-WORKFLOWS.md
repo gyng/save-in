@@ -271,6 +271,18 @@ the link's HTML `title` and `download` attributes. They are separate from
 `:linktext:`, whose established browser-provided behavior remains unchanged.
 The attributes are not available to automatic Page Sources saves.
 
+Interactive image saves can likewise use the image's `alt` attribute with
+`:alttext:` / `alttext:`. It is available when an image is saved from the
+context menu, with click-to-save, or from the Page Sources panel, and is empty
+when the saved source is not an image, the image has no alt text, or the save is
+automatic. A context-menu save reads it from the top-level page only, for an
+image with an `http` or `https` address:
+
+```text
+alttext: .
+into: Photos/:alttext:.:fileext:
+```
+
 Private activity is excluded from Save In History by default. Enabling
 **Remember private browsing activity** records it with a visible private marker.
 Save In's notifications still report private save outcomes and routing decisions,

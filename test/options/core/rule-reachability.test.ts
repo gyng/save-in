@@ -439,13 +439,14 @@ describe("ruleReachabilityDiagnostics", () => {
       ":linktext:",
       ":linktitle:",
       ":linkdownload:",
+      ":alttext:",
       ":selectiontext:",
     ]);
     expect(
       ruleReachabilityDiagnostics(
         automatic({
           name: "into",
-          value: ":linktext:/:linktitle:/:linkdownload:/:selectiontext:/",
+          value: ":linktext:/:linktitle:/:linkdownload:/:alttext:/:selectiontext:/",
         }),
         allOff,
       ),
@@ -453,6 +454,7 @@ describe("ruleReachabilityDiagnostics", () => {
       { kind: "empty-variable", level: "warning", variable: ":linktext:" },
       { kind: "empty-variable", level: "warning", variable: ":linktitle:" },
       { kind: "empty-variable", level: "warning", variable: ":linkdownload:" },
+      { kind: "empty-variable", level: "warning", variable: ":alttext:" },
       { kind: "empty-variable", level: "warning", variable: ":selectiontext:" },
     ]);
   });

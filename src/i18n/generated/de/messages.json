@@ -4513,17 +4513,26 @@
   "html_linkDownloadVariableDescription": {
     "message": "Der vom Link vorgeschlagene Downloadname, wenn die Seite ihn angibt."
   },
+  "html_altTextVariableDescription": {
+    "message": "Das alt-Attribut des gespeicherten Bildes, wenn die Seite es angibt."
+  },
   "html_linkTitleMatcherDescription": {
     "message": "Entspricht dem title-Attribut des angeklickten Links."
   },
   "html_linkDownloadMatcherDescription": {
     "message": "Entspricht dem vom Link vorgeschlagenen Downloadnamen."
   },
+  "html_altTextMatcherDescription": {
+    "message": "Entspricht dem alt-Attribut des gespeicherten Bildes."
+  },
   "routeDebuggerLinkTitle": {
     "message": "Linktitel"
   },
   "routeDebuggerLinkDownload": {
     "message": "Link-Downloadname"
+  },
+  "routeDebuggerAltText": {
+    "message": "Bild-Alternativtext"
   },
   "notificationRuleExcludedMessage": {
     "message": "$URL$ wurde nicht gespeichert, weil eine Routing-Regel sie ausgeschlossen hat.",

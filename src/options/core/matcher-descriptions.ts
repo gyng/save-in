@@ -40,6 +40,8 @@ export const matcherTestValue = (matcher: string, root: ParentNode = document): 
       return testFieldValue(root, "route-debugger-link-title");
     case "linkdownload":
       return testFieldValue(root, "route-debugger-link-download");
+    case "alttext":
+      return testFieldValue(root, "route-debugger-alt-text");
     case "selectiontext":
       return testFieldValue(root, "route-debugger-selection-text");
     case "referrerurl":

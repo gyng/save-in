@@ -1053,6 +1053,115 @@ describe("addDownloadListener", () => {
     expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
   });
 
+  describe("image alt text", () => {
+    const imageClick = {
+      menuItemId: "save-in-0",
+      frameId: 0,
+      mediaType: "image",
+      srcUrl: "https://img.example.com/art.png",
+      pageUrl: "https://example.com/art",
+    };
+    const tab = { id: 42, title: "Artwork page" };
+    const answer = (value: unknown) => {
+      global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve(value));
+    };
+
+    test("reads the right-clicked image's alt text only when routing uses it", async () => {
+      answer({ src: "https://img.example.com/art.png", alt: "Sunset over the harbor" });
+      Menus.addPaths(["dir1"], ["image"]);
+
+      await listener(imageClick, tab);
+      expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
+      expect(lastState().info.altText).toBeUndefined();
+
+      const consumers = [
+        [{ name: "alttext", value: /sunset/i }],
+        [{ name: "capture", value: "alttext" }],
+        [{ name: "into", value: "art/:alttext:" }],
+        [
+          {
+            name: "rename",
+            value: "^ -> :alttext:-",
+            find: /^/,
+            replacement: ":alttext:-",
+          },
+        ],
+      ];
+      for (const rule of consumers) {
+        options.filenamePatterns = [rule];
+        // The first save rebuilt the menu, so later clicks use a fixed item.
+        await listener({ ...imageClick, menuItemId: Menus.IDS.ROUTE_EXCLUSIVE }, tab);
+        expect(lastState().info.altText).toBe("Sunset over the harbor");
+      }
+      expect(global.browser.tabs.sendMessage).toHaveBeenCalledTimes(consumers.length);
+      expect(global.browser.tabs.sendMessage).toHaveBeenLastCalledWith(
+        42,
+        { type: "SAVE_IN_CONTEXT_IMAGE" },
+        { frameId: 0 },
+      );
+    });
+
+    test("reads it for a menu folder or stored destination that names files by it", async () => {
+      answer({ src: "https://img.example.com/art.png", alt: "Sunset" });
+      options.paths = "art/:alttext:";
+      Menus.addPaths(["art/:alttext:"], ["image"]);
+      await listener(imageClick, tab);
+      expect(lastState().info.altText).toBe("Sunset");
+
+      options.paths = "art";
+      Menus.setLastUsed("archive/:alttext:", {});
+      await listener({ ...imageClick, menuItemId: Menus.IDS.LAST_USED }, tab);
+      expect(global.browser.tabs.sendMessage).toHaveBeenCalledTimes(2);
+      expect(lastState().info.altText).toBe("Sunset");
+    });
+
+    test.each([
+      [
+        "a different image was recorded",
+        { src: "https://img.example.com/other.png", alt: "Other" },
+      ],
+      ["the image has no alt text", { src: "https://img.example.com/art.png" }],
+      ["the page recorded nothing", null],
+    ])("leaves the alt text empty when %s", async (_label, value) => {
+      answer(value);
+      options.filenamePatterns = [[{ name: "alttext", value: /.*/ }]];
+      Menus.addPaths(["dir1"], ["image"]);
+
+      await listener(imageClick, tab);
+
+      expect(lastState().info.altText).toBeUndefined();
+      expect(lastState().info.url).toBe("https://img.example.com/art.png");
+    });
+
+    test("does not ask for a non-image save or a click inside a frame", async () => {
+      answer({ src: "https://img.example.com/art.png", alt: "Sunset" });
+      options.filenamePatterns = [[{ name: "alttext", value: /.*/ }]];
+      Menus.addPaths(["dir1"], ["image", "video", "link"]);
+
+      await listener({ ...imageClick, mediaType: "video" }, tab);
+      await listener({ menuItemId: "save-in-0", linkUrl: "https://example.com/file" }, tab);
+      await listener({ ...imageClick, frameId: 3 }, tab);
+
+      expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
+      expect(lastState().info.altText).toBeUndefined();
+    });
+
+    test("reuses the recovered image's alt text without asking the page twice (#237)", async () => {
+      answer({ src: "https://img.example.com/art.png", alt: "Sunset" });
+      options.filenamePatterns = [[{ name: "alttext", value: /.*/ }]];
+      Menus.addPaths(["dir1"], ["page"]);
+
+      await listener({ menuItemId: "save-in-0", frameId: 0, pageUrl: imageClick.pageUrl }, tab);
+
+      expect(global.browser.tabs.sendMessage).toHaveBeenCalledOnce();
+      expect(lastState().info).toMatchObject({
+        context: DOWNLOAD_TYPES.MEDIA,
+        url: "https://img.example.com/art.png",
+        altText: "Sunset",
+      });
+    });
+  });
+
   test("contains a media menu event whose source URL disappeared", async () => {
     Menus.addPaths(["dir1"], ["image"]);
     await listener({ menuItemId: "save-in-0", mediaType: "image" });
