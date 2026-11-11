@@ -158,6 +158,14 @@ export const toggleSourcePanel = (
     ctx.closePanel();
   });
 
+  // Key events are composed and retargeted to the host, so a page hotkey
+  // handler that exempts INPUT targets does not exempt the panel's filter box:
+  // typing there paused videos and ran site shortcuts. Registered after the
+  // panel's own handlers, in the bubble phase, so those still run first.
+  (["keydown", "keypress", "keyup"] as const).forEach((type) =>
+    panel.addEventListener(type, (event) => event.stopPropagation()),
+  );
+
   panel.append(
     ctx.resize,
     ctx.header,

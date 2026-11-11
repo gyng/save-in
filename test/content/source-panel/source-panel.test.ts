@@ -2260,6 +2260,44 @@ describe("Page Sources panel interactions", () => {
     expect(shadow.querySelector(".source-size")?.textContent).toBe("4 KB");
   });
 
+  test("keeps a focused kind filter in place when it is activated", () => {
+    document.body.innerHTML = `<img src="https://cdn.test/a.jpg"><a href="https://cdn.test/b.zip">b</a>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false, resourceHints: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const facets = () => [...shadow.querySelectorAll<HTMLButtonElement>(".facet")];
+    const image = facets().find((button) => button.textContent?.startsWith("Image"))!;
+
+    image.focus();
+    image.click();
+
+    expect(facets()).toContain(image);
+    expect(shadow.activeElement).toBe(image);
+    expect(image.getAttribute("aria-pressed")).toBe("true");
+    expect(facets().filter((button) => button.getAttribute("aria-pressed") === "true")).toEqual([
+      image,
+    ]);
+  });
+
+  test("keeps keys typed in the panel away from page hotkey handlers", () => {
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false, resourceHints: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const pageHotkey = vi.fn();
+    (["keydown", "keypress", "keyup"] as const).forEach((type) =>
+      document.addEventListener(type, pageHotkey),
+    );
+    try {
+      const filter = shadow.querySelector<HTMLInputElement>("input")!;
+      (["keydown", "keypress", "keyup"] as const).forEach((type) =>
+        filter.dispatchEvent(new KeyboardEvent(type, { key: "k", bubbles: true, composed: true })),
+      );
+      expect(pageHotkey).not.toHaveBeenCalled();
+    } finally {
+      (["keydown", "keypress", "keyup"] as const).forEach((type) =>
+        document.removeEventListener(type, pageHotkey),
+      );
+    }
+  });
+
   test("gives every header action an accessible name", () => {
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
     const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;

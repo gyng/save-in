@@ -108,6 +108,32 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
 
   const SOURCE_KINDS = ["all", "image", "video", "audio", "document", "stream", "link"] as const;
 
+  // Built once and updated in place: a live page renders up to once a second,
+  // and replacing the buttons dropped keyboard focus off the focused facet and
+  // left assistive technology no surviving node to announce the change on.
+  const facetButtons = new Map<
+    (typeof SOURCE_KINDS)[number],
+    { button: HTMLButtonElement; label: Text; count: HTMLSpanElement }
+  >();
+  const facetButton = (kindName: (typeof SOURCE_KINDS)[number]) => {
+    const existing = facetButtons.get(kindName);
+    if (existing) return existing;
+    const button = document.createElement("button");
+    button.className = "facet";
+    const label = document.createTextNode("");
+    const count = document.createElement("span");
+    count.className = "facet-count";
+    button.append(label, count);
+    button.addEventListener("click", () => {
+      activeKind = kindName;
+      render();
+    });
+    ctx.facets.append(button);
+    const created = { button, label, count };
+    facetButtons.set(kindName, created);
+    return created;
+  };
+
   // The kind filter. Counts come from every discovered source, not the
   // filtered view, so a facet always says how much it would show.
   const renderFacets = () => {
@@ -123,22 +149,12 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
     ctx.allSources.forEach(({ kind }) => {
       counts[kind] += 1;
     });
-    ctx.facets.replaceChildren();
     SOURCE_KINDS.forEach((kindName) => {
       const count = kindName === "all" ? ctx.allSources.length : counts[kindName];
-      const facet = document.createElement("button");
-      facet.className = "facet";
-      const label = copy.kinds[kindName];
-      const facetCount = document.createElement("span");
-      facetCount.className = "facet-count";
-      facetCount.textContent = String(count);
-      facet.append(document.createTextNode(label), facetCount);
-      facet.setAttribute("aria-pressed", String(activeKind === kindName));
-      facet.addEventListener("click", () => {
-        activeKind = kindName;
-        render();
-      });
-      ctx.facets.append(facet);
+      const facet = facetButton(kindName);
+      facet.label.data = copy.kinds[kindName];
+      facet.count.textContent = String(count);
+      facet.button.setAttribute("aria-pressed", String(activeKind === kindName));
     });
   };
 
