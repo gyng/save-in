@@ -15,6 +15,7 @@ import { parseRulesCollecting } from "../../../src/routing/rule-parser.ts";
 import { options } from "../../../src/config/options-data.ts";
 import * as DownloadDisposition from "../../../src/downloads/download-disposition.ts";
 import * as Collector from "../../../src/background/script-media-collector.ts";
+import { menuState } from "../../../src/background/menu-build.ts";
 
 beforeEach(() => setupGlobals());
 
@@ -398,6 +399,67 @@ describe("handleDownloadMessage", () => {
     const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
     expect(state.path).toMatchObject({ raw: "." });
     expect(state.path.finalize()).toBe(".");
+  });
+
+  // #238: the last download is in-memory only, so a restarted background has
+  // nothing to inherit from except the persisted Last used record.
+  describe("after a background restart (#238)", () => {
+    const resetLastUsed = () => {
+      menuState.lastUsedPath = null;
+      menuState.lastUsedMeta = null;
+      menuState.privateLastUsedPath = null;
+      menuState.privateLastUsedMeta = null;
+    };
+    beforeEach(resetLastUsed);
+    afterEach(() => {
+      resetLastUsed();
+      options.persistPrivateActivity = false;
+    });
+    const clickState = () => vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
+
+    test("inherits the persisted Last used folder and its menu metadata", () => {
+      menuState.lastUsedPath = "Image Sorting";
+      menuState.lastUsedMeta = { comment: "category=nature", menuIndex: "1" };
+
+      onMessage(request(), {}, vi.fn());
+
+      expect(clickState().path.finalize()).toBe("Image Sorting");
+      expect(clickState().info.comment).toBe("category=nature");
+      expect(clickState().info.menuIndex).toBe("1");
+      expect(clickState().scratch.keepInheritedFolder).toBe(true);
+    });
+
+    test("prefers the in-memory last download while it exists", () => {
+      menuState.lastUsedPath = "Image Sorting";
+      backgroundRuntime.lastDownloadState = {
+        path: new Path("images/cats"),
+        scratch: {},
+        info: {},
+      } as any;
+
+      onMessage(request(), {}, vi.fn());
+
+      expect(clickState().path.finalize()).toBe("images/cats");
+    });
+
+    test("keeps a private click on the private Last used folder", () => {
+      menuState.lastUsedPath = "Regular";
+      menuState.privateLastUsedPath = "Private";
+
+      onMessage(request(), { tab: { id: 7, incognito: true } }, vi.fn());
+
+      expect(clickState().path.finalize()).toBe("Private");
+    });
+
+    test("uses the regular folder for a private click once private activity is remembered", () => {
+      menuState.lastUsedPath = "Regular";
+      menuState.privateLastUsedPath = "Private";
+      options.persistPrivateActivity = true;
+
+      onMessage(request(), { tab: { id: 7, incognito: true } }, vi.fn());
+
+      expect(clickState().path.finalize()).toBe("Regular");
+    });
   });
 
   // #162: "If I need it anywhere I would select those other folders and then my

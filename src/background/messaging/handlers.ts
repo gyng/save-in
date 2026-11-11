@@ -18,6 +18,7 @@ import { createSourceSidecarRequest } from "../../downloads/source-sidecar.ts";
 import { currentTab, type CurrentTab } from "../../platform/current-tab.ts";
 import type { DownloadInfo, DownloadPipelineState } from "../../downloads/download-types.ts";
 import { backgroundRuntime } from "../runtime.ts";
+import { getLastUsed } from "../menu-build.ts";
 import { addLogEntry } from "../log.ts";
 import { fromWireDownloadState, toWireDownloadState } from "../../downloads/wire-state.ts";
 import type { InternalEvent, MessageOf, ResponseFor } from "../../shared/message-protocol.ts";
@@ -431,6 +432,19 @@ export const emitDownloaded = (state: DownloadPipelineState): void => {
  *   webExtensionApi.runtime.sendMessage("{72d92df5-2aa0-4b06-b807-aa21767545cd}", payload);
  * }
  */
+type RememberedSave = Pick<DownloadPipelineState, "path"> & {
+  info: Pick<DownloadInfo, "menuIndex" | "comment">;
+};
+
+const rememberedMenuSave = (tab: CurrentTab | null | undefined): RememberedSave | undefined => {
+  const lastUsed = getLastUsed(tab?.incognito === true && !options.persistPrivateActivity);
+  if (!lastUsed.path) return undefined;
+  return {
+    path: new Path(lastUsed.path),
+    info: { menuIndex: lastUsed.meta?.menuIndex, comment: lastUsed.meta?.comment },
+  };
+};
+
 export const handleDownloadMessage = (
   request: MessageOf<typeof MESSAGE_TYPES.DOWNLOAD>,
   sender: MessageSender,
@@ -479,7 +493,10 @@ export const handleDownloadMessage = (
 
     // The external DOWNLOAD API may omit info
     const info = requestBody.info || {};
-    const last = backgroundRuntime.lastDownloadState;
+    // The last download lives only in memory, and the background does not stay
+    // alive between saves. After a restart the persisted Last used record is
+    // the remaining memory of the folder picked from the menu (#238).
+    const last = backgroundRuntime.lastDownloadState ?? rememberedMenuSave(resolvedTab);
 
     const opts: DownloadInfo = {
       // Prefer the tab the message came from over the tracked global (#172).
