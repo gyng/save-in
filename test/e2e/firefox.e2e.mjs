@@ -1111,7 +1111,7 @@ test("click-to-save rejects synthetic input and handles trusted single, double, 
   }
 });
 
-test("middle and right click gestures on a link save without the native action", async () => {
+test("click gestures on a link save without the native action", async () => {
   // Measured for this case (Firefox 152, BiDi input): a synthesized middle
   // click on a link opens it in a new tab unless content cancels `auxclick`,
   // and a synthesized right click delivers a cancelable `contextmenu` — the
@@ -1178,6 +1178,7 @@ test("middle and right click gestures on a link save without the native action",
         bindings: [
           { gesture: "middle-click", combo: "" },
           { gesture: "right-click", combo: "" },
+          { gesture: "left-click", combo: "" },
         ],
       }),
       // The default links:true content option resolves the enclosing link.
@@ -1189,6 +1190,10 @@ test("middle and right click gestures on a link save without the native action",
         "context: ^click$",
         "gesture: ^right-click$",
         "into: e2e/right-gesture/:filename:",
+        "",
+        "context: ^click$",
+        "gesture: ^left-click$",
+        "into: e2e/left-gesture/:filename:",
       ].join("\n"),
     });
 
@@ -1223,6 +1228,13 @@ test("middle and right click gestures on a link save without the native action",
     expect(rightDownloads).toHaveLength(1);
     expect(rightDownloads[0]?.state).toBe("complete");
 
+    // A left click still delivers `click` after its canceled mousedown; left
+    // alone, that click follows the link and replaces the page being saved from.
+    await clickWithButton(0, point);
+    const leftDownloads = await waitForDownloads("left-gesture");
+    expect(leftDownloads).toHaveLength(1);
+    expect(leftDownloads[0]?.state).toBe("complete");
+
     // defaultPrevented is read here, after the dispatches completed: a
     // microtask checkpoint runs between listeners, so any deferred read
     // queued by this early observer would still run before the extension's
@@ -1239,6 +1251,7 @@ test("middle and right click gestures on a link save without the native action",
     // contextmenu (menu default) were both canceled by the extension.
     expect(observed).toContainEqual({ type: "auxclick", button: 1, prevented: true });
     expect(observed).toContainEqual({ type: "contextmenu", button: 2, prevented: true });
+    expect(observed).toContainEqual({ type: "click", button: 0, prevented: true });
     expect(observed.filter((event) => event.prevented === false)).toEqual([]);
 
     // The saved link did not also open: the page stayed put and no tab opened.

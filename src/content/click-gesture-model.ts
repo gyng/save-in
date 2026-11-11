@@ -15,10 +15,13 @@ export const isSingleGestureButton = (gesture: ClickGesture, button: number): bo
 // same input sequence triggers later: the context menu opens from
 // `contextmenu`, and a middle-click link opens from the default action of
 // `auxclick` (`click` is included for engines that historically routed middle
-// clicks there). Back/forward have no entry: their history navigation is
+// clicks there). A left click still delivers its `click` afterwards, which
+// follows the link the saved image sits in or opens the page's own lightbox.
+// Back/forward have no entry: their history navigation is
 // browser-level, and neither browser exposes a cancelable content event for it
 // (measured per browser in content.ts, next to the mousedown handler).
 const GESTURE_FOLLOW_UP_EVENTS: Partial<Record<ClickGesture, readonly string[]>> = {
+  [CLICK_GESTURES.LEFT]: ["click"],
   [CLICK_GESTURES.MIDDLE]: ["auxclick", "click"],
   [CLICK_GESTURES.RIGHT]: ["contextmenu", "auxclick"],
 };

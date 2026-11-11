@@ -79,8 +79,16 @@ describe("click gesture model", () => {
     expect(suppressor.suppress("contextmenu", 2)).toBe(false);
   });
 
+  test("a left click suppresses the click that follows its mousedown, once", () => {
+    const suppressor = createFollowUpSuppressor();
+
+    suppressor.arm(CLICK_GESTURES.LEFT, 0);
+    expect(suppressor.suppress("click", 2)).toBe(false);
+    expect(suppressor.suppress("click", 0)).toBe(true);
+    expect(suppressor.suppress("click", 0)).toBe(false);
+  });
+
   test.each([
-    CLICK_GESTURES.LEFT,
     CLICK_GESTURES.DOUBLE_LEFT,
     CLICK_GESTURES.LONG_LEFT,
     CLICK_GESTURES.BACK,
