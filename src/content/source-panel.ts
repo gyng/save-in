@@ -58,6 +58,27 @@ export {
 } from "./source-panel-model.ts";
 export { formatSourceBytes } from "./source-panel-model.ts";
 
+// Firefox destroys a content script's context when the extension updates but
+// leaves the DOM it built, then injects a fresh script. The old panel is then a
+// dead sheet nothing can close, and below 480px its scroll lock stays on the
+// page. This instance never owned it, so it can only be removed. The selector
+// names the exact shape and place Save In builds, because a page may own an
+// unrelated element with the same id and that one must be left alone.
+const reclaimOrphanedPanelHosts = (): void => {
+  const orphans = [
+    ...document.querySelectorAll(`:root > aside#${PANEL_HOST_ID}[data-theme]`),
+  ].filter((orphan) => orphan !== activePanelHost);
+  if (orphans.length === 0) return;
+  orphans.forEach((orphan) => orphan.remove());
+  const root = document.documentElement;
+  if (
+    root.style.getPropertyValue("overflow") === "hidden" &&
+    root.style.getPropertyPriority("overflow") === "important"
+  ) {
+    root.style.removeProperty("overflow");
+  }
+};
+
 // toggleSourcePanel builds one SourcePanelContext per panel instance and
 // hands it to a fixed sequence of builders, each owning a cohesive slice of
 // DOM/behavior (menus, resize, header, filter/sort, preview, selection, row
@@ -71,6 +92,9 @@ export { formatSourceBytes } from "./source-panel-model.ts";
 export const toggleSourcePanel = (
   sendDownload: SourcePanelDownload,
   options: SourcePanelOptions = {},
+  // An ambient restore (the panel was left open and another page loaded) must
+  // not pull focus off the page's own autofocused field on every navigation.
+  takeFocus = true,
 ): boolean => {
   if (activePanelHost && !activePanelHost.isConnected) cleanupPanelHost(activePanelHost);
   const existing = activePanelHost;
@@ -79,12 +103,15 @@ export const toggleSourcePanel = (
       cancelPanelRemoval(existing);
       existing.classList.remove("closing");
       panelOpenChanges.get(existing)?.(true);
-      panelRoots.get(existing)?.querySelector<HTMLInputElement>('input[type="search"]')?.focus();
+      if (takeFocus) {
+        panelRoots.get(existing)?.querySelector<HTMLInputElement>('input[type="search"]')?.focus();
+      }
       return true;
     }
     return closePanelHost(existing);
   }
   if (options.enabled === false) return false;
+  reclaimOrphanedPanelHosts();
   const initialOptions = { ...options };
 
   const host = document.createElement("aside");
@@ -189,7 +216,7 @@ export const toggleSourcePanel = (
   ctx.resyncResourceTiming();
   ctx.refreshSources();
   loadSourceSort(ctx.applyStoredSortPreference);
-  ctx.filter.focus();
+  if (takeFocus) ctx.filter.focus();
   return true;
 };
 
@@ -220,8 +247,8 @@ export const setSourcePanelOpen = (
 ): boolean => {
   const existing = activePanelHost?.isConnected ? activePanelHost : null;
   if (existing?.classList.contains("closing")) {
-    return open ? toggleSourcePanel(sendDownload, options) : false;
+    return open ? toggleSourcePanel(sendDownload, options, false) : false;
   }
   if (open === Boolean(existing)) return open;
-  return toggleSourcePanel(sendDownload, options);
+  return toggleSourcePanel(sendDownload, options, false);
 };

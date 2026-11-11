@@ -89,6 +89,58 @@ describe("Page Sources panel interactions", () => {
     expect(impostor.isConnected).toBe(true);
   });
 
+  test("reclaims a panel left behind by an earlier content-script instance", () => {
+    const orphan = document.createElement("aside");
+    orphan.id = "save-in-source-panel";
+    orphan.dataset.theme = "dark";
+    document.documentElement.append(orphan);
+    document.documentElement.style.setProperty("overflow", "hidden", "important");
+
+    expect(toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false })).toBe(true);
+
+    expect(orphan.isConnected).toBe(false);
+    expect(getSourcePanelHostForTesting()?.isConnected).toBe(true);
+    expect(document.documentElement.style.getPropertyValue("overflow")).toBe("");
+  });
+
+  test("leaves the page's own scroll setting alone when reclaiming an orphan", () => {
+    const orphan = document.createElement("aside");
+    orphan.id = "save-in-source-panel";
+    orphan.dataset.theme = "dark";
+    document.documentElement.append(orphan);
+    document.documentElement.style.setProperty("overflow", "clip");
+
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+
+    expect(document.documentElement.style.getPropertyValue("overflow")).toBe("clip");
+    document.documentElement.style.removeProperty("overflow");
+  });
+
+  test("an ambient restore opens the panel without taking focus from the page", () => {
+    document.body.innerHTML = '<input id="page-field">';
+    const field = document.querySelector<HTMLInputElement>("#page-field")!;
+    field.focus();
+
+    expect(setSourcePanelOpen(true, vi.fn(), { includeBackgrounds: false, live: false })).toBe(
+      true,
+    );
+
+    expect(document.activeElement).toBe(field);
+  });
+
+  test("closing hands focus back only while the panel still holds it", () => {
+    document.body.innerHTML = '<input id="before"><input id="after">';
+    const before = document.querySelector<HTMLInputElement>("#before")!;
+    const after = document.querySelector<HTMLInputElement>("#after")!;
+    before.focus();
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    expect(document.activeElement).toBe(getSourcePanelHostForTesting());
+
+    after.focus();
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    expect(document.activeElement).toBe(after);
+  });
+
   test("does not open when the panel is disabled", () => {
     expect(toggleSourcePanel(vi.fn(), { enabled: false })).toBe(false);
     expect(getSourcePanelHostForTesting()).toBeNull();

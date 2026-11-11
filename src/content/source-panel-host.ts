@@ -6,7 +6,7 @@ export const PANEL_HOST_ID = "save-in-source-panel";
 // Identified by id rather than by the active-host binding so a host left behind
 // by an earlier content-script instance is recognized too.
 export const isSourcePanelHost = (candidate: unknown): boolean =>
-  candidate instanceof Element && candidate.id === PANEL_HOST_ID;
+  candidate instanceof Element && candidate.localName === "aside" && candidate.id === PANEL_HOST_ID;
 
 export const panelCleanups = new WeakMap<Element, () => void>();
 const panelCloseTimers = new WeakMap<Element, number>();
@@ -62,7 +62,11 @@ const schedulePanelRemoval = (host: HTMLElement) => {
 
 export const closePanelHost = (host: HTMLElement): false => {
   if (host.classList.contains("closing")) return false;
-  panelPreviousFocus.get(host)?.focus();
+  // Hand focus back only while the panel still holds it. A close the user did
+  // not trigger from inside the panel (an option change, a keyboard command, a
+  // disable-list transition) must not yank focus out of the page field they
+  // have since moved to.
+  if (document.activeElement === host) panelPreviousFocus.get(host)?.focus();
   host.classList.add("closing");
   schedulePanelRemoval(host);
   panelOpenChanges.get(host)?.(false);
