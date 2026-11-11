@@ -33,6 +33,10 @@ export const SCRIPT_MEDIA_BY_TAB_SESSION_KEY = "siScriptMediaByTab";
 // evidence, kept across navigations so a back/forward-restored stream page's
 // segments stay refused. Holds no URL.
 export const SCRIPT_MEDIA_STREAM_DOCUMENTS_SESSION_KEY = "siScriptMediaStreamDocuments";
+// Counts of automatic saves launched per tab and page origin, so a page cannot
+// reset the per-visit limit by reloading. Counts only; a private tab's entry is
+// keyed by its tab id alone and never holds its origin.
+export const AUTOMATIC_SAVE_BUDGET_SESSION_KEY = "siAutomaticSaveBudget";
 export const SOURCE_PANEL_SORT_STORAGE_KEY = "sourcePanelSort";
 export const SOURCE_PANEL_LAYOUT_STORAGE_KEY = "sourcePanelLayout";
 export const SOURCE_RULE_DRAFT_SESSION_KEY = "sourceRuleDraft";

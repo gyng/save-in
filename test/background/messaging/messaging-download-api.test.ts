@@ -16,6 +16,8 @@ import { options } from "../../../src/config/options-data.ts";
 import * as DownloadDisposition from "../../../src/downloads/download-disposition.ts";
 import * as Collector from "../../../src/background/script-media-collector.ts";
 import { menuState } from "../../../src/background/menu-build.ts";
+import { handleAutoDownloadSource } from "../../../src/background/messaging/auto-download.ts";
+import { webExtensionStorageArea } from "../../support/webextension-host.fixture.ts";
 
 const resetLastUsed = () => {
   menuState.lastUsedPath = null;
@@ -1013,6 +1015,151 @@ into: automatic/:pagedomain:/
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
       body: { status: "started" },
+    });
+  });
+
+  // The page's per-visit limit lives in its content script, which a reload
+  // replaces. A hostile page a rule matches reloads itself in a loop, offering
+  // fresh matching addresses each time.
+  describe("a budget the page cannot reset by reloading", () => {
+    const tab = { id: 7, url: "https://example.test/gallery/", incognito: false };
+    const offer = async (index: number, senderTab: Record<string, unknown> = tab) => {
+      const sendResponse = vi.fn();
+      await handleAutoDownloadSource(
+        {
+          ...request,
+          body: { ...request.body, sourceUrl: `https://cdn.test/original/${index}.png` },
+        },
+        { tab: senderTab },
+        sendResponse,
+      );
+      return sendResponse.mock.calls[0]![0].body.status as string;
+    };
+    const offerMany = async (count: number, senderTab?: Record<string, unknown>) => {
+      const statuses: string[] = [];
+      for (let index = 0; index < count; index += 1) statuses.push(await offer(index, senderTab));
+      return statuses;
+    };
+    const budgetLogs = () =>
+      vi
+        .mocked(Log.addLogEntry)
+        .mock.calls.filter(([message]) => message === "automatic Page Sources: tab budget reached");
+    let session: ReturnType<typeof webExtensionStorageArea>;
+    let now: number;
+
+    beforeEach(() => {
+      configure();
+      session = webExtensionStorageArea();
+      (global.browser as any).storage.session = session;
+      now = 1_800_000_000_000;
+      vi.spyOn(Date, "now").mockImplementation(() => now);
+    });
+
+    test("stops launching after three visits' worth of saves and logs it once", async () => {
+      const statuses = await offerMany(75);
+
+      expect(statuses.filter((status) => status === "started")).toHaveLength(60);
+      expect(statuses.slice(60)).toEqual(Array.from({ length: 15 }, () => "skipped"));
+      expect(Download.launchDownload).toHaveBeenCalledTimes(60);
+      expect(budgetLogs()).toEqual([
+        [
+          "automatic Page Sources: tab budget reached",
+          { limit: 60, windowMinutes: 10 },
+          { privateContext: false },
+        ],
+      ]);
+    });
+
+    test("follows the configured per-visit limit", async () => {
+      options.autoDownloadMaxPerPage = 2;
+
+      expect(await offerMany(8)).toEqual([
+        ...Array.from({ length: 6 }, () => "started"),
+        "skipped",
+        "skipped",
+      ]);
+    });
+
+    test("another tab, and another site in the same tab, are not affected", async () => {
+      options.autoDownloadMaxPerPage = 1;
+      options.filenamePatterns = parseRulesCollecting(`
+context: ^auto$
+pageurl: ^https://(example|other)\\.test/gallery/
+sourcekind: image
+into: automatic/
+`).rules;
+      await offerMany(5);
+
+      expect(await offer(100)).toBe("skipped");
+      expect(await offer(101, { ...tab, id: 8 })).toBe("started");
+      expect(await offer(102, { ...tab, url: "https://other.test/gallery/" })).toBe("started");
+    });
+
+    test("ordinary paging is saved again once the window has moved on", async () => {
+      options.autoDownloadMaxPerPage = 1;
+      await offerMany(5);
+      expect(await offer(100)).toBe("skipped");
+
+      now += 20 * 60 * 1000;
+
+      expect(await offer(101)).toBe("started");
+    });
+
+    test.each([
+      ["skipped", async () => ({ status: "skipped" as const })],
+      ["failed", async () => ({ status: "failed" as const })],
+    ])("a save the pipeline %s does not spend the budget", async (_label, outcome) => {
+      options.autoDownloadMaxPerPage = 1;
+      vi.mocked(Download.launchDownload).mockImplementation(outcome);
+      await offerMany(20);
+      vi.mocked(Download.launchDownload).mockResolvedValue({ status: "started", downloadId: 1 });
+
+      expect(await offerMany(4)).toEqual(["started", "started", "started", "skipped"]);
+    });
+
+    test("a save that throws does not spend the budget", async () => {
+      options.autoDownloadMaxPerPage = 1;
+      vi.mocked(Download.launchDownload).mockRejectedValue(new Error("launch failed"));
+      for (let index = 0; index < 5; index += 1) {
+        await expect(offer(index)).rejects.toThrow("launch failed");
+      }
+      vi.mocked(Download.launchDownload).mockResolvedValue({ status: "started", downloadId: 1 });
+
+      expect(await offerMany(4)).toEqual(["started", "started", "started", "skipped"]);
+    });
+
+    test("keeps only counts, and no origin for a private tab", async () => {
+      options.autoDownloadPrivate = true;
+      await offer(1);
+      await offer(2, { ...tab, id: 9, incognito: true });
+
+      const stored = (await session.get("siAutomaticSaveBudget")) as Record<string, unknown>;
+      expect(stored.siAutomaticSaveBudget).toEqual({
+        "7|https://example.test": { start: now, count: 1, previous: 0, logged: false },
+        "9|": { start: now, count: 1, previous: 0, logged: false },
+      });
+    });
+
+    test("a private tab's refusal is logged as private", async () => {
+      options.autoDownloadPrivate = true;
+      options.autoDownloadMaxPerPage = 1;
+
+      await offerMany(5, { ...tab, incognito: true });
+
+      expect(budgetLogs()).toEqual([
+        [
+          "automatic Page Sources: tab budget reached",
+          { limit: 3, windowMinutes: 10 },
+          { privateContext: true },
+        ],
+      ]);
+    });
+
+    test("a storage failure does not stop automatic saves", async () => {
+      options.autoDownloadMaxPerPage = 1;
+      session.get.mockImplementation(() => Promise.reject(new Error("storage unavailable")));
+
+      expect(await offerMany(5)).toEqual(Array.from({ length: 5 }, () => "started"));
     });
   });
 

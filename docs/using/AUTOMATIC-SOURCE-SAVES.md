@@ -252,6 +252,18 @@ block saving a rule.
   each; `blob:` URLs are never adopted.
 - **Maximum saves per page visit** defaults to 20 and accepts 1–500. Reloading
   the page starts a new visit.
+- Reloading does not make the allowance unlimited. Save In also counts the
+  automatic saves it actually starts for each tab and site (the page's origin),
+  and starts at most three visits' worth in any ten minutes: 60 with the
+  default limit of 20. A page that keeps reloading itself to offer new sources
+  stops there; further candidates are left unsaved until earlier saves are more
+  than ten minutes old, and the debug log records
+  `automatic Page Sources: tab budget reached` once per ten minutes. Saves that
+  were skipped, declined, or failed do not count, nor do saves in another tab or
+  on another site. In a private window the count is per tab only, so no site
+  address is kept for it. The count is held for the browser session and is not
+  a setting; raise **Maximum saves per page visit** if you page through more
+  than that in ten minutes on one site.
 - A source URL is queued once per page visit, and only after a guarded automatic
   rule matches it.
 - A new visit queues the same sources again. To stop them downloading again,
@@ -292,7 +304,9 @@ compatibility, but new configurations should put all automatic rules in
 - If the rule is rejected, add an explicit page condition and source condition.
 - If initial sources save but later ones do not, enable live discovery.
 - If saving stops after several matches, check the per-page maximum and reload
-  the page to begin a new visit.
+  the page to begin a new visit. If it stays stopped after reloading, the tab has
+  reached three visits' worth of saves on that site within ten minutes; the
+  debug log says so, and saving resumes as those saves age out.
 - If a resource never appears, confirm the page exposes a previewable HTTP(S)
   source, or an inline `data:` source under 2 MB with **Include inline data:
   images and media** enabled. `blob:` URLs are never adopted, and media that

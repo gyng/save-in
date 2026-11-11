@@ -20,6 +20,17 @@ import type { MessageOf } from "../../shared/message-protocol.ts";
 import type { MessageSender, ProtocolSendResponse } from "./protocol.ts";
 import { isPageContentSender } from "./protocol.ts";
 import type { DownloadPipelineState } from "../../downloads/download-types.ts";
+import {
+  AUTOMATIC_BUDGET_WINDOW_MS,
+  automaticBudgetKey,
+  automaticBudgetLimit,
+  refundAutomaticSave,
+  reserveAutomaticSave,
+} from "../../automation/automatic-save-budget.ts";
+import { updateSession } from "../../shared/session-state.ts";
+import { extensionSessionStorage } from "../../platform/storage-areas.ts";
+import { AUTOMATIC_SAVE_BUDGET_SESSION_KEY } from "../../shared/storage-keys.ts";
+import { sessionWriteState } from "../application-state.ts";
 
 // The page visit a script-media request speaks for. The document identity is
 // the browser's, never the message's; the visit start is the content script's
@@ -186,7 +197,53 @@ export const handleAutoDownloadSource = async (
       ...(isDataUrl(sourceUrl) ? { mime: parseDataUrlMediaType(sourceUrl) } : {}),
     },
   };
-  const result = await launchDownload(state);
+  // The page's own per-visit count starts again on every load, so the
+  // background keeps one a reload cannot reset. Checked last, so only a
+  // candidate that would otherwise launch spends it. A storage failure leaves
+  // the reservation at its default and the save proceeds: this is a backstop
+  // behind the per-visit limit, not the only gate.
+  const budgetKey = automaticBudgetKey(senderTab);
+  const budgetLimit = automaticBudgetLimit(
+    normalizeContentOption("autoDownloadMaxPerPage", options.autoDownloadMaxPerPage),
+  );
+  let reservation = { allowed: true, firstRefusal: false };
+  await updateSession(
+    sessionWriteState,
+    extensionSessionStorage,
+    AUTOMATIC_SAVE_BUDGET_SESSION_KEY,
+    (stored) => {
+      const reserved = reserveAutomaticSave(stored, budgetKey, budgetLimit, Date.now());
+      reservation = reserved;
+      return reserved.state;
+    },
+  );
+  if (!reservation.allowed) {
+    if (reservation.firstRefusal) {
+      void addLogEntry(
+        "automatic Page Sources: tab budget reached",
+        { limit: budgetLimit, windowMinutes: AUTOMATIC_BUDGET_WINDOW_MS / 60_000 },
+        { privateContext: senderTab.incognito === true },
+      );
+    }
+    skip();
+    return;
+  }
+  let launched = false;
+  let result: Awaited<ReturnType<typeof launchDownload>>;
+  try {
+    result = await launchDownload(state);
+    launched = result.status === "started";
+  } finally {
+    // Only a save that actually launched spends the budget.
+    if (!launched) {
+      await updateSession(
+        sessionWriteState,
+        extensionSessionStorage,
+        AUTOMATIC_SAVE_BUDGET_SESSION_KEY,
+        (stored) => refundAutomaticSave(stored, budgetKey, Date.now()),
+      );
+    }
+  }
   sendResponse({
     type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
     // To the page, "skipped" means the candidate was never consumed and may be
