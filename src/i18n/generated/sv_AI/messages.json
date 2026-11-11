@@ -1564,6 +1564,9 @@
   "html_notifyMeWhen": {
     "message": "Aviseringshändelser"
   },
+  "html_previewOfTheFolderPicker": {
+    "message": "Förhandsgranskning av mappväljaren"
+  },
   "html_previewOfThePageSourcesDrawer": {
     "message": "Förhandsgranskning av panelen Sidkällor"
   },

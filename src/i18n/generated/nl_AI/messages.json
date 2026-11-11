@@ -1564,6 +1564,9 @@
   "html_notifyMeWhen": {
     "message": "Meldingsgebeurtenissen"
   },
+  "html_previewOfTheFolderPicker": {
+    "message": "Voorvertoning van de mapkiezer"
+  },
   "html_previewOfThePageSourcesDrawer": {
     "message": "Voorvertoning van het paneel Paginabronnen"
   },

@@ -75,6 +75,7 @@ const optionStyleFiles = [
   "path-editor/style-menu-preview.css",
   "styles/style-shell-responsive.css",
   "core/style-source-settings.css",
+  "core/style-picker-preview.css",
   "dialogs/style-dialogs.css",
   "reference/style-editor-reference.css",
   "path-editor/style-editor-responsive.css",

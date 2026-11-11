@@ -16,6 +16,7 @@
 @import url("syntax-editor/style-syntax-popovers.css") layer(components);
 @import url("ui/style-typeahead.css") layer(components);
 @import url("core/style-source-settings.css") layer(components);
+@import url("core/style-picker-preview.css") layer(components);
 @import url("core/style-automation.css") layer(components);
 @import url("styles/style-layout.css") layer(layout);
 @import url("reference/style-variables-preview.css") layer(layout);

@@ -1,0 +1,133 @@
+/* The Click-to-save tab's picture of the in-page folder picker, laid out like
+   the Page Sources overview: settings first, the picture beside them. */
+.picker-overview {
+  display: grid;
+  grid-template-columns: minmax(340px, 2fr) minmax(240px, 1fr);
+  align-items: start;
+  gap: var(--space-5);
+}
+
+.picker-demo {
+  /* Each row sets its own nesting depth. */
+  --picker-demo-depth: 0;
+  inline-size: 100%;
+  font-size: var(--text-sm);
+  max-inline-size: 304px;
+  margin: 0;
+  overflow: clip;
+  user-select: none;
+  border: 1px solid var(--panel-border);
+  border-radius: calc(var(--radius) * 2);
+  background: var(--page-bg);
+  box-shadow: var(--floating-shadow);
+}
+
+.picker-demo svg {
+  flex: none;
+  inline-size: 16px;
+  block-size: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: var(--color-text-muted);
+}
+
+.picker-demo-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3) 0;
+}
+
+.picker-demo-header small {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  text-align: end;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picker-demo-filter {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--control-height);
+  margin: var(--space-2);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+}
+
+.picker-demo-list {
+  padding: 0 var(--space-1) var(--space-1);
+}
+
+.picker-demo-option,
+.picker-demo-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--compact-control-size);
+  padding-block: var(--space-1);
+  padding-inline: calc(var(--space-2) + var(--picker-demo-depth) * var(--space-4)) var(--space-2);
+  border-inline-start: 2px solid transparent;
+  border-radius: var(--radius);
+}
+
+.picker-demo-heading {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.picker-demo-option.active {
+  border-inline-start-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
+.picker-demo-option.active svg {
+  color: var(--color-accent);
+}
+
+.picker-demo-title {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picker-demo kbd {
+  flex: none;
+  min-inline-size: 1.5em;
+  padding: 0 var(--space-1);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 400;
+  text-align: center;
+}
+
+.picker-demo-keys {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-3) var(--space-2);
+  border-block-start: 1px solid var(--panel-border);
+}
+
+.picker-demo-keys span {
+  display: flex;
+  gap: 2px;
+}
+
+@container options-panel (max-width: 640px) {
+  .picker-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

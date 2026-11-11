@@ -2459,6 +2459,10 @@
     "message": "Notification events",
     "description": "Text in the options page. Used in src/options/options.html."
   },
+  "html_previewOfTheFolderPicker": {
+    "message": "Preview of the folder picker",
+    "description": "Visually hidden caption of the decorative picture of the in-page folder picker on the Click-to-save options tab. Reuse the translation of \"folder picker\" from the \"Show a folder picker instead of saving immediately\" option. Used in src/options/options.html."
+  },
   "html_previewOfThePageSourcesDrawer": {
     "message": "Preview of the Page sources drawer",
     "description": "Text in the options page. Used in src/options/options.html."

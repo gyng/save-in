@@ -239,6 +239,7 @@ const styleLayers = [
       "syntax-editor/style-syntax-popovers.css",
       "ui/style-typeahead.css",
       "core/style-source-settings.css",
+      "core/style-picker-preview.css",
       "core/style-automation.css",
     ],
   ],

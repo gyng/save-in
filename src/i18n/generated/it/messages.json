@@ -1517,6 +1517,9 @@
   "html_notifyMeWhen": {
     "message": "Eventi di notifica"
   },
+  "html_previewOfTheFolderPicker": {
+    "message": "Anteprima del selettore di cartelle"
+  },
   "html_previewOfThePageSourcesDrawer": {
     "message": "Anteprima del pannello Sorgenti della pagina"
   },

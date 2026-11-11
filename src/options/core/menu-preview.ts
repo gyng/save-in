@@ -7,6 +7,7 @@ import { getMessage } from "../../platform/localization.ts";
 import { buildTree, getMenuTreeEntries } from "../../menus/menu-tree.ts";
 import type { MenuTree } from "../../menus/menu-tree.ts";
 import { resolveMenuAccessKey } from "../../menus/access-key.ts";
+import { renderPickerPreview, renderPickerPreviewLegend } from "./picker-preview.ts";
 import { splitLines } from "../../shared/util.ts";
 import { linkOptionPreview } from "./option-navigation.ts";
 import {
@@ -192,7 +193,20 @@ export const updateMenuPreview = (): void => {
   if (!textarea || !preview) {
     return;
   }
-  renderMenuPreview(preview, buildTree(splitLines(textarea.value)));
+  const tree = buildTree(splitLines(textarea.value));
+  renderMenuPreview(preview, tree);
+  // The folder picker lists the same folders, so its picture on the
+  // Click-to-save tab is redrawn whenever this one is.
+  const pickerLegend = document.querySelector<HTMLElement>("#picker-demo-keys");
+  if (pickerLegend) renderPickerPreviewLegend(pickerLegend);
+  const pickerPreview = document.querySelector<HTMLElement>("#picker-demo-list");
+  if (pickerPreview) {
+    renderPickerPreview(
+      pickerPreview,
+      tree,
+      document.querySelector<HTMLInputElement>("#enableNumberedItems")?.checked === true,
+    );
+  }
 };
 
 export type MenuPreviewWiringPorts = {

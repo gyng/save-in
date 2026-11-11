@@ -1564,6 +1564,9 @@
   "html_notifyMeWhen": {
     "message": "Benachrichtigungsereignisse"
   },
+  "html_previewOfTheFolderPicker": {
+    "message": "Vorschau der Ordnerauswahl"
+  },
   "html_previewOfThePageSourcesDrawer": {
     "message": "Vorschau des Bereichs „Seitenquellen“"
   },

@@ -1564,6 +1564,9 @@
   "html_notifyMeWhen": {
     "message": "Eventos de notificação"
   },
+  "html_previewOfTheFolderPicker": {
+    "message": "Visualização do seletor de pastas"
+  },
   "html_previewOfThePageSourcesDrawer": {
     "message": "Visualização do painel Fontes da página"
   },

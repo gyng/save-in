@@ -1576,6 +1576,9 @@
   "html_notifyMeWhen": {
     "message": "Événements de notification"
   },
+  "html_previewOfTheFolderPicker": {
+    "message": "Aperçu du sélecteur de dossiers"
+  },
   "html_previewOfThePageSourcesDrawer": {
     "message": "Aperçu du panneau Sources de la page"
   },

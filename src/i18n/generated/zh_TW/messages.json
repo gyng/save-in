@@ -1139,6 +1139,9 @@
   "html_notifyMeWhen": {
     "message": "通知事件"
   },
+  "html_previewOfTheFolderPicker": {
+    "message": "資料夾選擇器預覽"
+  },
   "html_previewOfThePageSourcesDrawer": {
     "message": "「頁面來源」面板預覽"
   },

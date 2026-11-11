@@ -1564,6 +1564,9 @@
   "html_notifyMeWhen": {
     "message": "Eventos de notificación"
   },
+  "html_previewOfTheFolderPicker": {
+    "message": "Vista previa del selector de carpetas"
+  },
   "html_previewOfThePageSourcesDrawer": {
     "message": "Vista previa del panel Recursos de la página"
   },

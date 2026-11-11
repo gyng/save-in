@@ -1139,6 +1139,9 @@
   "html_notifyMeWhen": {
     "message": "알림 이벤트"
   },
+  "html_previewOfTheFolderPicker": {
+    "message": "폴더 선택기 미리보기"
+  },
   "html_previewOfThePageSourcesDrawer": {
     "message": "페이지 소스 창 미리보기"
   },

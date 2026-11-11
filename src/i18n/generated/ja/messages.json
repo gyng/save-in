@@ -1139,6 +1139,9 @@
   "html_notifyMeWhen": {
     "message": "通知イベント"
   },
+  "html_previewOfTheFolderPicker": {
+    "message": "フォルダー選択のプレビュー"
+  },
   "html_previewOfThePageSourcesDrawer": {
     "message": "「ページソース」パネルのプレビュー"
   },
