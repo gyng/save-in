@@ -4737,6 +4737,6 @@
     "message": "Mostra il selettore di cartelle"
   },
   "o_cClickToSavePickerHelp": {
-    "message": "Un gesto di clic per salvare apre le cartelle del tuo Menu di salvataggio accanto al puntatore. Scegline una per salvare lì oppure premi Esc per annullare. Il menu contestuale del browser non cambia."
+    "message": "Un gesto con l’azione «Mostra il selettore di cartelle» apre le cartelle del tuo Menu di salvataggio accanto al puntatore. Scegline una per salvare lì oppure premi Esc per annullare. Il menu contestuale del browser non cambia."
   }
 }

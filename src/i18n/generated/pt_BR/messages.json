@@ -4737,6 +4737,6 @@
     "message": "Mostrar o seletor de pastas"
   },
   "o_cClickToSavePickerHelp": {
-    "message": "Um gesto de clique para salvar abre as pastas do seu Menu de salvamento junto ao ponteiro. Escolha uma para salvar nela ou pressione Esc para cancelar. O menu de contexto do navegador não muda."
+    "message": "Um gesto com a ação “Mostrar o seletor de pastas” abre as pastas do seu Menu de salvamento junto ao ponteiro. Escolha uma para salvar nela ou pressione Esc para cancelar. O menu de contexto do navegador não muda."
   }
 }

@@ -4737,6 +4737,6 @@
     "message": "Ordnerauswahl anzeigen"
   },
   "o_cClickToSavePickerHelp": {
-    "message": "Eine Geste für Speichern per Klick öffnet die Ordner Ihres Speichermenüs am Mauszeiger. Wählen Sie einen Ordner, um dort zu speichern, oder drücken Sie Esc, um abzubrechen. Das Kontextmenü des Browsers bleibt unverändert."
+    "message": "Eine Geste mit der Aktion „Ordnerauswahl anzeigen“ öffnet die Ordner Ihres Speichermenüs am Mauszeiger. Wählen Sie einen Ordner, um dort zu speichern, oder drücken Sie Esc, um abzubrechen. Das Kontextmenü des Browsers bleibt unverändert."
   }
 }

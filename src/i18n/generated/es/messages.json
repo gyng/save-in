@@ -4737,6 +4737,6 @@
     "message": "Mostrar el selector de carpetas"
   },
   "o_cClickToSavePickerHelp": {
-    "message": "Un gesto de clic para guardar abre las carpetas de su Menú de guardado junto al puntero. Elija una para guardar en ella o pulse Esc para cancelar. El menú contextual del navegador no cambia."
+    "message": "Un gesto con la acción «Mostrar el selector de carpetas» abre las carpetas de su Menú de guardado junto al puntero. Elija una para guardar en ella o pulse Esc para cancelar. El menú contextual del navegador no cambia."
   }
 }

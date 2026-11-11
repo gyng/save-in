@@ -4737,6 +4737,6 @@
     "message": "Visa mappväljaren"
   },
   "o_cClickToSavePickerHelp": {
-    "message": "En gest för klicka för att spara öppnar mapparna i din Sparmeny vid pekaren. Välj en mapp för att spara där, eller tryck på Esc för att avbryta. Webbläsarens snabbmeny ändras inte."
+    "message": "En gest med åtgärden ”Visa mappväljaren” öppnar mapparna i din Sparmeny vid pekaren. Välj en mapp för att spara där, eller tryck på Esc för att avbryta. Webbläsarens snabbmeny ändras inte."
   }
 }

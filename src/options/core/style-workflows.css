@@ -54,7 +54,9 @@
 .click-to-save-row,
 .click-to-save-binding {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(7rem, 12rem));
+  /* Wide enough for the longest choice (the picker action in a long locale),
+     and stretching so two columns fill the space beside the picker preview. */
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
   gap: var(--space-3);
   inline-size: 100%;
 }

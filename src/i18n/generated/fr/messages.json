@@ -4737,6 +4737,6 @@
     "message": "Afficher le sélecteur de dossiers"
   },
   "o_cClickToSavePickerHelp": {
-    "message": "Un geste d’enregistrement au clic ouvre les dossiers de votre Menu d’enregistrement à l’emplacement du pointeur. Choisissez-en un pour y enregistrer, ou appuyez sur Esc pour annuler. Le menu contextuel du navigateur reste inchangé."
+    "message": "Un geste dont l’action est « Afficher le sélecteur de dossiers » ouvre les dossiers de votre Menu d’enregistrement à l’emplacement du pointeur. Choisissez-en un pour y enregistrer, ou appuyez sur Esc pour annuler. Le menu contextuel du navigateur reste inchangé."
   }
 }

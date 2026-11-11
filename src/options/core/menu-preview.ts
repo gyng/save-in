@@ -201,11 +201,16 @@ export const updateMenuPreview = (): void => {
   if (pickerLegend) renderPickerPreviewLegend(pickerLegend);
   const pickerPreview = document.querySelector<HTMLElement>("#picker-demo-list");
   if (pickerPreview) {
-    renderPickerPreview(
-      pickerPreview,
-      tree,
-      document.querySelector<HTMLInputElement>("#enableNumberedItems")?.checked === true,
-    );
+    renderPickerPreview(pickerPreview, tree, {
+      numbered: document.querySelector<HTMLInputElement>("#enableNumberedItems")?.checked === true,
+      lastUsed:
+        document.querySelector<HTMLInputElement>("#enableLastLocation")?.checked === true
+          ? {
+              label: getMessage("contextMenuLastUsed") || "Last used",
+              key: document.querySelector<HTMLInputElement>("#keyLastUsed")?.value ?? "",
+            }
+          : null,
+    });
   }
 };
 
@@ -222,7 +227,13 @@ export const setupPathsPreviewWiring = (ports: MenuPreviewWiringPorts): void => 
     return;
   }
 
-  ["#enableLastLocation", "#enableNumberedItems", "#recentDestinationCount"].forEach((selector) => {
+  // #keyLastUsed is drawn only by the folder picker's picture, which this redraws too.
+  [
+    "#enableLastLocation",
+    "#enableNumberedItems",
+    "#recentDestinationCount",
+    "#keyLastUsed",
+  ].forEach((selector) => {
     document.querySelector(selector)?.addEventListener("change", () => updateMenuPreview());
   });
   // The Recent locations count also redraws live as it is typed or stepped.

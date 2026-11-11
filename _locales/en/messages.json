@@ -6076,7 +6076,7 @@
     "description": "Option in the Action select of a click-to-save gesture row: the gesture shows the in-page list of Save menu folders at the pointer instead of saving at once. Reuse the wording of the \"Show the folder picker\" command. Used in src/options/options.html and src/options/core/shortcut-options.ts."
   },
   "o_cClickToSavePickerHelp": {
-    "message": "A click-to-save gesture opens your Save menu folders at the pointer. Choose one to save there, or press Esc to cancel. The browser context menu is not changed.",
+    "message": "A gesture set to Show the folder picker opens your Save menu folders at the pointer. Choose one to save there, or press Esc to cancel. The browser context menu is not changed.",
     "description": "Caption under the click-to-save gesture rows, explaining what a gesture whose Action is \"Show the folder picker\" does. \"Save menu\" is the options tab name and click-to-save is the feature name; reuse their translations. Keep the key name Esc. Used in src/options/options.html."
   }
 }
