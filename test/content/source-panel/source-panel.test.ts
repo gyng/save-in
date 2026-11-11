@@ -89,12 +89,22 @@ describe("Page Sources panel interactions", () => {
     expect(impostor.isConnected).toBe(true);
   });
 
-  test("reclaims a panel left behind by an earlier content-script instance", () => {
+  // A host an earlier test left stale is cleaned up on the next toggle, and
+  // that cleanup releases its own scroll lock. Flush it first so these cases
+  // exercise the orphan path rather than that unrelated restore.
+  const strandOrphanedPanel = (): HTMLElement => {
+    toggleSourcePanel(vi.fn(), { enabled: false });
     const orphan = document.createElement("aside");
     orphan.id = "save-in-source-panel";
     orphan.dataset.theme = "dark";
     document.documentElement.append(orphan);
+    return orphan;
+  };
+
+  test("reclaims a panel left behind by an earlier content-script instance", () => {
+    const orphan = strandOrphanedPanel();
     document.documentElement.style.setProperty("overflow", "hidden", "important");
+    expect(document.documentElement.style.getPropertyPriority("overflow")).toBe("important");
 
     expect(toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false })).toBe(true);
 
@@ -104,16 +114,53 @@ describe("Page Sources panel interactions", () => {
   });
 
   test("leaves the page's own scroll setting alone when reclaiming an orphan", () => {
-    const orphan = document.createElement("aside");
-    orphan.id = "save-in-source-panel";
-    orphan.dataset.theme = "dark";
-    document.documentElement.append(orphan);
+    const orphan = strandOrphanedPanel();
     document.documentElement.style.setProperty("overflow", "clip");
 
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
 
     expect(document.documentElement.style.getPropertyValue("overflow")).toBe("clip");
     document.documentElement.style.removeProperty("overflow");
+  });
+
+  test("leaves a page-owned hidden overflow alone when reclaiming an orphan", () => {
+    const orphan = strandOrphanedPanel();
+    // Save In's lock is always !important; a plain declaration is the page's.
+    document.documentElement.style.setProperty("overflow", "hidden");
+
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+
+    expect(document.documentElement.style.getPropertyValue("overflow")).toBe("hidden");
+    document.documentElement.style.removeProperty("overflow");
+  });
+
+  test("an explicit toggle revives a closing panel and focuses its filter", () => {
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const host = getSourcePanelHostForTesting()!;
+    expect(host.classList).toContain("closing");
+    (document.activeElement as HTMLElement | null)?.blur();
+
+    expect(toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false })).toBe(true);
+
+    expect(host.classList).not.toContain("closing");
+    expect(host.shadowRoot!.activeElement).toBe(host.shadowRoot!.querySelector("input"));
+  });
+
+  test("an ambient restore revives a closing panel without taking focus", () => {
+    document.body.innerHTML = '<input id="page-field">';
+    const field = document.querySelector<HTMLInputElement>("#page-field")!;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    expect(getSourcePanelHostForTesting()?.classList).toContain("closing");
+    field.focus();
+
+    expect(setSourcePanelOpen(true, vi.fn(), { includeBackgrounds: false, live: false })).toBe(
+      true,
+    );
+
+    expect(getSourcePanelHostForTesting()?.classList).not.toContain("closing");
+    expect(document.activeElement).toBe(field);
   });
 
   test("an ambient restore opens the panel without taking focus from the page", () => {
