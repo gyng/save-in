@@ -4684,5 +4684,23 @@
   },
   "manifestCommandSaveFolder3": {
     "message": "Im dritten Ordner des Menüs speichern"
+  },
+  "manifestCommandOpenPicker": {
+    "message": "Ordnerauswahl anzeigen"
+  },
+  "pickerTitle": {
+    "message": "Ordner wählen"
+  },
+  "pickerFilter": {
+    "message": "Ordner filtern"
+  },
+  "pickerNoMatches": {
+    "message": "Keine passenden Ordner"
+  },
+  "o_cClickToSavePicker": {
+    "message": "Ordnerauswahl anzeigen, statt sofort zu speichern"
+  },
+  "o_cClickToSavePickerHelp": {
+    "message": "Eine Geste für Speichern per Klick öffnet die Ordner Ihres Speichermenüs am Mauszeiger. Wählen Sie einen Ordner, um dort zu speichern, oder drücken Sie Esc, um abzubrechen. Das Kontextmenü des Browsers bleibt unverändert."
   }
 }

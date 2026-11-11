@@ -66,6 +66,9 @@ import { isSourcePanelHost } from "./source-panel-host.ts";
 import { CONTEXT_IMAGE_REQUEST, type ContextImage } from "../shared/context-image.ts";
 import { HOVERED_SOURCE_REQUEST } from "../shared/hovered-source.ts";
 import { hoveredSourceFromDocument } from "./hovered-source.ts";
+import { PICKER_OPEN_REQUEST, parsePickerSource } from "../shared/destination-picker.ts";
+import { closeDestinationPicker, isDestinationPickerHost } from "./destination-picker.ts";
+import { createDestinationPickerClient } from "./destination-picker-client.ts";
 import {
   CONTEXT_LINK_METADATA_REQUEST,
   parseContextLinkMetadata,
@@ -114,8 +117,11 @@ const ClickToSave = {
     const path = typeof e.composedPath === "function" ? e.composedPath() : [];
     // The panel's shadow root is closed, so a gesture on a panel row reports
     // only the host. The coordinate lookup below would then reach through the
-    // panel and save page media the user cannot even see beneath it.
-    if (path.some(isSourcePanelHost) || isSourcePanelHost(e.target)) return undefined;
+    // panel and save page media the user cannot even see beneath it. The
+    // destination picker floats over the page the same way.
+    const isOwnSurface = (candidate: unknown): boolean =>
+      isSourcePanelHost(candidate) || isDestinationPickerHost(candidate);
+    if (path.some(isOwnSurface) || isOwnSurface(e.target)) return undefined;
     // Report the element's kind so a saved click carries its true source kind:
     // the `sourcekind:` routing matcher and the source sidecar both read it.
     const mediaSource = (
@@ -260,8 +266,10 @@ type ResolvedClickToSaveOptions = Pick<
       | "preferLinks"
       | "preferLinksFilterEnabled"
       | "preferLinksFilter"
+      | "contentClickToSavePicker"
     >
   > & { contentClickToSaveBindings?: string; filenamePatterns?: string };
+type GesturePoint = { x: number; y: number };
 type ResolvedAutoDownloadOptions = Pick<
   ResolvedContentOptions,
   | "autoDownloadLive"
@@ -283,6 +291,9 @@ const setupClickToSave = (
   acceptInput: (event: KeyboardEvent | MouseEvent) => boolean = (event) => event.isTrusted,
   isDisabled: () => boolean = () => false,
   sharedLongReleaseSuppression?: ReturnType<typeof createLongClickReleaseSuppressor>,
+  // With the opt-in picker setting, a matched gesture shows the destination
+  // picker at the pointer instead of saving at once.
+  openPicker?: (source: { url: string; kind: PageSource["kind"] }, point: GesturePoint) => void,
 ) => {
   const routingRules = parseRulesCollecting(options.filenamePatterns ?? "").rules;
   const cssSelectors = cssSelectorsForRules(routingRules);
@@ -327,13 +338,19 @@ const setupClickToSave = (
     binding: ShortcutBinding;
     source: ClickSource;
     linkMetadata: ContextLinkMetadata | null;
+    point: GesturePoint;
   };
 
   const sendClickDownload = (
     binding: ShortcutBinding,
     source: ClickSource,
     linkMetadata: ContextLinkMetadata | null,
+    point: GesturePoint,
   ): void => {
+    if (options.contentClickToSavePicker && openPicker) {
+      openPicker(source, point);
+      return;
+    }
     void sendRuntimeDownload(
       {
         url: source.url,
@@ -401,7 +418,7 @@ const setupClickToSave = (
             }
           },
         },
-        ({ binding, source, linkMetadata }) => {
+        ({ binding, source, linkMetadata, point }) => {
           longPressKeyCodes = [];
           // Once the hold threshold wins, this physical sequence can no longer
           // become a later double-click, even if the live policy rejects save.
@@ -414,7 +431,7 @@ const setupClickToSave = (
           }
           if (releaseIfInvalidated()) return;
           longReleaseSuppression.arm();
-          sendClickDownload(binding, source, linkMetadata);
+          sendClickDownload(binding, source, linkMetadata, point);
         },
       )
     : null;
@@ -539,7 +556,10 @@ const setupClickToSave = (
           suppressDoubleClickOn = source.element;
           e.preventDefault();
           e.stopImmediatePropagation();
-          sendClickDownload(doubleBinding, source, contextLinkMetadataFromEvent(e));
+          sendClickDownload(doubleBinding, source, contextLinkMetadataFromEvent(e), {
+            x: e.clientX,
+            y: e.clientY,
+          });
           return;
         }
       } else {
@@ -561,6 +581,7 @@ const setupClickToSave = (
             binding: longBinding,
             source,
             linkMetadata: contextLinkMetadataFromEvent(e),
+            point: { x: e.clientX, y: e.clientY },
           },
           e.clientX,
           e.clientY,
@@ -579,7 +600,10 @@ const setupClickToSave = (
       // triggers afterwards (context menu, middle-click link navigation), so
       // arm a one-shot suppression for the matched gesture's follow-up events.
       followUps.arm(binding.gesture, e.button);
-      sendClickDownload(binding, source, contextLinkMetadataFromEvent(e));
+      sendClickDownload(binding, source, contextLinkMetadataFromEvent(e), {
+        x: e.clientX,
+        y: e.clientY,
+      });
     },
     listenerOptions,
   );
@@ -879,6 +903,13 @@ const acknowledgeE2EContentReady = () => {
 const isCurrentPageDisabled = (): boolean =>
   matchesAnyPatternOrUnreadable(`${window.location}`, currentOptions.perSiteDisableList);
 
+// The opt-in destination picker is one more surface the disable list turns off.
+const destinationPicker = createDestinationPickerClient({
+  isPageDisabled: isCurrentPageDisabled,
+  theme: () => currentOptions.uiTheme,
+  releaseIfInvalidated: releaseIfContextInvalidated,
+});
+
 // Readiness is evaluated when options arrive or change; a pushState
 // navigation off the disable list cannot re-trigger it (content scripts get
 // no navigation event), so such a page announces only after a reload or the
@@ -914,6 +945,7 @@ const applyOptions = (next: ContentOptions) => {
       "contentClickToSaveCombo",
       "contentClickToSaveButton",
       "contentClickToSaveLongPressMs",
+      "contentClickToSavePicker",
       "links",
       "preferLinks",
       "preferLinksFilterEnabled",
@@ -954,6 +986,7 @@ const applyOptions = (next: ContentOptions) => {
       ] as const
     ).some((key) => previous[key] !== currentOptions[key]);
   if (sourcePanelOptionsChanged) reconfigureOpenSourcePanel?.();
+  if (disableListChanged && isCurrentPageDisabled()) destinationPicker.close();
   if (autoDownloadOptionsChanged) {
     // Rule, limit, and toggle edits reset the dedup state (the 4.0 contract:
     // edited rules apply to media already on the page); a disable-list-only
@@ -982,6 +1015,9 @@ const applyOptions = (next: ContentOptions) => {
         undefined,
         isCurrentPageDisabled,
         pageLongReleaseSuppression,
+        (source, point) => {
+          void destinationPicker.openForClick(source, point);
+        },
       );
     }
     if (!hasLongPress) removePageLongReleaseListeners();
@@ -1034,8 +1070,10 @@ function releaseInvalidatedContext(): void {
   // click belongs to the page.
   pageLongReleaseSuppression.clear();
   removePageLongReleaseListeners();
-  // The panel's buttons and live observer can no longer reach the extension.
+  // The panel's buttons and live observer can no longer reach the extension,
+  // and neither can a destination the picker would offer.
   setSourcePanelOpen(false, sendDownload);
+  closeDestinationPicker();
 }
 
 const changedDuringRead = new Set<string>();
@@ -1250,6 +1288,14 @@ try {
     if (message?.type === HOVERED_SOURCE_REQUEST) {
       sendResponse(hoveredSourceFromDocument(document, ClickToSave.findSource));
       return;
+    }
+    if (message?.type === PICKER_OPEN_REQUEST) {
+      void destinationPicker
+        .open(parsePickerSource(message.body?.source))
+        .then((opened) => sendResponse({ opened }));
+      // Callback-style Chrome listeners must keep the channel open for the
+      // answer that follows the model request; Firefox honors the same value.
+      return true;
     }
     if (message?.type === CONTENT_OPTIONS_CHANGED_MESSAGE) {
       const changed = normalizeContentOptionsPatch(message.body?.options);

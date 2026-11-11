@@ -460,6 +460,31 @@ describe("structured E2E control client", () => {
     ).rejects.toThrow("menu dispatch failed");
   });
 
+  test("runs a keyboard command and surfaces its failure", async () => {
+    const callFunction = vi.fn(async () =>
+      JSON.stringify({
+        ok: true,
+        value: { type: "SAVE_IN_E2E_KEYBOARD_COMMAND", body: { status: "OK" } },
+      }),
+    );
+    const client = createE2EControlClient({ callFunction });
+
+    await expect(client.background.runCommand("open-picker")).resolves.toEqual({ status: "OK" });
+
+    callFunction.mockResolvedValue(
+      JSON.stringify({
+        ok: true,
+        value: {
+          type: "SAVE_IN_E2E_KEYBOARD_COMMAND",
+          body: { status: "ERROR", message: "Unsupported E2E command quick-save" },
+        },
+      }),
+    );
+    await expect(client.background.runCommand("quick-save")).rejects.toThrow(
+      "Unsupported E2E command quick-save",
+    );
+  });
+
   test("rejects malformed operation results at the protocol boundary", async () => {
     const client = createE2EControlClient({
       callFunction: async () =>

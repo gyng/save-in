@@ -4684,5 +4684,23 @@
   },
   "manifestCommandSaveFolder3": {
     "message": "Enregistrer dans le troisième dossier du menu"
+  },
+  "manifestCommandOpenPicker": {
+    "message": "Afficher le sélecteur de dossiers"
+  },
+  "pickerTitle": {
+    "message": "Choisir un dossier"
+  },
+  "pickerFilter": {
+    "message": "Filtrer les dossiers"
+  },
+  "pickerNoMatches": {
+    "message": "Aucun dossier correspondant"
+  },
+  "o_cClickToSavePicker": {
+    "message": "Afficher un sélecteur de dossiers au lieu d’enregistrer immédiatement"
+  },
+  "o_cClickToSavePickerHelp": {
+    "message": "Un geste d’enregistrement au clic ouvre les dossiers de votre Menu d’enregistrement à l’emplacement du pointeur. Choisissez-en un pour y enregistrer, ou appuyez sur Esc pour annuler. Le menu contextuel du navigateur reste inchangé."
   }
 }

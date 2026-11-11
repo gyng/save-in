@@ -4684,5 +4684,23 @@
   },
   "manifestCommandSaveFolder3": {
     "message": "Guardar en la tercera carpeta del menú"
+  },
+  "manifestCommandOpenPicker": {
+    "message": "Mostrar el selector de carpetas"
+  },
+  "pickerTitle": {
+    "message": "Elegir una carpeta"
+  },
+  "pickerFilter": {
+    "message": "Filtrar carpetas"
+  },
+  "pickerNoMatches": {
+    "message": "Ninguna carpeta coincide"
+  },
+  "o_cClickToSavePicker": {
+    "message": "Mostrar un selector de carpetas en lugar de guardar de inmediato"
+  },
+  "o_cClickToSavePickerHelp": {
+    "message": "Un gesto de clic para guardar abre las carpetas de su Menú de guardado junto al puntero. Elija una para guardar en ella o pulse Esc para cancelar. El menú contextual del navegador no cambia."
   }
 }

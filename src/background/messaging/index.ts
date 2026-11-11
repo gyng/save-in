@@ -68,6 +68,7 @@ import {
   handleValidate,
   sourcePanelCopies,
 } from "./handlers.ts";
+import { handleOpenPickerMessage, handlePickerModel, handlePickerSave } from "./picker.ts";
 import {
   handleAutoDownloadLimitReached,
   handleAutoDownloadSource,
@@ -137,6 +138,10 @@ const internalHandlers = {
     await webExtensionApi.runtime.openOptionsPage();
     sendResponse({ type: MESSAGE_TYPES.OK });
   },
+  [MESSAGE_TYPES.PICKER_MODEL]: handlePickerModel,
+  [MESSAGE_TYPES.PICKER_SAVE]: handlePickerSave,
+  [MESSAGE_TYPES.OPEN_PICKER]: (request, sender, sendResponse) =>
+    handleOpenPickerMessage(request, sender, sendResponse),
   [MESSAGE_TYPES.DIAGNOSTICS_GET]: async (_request, _sender, sendResponse) => {
     sendResponse({
       type: MESSAGE_TYPES.DIAGNOSTICS_GET,
@@ -482,6 +487,29 @@ const internalHandlers = {
     ),
 } satisfies HandlerTable<InternalMessage>;
 
+// An extension the user has not allowed gets a typed refusal, and the user gets
+// one place to see who asked. Rejected private-window activity is never
+// persisted or surfaced in a system notification; it remains visible only to
+// the calling extension.
+const recordUnallowedCaller = async (
+  sender: MessageSender,
+  body: Parameters<typeof ExternalDownloadRejections.record>[1] | undefined,
+): Promise<void> => {
+  if (sender.id && sender.tab?.incognito !== true) {
+    await Promise.allSettled([
+      ExternalDownloadRejections.record(sender.id, body || {}),
+      reportExternalDownloadRejection(sender.id),
+    ]);
+  }
+};
+
+const unauthorized = (message: string, version: number | undefined) => ({
+  status: MESSAGE_TYPES.ERROR,
+  error: API_ERRORS.UNAUTHORIZED,
+  message,
+  version: version || API_VERSION,
+});
+
 const externalHandlers = {
   [MESSAGE_TYPES.PING]: handlePing,
   [MESSAGE_TYPES.GET_SCHEMA]: handleGetSchema,
@@ -491,27 +519,32 @@ const externalHandlers = {
     handleValidate(request, sender, sendResponse, true),
   [MESSAGE_TYPES.DOWNLOAD]: (request, sender, sendResponse) => {
     if (!isExternalDownloadAllowed(sender)) {
-      return (async () => {
-        // Rejected private-window activity is never persisted or surfaced in a
-        // system notification; it remains visible only to the calling extension.
-        if (sender.id && sender.tab?.incognito !== true) {
-          await Promise.allSettled([
-            ExternalDownloadRejections.record(sender.id, request.body || {}),
-            reportExternalDownloadRejection(sender.id),
-          ]);
-        }
+      return recordUnallowedCaller(sender, request.body).then(() =>
         sendResponse({
           type: MESSAGE_TYPES.DOWNLOAD,
-          body: {
-            status: MESSAGE_TYPES.ERROR,
-            error: API_ERRORS.UNAUTHORIZED,
-            message: "Allow this extension ID in Save In before requesting downloads",
-            version: request.body?.version || API_VERSION,
-          },
-        });
-      })();
+          body: unauthorized(
+            "Allow this extension ID in Save In before requesting downloads",
+            request.body?.version,
+          ),
+        }),
+      );
     }
     return handleDownloadMessage(request, sender, sendResponse, false, true);
+  },
+  // The same grant as DOWNLOAD: a picker is one confirmation away from a save.
+  [MESSAGE_TYPES.OPEN_PICKER]: (request, sender, sendResponse) => {
+    if (!isExternalDownloadAllowed(sender)) {
+      return recordUnallowedCaller(sender, request.body).then(() =>
+        sendResponse({
+          type: MESSAGE_TYPES.OPEN_PICKER,
+          body: unauthorized(
+            "Allow this extension ID in Save In before opening the picker",
+            request.body?.version,
+          ),
+        }),
+      );
+    }
+    return handleOpenPickerMessage(request, sender, sendResponse, true);
   },
 } satisfies HandlerTable<ExternalMessage>;
 
@@ -525,6 +558,10 @@ const READY_MESSAGE_TYPES = new Set<InternalMessage["type"]>([
   // "off" defaults until init: an ungated replay answers "nothing buffered".
   MESSAGE_TYPES.SCRIPT_MEDIA_AUTO_REPLAY,
   MESSAGE_TYPES.CREATE_SOURCE_RULE,
+  // The picker lists and saves through the menu state init builds.
+  MESSAGE_TYPES.PICKER_MODEL,
+  MESSAGE_TYPES.PICKER_SAVE,
+  MESSAGE_TYPES.OPEN_PICKER,
   // A move re-downloads through the routing rules and then deletes the
   // original, so an ungated handler on a failed init would route with seeded
   // defaults (no filenamePatterns, uniquify) and still destroy the only copy.

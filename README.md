@@ -149,7 +149,7 @@ of Save In's own Options page instead of the published one.
 
 Save In exposes a versioned external API to other extensions. `PING`,
 `GET_SCHEMA`, `GET_KEYWORDS`, `GET_GRAMMARS`, and `VALIDATE` are open for
-discovery and validation; `DOWNLOAD` additionally requires an explicitly
+discovery and validation; `DOWNLOAD` and `OPEN_PICKER` additionally require an explicitly
 approved extension ID. `GET_CONFIG` and `APPLY_CONFIG` are same-extension only.
 Experimental WebMCP tools serve compatible in-browser agents. See the
 source-controlled [integration contract](docs/integrating/INTEGRATIONS.md) for the protocol,

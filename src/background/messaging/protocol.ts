@@ -35,6 +35,7 @@ export const API_CAPABILITIES = [
   "validate", // VALIDATE dry-runs both editable grammars (read-only)
   "automatic_routing_validation", // routing rules can include an automatic-source trace
   "sender_allowlist", // DOWNLOAD requires the browser-authenticated sender.id to be allowed
+  "open_picker", // { type: "OPEN_PICKER", body: { url?, kind?, version? } } shows the in-page picker
   // apply_config (mutating) is intentionally NOT advertised: it is reachable
   // only from same-extension callers, not onMessageExternal
 ];
@@ -43,6 +44,7 @@ export const API_ERRORS = {
   INVALID_URL: "INVALID_URL", // url is not a fetchable http(s)/ftp/data URL
   RATE_LIMITED: "RATE_LIMITED", // caller exceeded the bounded validation burst rate
   UNAUTHORIZED: "UNAUTHORIZED", // caller is not in the user's external-download allowlist
+  UNAVAILABLE: "UNAVAILABLE", // the in-page picker cannot be shown in the resolved tab
   UNKNOWN_TYPE: "UNKNOWN_TYPE", // unrecognised message type
 };
 

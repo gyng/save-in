@@ -4684,5 +4684,23 @@
   },
   "manifestCommandSaveFolder3": {
     "message": "メニューの 3 番目のフォルダーに保存"
+  },
+  "manifestCommandOpenPicker": {
+    "message": "フォルダー選択を表示"
+  },
+  "pickerTitle": {
+    "message": "フォルダーを選択"
+  },
+  "pickerFilter": {
+    "message": "フォルダーを絞り込む"
+  },
+  "pickerNoMatches": {
+    "message": "一致するフォルダーはありません"
+  },
+  "o_cClickToSavePicker": {
+    "message": "すぐに保存せず、フォルダー選択を表示する"
+  },
+  "o_cClickToSavePickerHelp": {
+    "message": "クリックして保存のジェスチャーを行うと、保存メニューのフォルダーがポインターの位置に表示されます。フォルダーを選ぶとそこに保存され、Esc キーで取り消せます。ブラウザーのコンテキストメニューは変わりません。"
   }
 }

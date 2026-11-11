@@ -106,6 +106,8 @@ export const createProtocolCodecs = () => {
         return isMenuBody(value.body, false);
       case "SAVE_IN_E2E_TAB_MENU_CLICK":
         return isMenuBody(value.body, true);
+      case "SAVE_IN_E2E_KEYBOARD_COMMAND":
+        return isRecord(value.body) && typeof value.body.command === "string";
       case "SAVE_IN_E2E_HISTORY_WRITE":
         return (
           isRecord(value.body) &&
@@ -305,6 +307,7 @@ export const createProtocolCodecs = () => {
         );
       case "SAVE_IN_E2E_CONTEXT_MENU_CLICK":
       case "SAVE_IN_E2E_TAB_MENU_CLICK":
+      case "SAVE_IN_E2E_KEYBOARD_COMMAND":
       case "SAVE_IN_E2E_HISTORY_WRITE":
       case "SAVE_IN_E2E_RESET_STATE":
         return value.type === message.type && isCommandStatus(value.body);

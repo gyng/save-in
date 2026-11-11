@@ -22,8 +22,8 @@ const isHoveredMediaKind = (value: unknown): value is HoveredMediaKind =>
 
 // The schemes click-to-save accepts for the same elements. A page-owned blob:
 // is readable because the save is tied to the tab that answered.
-const boundedHoveredSourceUrl = (value: unknown): string | undefined => {
-  if (typeof value !== "string" || !value || value.length > MAX_HOVERED_SOURCE_URL_LENGTH) {
+const boundedSourceUrl = (value: unknown, maxLength: number): string | undefined => {
+  if (typeof value !== "string" || !value || value.length > maxLength) {
     return undefined;
   }
   try {
@@ -35,11 +35,14 @@ const boundedHoveredSourceUrl = (value: unknown): string | undefined => {
   }
 };
 
-export const parseHoveredSource = (value: unknown): HoveredSource | null => {
+export const parseHoveredSource = (
+  value: unknown,
+  maxUrlLength = MAX_HOVERED_SOURCE_URL_LENGTH,
+): HoveredSource | null => {
   if (!isStringKeyedRecord(value)) return null;
   const rawMedia = isStringKeyedRecord(value.media) ? value.media : {};
-  const mediaUrl = boundedHoveredSourceUrl(rawMedia.url);
-  const linkUrl = boundedHoveredSourceUrl(value.linkUrl);
+  const mediaUrl = boundedSourceUrl(rawMedia.url, maxUrlLength);
+  const linkUrl = boundedSourceUrl(value.linkUrl, maxUrlLength);
   const media =
     mediaUrl && isHoveredMediaKind(rawMedia.kind)
       ? { url: mediaUrl, kind: rawMedia.kind }

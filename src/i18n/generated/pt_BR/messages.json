@@ -4684,5 +4684,23 @@
   },
   "manifestCommandSaveFolder3": {
     "message": "Salvar na terceira pasta do menu"
+  },
+  "manifestCommandOpenPicker": {
+    "message": "Mostrar o seletor de pastas"
+  },
+  "pickerTitle": {
+    "message": "Escolher uma pasta"
+  },
+  "pickerFilter": {
+    "message": "Filtrar pastas"
+  },
+  "pickerNoMatches": {
+    "message": "Nenhuma pasta correspondente"
+  },
+  "o_cClickToSavePicker": {
+    "message": "Mostrar um seletor de pastas em vez de salvar imediatamente"
+  },
+  "o_cClickToSavePickerHelp": {
+    "message": "Um gesto de clique para salvar abre as pastas do seu Menu de salvamento junto ao ponteiro. Escolha uma para salvar nela ou pressione Esc para cancelar. O menu de contexto do navegador não muda."
   }
 }

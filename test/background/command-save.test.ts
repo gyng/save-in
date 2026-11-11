@@ -1,10 +1,14 @@
 import { options } from "../../src/config/options-data.ts";
 import { menuState } from "../../src/background/menu-build.ts";
 import { backgroundRuntime } from "../../src/background/runtime.ts";
-import { isSaveCommand, runSaveCommand } from "../../src/background/command-save.ts";
+import { isPointerCommand, runPointerCommand } from "../../src/background/command-save.ts";
+import { openPickerForActiveTab } from "../../src/background/destination-picker.ts";
 import { hoveredClickInfo, readHoveredSource } from "../../src/background/hovered-source.ts";
 import { handleContextMenuClick, lastUsedMenuExists } from "../../src/background/menu-click.ts";
 
+vi.mock("../../src/background/destination-picker.ts", () => ({
+  openPickerForActiveTab: vi.fn(() => Promise.resolve()),
+}));
 vi.mock("../../src/background/menu-click.ts", () => ({
   handleContextMenuClick: vi.fn(() => Promise.resolve()),
   lastUsedMenuExists: vi.fn(() => true),
@@ -33,21 +37,30 @@ afterEach(() => {
 });
 
 describe("save commands", () => {
-  test("recognizes only the save commands", () => {
+  test("recognizes only the commands that act on the pointer", () => {
     expect(
-      ["save-last-used", "save-folder-1", "save-folder-2", "save-folder-3"].map(isSaveCommand),
-    ).toEqual([true, true, true, true]);
-    expect(["quick-save", "save-folder-4", "toggle-source-panel"].map(isSaveCommand)).toEqual([
+      ["save-last-used", "save-folder-1", "save-folder-2", "save-folder-3", "open-picker"].map(
+        isPointerCommand,
+      ),
+    ).toEqual([true, true, true, true, true]);
+    expect(["quick-save", "save-folder-4", "toggle-source-panel"].map(isPointerCommand)).toEqual([
       false,
       false,
       false,
     ]);
   });
 
+  test("the picker command opens the picker instead of saving", async () => {
+    await runPointerCommand("open-picker");
+
+    expect(openPickerForActiveTab).toHaveBeenCalledOnce();
+    expect(handleContextMenuClick).not.toHaveBeenCalled();
+  });
+
   test("saves the page to the Nth pickable folder, skipping submenu headings", async () => {
-    await runSaveCommand("save-folder-1");
-    await runSaveCommand("save-folder-2");
-    await runSaveCommand("save-folder-3");
+    await runPointerCommand("save-folder-1");
+    await runPointerCommand("save-folder-2");
+    await runPointerCommand("save-folder-3");
 
     expect(vi.mocked(handleContextMenuClick).mock.calls).toEqual([
       [{ menuItemId: "save-in-0", pageUrl: tab.url }, tab],
@@ -69,7 +82,7 @@ describe("save commands", () => {
       }),
     ) as never;
 
-    await runSaveCommand("save-last-used");
+    await runPointerCommand("save-last-used");
 
     expect(handleContextMenuClick).toHaveBeenCalledWith(
       {
@@ -87,15 +100,15 @@ describe("save commands", () => {
     // A cold start can deliver the command before init assigns the promise.
     Reflect.deleteProperty(backgroundRuntime, "ready");
     options.paths = "only";
-    await runSaveCommand("save-folder-2");
+    await runPointerCommand("save-folder-2");
 
     // Folders hidden from the menu have no mapping to pick.
     menuState.pathMappings = {};
-    await runSaveCommand("save-folder-1");
+    await runPointerCommand("save-folder-1");
 
     vi.mocked(lastUsedMenuExists).mockReturnValue(false);
-    await runSaveCommand("save-last-used");
-    await runSaveCommand("unrelated");
+    await runPointerCommand("save-last-used");
+    await runPointerCommand("unrelated");
 
     expect(handleContextMenuClick).not.toHaveBeenCalled();
     expect(global.browser.tabs.query).not.toHaveBeenCalled();
@@ -103,9 +116,9 @@ describe("save commands", () => {
 
   test("does nothing without an active tab address", async () => {
     global.browser.tabs.query = vi.fn(() => Promise.resolve([])) as never;
-    await runSaveCommand("save-folder-1");
+    await runPointerCommand("save-folder-1");
     global.browser.tabs.query = vi.fn(() => Promise.resolve([{ id: 9 }])) as never;
-    await runSaveCommand("save-folder-1");
+    await runPointerCommand("save-folder-1");
 
     expect(handleContextMenuClick).not.toHaveBeenCalled();
   });

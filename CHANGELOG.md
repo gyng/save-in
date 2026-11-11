@@ -1,5 +1,14 @@
 # Unreleased
 
+- An optional in-page destination picker lists your Save menu folders at the
+  pointer so you can choose where one item goes (#77, #21). It is off by
+  default and does not replace the context menu. Open it with the new unbound
+  **Show the folder picker** command, by turning on **Show a folder picker
+  instead of saving immediately** under Click-to-save, or from an approved
+  extension with the new `OPEN_PICKER` message, for which the integrations
+  guide has a Gesturefy recipe (#110). Arrow keys, Enter, Esc, and
+  type-to-filter work in it, and a choice saves exactly as that menu item
+  would.
 - New keyboard commands save to **Last used** and to the first, second, and
   third folder of the menu (#15). Each saves the image, video, audio, or link
   under the pointer, or else the page, exactly as choosing that menu item

@@ -8,12 +8,14 @@ import {
   BACKGROUND_E2E_COMMAND,
   BACKGROUND_E2E_CONTEXT_MENU_COMMAND,
   BACKGROUND_E2E_HISTORY_COMMAND,
+  BACKGROUND_E2E_KEYBOARD_COMMAND,
   BACKGROUND_E2E_NOTIFICATION_COMMAND,
   BACKGROUND_E2E_RESET_COMMAND,
   handleBackgroundE2ECommand,
   handleBackgroundE2EContextMenuCommand,
   handleBackgroundE2EHistoryCommand,
   handleBackgroundE2EInspectCommand,
+  handleBackgroundE2EKeyboardCommand,
   handleBackgroundE2ENotificationCommand,
   handleBackgroundE2EResetCommand,
   installBackgroundE2ENotificationObserver,
@@ -249,6 +251,49 @@ test("returns a command error when context-menu dispatch fails", async () => {
   ).resolves.toEqual({
     type: BACKGROUND_E2E_CONTEXT_MENU_COMMAND,
     body: { status: "ERROR", message: "click failed" },
+  });
+});
+
+test("runs a keyboard command through its production handler", async () => {
+  const dispatch = vi.fn(() => Promise.resolve());
+
+  await expect(
+    handleBackgroundE2EKeyboardCommand(
+      { type: BACKGROUND_E2E_KEYBOARD_COMMAND, body: { command: "open-picker" } },
+      dispatch,
+    ),
+  ).resolves.toEqual({ type: BACKGROUND_E2E_KEYBOARD_COMMAND, body: { status: "OK" } });
+  expect(dispatch).toHaveBeenCalledExactlyOnceWith("open-picker");
+});
+
+test("refuses a keyboard command it cannot run, and reports a failing one", async () => {
+  const dispatch = vi.fn(() => Promise.reject(new Error("command failed")));
+
+  await expect(
+    handleBackgroundE2EKeyboardCommand(
+      { type: BACKGROUND_E2E_KEYBOARD_COMMAND, body: { command: 7 } },
+      dispatch,
+    ),
+  ).resolves.toBeNull();
+  await expect(
+    handleBackgroundE2EKeyboardCommand(
+      { type: BACKGROUND_E2E_KEYBOARD_COMMAND, body: { command: "quick-save" } },
+      dispatch,
+    ),
+  ).resolves.toEqual({
+    type: BACKGROUND_E2E_KEYBOARD_COMMAND,
+    body: { status: "ERROR", message: "Unsupported E2E command quick-save" },
+  });
+  expect(dispatch).not.toHaveBeenCalled();
+
+  await expect(
+    handleBackgroundE2EKeyboardCommand(
+      { type: BACKGROUND_E2E_KEYBOARD_COMMAND, body: { command: "save-folder-1" } },
+      dispatch,
+    ),
+  ).resolves.toEqual({
+    type: BACKGROUND_E2E_KEYBOARD_COMMAND,
+    body: { status: "ERROR", message: "command failed" },
   });
 });
 

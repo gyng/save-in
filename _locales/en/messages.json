@@ -6006,5 +6006,29 @@
   "manifestCommandSaveFolder3": {
     "message": "Save to the third folder in the menu",
     "description": "Description of the browser keyboard command that saves the media or link under the pointer, or else the page, to the third destination folder of the Save In menu. Used in manifest.json."
+  },
+  "manifestCommandOpenPicker": {
+    "message": "Show the folder picker",
+    "description": "Description of the browser keyboard command that shows the in-page folder picker for the media or link under the pointer, or else for the page. Used in manifest.json."
+  },
+  "pickerTitle": {
+    "message": "Choose a folder",
+    "description": "Accessible name of the in-page folder picker dialog and of its list of Save menu folders. Used in src/background/destination-picker.ts."
+  },
+  "pickerFilter": {
+    "message": "Filter folders",
+    "description": "Placeholder and accessible name of the text field that narrows the in-page folder picker's list as the user types. Used in src/background/destination-picker.ts."
+  },
+  "pickerNoMatches": {
+    "message": "No matching folders",
+    "description": "Status shown in the in-page folder picker when the typed filter matches none of the Save menu folders. Used in src/background/destination-picker.ts."
+  },
+  "o_cClickToSavePicker": {
+    "message": "Show a folder picker instead of saving immediately",
+    "description": "Option checkbox label under click-to-save. When on, a click-to-save gesture shows an in-page list of the Save menu folders at the pointer instead of saving at once. Used in src/options/options.html."
+  },
+  "o_cClickToSavePickerHelp": {
+    "message": "A click-to-save gesture opens your Save menu folders at the pointer. Choose one to save there, or press Esc to cancel. The browser context menu is not changed.",
+    "description": "Help text under the \"Show a folder picker instead of saving immediately\" checkbox. \"Save menu\" is the options tab name and click-to-save is the feature name; reuse their translations. Keep the key name Esc. Used in src/options/options.html."
   }
 }

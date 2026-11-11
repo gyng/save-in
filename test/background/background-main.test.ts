@@ -8,8 +8,8 @@ vi.mock("../../src/background/menu-click.ts", () => ({
   quickSaveActiveTab: vi.fn(() => Promise.resolve()),
 }));
 vi.mock("../../src/background/command-save.ts", () => ({
-  isSaveCommand: vi.fn((command: string) => command.startsWith("save-")),
-  runSaveCommand: vi.fn(() => Promise.resolve()),
+  isPointerCommand: vi.fn((command: string) => command.startsWith("save-")),
+  runPointerCommand: vi.fn(() => Promise.resolve()),
 }));
 vi.mock("../../src/menus/menu-tree.ts", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../src/menus/menu-tree.ts")>();
@@ -348,15 +348,15 @@ describe("startup", () => {
     expect(quickSaveActiveTab).toHaveBeenCalledTimes(1);
   });
 
-  test("the save commands delegate to the command save with their own name", async () => {
-    const { runSaveCommand } = await import("../../src/background/command-save.ts");
+  test("the pointer commands delegate with their own name", async () => {
+    const { runPointerCommand } = await import("../../src/background/command-save.ts");
     await setupGlobals();
     await importIndex();
     await Runtime.ready;
 
     const command = capturedCommand();
     await command("save-folder-2", mockTab());
-    expect(runSaveCommand).toHaveBeenCalledExactlyOnceWith("save-folder-2");
+    expect(runPointerCommand).toHaveBeenCalledExactlyOnceWith("save-folder-2");
   });
 });
 

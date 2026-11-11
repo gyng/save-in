@@ -1,8 +1,8 @@
 # Save In integrations
 
 This document is the source-controlled contract for the shipped external
-Download API, externally available read-only configuration discovery and
-validation messages, same-extension configuration tools, and experimental
+Download API, the external request to open the in-page destination picker,
+externally available read-only configuration discovery and validation messages, same-extension configuration tools, and experimental
 WebMCP tools. The
 [Integrations wiki](https://github.com/gyng/save-in/wiki/Integrations) is the
 user-facing guide and recipe collection; if its protocol details differ, this
@@ -84,13 +84,106 @@ Accepted URL schemes are `http`, `https`, `ftp`, `data`, and `blob`. A `blob` UR
 inputs. The latter two correspond to an HTML anchor's `title` and `download`
 attributes; Save In does not reinterpret `linkText` as either attribute.
 
-Download errors are `UNAUTHORIZED`, `BAD_REQUEST`, or `INVALID_URL`; unknown external message types return `UNKNOWN_TYPE`. Treat `UNAUTHORIZED` as a request for user configuration, not as a transient error to retry repeatedly.
+Download errors are `UNAUTHORIZED`, `BAD_REQUEST`, or `INVALID_URL`; unknown external message types return `UNKNOWN_TYPE`. `OPEN_PICKER` adds `UNAVAILABLE`, described [below](#opening-the-destination-picker). Treat `UNAUTHORIZED` as a request for user configuration, not as a transient error to retry repeatedly.
 
 For a non-private `UNAUTHORIZED` request with a browser-authenticated caller ID, Save In shows a native notification. Clicking it opens Options. **Advanced → External integrations → Pending approval** lists up to 20 rejected caller IDs with their attempt count, request kind, and last-seen time; selecting **Approve** appends that exact ID to the approved list and clears the rejection. Save In does not retain the rejected URL. Private-window rejections are neither recorded nor notified.
 
 The browser may deliver external messages from any installed extension, but Save In checks `sender.id` against the user's allowlist before resolving an active tab or starting a download. Allow only extensions you trust with those capabilities.
 
 There is no `externally_connectable` declaration, so web pages cannot call Save In directly. A userscript needs a narrowly scoped companion extension or another explicit relay; do not expose a general page-to-extension forwarding bridge.
+
+## Opening the destination picker
+
+`OPEN_PICKER` asks Save In to show its in-page destination picker instead of
+saving at once: a small list of the user's Save menu folders, drawn over the
+page, from which the user picks where the item goes. It suits a gesture or
+keyboard extension whose user wants to choose a folder each time. Nothing is
+saved until the user picks; pressing Esc or clicking elsewhere cancels. Check
+for the `open_picker` capability returned by `PING` before using it.
+
+The picker is opt-in at every entry point. It does not replace the browser
+context menu, and Save In never opens it unless the user binds its command,
+turns on the click-to-save setting, or allows an extension that sends this
+message.
+
+```js
+// For what the pointer is over in the tab, or else the page:
+const response = await browser.runtime.sendMessage(SAVE_IN_ID, {
+  type: "OPEN_PICKER",
+  body: { version: 1 },
+});
+
+// For a named address:
+await browser.runtime.sendMessage(SAVE_IN_ID, {
+  type: "OPEN_PICKER",
+  body: { version: 1, url: "https://example.com/photo.jpg", kind: "image" },
+});
+// { type: "OPEN_PICKER", body: { status: "OK", version: 1 } }
+```
+
+- `url` is optional. Without it, Save In asks the page what the pointer is
+  over: an image, video, audio element, or link in the top frame. Anything
+  else opens the picker for the page itself.
+- `kind` describes a supplied `url`: `image`, `video`, `audio`, or `link`
+  (the default). It decides whether the save is treated as media or as a link,
+  exactly as the context menu distinguishes them, so routing rules that match
+  on media type see the same value. A `link` is refused with `BAD_REQUEST`
+  while the user has link saving turned off.
+- The picker opens in the tab the message came from, or in the active tab of
+  the last-focused window when the sender has no tab, as a background-context
+  caller does not.
+- `OPEN_PICKER` needs the same approval as `DOWNLOAD`: an extension that is not
+  on the allowlist receives `UNAUTHORIZED` and appears under **Pending
+  approval**.
+- It never opens in a private tab for an external caller, whether that tab is
+  the active one or the one the message came from. Both fail with the same
+  `BAD_REQUEST` as a missing tab, so the response reveals neither a private
+  address nor that a private window has focus.
+- URL rules match `DOWNLOAD`: `http`, `https`, `ftp`, `data`, and `blob`, with
+  `blob` accepted only from a message sent by a tab. An address longer than
+  2,097,152 characters fails with `INVALID_URL`.
+
+A successful response means the picker is on screen, not that anything was
+saved. Errors are `UNAUTHORIZED`, `BAD_REQUEST` (no usable tab, nothing in the
+tab can be saved, or a link while link saving is off), `INVALID_URL`, and
+`UNAVAILABLE`. `UNAVAILABLE` means the resolved tab cannot show the picker: a
+browser-internal or otherwise restricted page, a site matched under **Disable
+Save In on sites**, a tab loaded before Save In was last updated, or a menu
+with no destinations to offer.
+
+Choosing a destination saves exactly as choosing that item from the context
+menu would: the same routing rules, per-destination Save As, Last used and
+recent-location updates, and History. Because it is a menu save and not a
+`DOWNLOAD`, no `comment` or other caller-supplied routing input is attached,
+and the save's `context:` is the media, link, or page context rather than
+`click`.
+
+### Gesturefy recipe
+
+Gesturefy's **Send message to other add-on** command sends a fixed message
+from Gesturefy's background, so it cannot name the element a gesture started
+on. Save In resolves the element under the pointer instead.
+
+1. In Save In, open **Advanced → External integrations → Approved
+   extensions** and allow Gesturefy's ID,
+   `{506e023c-7f2b-40a3-8066-bc5deb40aebe}`.
+2. In Gesturefy, add a gesture with the command **Send message to other
+   add-on**.
+3. Set **Add-on ID** to `{72d92df5-2aa0-4b06-b807-aa21767545cd}`.
+4. Set **Message** to:
+
+   ```json
+   { "type": "OPEN_PICKER", "body": { "version": 1 } }
+   ```
+
+5. Turn on **Parse message**, so Gesturefy sends the message as an object
+   rather than as text.
+6. Draw the gesture so that it ends over the image or link to save. The
+   picker opens for whatever the pointer is over when the gesture ends, and
+   for the page if that is neither media nor a link.
+
+To save without choosing a folder, keep using the existing
+`{ "type": "DOWNLOAD", "body": { "target": "activeTab" } }` recipe.
 
 ## Config messages
 

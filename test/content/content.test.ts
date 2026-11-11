@@ -19,6 +19,17 @@ describe("findSource", () => {
 
   const event = (target: EventTarget | null) => ({ target, clientX: 10, clientY: 10 });
 
+  test("refuses the destination picker, as it does the Page Sources panel", () => {
+    document.body.innerHTML =
+      '<a href="https://example.test/page"><save-in-picker id="picker"></save-in-picker></a>';
+    const picker = document.getElementById("picker");
+
+    expect(ClickToSave.findSource(event(picker), true)).toBeUndefined();
+    expect(
+      ClickToSave.findSource({ ...event(document.body), composedPath: () => [picker] }, true),
+    ).toBeUndefined();
+  });
+
   test("finds media directly under the cursor", () => {
     document.body.innerHTML = '<img id="i" src="http://x.test/pic.png">';
     const img = document.getElementById("i");
@@ -3578,5 +3589,228 @@ describe("setupClickToSave", () => {
     expect(() => holdCombo()).not.toThrow();
     expect(() => mousedown(document.getElementById("i"))).not.toThrow();
     expect(sendMessage).toHaveBeenCalled();
+  });
+});
+
+describe("destination picker", () => {
+  const model = {
+    lastUsed: null,
+    items: [{ kind: "path", id: "save-in-0", title: "Images", parentId: null }],
+    copy: { title: "Choose", filter: "Filter", empty: "None", lastUsed: "Last used" },
+  };
+  const acceptTestInput = () => true;
+  type Sent = { type: string; body?: any };
+  let sendMessage = vi.fn<(message: Sent, callback?: (response?: unknown) => void) => void>();
+  const answerPicker = () => {
+    sendMessage = vi.fn((message: Sent, callback?: (response?: unknown) => void) =>
+      callback?.(
+        message.type === "PICKER_MODEL" ? { type: "PICKER_MODEL", body: model } : undefined,
+      ),
+    );
+    (global.chrome.runtime as any).sendMessage = sendMessage;
+  };
+  const sentTypes = () => sendMessage.mock.calls.map(([message]) => message.type);
+  const pickerHost = () => document.querySelector<HTMLElement>("save-in-picker");
+  const runtimeListener = () => {
+    const listener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock.calls[0]?.[0];
+    if (!listener) throw new Error("Content runtime listener was not registered");
+    return listener as (
+      message: unknown,
+      sender: unknown,
+      respond: (value: unknown) => void,
+    ) => unknown;
+  };
+  const press = (target: Element | null, init: MouseEventInit = {}) =>
+    target?.dispatchEvent(
+      new MouseEvent("mousedown", {
+        button: 0,
+        buttons: 1,
+        detail: 1,
+        clientX: 40,
+        clientY: 60,
+        bubbles: true,
+        cancelable: true,
+        ...init,
+      }),
+    );
+
+  beforeEach(() => {
+    document.body.innerHTML = '<img id="i" src="http://x.test/pic.png">';
+    Element.prototype.scrollIntoView = vi.fn();
+    answerPicker();
+  });
+
+  afterEach(() => {
+    window.dispatchEvent(new Event("focus"));
+    pickerHost()?.remove();
+    document.body.innerHTML = "";
+    history.pushState(null, "", "/");
+    vi.useRealTimers();
+  });
+
+  test("a click-to-save gesture hands its source and position to the picker", async () => {
+    vi.useFakeTimers();
+    const openPicker = vi.fn();
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.MIDDLE, combo: "" },
+          { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        contentClickToSavePicker: true,
+        links: false,
+      },
+      acceptTestInput,
+      undefined,
+      undefined,
+      openPicker,
+    );
+    const image = document.getElementById("i");
+
+    press(image, { button: 1, buttons: 4 });
+    expect(openPicker).toHaveBeenLastCalledWith(
+      { url: "http://x.test/pic.png", kind: "image" },
+      { x: 40, y: 60 },
+    );
+    press(image, { detail: 1 });
+    press(image, { detail: 2, clientX: 7, clientY: 9 });
+    expect(openPicker).toHaveBeenLastCalledWith(
+      { url: "http://x.test/pic.png", kind: "image" },
+      { x: 7, y: 9 },
+    );
+    expect(openPicker).toHaveBeenCalledTimes(2);
+    expect(sentTypes()).not.toContain("DOWNLOAD");
+    remove();
+
+    const removeLong = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        contentClickToSaveLongPressMs: 500,
+        contentClickToSavePicker: true,
+        links: false,
+      },
+      acceptTestInput,
+      undefined,
+      undefined,
+      openPicker,
+    );
+    press(image, { clientX: 11, clientY: 12 });
+    await vi.advanceTimersByTimeAsync(500);
+    expect(openPicker).toHaveBeenLastCalledWith(
+      { url: "http://x.test/pic.png", kind: "image" },
+      { x: 11, y: 12 },
+    );
+    expect(sentTypes()).not.toContain("DOWNLOAD");
+    removeLong();
+  });
+
+  test("the setting alone, with nothing to open, still saves at once", () => {
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.MIDDLE, combo: "" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        contentClickToSavePicker: true,
+        links: false,
+      },
+      acceptTestInput,
+    );
+
+    press(document.getElementById("i"), { button: 1, buttons: 4 });
+
+    expect(sentTypes()).toContain("DOWNLOAD");
+    remove();
+  });
+
+  test("with the option on, a real gesture opens the picker and its choice is saved", async () => {
+    const addEventListener = vi.spyOn(window, "addEventListener");
+    await importContentWithOptions({
+      contentClickToSave: true,
+      contentClickToSavePicker: true,
+      contentClickToSaveBindings: serializeClickToSaveBindings([
+        { gesture: CLICK_GESTURES.MIDDLE, combo: "" },
+      ]),
+    });
+    answerPicker();
+    document.body.innerHTML = '<img id="i" src="http://x.test/pic.png">';
+    const image = document.getElementById("i");
+    const mousedown = addEventListener.mock.calls.findLast(
+      ([type, , options]) =>
+        type === "mousedown" && Boolean((options as AddEventListenerOptions | undefined)?.signal),
+    )?.[1] as (event: unknown) => void;
+
+    mousedown({
+      isTrusted: true,
+      button: 1,
+      buttons: 4,
+      detail: 1,
+      target: image,
+      clientX: 33,
+      clientY: 44,
+      composedPath: () => [image],
+      preventDefault: vi.fn(),
+      stopImmediatePropagation: vi.fn(),
+    });
+    await vi.waitFor(() => expect(pickerHost()).not.toBeNull());
+
+    expect(pickerHost()?.style.getPropertyValue("--picker-x")).toBe("33px");
+    expect(sentTypes()).not.toContain("DOWNLOAD");
+    pickerHost()
+      ?.shadowRoot?.querySelector("input")
+      ?.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Enter", bubbles: true, composed: true }),
+      );
+    expect(sendMessage.mock.calls.at(-1)?.[0]).toEqual({
+      type: "PICKER_SAVE",
+      body: {
+        menuItemId: "save-in-0",
+        source: { media: { url: "http://x.test/pic.png", kind: "image" } },
+      },
+    });
+    addEventListener.mockRestore();
+  });
+
+  test("opens on the background's request and answers once it has", async () => {
+    await importContentWithOptions({ contentClickToSave: false, uiTheme: "dark" });
+    answerPicker();
+    const respond = vi.fn();
+
+    expect(
+      runtimeListener()(
+        { type: "SAVE_IN_OPEN_PICKER", body: { source: { linkUrl: "https://x.test/full" } } },
+        {},
+        respond,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(respond).toHaveBeenCalledWith({ opened: true }));
+
+    expect(pickerHost()?.dataset.theme).toBe("dark");
+    expect(pickerHost()?.style.getPropertyValue("--picker-x")).toBe("");
+  });
+
+  test("stays closed on a disabled site, and closes when the site becomes disabled", async () => {
+    await importContentWithOptions({ contentClickToSave: false });
+    answerPicker();
+    const respond = vi.fn();
+    runtimeListener()({ type: "SAVE_IN_OPEN_PICKER" }, {}, respond);
+    await vi.waitFor(() => expect(respond).toHaveBeenCalledWith({ opened: true }));
+
+    pushContentOptions({ perSiteDisableList: "*://other.example/*" });
+    expect(pickerHost()).not.toBeNull();
+    pushContentOptions({ perSiteDisableList: "*://localhost/*" });
+    expect(pickerHost()).toBeNull();
+
+    respond.mockClear();
+    runtimeListener()({ type: "SAVE_IN_OPEN_PICKER" }, {}, respond);
+    await vi.waitFor(() => expect(respond).toHaveBeenCalledWith({ opened: false }));
+    expect(pickerHost()).toBeNull();
   });
 });

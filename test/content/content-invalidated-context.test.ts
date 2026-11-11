@@ -90,6 +90,35 @@ describe("an invalidated extension context", () => {
     runtimeListener = null;
   });
 
+  test("removes an open destination picker, which could no longer save", async () => {
+    const addEventListener = vi.spyOn(window, "addEventListener");
+    await importContent({ contentClickToSave: true });
+    sendMessage.mockImplementation((message, callback) =>
+      callback?.(
+        message.type === "PICKER_MODEL"
+          ? {
+              type: "PICKER_MODEL",
+              body: {
+                lastUsed: null,
+                items: [{ kind: "path", id: "save-in-0", title: "Images", parentId: null }],
+                copy: { title: "Choose", filter: "Filter", empty: "None", lastUsed: "Last used" },
+              },
+            }
+          : undefined,
+      ),
+    );
+    Element.prototype.scrollIntoView = vi.fn();
+    const respond = vi.fn();
+    runtimeListener?.({ type: "SAVE_IN_OPEN_PICKER", body: { source: null } }, {}, respond);
+    await vi.waitFor(() => expect(respond).toHaveBeenCalledWith({ opened: true }));
+    expect(document.querySelector("save-in-picker")).not.toBeNull();
+
+    invalidateContext();
+    listenerFor(addEventListener, "mousedown", true)?.[1](pressOn(document.body));
+
+    expect(document.querySelector("save-in-picker")).toBeNull();
+  });
+
   test("lets a matching click reach the page and unmounts every surface", async () => {
     const addEventListener = vi.spyOn(window, "addEventListener");
     const removeEventListener = vi.spyOn(window, "removeEventListener");

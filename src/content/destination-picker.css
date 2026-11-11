@@ -1,0 +1,183 @@
+/*
+ * The in-page destination picker. It runs in its own shadow root on arbitrary
+ * pages and reuses the Page Sources token and theme sheets, so every color,
+ * space, and type value here is one of those semantic roles.
+ */
+:host {
+  all: initial;
+  box-sizing: border-box;
+  position: fixed;
+  /* The picker floats over arbitrary pages, so it must outrank page-owned
+     stacking contexts rather than sharing the options-page z-index scale. */
+  z-index: 2147483647;
+  isolation: isolate;
+  writing-mode: horizontal-tb;
+  --picker-gutter: var(--source-space-2);
+  --picker-inline-size: min(280px, calc(100dvw - 2 * var(--picker-gutter)));
+  --picker-block-size: min(360px, calc(100dvh - 2 * var(--picker-gutter)));
+  /* Centered near the top by default, which is where a keyboard command opens
+     it. A gesture overrides both on the host with the pointer position. Either
+     way the picker is clamped inside the viewport. */
+  --picker-x: calc((100dvw - var(--picker-inline-size)) / 2);
+  --picker-y: 20dvh;
+  /* Each row sets its own nesting depth. */
+  --picker-depth: 0;
+  inset-inline-start: clamp(
+    var(--picker-gutter),
+    var(--picker-x),
+    calc(100dvw - var(--picker-inline-size) - var(--picker-gutter))
+  );
+  inset-block-start: clamp(
+    var(--picker-gutter),
+    var(--picker-y),
+    calc(100dvh - var(--picker-block-size) - var(--picker-gutter))
+  );
+  inline-size: var(--picker-inline-size);
+  color: var(--color-text);
+  accent-color: var(--color-accent);
+  color-scheme: light dark;
+  font: var(--text-base) / 1.35 var(--font-stack);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+:host([data-theme="light"]) {
+  color-scheme: only light;
+}
+
+:host([data-theme="dark"]) {
+  color-scheme: only dark;
+}
+
+.picker {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-block-size: var(--picker-block-size);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-page);
+  box-shadow: var(--floating-shadow);
+  animation: picker-in var(--source-motion-duration-enter) ease-out both;
+}
+
+.filter {
+  min-inline-size: 0;
+  min-block-size: var(--control-height);
+  margin: var(--source-space-2);
+  padding: 0 var(--source-space-2);
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-page);
+  color: inherit;
+  font: inherit;
+
+  &::placeholder {
+    color: var(--color-text-muted);
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 1px;
+  }
+}
+
+.list {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 var(--source-space-1) var(--source-space-1);
+}
+
+.option {
+  display: flex;
+  align-items: baseline;
+  gap: var(--source-space-2);
+  min-block-size: var(--compact-control-size);
+  padding-block: var(--source-space-1);
+  padding-inline: calc(var(--source-space-2) + var(--picker-depth) * var(--source-space-4))
+    var(--source-space-2);
+  border-radius: var(--radius-sm);
+  cursor: default;
+  overflow-wrap: anywhere;
+
+  &:hover {
+    background: var(--color-hover);
+  }
+
+  &[aria-selected="true"] {
+    color: var(--color-link);
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    font-weight: 600;
+  }
+}
+
+.hint {
+  margin-inline-start: auto;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.heading {
+  padding-block: var(--source-space-1);
+  padding-inline: calc(var(--source-space-2) + var(--picker-depth) * var(--source-space-4))
+    var(--source-space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.separator {
+  block-size: 1px;
+  margin: var(--source-space-1) var(--source-space-2);
+  background: var(--color-border);
+}
+
+.empty {
+  padding: var(--source-space-2) var(--source-space-3) var(--source-space-3);
+  color: var(--color-text-muted);
+}
+
+[hidden] {
+  display: none;
+}
+
+@keyframes picker-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .picker {
+    animation: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .picker {
+    border-color: var(--color-text);
+  }
+}
+
+@media (forced-colors: active) {
+  .picker {
+    border-color: CanvasText;
+  }
+
+  .option[aria-selected="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}

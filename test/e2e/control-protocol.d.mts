@@ -141,6 +141,7 @@ export type RuntimeMessage =
   | { type: "SAVE_IN_E2E_START_DOWNLOAD"; body: StartDownloadBody }
   | { type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK"; body: ContextMenuClickBody }
   | { type: "SAVE_IN_E2E_TAB_MENU_CLICK"; body: TabMenuClickBody }
+  | { type: "SAVE_IN_E2E_KEYBOARD_COMMAND"; body: { command: string } }
   | {
       type: "SAVE_IN_E2E_HISTORY_WRITE";
       body: { action: "clear" } | { action: "add-and-patch"; index: number; payload: string };
@@ -187,6 +188,10 @@ export type ContextMenuClickResponse = {
 };
 export type TabMenuClickResponse = {
   type: "SAVE_IN_E2E_TAB_MENU_CLICK";
+  body: { status: "OK" } | { status: "ERROR"; message: string };
+};
+export type KeyboardCommandResponse = {
+  type: "SAVE_IN_E2E_KEYBOARD_COMMAND";
   body: { status: "OK" } | { status: "ERROR"; message: string };
 };
 export type NotificationResponse = {
@@ -244,6 +249,7 @@ export interface RuntimeResponseMap {
   SAVE_IN_E2E_START_DOWNLOAD: StartDownloadResponse;
   SAVE_IN_E2E_CONTEXT_MENU_CLICK: ContextMenuClickResponse;
   SAVE_IN_E2E_TAB_MENU_CLICK: TabMenuClickResponse;
+  SAVE_IN_E2E_KEYBOARD_COMMAND: KeyboardCommandResponse;
   SAVE_IN_E2E_RESET_STATE: ResetStateResponse;
   SAVE_IN_E2E_INSPECT: InspectStateResponse;
   SAVE_IN_E2E_NOTIFICATION_CALLS: NotificationResponse;

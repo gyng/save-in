@@ -4684,5 +4684,23 @@
   },
   "manifestCommandSaveFolder3": {
     "message": "Salva nella terza cartella del menu"
+  },
+  "manifestCommandOpenPicker": {
+    "message": "Mostra il selettore di cartelle"
+  },
+  "pickerTitle": {
+    "message": "Scegli una cartella"
+  },
+  "pickerFilter": {
+    "message": "Filtra le cartelle"
+  },
+  "pickerNoMatches": {
+    "message": "Nessuna cartella corrispondente"
+  },
+  "o_cClickToSavePicker": {
+    "message": "Mostra un selettore di cartelle invece di salvare subito"
+  },
+  "o_cClickToSavePickerHelp": {
+    "message": "Un gesto di clic per salvare apre le cartelle del tuo Menu di salvataggio accanto al puntatore. Scegline una per salvare lì oppure premi Esc per annullare. Il menu contestuale del browser non cambia."
   }
 }

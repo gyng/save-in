@@ -36,4 +36,6 @@ export const QUICK_SAVE_COMMAND = "quick-save";
 // Unbound by default (#15). The folder commands are positional: the Nth name
 // saves to the Nth destination the menu offers.
 export const SAVE_LAST_USED_COMMAND = "save-last-used";
+// Unbound by default: shows the opt-in in-page destination picker.
+export const OPEN_PICKER_COMMAND = "open-picker";
 export const SAVE_FOLDER_COMMANDS = ["save-folder-1", "save-folder-2", "save-folder-3"] as const;

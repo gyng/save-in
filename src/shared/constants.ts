@@ -172,6 +172,12 @@ export const MESSAGE_TYPES = {
   SOURCE_PANEL_STATE: "SOURCE_PANEL_STATE",
   SOURCE_PANEL_COPY: "SOURCE_PANEL_COPY",
   CREATE_SOURCE_RULE: "CREATE_SOURCE_RULE",
+  // In-page destination picker. PICKER_MODEL and PICKER_SAVE come from the
+  // content script that draws it; OPEN_PICKER is the external request to show
+  // it (see docs/integrating/INTEGRATIONS.md).
+  PICKER_MODEL: "PICKER_MODEL",
+  PICKER_SAVE: "PICKER_SAVE",
+  OPEN_PICKER: "OPEN_PICKER",
   // Background → content: script-loaded media the webRequest collector observed
   // (opt-in). Delivered as a batch to merge into the Page Sources panel.
   SCRIPT_MEDIA_DETECTED: "SCRIPT_MEDIA_DETECTED",

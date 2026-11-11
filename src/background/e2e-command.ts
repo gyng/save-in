@@ -21,6 +21,7 @@ import type { CurrentTab } from "../platform/current-tab.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { handleContextMenuClick, type ContextMenuClickInfo } from "./menu-click.ts";
 import { handleTabMenuClick, type HostTab, type TabMenuClickInfo } from "./menu-tabs.ts";
+import { isPointerCommand, runPointerCommand } from "./command-save.ts";
 import { configWriteState, counterWriteState } from "./application-state.ts";
 import { resetMessagingTransientState } from "./messaging/index.ts";
 import { resetSourcePanelState } from "./source-panel-state.ts";
@@ -33,6 +34,9 @@ export const BACKGROUND_E2E_CONTEXT_MENU_COMMAND = "SAVE_IN_E2E_CONTEXT_MENU_CLI
 export const BACKGROUND_E2E_NOTIFICATION_COMMAND = "SAVE_IN_E2E_NOTIFICATION_CALLS";
 export const BACKGROUND_E2E_HISTORY_COMMAND = "SAVE_IN_E2E_HISTORY_WRITE";
 const BACKGROUND_E2E_TAB_MENU_COMMAND = "SAVE_IN_E2E_TAB_MENU_CLICK";
+// Browsers offer no way to fire a keyboard command, so the suites reach the
+// production command handlers through this message instead.
+export const BACKGROUND_E2E_KEYBOARD_COMMAND = "SAVE_IN_E2E_KEYBOARD_COMMAND";
 export const BACKGROUND_E2E_RESET_COMMAND = "SAVE_IN_E2E_RESET_STATE";
 const BACKGROUND_E2E_INSPECT_COMMAND = "SAVE_IN_E2E_INSPECT";
 
@@ -77,6 +81,16 @@ export type BackgroundE2EHistoryRequest = {
 export type BackgroundE2ETabMenuRequest = {
   type: typeof BACKGROUND_E2E_TAB_MENU_COMMAND;
   body: { info: TabMenuClickInfo; tab: HostTab };
+};
+
+export type BackgroundE2EKeyboardCommandRequest = {
+  type: typeof BACKGROUND_E2E_KEYBOARD_COMMAND;
+  body: { command: string };
+};
+
+export type BackgroundE2EKeyboardCommandResponse = {
+  type: typeof BACKGROUND_E2E_KEYBOARD_COMMAND;
+  body: { status: "OK" } | { status: "ERROR"; message: string };
 };
 
 export type BackgroundE2EResetRequest = {
@@ -512,6 +526,32 @@ const handleBackgroundE2ETabMenuCommand = async (
   }
 };
 
+const isBackgroundE2EKeyboardCommand = (
+  value: unknown,
+): value is BackgroundE2EKeyboardCommandRequest =>
+  isRecord(value) &&
+  value.type === BACKGROUND_E2E_KEYBOARD_COMMAND &&
+  isRecord(value.body) &&
+  typeof value.body.command === "string";
+
+export const handleBackgroundE2EKeyboardCommand = async (
+  rawRequest: unknown,
+  dispatch: typeof runPointerCommand = runPointerCommand,
+): Promise<BackgroundE2EKeyboardCommandResponse | null> => {
+  if (!isBackgroundE2EKeyboardCommand(rawRequest)) return null;
+  try {
+    const { command } = rawRequest.body;
+    if (!isPointerCommand(command)) throw new Error(`Unsupported E2E command ${command}`);
+    await dispatch(command);
+    return { type: BACKGROUND_E2E_KEYBOARD_COMMAND, body: { status: "OK" } };
+  } catch (error) {
+    return {
+      type: BACKGROUND_E2E_KEYBOARD_COMMAND,
+      body: { status: "ERROR", message: error instanceof Error ? error.message : String(error) },
+    };
+  }
+};
+
 const drainBackgroundWrites = async (): Promise<void> => {
   for (;;) {
     const counterQueue = counterWriteState.queue;
@@ -618,6 +658,10 @@ export const registerBackgroundE2ECommand = (): void => {
     }
     if (isBackgroundE2ETabMenuCommand(rawRequest)) {
       void handleBackgroundE2ETabMenuCommand(rawRequest).then(sendResponse);
+      return true;
+    }
+    if (isBackgroundE2EKeyboardCommand(rawRequest)) {
+      void handleBackgroundE2EKeyboardCommand(rawRequest).then(sendResponse);
       return true;
     }
     if (isBackgroundE2EInspectCommand(rawRequest)) {

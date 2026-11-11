@@ -10,6 +10,7 @@ import {
   runCssRoutingScenario,
   runBrowserDownloadPageDetailsScenario,
   runDownloadAttributeRoutingScenario,
+  runDestinationPickerScenario,
   runQuickSaveScenario,
   runFailedDownloadLogScenario,
   runHistoryCancellationScenario,
@@ -120,6 +121,10 @@ export const registerSharedBrowserCases = (adapters) => {
 
   test("Quick save routes straight to the configured default destination", async () => {
     await runQuickSaveScenario({ control, waitForDownloads });
+  });
+
+  test("a folder command and the destination picker each save into their folder", async () => {
+    await runDestinationPickerScenario({ control, evaluatePage });
   });
 
   test("production tab-strip handler saves the selected real tab", async () => {

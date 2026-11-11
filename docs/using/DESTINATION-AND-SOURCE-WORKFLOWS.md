@@ -69,13 +69,14 @@ Save In registers browser keyboard commands that you bind yourself. Only
 you assign one in Firefox under **Add-ons and themes → ⚙ → Manage Extension
 Shortcuts**, or in Chrome at `chrome://extensions/shortcuts`.
 
-| Command                               | What it saves                             | Where it saves                              |
-| ------------------------------------- | ----------------------------------------- | ------------------------------------------- |
-| Quick save the current page           | The page in the active tab                | The Quick save destination                  |
-| Save to the last used location        | What is under the pointer, else the page  | **Last used**                               |
-| Save to the first folder in the menu  | What is under the pointer, else the page  | The first folder you can pick in the menu   |
-| Save to the second folder in the menu | What is under the pointer, else the page  | The second folder you can pick in the menu  |
-| Save to the third folder in the menu  | What is under the pointer, else the page  | The third folder you can pick in the menu   |
+| Command                               | What it acts on                          | What it does                                      |
+| ------------------------------------- | ---------------------------------------- | ------------------------------------------------- |
+| Quick save the current page           | The page in the active tab               | Saves to the Quick save destination               |
+| Save to the last used location        | What is under the pointer, else the page | Saves to **Last used**                            |
+| Save to the first folder in the menu  | What is under the pointer, else the page | Saves to the first folder you can pick            |
+| Save to the second folder in the menu | What is under the pointer, else the page | Saves to the second folder you can pick           |
+| Save to the third folder in the menu  | What is under the pointer, else the page | Saves to the third folder you can pick            |
+| Show the folder picker                | What is under the pointer, else the page | Opens the [destination picker](#destination-picker) |
 
 The Last used and folder commands (#15) act as if you had opened the context
 menu on what the pointer is over and chosen that item: the same routing rules,
@@ -85,16 +86,67 @@ private-window handling apply. Keep these points in mind:
 - "Under the pointer" means an image, video, audio element, or link in the
   page's top frame. Anything else, including content inside an embedded frame,
   an image that is only visible through an empty overlay, and pages where
-  extensions cannot run, saves the page. If page saves are turned off under
-  **Options → Save menu**, nothing is saved in that case.
+  extensions cannot run, saves the page. If **Show an action for the current
+  page** is off, nothing is saved in that case.
 - Folders are counted in menu order, skipping separators, disabled lines, and
   folders that only open a submenu. A command for a folder that does not exist
   does nothing.
-- A command only picks an item the menu currently shows. With **Last used**
-  turned off, or with the folder list hidden by Quick save only or by
-  routing-only menus, the matching commands do nothing.
+- A command only picks an item the menu currently shows. With **Show last
+  used menu item** off, or with the folder list removed by **Show only Quick
+  save in the context menu** or **Hide folder choices**, the matching commands
+  do nothing.
 - The quick save command keeps its own rules: it always saves the page and
   works only while **Show a quick save item** is on.
+
+## Destination picker
+
+The destination picker is an optional list of your Save menu folders that
+opens inside the page, at the pointer, so you can choose where one item goes
+without the browser context menu. It is off until you choose one of the ways to
+open it, and it never replaces or changes the context menu.
+
+It lists **Last used** first, when there is one, and then your folders with
+the same names, order, and nesting as the context menu. A folder that only
+opens a submenu appears as a heading.
+
+| To do this                        | Use                                         |
+| --------------------------------- | ------------------------------------------- |
+| Move through the folders          | Up and Down arrow keys, or the pointer      |
+| Narrow the list                   | Type part of a folder name or of its parent |
+| Save to the highlighted folder    | Enter, or click the folder                  |
+| Close without saving              | Esc, or click anywhere outside the picker   |
+
+Choosing a folder saves exactly as choosing it from the context menu would:
+routing rules, per-destination Save As, Last used, recent locations, History,
+and private-window handling are the same. In a private window the picker shows
+only that window's own Last used destination.
+
+There are three ways to open it:
+
+- **A keyboard command.** Bind **Show the folder picker** as described under
+  [Keyboard commands](#keyboard-commands). It opens centered, for what the
+  pointer is over or else for the page.
+- **A click-to-save gesture.** Under **Options → Click-to-save**, turn on
+  **Show a folder picker instead of saving immediately**. Every click-to-save
+  gesture then opens the picker at the pointer for the clicked item instead of
+  saving it. Combined with a long left click binding, holding the button on an
+  image shows your folders (#77).
+- **Another extension**, such as a mouse-gesture add-on you have approved. See
+  [Opening the destination picker](../integrating/INTEGRATIONS.md#opening-the-destination-picker).
+
+Limits worth knowing:
+
+- A save made through the picker is a menu save. Routing rules that match
+  `gesture:` or `keys:` see click-to-save saves only, so they do not match a
+  folder chosen in the picker, and **Always save to the default destination**
+  does not apply to it.
+- The picker does not open on sites matched under **Disable Save In on
+  sites**, on pages where extensions cannot run, in a tab loaded before Save In
+  was last updated, or when the menu has no folder to offer, as with **Show
+  only Quick save in the context menu**. With **Hide folder choices** it offers
+  the single routing item the context menu shows.
+- Recent locations are not listed; the picker shows Last used and the
+  configured folders.
 
 ## Click-to-save folders
 

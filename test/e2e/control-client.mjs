@@ -1279,6 +1279,19 @@ export const createE2EControlClient = ({ callFunction }) => {
         if (response.body.status === "ERROR") throw new Error(response.body.message);
         return response.body;
       },
+      /**
+       * Runs the production handler of a keyboard command, which no browser
+       * lets a test trigger natively.
+       * @param {string} command
+       */
+      runCommand: async (command) => {
+        const response = await call({
+          operation: "runtime.send",
+          message: { type: "SAVE_IN_E2E_KEYBOARD_COMMAND", body: { command } },
+        });
+        if (response.body.status === "ERROR") throw new Error(response.body.message);
+        return response.body;
+      },
       /** @param {"get" | "reset"} action */
       notificationCalls: async (action) => {
         const response = await call({

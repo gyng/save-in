@@ -11,6 +11,7 @@ import {
 import {
   arrayOf,
   closeLocal,
+  decodeBoolean,
   decodeNumber,
   decodeRecord,
   decodeString,
@@ -1278,6 +1279,112 @@ export const runContextImageScenario = async ({ control, evaluatePage }) => {
     );
     expect(completed.filename).toMatch(/e2e[\\/]context-image[\\/]covered-art\.png$/);
     expect(fs.readFileSync(completed.filename, "utf8")).toBe("covered image fixture");
+  } finally {
+    try {
+      await control.storage.local.set(previous);
+      if (missing.length) await control.storage.local.remove(missing);
+      if (tabId !== undefined) await control.tabs.remove(tabId).catch(() => {});
+      await control.runtime.reset();
+    } finally {
+      await closeLocal(server);
+    }
+  }
+};
+
+/**
+ * Drives the keyboard-command and destination-picker paths end to end. No
+ * browser lets a test press an extension shortcut, so the production command
+ * handlers are reached through the background control command; the picker is
+ * then operated in the page, whose shadow root E2E builds leave open.
+ *
+ * The pointer is over nothing in a headless page, so both saves are of the
+ * page itself: what the scenario proves is the destination each one reaches.
+ *
+ * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   evaluatePage: (target: string, expression: string) => Promise<unknown>,
+ * }} adapters
+ */
+export const runDestinationPickerScenario = async ({ control, evaluatePage }) => {
+  const server = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end("<title>Picker fixture</title><p>Destination picker fixture</p>");
+  });
+  const port = await listenLocal(server);
+  const target = `127.0.0.1:${port}/picker`;
+  const pageUrl = `http://${target}`;
+  const optionKeys = ["paths"];
+  const previous = await control.storage.local.get(optionKeys);
+  const missing = optionKeys.filter((key) => !Object.hasOwn(previous, key));
+  let tabId;
+
+  try {
+    // Page saves are on by default, which is what both saves below rely on.
+    await control.options.set({ paths: "e2e/picker-first\ne2e/picker-second" });
+    const created = await control.tabs.create({ url: pageUrl, active: true });
+    tabId = created.id;
+    await control.tabs.wait({ ...(tabId === undefined ? {} : { id: tabId }), urlIncludes: target });
+    const tab = (await control.tabs.query()).find((candidate) => candidate.url?.includes(target));
+    if (tab?.id === undefined) throw new Error("Destination picker fixture tab missing");
+    await control.tabs.waitContentReady(tab.id);
+
+    // #15: the command for the first folder saves there without any menu.
+    await control.background.runCommand("save-folder-1");
+    const commandRows = await control.downloads.wait({
+      filenameIncludes: `e2e${path.sep}picker-first`,
+      minimumComplete: 1,
+      timeoutMs: 10000,
+    });
+    const commandSave = requireValue(
+      commandRows.find((row) => row.state === "complete"),
+      "Folder command save did not complete",
+    );
+    expect(fs.readFileSync(commandSave.filename, "utf8")).toContain("Destination picker fixture");
+
+    // The command resolves once the page has answered, so the picker is there.
+    await control.background.runCommand("open-picker");
+    const listed = await evaluateJson(
+      (expression) => evaluatePage(target, expression),
+      `(() => {
+        const root = document.querySelector("save-in-picker")?.shadowRoot;
+        const filter = root?.querySelector("input");
+        if (!root || !filter) throw new Error("Destination picker did not open");
+        const listedIds = () => [...root.querySelectorAll(".option")].map((option) => option.dataset.id);
+        const before = listedIds();
+        filter.value = "second";
+        filter.dispatchEvent(new Event("input", { bubbles: true }));
+        const filtered = listedIds();
+        filter.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+        return JSON.stringify({
+          before,
+          filtered,
+          closed: document.querySelector("save-in-picker") === null,
+        });
+      })()`,
+      objectOf({
+        before: arrayOf(decodeString),
+        filtered: arrayOf(decodeString),
+        closed: decodeBoolean,
+      }),
+    );
+    // The command save above is already offered as Last used.
+    expect(listed).toEqual({
+      before: ["save-in-last-used", "save-in-0", "save-in-1"],
+      filtered: ["save-in-1"],
+      closed: true,
+    });
+
+    const pickedRows = await control.downloads.wait({
+      filenameIncludes: `e2e${path.sep}picker-second`,
+      minimumComplete: 1,
+      timeoutMs: 10000,
+    });
+    const pickedSave = requireValue(
+      pickedRows.find((row) => row.state === "complete"),
+      "Picked destination save did not complete",
+    );
+    expect(pickedSave.filename).toMatch(/e2e[\\/]picker-second[\\/]/);
+    expect(fs.readFileSync(pickedSave.filename, "utf8")).toContain("Destination picker fixture");
   } finally {
     try {
       await control.storage.local.set(previous);

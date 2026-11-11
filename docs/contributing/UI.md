@@ -11,7 +11,10 @@ Advanced, History, feature-owned responsive rules, and utilities live in matchin
 and the first-run welcome flow into their declared layers, so they consume the
 same tokens, atoms, and precedence contract. The Page Sources drawer runs in a
 shadow root, so it owns a compact copy of the semantic color contract while
-deliberately using smaller density tokens.
+deliberately using smaller density tokens. The in-page destination picker is a
+second shadow-root surface on arbitrary pages; it loads the same Page Sources
+token and theme sheets and adds only `destination-picker.css`, so it has no
+color, space, or type values of its own.
 
 Ownership files stay intentionally bounded: split a file by workflow or
 component before it exceeds the mechanical line limit. Every responsive or
@@ -148,6 +151,11 @@ or feedback.
   complete records, and narrow layouts present each entry as a labelled record
   instead of requiring horizontal scrolling. Filters, menu triggers, statuses,
   table, and pagination still use shared atoms.
+- The destination picker is a transient filterable listbox, not a second
+  context menu. Its filter owns focus and `aria-activedescendant`; rows use the
+  action-menu rhythm and the selected-row treatment of the Page Sources menus.
+  It is clamped inside the viewport, scrolls its own list, acts only on
+  browser-trusted input, and keeps its key events from the page.
 - Reference pages/dialogs use the shared table and tab contracts and must remain
   usable without horizontal scrolling at narrow widths.
 - Dialogs use the `app-dialog` shell for backdrop, elevation, radius, and

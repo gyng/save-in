@@ -49,6 +49,11 @@ const sourcePanelStylePaths = [
   "source-panel-results.css",
   "source-panel-responsive.css",
   "source-panel-preview.css",
+  // The in-page destination picker has its own shadow root but reuses the
+  // token and theme sheets above, so its sheet is held to the same component
+  // rules: semantic colors only, logical sizing, dynamic viewport units, and
+  // the line cap.
+  "destination-picker.css",
 ].map((file) => path.join(root, "src", "content", file));
 
 /**

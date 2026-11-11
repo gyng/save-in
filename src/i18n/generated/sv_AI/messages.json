@@ -4684,5 +4684,23 @@
   },
   "manifestCommandSaveFolder3": {
     "message": "Spara i menyns tredje mapp"
+  },
+  "manifestCommandOpenPicker": {
+    "message": "Visa mappväljaren"
+  },
+  "pickerTitle": {
+    "message": "Välj en mapp"
+  },
+  "pickerFilter": {
+    "message": "Filtrera mappar"
+  },
+  "pickerNoMatches": {
+    "message": "Inga matchande mappar"
+  },
+  "o_cClickToSavePicker": {
+    "message": "Visa en mappväljare i stället för att spara direkt"
+  },
+  "o_cClickToSavePickerHelp": {
+    "message": "En gest för klicka för att spara öppnar mapparna i din Sparmeny vid pekaren. Välj en mapp för att spara där, eller tryck på Esc för att avbryta. Webbläsarens snabbmeny ändras inte."
   }
 }

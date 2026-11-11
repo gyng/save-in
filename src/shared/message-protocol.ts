@@ -8,6 +8,7 @@ import type { RoutePreview } from "./route-preview-types.ts";
 import type { PersistenceFailure } from "./persistence-diagnostics.ts";
 import type { ExternalDownloadRejection } from "./external-download-rejection-types.ts";
 import type { SourcePanelCopy } from "./source-panel-copy.ts";
+import type { PickerModel } from "./destination-picker.ts";
 import type { DiagnosticSnapshot } from "./diagnostics-types.ts";
 import {
   isPageSourceChannel,
@@ -169,6 +170,17 @@ type DownloadResponse = Response<
     }
 >;
 
+type OpenPickerResponse = Response<
+  typeof MESSAGE_TYPES.OPEN_PICKER,
+  | { status: typeof MESSAGE_TYPES.OK; version: number }
+  | {
+      status: typeof MESSAGE_TYPES.ERROR;
+      error: string;
+      message?: string | undefined;
+      version: number;
+    }
+>;
+
 type AutoDownloadSourceResponse = Response<
   typeof MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
   // "declined": the background chose not to save a source it had every right
@@ -192,6 +204,9 @@ export type InternalResponseMap = {
     SourcePanelCopy
   >;
   [MESSAGE_TYPES.CREATE_SOURCE_RULE]: OkResponse;
+  [MESSAGE_TYPES.PICKER_MODEL]: Response<typeof MESSAGE_TYPES.PICKER_MODEL, PickerModel>;
+  [MESSAGE_TYPES.PICKER_SAVE]: OkResponse;
+  [MESSAGE_TYPES.OPEN_PICKER]: OpenPickerResponse;
   [MESSAGE_TYPES.DIAGNOSTICS_GET]: Response<
     typeof MESSAGE_TYPES.DIAGNOSTICS_GET,
     DiagnosticSnapshot
@@ -324,6 +339,19 @@ export type DownloadRequestBody = {
   version?: number | undefined;
 };
 
+// External request to show the in-page destination picker. Without a url the
+// picker is for whatever the pointer is over in that tab, or else the page.
+const OPEN_PICKER_KINDS = ["image", "video", "audio", "link"] as const;
+export type OpenPickerRequestBody = {
+  url?: string | undefined;
+  kind?: (typeof OPEN_PICKER_KINDS)[number] | undefined;
+  version?: number | undefined;
+};
+
+// The source is validated by the handler, which must tell "no source, save the
+// page" from a source it cannot accept.
+export type PickerSaveRequestBody = { menuItemId: string; source?: unknown };
+
 export type AutoDownloadSourceRequestBody = {
   pageUrl: string;
   sourceUrl: string;
@@ -376,6 +404,9 @@ export type InternalMessage =
   | OptionalBodyMessage<typeof MESSAGE_TYPES.SOURCE_PANEL_STATE, { open: boolean }>
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_COPY>
   | RequiredBodyMessage<typeof MESSAGE_TYPES.CREATE_SOURCE_RULE, CreateSourceRuleRequestBody>
+  | Message<typeof MESSAGE_TYPES.PICKER_MODEL>
+  | RequiredBodyMessage<typeof MESSAGE_TYPES.PICKER_SAVE, PickerSaveRequestBody>
+  | OptionalBodyMessage<typeof MESSAGE_TYPES.OPEN_PICKER, OpenPickerRequestBody>
   | Message<typeof MESSAGE_TYPES.DIAGNOSTICS_GET>
   | Message<typeof MESSAGE_TYPES.DIAGNOSTICS_CLEAR_FAILURES>
   | Message<typeof MESSAGE_TYPES.HISTORY_GET>
@@ -425,6 +456,7 @@ export type ExternalMessage = Extract<
   | { type: typeof MESSAGE_TYPES.GET_GRAMMARS }
   | { type: typeof MESSAGE_TYPES.VALIDATE }
   | { type: typeof MESSAGE_TYPES.DOWNLOAD }
+  | { type: typeof MESSAGE_TYPES.OPEN_PICKER }
 >;
 
 export type MessageOf<
@@ -452,6 +484,9 @@ const INTERNAL_MESSAGE_TYPE_MAP = {
   [MESSAGE_TYPES.SOURCE_PANEL_STATE]: true,
   [MESSAGE_TYPES.SOURCE_PANEL_COPY]: true,
   [MESSAGE_TYPES.CREATE_SOURCE_RULE]: true,
+  [MESSAGE_TYPES.PICKER_MODEL]: true,
+  [MESSAGE_TYPES.PICKER_SAVE]: true,
+  [MESSAGE_TYPES.OPEN_PICKER]: true,
   [MESSAGE_TYPES.DIAGNOSTICS_GET]: true,
   [MESSAGE_TYPES.DIAGNOSTICS_CLEAR_FAILURES]: true,
   [MESSAGE_TYPES.HISTORY_GET]: true,
@@ -483,6 +518,7 @@ const EXTERNAL_MESSAGE_TYPE_MAP = {
   [MESSAGE_TYPES.GET_GRAMMARS]: true,
   [MESSAGE_TYPES.VALIDATE]: true,
   [MESSAGE_TYPES.DOWNLOAD]: true,
+  [MESSAGE_TYPES.OPEN_PICKER]: true,
 } as const satisfies Record<ExternalMessage["type"], true>;
 
 export const EXTERNAL_MESSAGE_TYPES: ReadonlySet<string> = new Set(
@@ -640,6 +676,12 @@ const isDownloadBody = (value: unknown): value is DownloadRequestBody => {
   );
 };
 
+const isOpenPickerBody = (value: unknown): value is OpenPickerRequestBody =>
+  isStringKeyedRecord(value) &&
+  hasOptionalString(value, "url") &&
+  (typeof value.kind === "undefined" || OPEN_PICKER_KINDS.some((kind) => kind === value.kind)) &&
+  (typeof value.version === "undefined" || isApiVersion(value.version));
+
 const isEpochMs = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value);
 
@@ -710,6 +752,14 @@ const isMessageBodyValid = (message: Record<string, unknown> & { type: string })
       );
     case MESSAGE_TYPES.DOWNLOAD:
       return hasOptionalBody(message, isDownloadBody);
+    case MESSAGE_TYPES.OPEN_PICKER:
+      return hasOptionalBody(message, isOpenPickerBody);
+    case MESSAGE_TYPES.PICKER_SAVE:
+      return (
+        isStringKeyedRecord(message.body) &&
+        typeof message.body.menuItemId === "string" &&
+        message.body.menuItemId.length > 0
+      );
     case MESSAGE_TYPES.HISTORY_CANCEL:
     case MESSAGE_TYPES.HISTORY_UNDO:
       return isStringKeyedRecord(message.body) && typeof message.body.historyId === "string";
@@ -735,6 +785,7 @@ const isMessageBodyValid = (message: Record<string, unknown> & { type: string })
     case MESSAGE_TYPES.WAKE_WARM:
     case MESSAGE_TYPES.SOURCE_PANEL_READY:
     case MESSAGE_TYPES.SOURCE_PANEL_COPY:
+    case MESSAGE_TYPES.PICKER_MODEL:
     case MESSAGE_TYPES.DIAGNOSTICS_GET:
     case MESSAGE_TYPES.DIAGNOSTICS_CLEAR_FAILURES:
     case MESSAGE_TYPES.HISTORY_GET:
