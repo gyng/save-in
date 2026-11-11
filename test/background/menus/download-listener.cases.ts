@@ -807,6 +807,102 @@ describe("addDownloadListener", () => {
     );
   });
 
+  // #237: the browser reports a page context for an unloaded or overlaid image.
+  describe("page context over an image (#237)", () => {
+    const pageClick = { menuItemId: "save-in-0", frameId: 0, pageUrl: "https://example.com/art" };
+    const tab = { id: 42, title: "Artwork page" };
+
+    test("saves the image under the pointer instead of the page", async () => {
+      global.browser.tabs.sendMessage = vi.fn(() =>
+        Promise.resolve({ src: "https://img.example.com/art.png" }),
+      );
+      Menus.addPaths(["dir1"], ["page"]);
+
+      await listener(pageClick, tab);
+
+      expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(
+        42,
+        { type: "SAVE_IN_CONTEXT_IMAGE" },
+        { frameId: 0 },
+      );
+      expect(lastState().info).toMatchObject({
+        context: DOWNLOAD_TYPES.MEDIA,
+        url: "https://img.example.com/art.png",
+        sourceUrl: "https://img.example.com/art.png",
+        mediaType: "image",
+        pageUrl: "https://example.com/art",
+      });
+      expect(lastState().info.suggestedFilename).toBeNull();
+    });
+
+    test.each([
+      ["no image is under the pointer", () => Promise.resolve(null)],
+      ["the answer is not a fetchable image", () => Promise.resolve({ src: "blob:x" })],
+      ["the page has no content script", () => Promise.reject(new Error("no receiver"))],
+      [
+        "the tab cannot be messaged at all",
+        () => {
+          throw new Error("tab closed");
+        },
+      ],
+    ])("still saves the page when %s", async (_label, answer) => {
+      global.browser.tabs.sendMessage = vi.fn(answer);
+      Menus.addPaths(["dir1"], ["page"]);
+
+      await listener(pageClick, tab);
+
+      expect(lastState().info).toMatchObject({
+        context: DOWNLOAD_TYPES.PAGE,
+        url: "https://example.com/art",
+      });
+    });
+
+    test("still saves the page when the content script never answers", async () => {
+      vi.useFakeTimers();
+      try {
+        global.browser.tabs.sendMessage = vi.fn(() => new Promise(() => {}));
+        Menus.addPaths(["dir1"], ["page"]);
+
+        const click = listener(pageClick, tab);
+        await vi.advanceTimersByTimeAsync(500);
+        await click;
+
+        expect(lastState().info.context).toBe(DOWNLOAD_TYPES.PAGE);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    test.each([
+      ["a click inside a frame", { ...pageClick, frameId: 3 }, tab],
+      [
+        "a save that carries no frame",
+        { menuItemId: "save-in-0", pageUrl: pageClick.pageUrl },
+        tab,
+      ],
+      ["a click with no usable tab", pageClick, { title: "Artwork page" }],
+    ])("does not ask the page for %s", async (_label, click, clickTab) => {
+      global.browser.tabs.sendMessage = vi.fn(() =>
+        Promise.resolve({ src: "https://img.example.com/art.png" }),
+      );
+      Menus.addPaths(["dir1"], ["page"]);
+
+      await listener(click, clickTab);
+
+      expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
+      expect(lastState().info.context).toBe(DOWNLOAD_TYPES.PAGE);
+    });
+
+    test("does not ask the page when the browser already found a link", async () => {
+      global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve(null));
+      Menus.addPaths(["dir1"], ["link"]);
+
+      await listener({ ...pageClick, linkUrl: "https://example.com/file.zip" }, tab);
+
+      expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
+    });
+  });
+
   test("reads exact-frame link attributes only when a link save is chosen", async () => {
     options.filenamePatterns = [[{ name: "linktitle", value: /full/ }]];
     global.browser.tabs.sendMessage = vi.fn(() =>

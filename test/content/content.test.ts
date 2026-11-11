@@ -1802,6 +1802,25 @@ describe("content.js initialisation", () => {
     expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
   });
 
+  test("returns only the most recently context-clicked image (#237)", async () => {
+    await importContentWithOptions({ contentClickToSave: false });
+    document.body.innerHTML = '<img src="/art.png"><p>Text</p>';
+    const runtimeListener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock
+      .calls[0]?.[0];
+    const respond = vi.fn();
+
+    runtimeListener?.({ type: "SAVE_IN_CONTEXT_IMAGE" }, {}, respond);
+    expect(respond).toHaveBeenLastCalledWith(null);
+
+    document.querySelector("img")?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true }));
+    runtimeListener?.({ type: "SAVE_IN_CONTEXT_IMAGE" }, {}, respond);
+    expect(respond).toHaveBeenLastCalledWith({ src: "http://localhost/art.png" });
+
+    document.querySelector("p")?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true }));
+    runtimeListener?.({ type: "SAVE_IN_CONTEXT_IMAGE" }, {}, respond);
+    expect(respond).toHaveBeenLastCalledWith(null);
+  });
+
   test("returns metadata only for the most recently context-clicked link", async () => {
     await importContentWithOptions({ contentClickToSave: false });
     document.body.innerHTML =

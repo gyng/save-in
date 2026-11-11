@@ -1197,6 +1197,100 @@ into: routed/:linktitle:/:linkdownload:/`,
 };
 
 /**
+ * A browser reports a plain page context for an image it has not finished
+ * loading or that sits under an empty overlay (#237). The contextmenu event
+ * lands on the overlay; the production menu command then describes only the
+ * page, and the save must still be the image the pointer was on. Real layout
+ * decides what is under the pointer, which is why this runs in a browser.
+ *
+ * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   evaluatePage: (target: string, expression: string) => Promise<unknown>,
+ * }} adapters
+ */
+export const runContextImageScenario = async ({ control, evaluatePage }) => {
+  const server = http.createServer((req, res) => {
+    if (req.url === "/context-image") {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(
+        `<title>Context image page</title>
+        <div style="position: relative; width: 200px; height: 200px">
+          <img src="/covered-art.png" width="200" height="200" />
+          <div id="shield" style="position: absolute; inset: 0"></div>
+        </div>`,
+      );
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "image/png" });
+    res.end(Buffer.from("covered image fixture"));
+  });
+  const port = await listenLocal(server);
+  const target = `127.0.0.1:${port}/context-image`;
+  const pageUrl = `http://${target}`;
+  const optionKeys = ["paths"];
+  const previous = await control.storage.local.get(optionKeys);
+  const missing = optionKeys.filter((key) => !Object.hasOwn(previous, key));
+  let tabId;
+
+  try {
+    await control.options.set({ paths: "e2e/context-image" });
+    const created = await control.tabs.create({ url: pageUrl, active: true });
+    tabId = created.id;
+    await control.tabs.wait({ ...(tabId === undefined ? {} : { id: tabId }), urlIncludes: target });
+    const tab = (await control.tabs.query()).find((candidate) => candidate.url?.includes(target));
+    if (tab?.id === undefined) throw new Error("Context image fixture tab missing");
+    await control.tabs.waitContentReady(tab.id);
+    await evaluatePage(
+      target,
+      `new Promise((resolve, reject) => {
+        const deadline = Date.now() + 5000;
+        const capture = () => {
+          const shield = document.querySelector("#shield");
+          const box = shield?.getBoundingClientRect();
+          if (shield && box && box.width > 0) {
+            shield.dispatchEvent(
+              new MouseEvent("contextmenu", {
+                bubbles: true,
+                clientX: box.left + box.width / 2,
+                clientY: box.top + box.height / 2,
+              }),
+            );
+            resolve(true);
+          } else if (Date.now() >= deadline) reject(new Error("Context image fixture missing"));
+          else requestAnimationFrame(capture);
+        };
+        capture();
+      })`,
+    );
+    await control.background.clickContextMenu({
+      info: { menuItemId: "save-in-0", frameId: 0, pageUrl },
+      tab: { id: tab.id, title: "Context image page", url: pageUrl },
+    });
+
+    const rows = await control.downloads.wait({
+      filenameIncludes: `e2e${path.sep}context-image`,
+      minimumComplete: 1,
+      timeoutMs: 10000,
+    });
+    const completed = requireValue(
+      rows.find((row) => row.state === "complete"),
+      "Context image save did not complete",
+    );
+    expect(completed.filename).toMatch(/e2e[\\/]context-image[\\/]covered-art\.png$/);
+    expect(fs.readFileSync(completed.filename, "utf8")).toBe("covered image fixture");
+  } finally {
+    try {
+      await control.storage.local.set(previous);
+      if (missing.length) await control.storage.local.remove(missing);
+      if (tabId !== undefined) await control.tabs.remove(tabId).catch(() => {});
+      await control.runtime.reset();
+    } finally {
+      await closeLocal(server);
+    }
+  }
+};
+
+/**
  * Drives the production Quick save path: the root-level Quick save item routes a
  * save straight to the resolved default destination, and the dynamic-default
  * toggle redirects that default from the Downloads root to a configured folder.

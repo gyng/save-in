@@ -38,6 +38,11 @@ import { backgroundRuntime } from "./runtime.ts";
 import { addLogEntry } from "./log.ts";
 import { runBackgroundTask } from "./background-event-task.ts";
 import { resolveClickTarget, type ClickInfo } from "./menu-target.ts";
+import {
+  CONTEXT_IMAGE_REQUEST,
+  parseContextImage,
+  type ContextImage,
+} from "../shared/context-image.ts";
 import { rebuildMenus } from "./menu-rebuild.ts";
 import {
   CONTEXT_LINK_METADATA_REQUEST,
@@ -141,6 +146,34 @@ const readContextLinkMetadata = async (
   }
 };
 
+// The browser reports a plain page context for an image that has not finished
+// loading or sits under an empty overlay, and the page would be saved in its
+// place (#237). Only the top frame can answer: that is where the content
+// script recorded the right-click, and a keyboard Quick save — which carries
+// no frame — must not pick up an image from some earlier right-click.
+const readContextImage = async (
+  info: ContextMenuClickInfo,
+  tab: CurrentTab | null | undefined,
+): Promise<ContextImage | null> => {
+  if (!isBrowserTabId(tab?.id) || info.frameId !== 0) return null;
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const response = await Promise.race([
+      webExtensionApi.tabs.sendMessage(tab.id, { type: CONTEXT_IMAGE_REQUEST }, { frameId: 0 }),
+      new Promise<null>((resolve) => {
+        timeout = setTimeout(() => resolve(null), LINK_METADATA_TIMEOUT_MS);
+      }),
+    ]);
+    return parseContextImage(response);
+  } catch {
+    // Restricted pages, stale content scripts, and navigation races leave the
+    // click as the page save the browser described.
+    return null;
+  } finally {
+    if (timeout !== undefined) clearTimeout(timeout);
+  }
+};
+
 const getContextMenuListenerRegistrar = (
   eventName: "onShown" | "onHidden",
 ): ((listener: (...args: never[]) => unknown) => void) | null => {
@@ -236,10 +269,11 @@ const registerDynamicLastUsedMenu = (): boolean => {
 };
 
 const handleContextMenuClickInternal = async (
-  info: ContextMenuClickInfo,
+  clickInfo: ContextMenuClickInfo,
   tab?: CurrentTab,
   privateInvocation?: PrivateMenuInvocation,
 ): Promise<void> => {
+  let info = clickInfo;
   if (Object.values(MENU_IDS.TABSTRIP).some((id) => id === info.menuItemId)) {
     return;
   }
@@ -294,7 +328,14 @@ const handleContextMenuClickInternal = async (
     let comment: string | null | undefined = menuInfo?.comment;
     let lastUsedMeta: LastUsedMeta | null = null;
 
-    const target = resolveClickTarget(info, options, clickTab);
+    let target = resolveClickTarget(info, options, clickTab);
+    if (target?.downloadType === DOWNLOAD_TYPES.PAGE) {
+      const image = await readContextImage(info, clickTab);
+      if (image) {
+        info = { ...info, mediaType: "image", srcUrl: image.src };
+        target = resolveClickTarget(info, options, clickTab);
+      }
+    }
     if (!target) {
       return;
     }

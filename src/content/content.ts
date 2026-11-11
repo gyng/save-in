@@ -61,6 +61,8 @@ import {
   sourceOriginElements,
 } from "./css-routing.ts";
 import { contextLinkMetadataFromEvent } from "./context-link-metadata.ts";
+import { contextImageFromEvent } from "./context-image.ts";
+import { CONTEXT_IMAGE_REQUEST, type ContextImage } from "../shared/context-image.ts";
 import {
   CONTEXT_LINK_METADATA_REQUEST,
   parseContextLinkMetadata,
@@ -1029,12 +1031,14 @@ function releaseInvalidatedContext(): void {
 
 const changedDuringRead = new Set<string>();
 let lastContextLinkMetadata: ContextLinkMetadata | null = null;
+let lastContextImage: ContextImage | null = null;
 
 try {
   window.addEventListener(
     "contextmenu",
     (event) => {
       lastContextLinkMetadata = contextLinkMetadataFromEvent(event);
+      lastContextImage = contextImageFromEvent(event);
     },
     { capture: true },
   );
@@ -1224,6 +1228,10 @@ try {
           ? parseContextLinkMetadata(lastContextLinkMetadata, expectedHref)
           : null,
       );
+      return;
+    }
+    if (message?.type === CONTEXT_IMAGE_REQUEST) {
+      sendResponse(lastContextImage);
       return;
     }
     if (message?.type === CONTENT_OPTIONS_CHANGED_MESSAGE) {
