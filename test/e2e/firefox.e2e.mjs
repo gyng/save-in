@@ -1235,6 +1235,17 @@ test("click gestures on a link save without the native action", async () => {
     expect(leftDownloads).toHaveLength(1);
     expect(leftDownloads[0]?.state).toBe("complete");
 
+    // An in-page navigation changes the page's address without a new document.
+    // The gesture must still reach its rule afterwards: the background accepts
+    // gesture, keys, and CSS evidence only from the page the sender is on.
+    await session.evaluateInTab(targetUrl, `history.pushState({}, "", "/moved"), true`);
+    await clickWithButton(0, point);
+    await control.downloads.wait({
+      filenameIncludes: "left-gesture",
+      minimumComplete: 2,
+      timeoutMs: 10000,
+    });
+
     // defaultPrevented is read here, after the dispatches completed: a
     // microtask checkpoint runs between listeners, so any deferred read
     // queued by this early observer would still run before the extension's

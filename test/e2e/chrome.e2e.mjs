@@ -2607,6 +2607,40 @@ test("click gestures on a link save without the native action", async () => {
     expect(leftDownloads).toHaveLength(1);
     expect(leftDownloads[0]?.state).toBe("complete");
 
+    // An in-page navigation changes the page's address without a new document.
+    // The gesture must still reach its rule afterwards: the background accepts
+    // gesture, keys, and CSS evidence only from the page the sender is on.
+    await cdp.evalInTarget(PORT, targetUrl, `history.pushState({}, "", "/moved"), true`);
+    await cdp.dispatchInput(PORT, targetUrl, [
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mousePressed",
+          x: point.x,
+          y: point.y,
+          button: "left",
+          buttons: 1,
+          clickCount: 1,
+        },
+      },
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mouseReleased",
+          x: point.x,
+          y: point.y,
+          button: "left",
+          buttons: 0,
+          clickCount: 1,
+        },
+      },
+    ]);
+    await control.downloads.wait({
+      filenameIncludes: "left-gesture",
+      minimumComplete: 2,
+      timeoutMs: 10000,
+    });
+
     // defaultPrevented is read here, after the dispatches completed: a
     // microtask checkpoint runs between listeners, so any deferred read
     // queued by this early observer would still run before the extension's

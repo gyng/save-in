@@ -53,20 +53,36 @@ export const isExternalDownloadAllowed = (sender: MessageSender): boolean =>
   splitLines(options.externalDownloadAllowlist).some((id) => id === sender.id);
 
 // DOM-selector attestations are meaningful only when they came from the
-// content script running in the exact top-level page described by the request.
+// content script running in the top-level page described by the request.
 // Extension pages share runtime.onMessage but cannot inspect that page's DOM.
+//
+// The three addresses are compared by origin, not as whole strings. An in-page
+// navigation (history.pushState, a hash change) moves window.location at once,
+// while the sender's own URL stays what it was when the document loaded —
+// measured in Firefox and Chrome — so whole-string equality silently dropped
+// gesture, keys, and CSS evidence on every single-page site after its first
+// navigation. Such a navigation cannot leave the origin, and an origin that
+// has none to compare (file:, data:) still has to match exactly.
+const pageOrigin = (url: string | undefined): string | null => {
+  if (typeof url !== "string") return null;
+  try {
+    const parsed = new URL(url);
+    return ["chrome-extension:", "moz-extension:"].includes(parsed.protocol) ? null : parsed.origin;
+  } catch {
+    return null;
+  }
+};
+
 export const isPageContentSender = (
   sender: MessageSender,
   pageUrl: string | undefined,
 ): boolean => {
-  if (typeof pageUrl !== "string" || sender.tab?.url !== pageUrl || sender.url !== pageUrl) {
-    return false;
-  }
-  try {
-    return !["chrome-extension:", "moz-extension:"].includes(new URL(pageUrl).protocol);
-  } catch {
-    return false;
-  }
+  // The content script that gathers this evidence runs in the top frame only.
+  if (typeof sender.frameId === "number" && sender.frameId !== 0) return false;
+  const origin = pageOrigin(pageUrl);
+  if (origin === null) return false;
+  if (origin === "null") return sender.tab?.url === pageUrl && sender.url === pageUrl;
+  return pageOrigin(sender.tab?.url) === origin && pageOrigin(sender.url) === origin;
 };
 
 // Only schemes the downloads pipeline can actually fetch are accepted from
