@@ -32,6 +32,7 @@ import { isPrivateDownloadState } from "./download-pipeline-state.ts";
 import { settleRoutingResolution } from "./routing-resolution.ts";
 import { historyRoutingPatch } from "./history-entry.ts";
 import { nativeConflictAction } from "./conflict-resolution.ts";
+import { isExecutableNameForMediaSave, MEDIA_NAME_REFUSED_LOG } from "./media-filename-guard.ts";
 
 const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
@@ -465,6 +466,18 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
       await patchResolvedHistory(state, filename);
     };
 
+    // Chrome resolves the name from the server's Content-Disposition or the
+    // last address of a redirect. For a media save that name is not adopted
+    // when it is a program's or script's: the save proceeds as if the browser
+    // had reported none, under the name the plan already derived.
+    const browserFilenameFor = (state: DownloadPipelineState): string | undefined => {
+      if (!isExecutableNameForMediaSave(state.info, downloadItem.filename)) {
+        return downloadItem.filename;
+      }
+      addFilenameStateLog(state, MEDIA_NAME_REFUSED_LOG, { refused: downloadItem.filename });
+      return undefined;
+    };
+
     const pendingState = pendingQueue?.shift();
     if (pendingUrl && pendingQueue?.length === 0) Download.pendingStates.delete(pendingUrl);
 
@@ -504,11 +517,12 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
               incognito: true,
             };
           }
-          recoveredState.info.resolvedFilename = downloadItem.filename
-            ? proposedFilename(downloadItem.filename)
+          const browserFilename = browserFilenameFor(recoveredState);
+          recoveredState.info.resolvedFilename = browserFilename
+            ? proposedFilename(browserFilename)
             : undefined;
           recoveredState.info.filename =
-            downloadItem.filename ||
+            browserFilename ||
             recoveredState.info.suggestedFilename ||
             recoveredState.info.filename;
           try {
@@ -621,12 +635,17 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
 
     pendingState.info = pendingState.info || {};
     const previousFilename = pendingState.info.filename;
-    pendingState.info.resolvedFilename = downloadItem.filename
-      ? proposedFilename(downloadItem.filename)
+    // Without browserFilenameResolution the name Chrome reports is the one
+    // Save In passed to downloads.download, not the server's.
+    const browserFilename = pendingState.scratch?.browserFilenameResolution
+      ? browserFilenameFor(pendingState)
+      : downloadItem.filename;
+    pendingState.info.resolvedFilename = browserFilename
+      ? proposedFilename(browserFilename)
       : undefined;
     pendingState.info.filename = pendingState.scratch?.browserFilenameResolution
-      ? downloadItem.filename || pendingState.info.suggestedFilename || pendingState.info.filename
-      : pendingState.info.suggestedFilename || downloadItem.filename || pendingState.info.filename;
+      ? browserFilename || pendingState.info.suggestedFilename || pendingState.info.filename
+      : pendingState.info.suggestedFilename || browserFilename || pendingState.info.filename;
 
     const pathTemplateRaw = pendingState.scratch?.pathTemplateRaw;
     const routeTemplateRaw = pendingState.scratch?.routeTemplateRaw;

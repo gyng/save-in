@@ -8,7 +8,8 @@ import { sanitizeFilename } from "../routing/path.ts";
 import { applyRenameTransform } from "../routing/rename.ts";
 import { resolveHead } from "../routing/variable.ts";
 import { options } from "../config/options-data.ts";
-import { isHttpDownloadUrl } from "./download-pipeline-state.ts";
+import { addDownloadLog, isHttpDownloadUrl } from "./download-pipeline-state.ts";
+import { isExecutableNameForMediaSave, MEDIA_NAME_REFUSED_LOG } from "./media-filename-guard.ts";
 import type { DownloadPipelineState, FinalizableDownloadState } from "./download-types.ts";
 
 const FIREFOX_CONTENT_DISPOSITION_COMPATIBILITY: ContentDispositionParseOptions = {
@@ -45,7 +46,13 @@ export const resolveDispositionFilename = async (state: DownloadPipelineState): 
           metadata.contentDisposition,
           FIREFOX_CONTENT_DISPOSITION_COMPATIBILITY,
         );
-        state.info.filename = dispositionName || state.info.filename;
+        if (isExecutableNameForMediaSave(state.info, dispositionName)) {
+          // As if the server had sent no name: the save keeps the one derived
+          // from the address or the page.
+          addDownloadLog(state, MEDIA_NAME_REFUSED_LOG, { refused: dispositionName });
+        } else {
+          state.info.filename = dispositionName || state.info.filename;
+        }
       }
     } catch {
       // HEAD is best-effort; acquisition still proceeds with the resolved name.

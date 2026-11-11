@@ -564,10 +564,12 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     typeof import("../../src/downloads/download-disposition.ts") &
     typeof import("../../src/downloads/download-runtime-instance.ts");
   let freshOptions: typeof import("../../src/config/options-data.ts").options;
+  let logAdd: ReturnType<typeof vi.fn<(message: string, data?: unknown) => unknown>>;
 
   beforeEach(async () => {
     vi.resetModules();
     sessionStore = {};
+    logAdd = vi.fn<(message: string, data?: unknown) => unknown>();
 
     global.chrome = {
       downloads: {
@@ -633,7 +635,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
         hasCompletedUrl: () => Promise.resolve(false),
         anchorStartTime: () => Promise.resolve(),
       },
-      log: { add: vi.fn() },
+      log: { add: logAdd },
       retry: currentDownload.retryViaFetch,
       sourceSidecar: () => Promise.resolve(),
     });
@@ -1271,6 +1273,144 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       );
     },
   );
+
+  // Chrome resolves the name itself, from Content-Disposition or the last
+  // address of a redirect, after the silent download has started.
+  describe("a browser-resolved program name for a media save", () => {
+    const pending = (info: Record<string, unknown>, scratch: Record<string, unknown> = {}) => {
+      const state = {
+        path: { finalize: () => "downloads", toString: () => "downloads" },
+        scratch: { browserFilenameResolution: true, ...scratch },
+        info: { url: "https://x/cat.jpg", filename: "cat.jpg", ...info },
+      } as any;
+      freshDownload.downloadRuntime.rememberPendingState(state);
+      return state;
+    };
+    const resolve = (filename: string) => {
+      const suggest = vi.fn();
+      const asynchronous = listener(
+        { byExtensionId: "self-extension-id", filename, url: "https://x/cat.jpg" },
+        suggest,
+      );
+      return { suggest, asynchronous };
+    };
+    const refusals = () =>
+      logAdd.mock.calls.filter(
+        ([message]) =>
+          message === "server file name not used for a media save: executable extension",
+      );
+
+    test.each([
+      ["a media click", { context: "MEDIA", mediaType: "image" }],
+      ["an automatic save", { context: "AUTO", sourceKind: "image" }],
+      ["a click-to-save on audio", { context: "CLICK", mediaType: "audio" }],
+    ])("%s is suggested the name its address gave it", async (_label, declared) => {
+      const state = pending(declared);
+
+      const { suggest, asynchronous } = resolve("cat.jpg.exe");
+
+      // Answered within the event, so no asynchronous suggestion is promised.
+      expect(asynchronous).toBe(false);
+      expect(suggest).toHaveBeenCalledExactlyOnceWith({
+        filename: "downloads/cat.jpg",
+        conflictAction: "uniquify",
+      });
+      expect(state.info.filename).toBe("cat.jpg");
+      expect(state.info.resolvedFilename).toBeUndefined();
+      expect(refusals()).toEqual([
+        [
+          "server file name not used for a media save: executable extension",
+          { refused: "cat.jpg.exe" },
+        ],
+      ]);
+    });
+
+    test("the page's suggested name is preferred to the address when the browser's is refused", () => {
+      pending({ context: "MEDIA", mediaType: "image", suggestedFilename: "page-title.jpg" });
+
+      const { suggest } = resolve("payload.scr");
+
+      expect(suggest).toHaveBeenCalledExactlyOnceWith({
+        filename: "downloads/page-title.jpg",
+        conflictAction: "uniquify",
+      });
+    });
+
+    test("a private media save logs its refusal as private", async () => {
+      pending({ context: "MEDIA", mediaType: "image", currentTab: { incognito: true } });
+
+      resolve("cat.jpg.exe");
+
+      expect(logAdd).toHaveBeenCalledWith(
+        "server file name not used for a media save: executable extension",
+        { refused: "cat.jpg.exe" },
+        { privateContext: true },
+      );
+    });
+
+    test("a harmless browser-resolved name is still adopted for media", async () => {
+      const state = pending({ context: "MEDIA", mediaType: "image" });
+
+      const { suggest } = resolve("holiday.png");
+
+      expect(suggest).toHaveBeenCalledExactlyOnceWith({
+        filename: "downloads/holiday.png",
+        conflictAction: "uniquify",
+      });
+      expect(state.info.resolvedFilename).toBe("holiday.png");
+      expect(refusals()).toEqual([]);
+    });
+
+    test.each([
+      ["a link save", { context: "LINK" }],
+      ["a page save", { context: "PAGE" }],
+    ])("%s still takes the installer's name", async (_label, declared) => {
+      pending(declared);
+
+      const { suggest } = resolve("setup.exe");
+
+      expect(suggest).toHaveBeenCalledExactlyOnceWith({
+        filename: "downloads/setup.exe",
+        conflictAction: "uniquify",
+      });
+      expect(refusals()).toEqual([]);
+    });
+
+    test("a name Save In passed to the browser itself is not treated as the server's", async () => {
+      const state = pending(
+        { context: "MEDIA", mediaType: "image", filename: "kept.exe" },
+        { browserFilenameResolution: false },
+      );
+
+      resolve("kept.exe");
+
+      expect(state.info.resolvedFilename).toBe("kept.exe");
+      expect(refusals()).toEqual([]);
+    });
+
+    test("a route recovered after a worker restart refuses the name as well", async () => {
+      const url = "https://x/cat.jpg";
+      sessionStore.siDeferredRoutes = {
+        [url]: {
+          version: 1,
+          id: "recovery-media",
+          state: { info: { url, filename: "cat.jpg", context: "MEDIA", mediaType: "image" } },
+          routeTemplateRaw: "routed/:filename:",
+        },
+      };
+      const suggest = vi.fn();
+
+      listener({ byExtensionId: "self-extension-id", filename: "cat.jpg.exe", url }, suggest);
+
+      await vi.waitFor(() =>
+        expect(suggest).toHaveBeenCalledWith({
+          filename: "routed/cat.jpg",
+          conflictAction: "uniquify",
+        }),
+      );
+      expect(refusals()).toHaveLength(1);
+    });
+  });
 
   test("keeps the pending filename when Chrome supplies no replacement", () => {
     const state = {

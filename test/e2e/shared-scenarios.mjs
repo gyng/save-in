@@ -1326,6 +1326,16 @@ export const runContextImageScenario = async ({ control, evaluatePage }) => {
       );
       return;
     }
+    if (req.url === "/named-by-server.png") {
+      // A hostile server names the image it is asked for as a program, on the
+      // extension's HEAD and on the download itself.
+      res.writeHead(200, {
+        "Content-Type": "image/png",
+        "Content-Disposition": 'attachment; filename="named-by-server.png.exe"',
+      });
+      res.end(req.method === "HEAD" ? undefined : Buffer.from("server-named image fixture"));
+      return;
+    }
     res.writeHead(200, { "Content-Type": "image/png" });
     res.end(Buffer.from("covered image fixture"));
   });
@@ -1383,6 +1393,32 @@ export const runContextImageScenario = async ({ control, evaluatePage }) => {
     );
     expect(completed.filename).toMatch(/e2e[\\/]context-image[\\/]covered-art\.png$/);
     expect(fs.readFileSync(completed.filename, "utf8")).toBe("covered image fixture");
+
+    // A silent media save does not take a program's name from the server: it
+    // keeps the name its address gave it. Firefox reads the name from its own
+    // HEAD; Chrome resolves it itself and asks in onDeterminingFilename.
+    await control.background.clickContextMenu({
+      info: {
+        menuItemId: "save-in-0",
+        frameId: 0,
+        pageUrl,
+        mediaType: "image",
+        srcUrl: `http://127.0.0.1:${port}/named-by-server.png`,
+      },
+      tab: { id: tab.id, title: "Context image page", url: pageUrl },
+    });
+    const namedRows = await control.downloads.wait({
+      filenameIncludes: "named-by-server",
+      minimumComplete: 1,
+      timeoutMs: 10000,
+    });
+    const named = requireValue(
+      namedRows.find((row) => row.state === "complete"),
+      "Server-named image save did not complete",
+    );
+    expect(named.filename).toMatch(/e2e[\\/]context-image[\\/]named-by-server\.png$/);
+    expect(fs.readFileSync(named.filename, "utf8")).toBe("server-named image fixture");
+    expect(namedRows.filter((row) => /\.exe$/i.test(row.filename))).toEqual([]);
   } finally {
     try {
       await control.storage.local.set(previous);

@@ -259,6 +259,124 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
     );
   });
 
+  // A hostile server answers the extension's own request for an image with a
+  // program's name. The save is silent, so the name must not be adopted.
+  describe("Firefox: a server names a media save as a program", () => {
+    const serverNames = (name: string) => {
+      setCurrentBrowser("FIREFOX");
+      vi.mocked(getFilenameFromContentDispositionHeader).mockReturnValue(name);
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          headers: { has: () => true, get: () => `attachment; filename="${name}"` },
+        }),
+      ) as any;
+    };
+
+    test.each([
+      ["a media click", { context: "MEDIA", mediaType: "image" }],
+      ["an automatic save", { context: "AUTO", sourceKind: "image" }],
+      ["a click-to-save on a video", { context: "CLICK", mediaType: "video" }],
+    ])("%s keeps the name from its address, without a dialog", async (_label, declared) => {
+      serverNames("cat.jpg.exe");
+      const state = makeState({ info: declared });
+
+      await Download.renameAndDownload(state);
+
+      expect(state.info.filename).toBe("file.png");
+      expect(state.info.resolvedFilename).toBe("file.png");
+      expect(global.browser.downloads.download).toHaveBeenCalledWith(
+        expect.objectContaining({ filename: "downloads/file.png", saveAs: false }),
+      );
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "server file name not used for a media save: executable extension",
+        { refused: "cat.jpg.exe" },
+      );
+    });
+
+    test("a harmless server name is still adopted for media", async () => {
+      serverNames("holiday photo.jpg");
+      const state = makeState({ info: { context: "MEDIA", mediaType: "image" } });
+
+      await Download.renameAndDownload(state);
+
+      expect(global.browser.downloads.download).toHaveBeenCalledWith(
+        expect.objectContaining({ filename: "downloads/holiday photo.jpg", saveAs: false }),
+      );
+    });
+
+    test.each([
+      ["a link save", { context: "LINK" }],
+      ["a page save", { context: "PAGE" }],
+      ["a Page Sources link", { context: "CLICK", sourceKind: "link" }],
+    ])("%s still takes the installer's name", async (_label, declared) => {
+      serverNames("setup.exe");
+      const state = makeState({ info: declared });
+
+      await Download.renameAndDownload(state);
+
+      expect(state.info.filename).toBe("setup.exe");
+      expect(global.browser.downloads.download).toHaveBeenCalledWith(
+        expect.objectContaining({ filename: "downloads/setup.exe", saveAs: false }),
+      );
+      expect(Log.addLogEntry).not.toHaveBeenCalledWith(
+        "server file name not used for a media save: executable extension",
+        expect.anything(),
+      );
+    });
+
+    test("when the address also names a program, the save asks first", async () => {
+      serverNames("other.scr");
+      const state = makeState({
+        info: { url: "https://example.com/dir/payload.exe", context: "MEDIA", mediaType: "image" },
+      });
+
+      await Download.renameAndDownload(state);
+
+      expect(global.browser.downloads.download).toHaveBeenCalledWith(
+        expect.objectContaining({ filename: "downloads/payload.exe", saveAs: true }),
+      );
+    });
+  });
+
+  test.each(["FIREFOX", "CHROME"] as const)(
+    "%s: a media address that names a program asks first, with or without a server name",
+    async (browserName) => {
+      setCurrentBrowser(browserName);
+      global.fetch = vi.fn(() =>
+        Promise.resolve({ headers: { has: () => false, get: () => null } }),
+      ) as any;
+
+      await Download.renameAndDownload(
+        makeState({
+          info: {
+            url: "https://example.com/dir/payload.scr",
+            context: "AUTO",
+            sourceKind: "image",
+          },
+        }),
+      );
+      await Download.renameAndDownload(
+        makeState({ info: { url: "https://example.com/dir/setup.exe", context: "LINK" } }),
+      );
+      // A shortcut written for a media click is not fetched from the page's
+      // server; its extension is the user's own choice of shortcut type.
+      await Download.renameAndDownload(
+        makeState({
+          info: {
+            url: "blob:moz-extension://id/shortcut",
+            suggestedFilename: "cat.url",
+            context: "MEDIA",
+            mediaType: "image",
+          },
+        }),
+      );
+
+      expect(
+        vi.mocked(global.browser.downloads.download).mock.calls.map(([request]) => request.saveAs),
+      ).toEqual([true, false, false]);
+    },
+  );
+
   test("Firefox path keeps the original filename when the Content-Disposition has no usable name", async () => {
     setCurrentBrowser("FIREFOX");
     vi.mocked(getFilenameFromContentDispositionHeader).mockReturnValue(null as any);

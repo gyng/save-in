@@ -25,6 +25,7 @@ import {
   resolveDispositionFilename,
 } from "./download-disposition.ts";
 import { ensureHistoryEntry } from "./history-entry.ts";
+import { isExecutableNameForMediaSave } from "./media-filename-guard.ts";
 import { isSavedSource, isShiftPromptRequest, mayRewriteDownloadUrl } from "./saved-source.ts";
 import {
   addDownloadLog,
@@ -343,6 +344,12 @@ export const createDownloadPlan = (state: DownloadPipelineState): DownloadPlan =
   const noExtensionPrompt = options.promptIfNoExtension && !state.scratch.hasExtension;
   const shiftHeldPrompt = isShiftPromptRequest(state);
   const noRuleMatchedPrompt = options.routeFailurePrompt && !state.route;
+  // A media save that would still land as a program or script, under a name
+  // Save In derived itself, is never silent. Only a fetched address counts: a
+  // shortcut written for a media click is the user's own choice of file type.
+  const executableMediaPrompt =
+    isHttpDownloadUrl(String(state.info.url)) &&
+    isExecutableNameForMediaSave(state.info, finalFullPath);
   const prompt =
     state.info.suppressPrompt === true
       ? false
@@ -350,7 +357,8 @@ export const createDownloadPlan = (state: DownloadPipelineState): DownloadPlan =
         options.prompt ||
         noExtensionPrompt ||
         shiftHeldPrompt ||
-        noRuleMatchedPrompt;
+        noRuleMatchedPrompt ||
+        executableMediaPrompt;
 
   const historyEntryId = ensureHistoryEntry(state, finalFullPath);
 
