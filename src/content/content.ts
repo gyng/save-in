@@ -721,7 +721,9 @@ const setupAutoDownload = (options: ResolvedAutoDownloadOptions, dedup: AutoDown
                 return;
               }
               const status = response?.body?.status;
-              finish(["started", "skipped", "failed"].includes(status) ? status : "skipped");
+              finish(
+                ["started", "skipped", "failed", "declined"].includes(status) ? status : "skipped",
+              );
             },
           );
         } catch {

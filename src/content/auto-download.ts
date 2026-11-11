@@ -34,7 +34,7 @@ import {
 
 // "interrupted" is local to the content script: teardown settled a send whose
 // delivery outcome is unknown, so its once-per-visit slot stays held.
-export type AutoDownloadSendResult = "started" | "skipped" | "failed" | "interrupted";
+export type AutoDownloadSendResult = "started" | "skipped" | "failed" | "interrupted" | "declined";
 
 // The once-per-visit dedup set and its consumed budget (seen.size) outlive a
 // discovery instance: a disable-list edit remounts discovery, and a fresh set
@@ -193,6 +193,15 @@ export const setupAutoDownloadDiscovery = (
     seen.delete(seenKey);
     dedup.limitNotified = false;
   };
+  // The background declined a source it could have saved (History already
+  // holds it). It stays de-duplicated for the visit like a rule exclusion, but
+  // gives its place in the per-visit limit back: a revisit would otherwise
+  // spend the whole limit on sources saved last time. A full exclusion set
+  // drops the key instead, which only costs a repeat of the cheap check.
+  const declineSlot = (seenKey: string) => {
+    releaseSlot(seenKey);
+    if (excluded.size < AUTO_EXCLUSION_CACHE_LIMIT) excluded.add(seenKey);
+  };
   const recordFailure = (seenKey: string) => {
     const previous = failedAttempts.get(seenKey);
     // Once the attempt map is full, an unknown source gets no retry rather
@@ -238,6 +247,7 @@ export const setupAutoDownloadDiscovery = (
           // consumed the candidate and can be offered again.
           if (result === "failed") recordFailure(seenKey);
           else if (result === "skipped") releaseSlot(seenKey);
+          else if (result === "declined") declineSlot(seenKey);
         } catch {
           // Keep observing across a reloaded extension context or one rejected
           // automatic download; neither consumed the candidate.

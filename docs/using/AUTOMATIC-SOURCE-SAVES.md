@@ -250,8 +250,8 @@ block saving a rule.
 - A new visit queues the same sources again. To stop them downloading again,
   set **Skip addresses already saved** to **Automatic saves only** or **All
   saves**: a source whose address History already holds as completed is then
-  dropped silently, without a request or a History entry. It still uses one of
-  the visit's **Maximum saves per page visit**. See
+  dropped silently, without a request or a History entry, and does not count
+  toward the visit's **Maximum saves per page visit**. See
   [Skip addresses already saved](EXISTING-FILES.md#skip-addresses-already-saved).
 
 Chrome cannot assign an extension-started download to its Incognito download

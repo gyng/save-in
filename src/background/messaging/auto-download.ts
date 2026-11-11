@@ -19,6 +19,7 @@ import {
 import type { MessageOf } from "../../shared/message-protocol.ts";
 import type { MessageSender, ProtocolSendResponse } from "./protocol.ts";
 import { isPageContentSender } from "./protocol.ts";
+import type { DownloadPipelineState } from "../../downloads/download-types.ts";
 
 // The page visit a script-media request speaks for. The document identity is
 // the browser's, never the message's; the visit start is the content script's
@@ -151,7 +152,7 @@ export const handleAutoDownloadSource = async (
     return;
   }
 
-  const result = await launchDownload({
+  const state: DownloadPipelineState = {
     path: new Path("."),
     scratch: {
       routeTemplateRaw: match.destination,
@@ -174,7 +175,8 @@ export const handleAutoDownloadSource = async (
       // resolve from it, and resolveMime short-circuits — no HTTP-only HEAD.
       ...(isDataUrl(sourceUrl) ? { mime: parseDataUrlMediaType(sourceUrl) } : {}),
     },
-  });
+  };
+  const result = await launchDownload(state);
   sendResponse({
     type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
     // To the page, "skipped" means the candidate was never consumed and may be
@@ -183,7 +185,18 @@ export const handleAutoDownloadSource = async (
     // was consumed: answering
     // "skipped" would repeat the download, its History row, and its notice on
     // every rescan. Older content scripts already hold the slot for "started".
-    body: { status: result.status === "skipped" ? "started" : result.status },
+    //
+    // An address History already holds is the one declined save that must not
+    // spend the visit's limit as well: on a revisit every source seen before
+    // would otherwise use it up and the unsaved rest would never be reached.
+    body: {
+      status:
+        result.status !== "skipped"
+          ? result.status
+          : state.scratch.savedSourceSkipped === true
+            ? "declined"
+            : "started",
+    },
   });
 };
 

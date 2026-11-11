@@ -401,6 +401,61 @@ describe("automatic source discovery", () => {
     controller.stop();
   });
 
+  test("a declined save stays de-duplicated without spending the per-visit limit", async () => {
+    document.body.innerHTML =
+      '<img src="https://cdn.test/saved-before.png"><img src="https://cdn.test/new.png">';
+    const send = vi.fn((candidate: { sourceUrl: string }) =>
+      Promise.resolve<AutoDownloadSendResult>(
+        candidate.sourceUrl.endsWith("saved-before.png") ? "declined" : "started",
+      ),
+    );
+    const onLimitReached = vi.fn();
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 1,
+      send,
+      onLimitReached,
+    });
+    await controller.idle();
+    // The declined source gave its place back, so a rescan reaches the next one
+    // under a limit of one, and never offers the declined source again.
+    controller.scan();
+    await controller.idle();
+    controller.scan();
+    await controller.idle();
+
+    expect(send.mock.calls.map(([candidate]) => candidate.sourceUrl)).toEqual([
+      "https://cdn.test/saved-before.png",
+      "https://cdn.test/new.png",
+    ]);
+    controller.stop();
+  });
+
+  test("a declined save is offered again once the exclusion set is full", async () => {
+    document.body.innerHTML = '<img src="https://cdn.test/saved-before.png">';
+    const dedup = createAutoDownloadDedup();
+    dedup.excluded = new Set(Array.from({ length: 1024 }, (_, index) => `filler-${index}`));
+    dedup.excludedPageUrl = `${window.location}`;
+    const send = vi.fn(() => Promise.resolve<AutoDownloadSendResult>("declined"));
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 20,
+      send,
+      dedup,
+    });
+    await controller.idle();
+    controller.scan();
+    await controller.idle();
+
+    // Bounded memory wins over remembering one more key: the cost is a repeat
+    // of the background's cheap check, never a repeated download.
+    expect(send).toHaveBeenCalledTimes(2);
+    expect(dedup.excluded.size).toBe(1024);
+    controller.stop();
+  });
+
   test("a backstop-skipped save frees its slot and is re-offered after re-enable", async () => {
     document.body.innerHTML = '<img src="https://cdn.test/cat.png">';
     const results: AutoDownloadSendResult[] = ["skipped", "started"];

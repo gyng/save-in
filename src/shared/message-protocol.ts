@@ -171,7 +171,10 @@ type DownloadResponse = Response<
 
 type AutoDownloadSourceResponse = Response<
   typeof MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
-  { status: "started" | "skipped" | "failed" }
+  // "declined": the background chose not to save a source it had every right
+  // to (History already holds it). The page keeps it de-duplicated for the
+  // visit but does not charge it against the per-visit limit.
+  { status: "started" | "skipped" | "failed" | "declined" }
 >;
 
 export type InternalResponseMap = {

@@ -919,6 +919,27 @@ into: automatic/:pagedomain:/
     },
   );
 
+  test("answers declined when History already holds the address", async () => {
+    configure();
+    vi.mocked(Download.launchDownload).mockImplementationOnce(async (state) => {
+      state.scratch.savedSourceSkipped = true;
+      return { status: "skipped" };
+    });
+    const sendResponse = vi.fn();
+
+    onMessage(
+      request,
+      { tab: { id: 7, url: "https://example.test/gallery/", incognito: false } },
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: { status: "declined" },
+    });
+  });
+
   test("a script-media replay waits for cold-start initialization", async () => {
     let finish!: () => void;
     backgroundRuntime.ready = new Promise<void>((resolve) => {
