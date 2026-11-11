@@ -163,7 +163,12 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
       ),
     ]);
     if (ctx.panelOptions.includeBackgrounds !== false) {
-      if (backgroundScan) scheduleBackgroundRefresh();
+      // A changed attribute on <html> or <body> (scroll-state classes, theme
+      // toggles) makes the whole page the root. Scanning it inline would run
+      // getComputedStyle over every element in one task, repeated on each
+      // flush, which is exactly the work the idle-chunked scan exists to slice.
+      if (backgroundScan || root === document.documentElement || root === document.body)
+        scheduleBackgroundRefresh();
       else
         backgroundCandidates = compactPageSourceCandidates([
           ...backgroundCandidates,

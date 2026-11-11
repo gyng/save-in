@@ -1751,6 +1751,37 @@ describe("Page Sources panel interactions", () => {
     ).toBe("http://localhost/poster.jpg");
   });
 
+  test.each(["body", "html"])(
+    "slices the background rescan into idle chunks when <%s> itself changes",
+    async (rootName) => {
+      vi.useFakeTimers();
+      const idleCallbacks: IdleRequestCallback[] = [];
+      vi.stubGlobal("requestIdleCallback", (callback: IdleRequestCallback) => {
+        idleCallbacks.push(callback);
+        return idleCallbacks.length;
+      });
+      vi.stubGlobal("cancelIdleCallback", vi.fn());
+      document.body.innerHTML = `<div class="poster" style="background-image: url(poster.jpg)"></div>`;
+      toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: true, includeLinks: false });
+      idleCallbacks
+        .splice(0)
+        .forEach((callback) =>
+          callback({ didTimeout: false, timeRemaining: () => 50 } as IdleDeadline),
+        );
+      const computedStyle = vi.spyOn(window, "getComputedStyle");
+      const root = rootName === "body" ? document.body : document.documentElement;
+
+      root.setAttribute("data-scrolled", "true");
+      await Promise.resolve();
+      vi.advanceTimersByTime(1000);
+
+      // Nothing ran inline; the scan is waiting for idle time.
+      expect(computedStyle).not.toHaveBeenCalled();
+      expect(idleCallbacks.length).toBeGreaterThan(0);
+      root.removeAttribute("data-scrolled");
+    },
+  );
+
   test("cancels a multi-chunk background scan when the panel closes", () => {
     vi.useFakeTimers();
     const idleCallbacks: IdleRequestCallback[] = [];
