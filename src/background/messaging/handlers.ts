@@ -526,11 +526,22 @@ export const handleDownloadMessage = (
     // opts out, take the same destination Quick save resolves, so the two
     // one-click saves cannot disagree about where "default" is. A matched
     // `into:` route still overrides this — download-plan re-roots CLICK saves.
+    //
+    // A rule that matches on the inherited comment/menuindex belongs to the
+    // menu entry the folder came from, so that pairing keeps the folder (#238).
+    // It needs both halves inherited: a caller-supplied comment or menuindex
+    // names a different entry than the one that chose the folder.
+    const inheritedFolder = options.contentClickToSaveUseDefault ? undefined : last?.path;
+    const inheritsMenuMetadata =
+      inheritedFolder !== undefined &&
+      opts.menuIndex == null &&
+      opts.comment == null &&
+      (last?.info.menuIndex != null || last?.info.comment != null);
     const clickState: DownloadPipelineState = {
       path: options.contentClickToSaveUseDefault
         ? new Path(resolveDefaultDestination(options))
-        : last?.path || new Path("."),
-      scratch: {},
+        : inheritedFolder || new Path("."),
+      scratch: inheritsMenuMetadata ? { keepInheritedFolder: true } : {},
       info: {
         ...opts,
         menuIndex: opts.menuIndex ?? last?.info.menuIndex,

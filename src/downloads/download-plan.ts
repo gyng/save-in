@@ -42,6 +42,14 @@ export const getRoutingMatch = (state: Pick<DownloadPipelineState, "info">): Rul
   return matchRulesDetailed(filenamePatterns, state.info);
 };
 
+// comment: and menuindex: read the menu entry a save came from. For
+// click-to-save those values are inherited from the previous menu save.
+const matchesOnMenuMetadata = (match: RuleMatch): boolean =>
+  match.rule.some((clause) => {
+    const name = clause.name.toLowerCase();
+    return name === "comment" || name === "menuindex";
+  });
+
 // Ordinary browser downloads and post-start filename re-evaluation can only
 // rename a download that is already in flight, so URL-rewriting rules are
 // skipped there instead of consuming the match. Rules whose destination or
@@ -190,6 +198,7 @@ export const resolveDownloadPlan = async (
       return null;
     }
     delete state.scratch.routeOutcome;
+    if (match && !matchesOnMenuMetadata(match)) delete state.scratch.keepInheritedFolder;
     routeMatches = match?.destination ?? null;
     fetchTemplate = match?.fetch ?? null;
     lateReMatchLosesRule =
@@ -232,8 +241,12 @@ export const resolveDownloadPlan = async (
   // Click-to-save reuses the previous menu directory only as its unmatched
   // fallback. A matched `into:` route is rooted at Downloads so an earlier
   // folder choice cannot be prefixed onto every later dynamic route (#190).
+  // The exception is a rule that matched on the comment/menuindex inherited
+  // with that folder: it was selected by the menu entry, so the click replays
+  // the menu save and nests under the entry's folder exactly as it did (#238).
   if (
     routeMatches &&
+    !state.scratch.keepInheritedFolder &&
     (state.info.context === DOWNLOAD_TYPES.CLICK || state.info.context === DOWNLOAD_TYPES.AUTO)
   )
     state.path = new Path(".");

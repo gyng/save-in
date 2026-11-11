@@ -1032,6 +1032,51 @@ describe("renameAndDownload: route matching", () => {
       expect.objectContaining({ filename: "Plants/Trees/tree.png" }),
     );
   });
+
+  // #238: the rule was selected by the comment the click inherited together
+  // with the folder, so the click replays the menu save instead of re-rooting.
+  describe("click-to-save with an inherited menu folder (#238)", () => {
+    const inheritedClick = () =>
+      makeState({
+        path: new Path.Path("Image Sorting"),
+        scratch: { keepInheritedFolder: true },
+        info: {
+          context: DOWNLOAD_TYPES.CLICK,
+          comment: "category=nature",
+          url: "https://example.com/tree.png",
+          suggestedFilename: "tree.png",
+        },
+      });
+
+    test.each(["comment", "menuindex"])(
+      "nests a route matched on the inherited %s under that folder",
+      async (clause) => {
+        setCurrentBrowser("FIREFOX");
+        options.filenamePatterns = [routingRule(clause)];
+        vi.mocked(router.matchRules).mockReturnValue("nature :filename:");
+
+        await Download.renameAndDownload(inheritedClick());
+
+        expect(global.browser.downloads.download).toHaveBeenCalledWith(
+          expect.objectContaining({ filename: "Image Sorting/nature tree.png" }),
+        );
+      },
+    );
+
+    test("still roots a route that ignores the inherited metadata at Downloads", async () => {
+      setCurrentBrowser("FIREFOX");
+      options.filenamePatterns = [routingRule("filename")];
+      vi.mocked(router.matchRules).mockReturnValue("Plants/Trees/:filename:");
+      const state = inheritedClick();
+
+      await Download.renameAndDownload(state);
+
+      expect(global.browser.downloads.download).toHaveBeenCalledWith(
+        expect.objectContaining({ filename: "Plants/Trees/tree.png" }),
+      );
+      expect(state.scratch.keepInheritedFolder).toBeUndefined();
+    });
+  });
 });
 
 describe("renameAndDownload: prompt combinations", () => {

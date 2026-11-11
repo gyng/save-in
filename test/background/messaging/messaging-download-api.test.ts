@@ -382,7 +382,8 @@ describe("handleDownloadMessage", () => {
     expect(state).not.toHaveProperty("route");
     expect(state.info.suggestedFilename).toBeUndefined();
     expect(state.info.filename).toBeUndefined();
-    expect(state.scratch).toEqual({});
+    // Only the folder/metadata pairing mark is new scratch; none is inherited.
+    expect(state.scratch).toEqual({ keepInheritedFolder: true });
     // Routing metadata is kept so comment/menuindex rules stay usable
     expect(state.info.menuIndex).toBe("1");
     expect(state.info.comment).toBe("0last");
@@ -445,6 +446,52 @@ describe("handleDownloadMessage", () => {
       onMessage(request(), {}, vi.fn());
 
       expect(clickPath()).toBe("Inbox");
+    });
+
+    // #238: only a click that inherits the folder AND its menu metadata may
+    // keep that folder under a matched rule.
+    describe("pairing the inherited folder with its menu metadata (#238)", () => {
+      const seedMenuSave = () => {
+        backgroundRuntime.lastDownloadState = {
+          path: new Path("Image Sorting"),
+          scratch: {},
+          info: { comment: "category=nature", menuIndex: "1" },
+        } as any;
+      };
+      const clickScratch = () => vi.mocked(Download.launchDownload).mock.calls[0]![0]!.scratch;
+
+      test("marks a click that inherits both", () => {
+        seedMenuSave();
+
+        onMessage(request(), {}, vi.fn());
+
+        expect(clickScratch().keepInheritedFolder).toBe(true);
+      });
+
+      test("does not mark a click whose caller supplied its own comment", () => {
+        seedMenuSave();
+
+        onMessage(request({ comment: "from-foxy-gestures" }), {}, vi.fn());
+
+        expect(clickScratch().keepInheritedFolder).toBeUndefined();
+      });
+
+      test("does not mark a click that saves to the default destination", () => {
+        seedMenuSave();
+        options.contentClickToSaveUseDefault = true;
+
+        onMessage(request(), {}, vi.fn());
+
+        expect(clickScratch().keepInheritedFolder).toBeUndefined();
+      });
+
+      test("does not mark a click after a save that carried no menu metadata", () => {
+        seedLastPath();
+
+        onMessage(request(), {}, vi.fn());
+
+        expect(clickScratch().keepInheritedFolder).toBeUndefined();
+      });
     });
 
     afterEach(() => {

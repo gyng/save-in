@@ -46,6 +46,10 @@ export type DownloadScratch = {
   // suggestedFilename was derived from the fetched resource, not supplied by
   // the page, so a fetch: rewrite must not carry it to the new URL.
   syntheticSuggestedFilename?: true | undefined;
+  // Click-to-save inherited both its folder and its comment/menuindex from the
+  // previous menu save. The plan clears this unless the winning rule matched on
+  // that inherited metadata, so it survives a re-plan of a persisted template.
+  keepInheritedFolder?: true | undefined;
 };
 
 export type DownloadPipelineState = {
