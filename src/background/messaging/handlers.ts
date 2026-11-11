@@ -353,6 +353,19 @@ export const handleValidate = async (
   sendResponse({ type: MESSAGE_TYPES.VALIDATE_RESULT, body: result });
 };
 
+// An applied legacy autoDownloadRules value is converted into filenamePatterns
+// by the reset's load, which writes storage but tells no tab. The applied
+// delta alone would leave open tabs without the imported automatic rules until
+// they reload, so hand them the routing rules the migration just stored.
+const withMigratedRoutingRules = async (
+  applied: Record<string, unknown>,
+): Promise<Record<string, unknown>> => {
+  if (!Object.hasOwn(applied, "autoDownloadRules")) return applied;
+  const stored = await webExtensionApi.storage.local.get("filenamePatterns").catch(() => ({}));
+  const migrated: unknown = Reflect.get(stored, "filenamePatterns");
+  return typeof migrated === "string" ? { ...applied, filenamePatterns: migrated } : applied;
+};
+
 // Mutating: apply a partial options object, validated against the schema
 // (unknown keys and type mismatches rejected). onSave normalises the stored
 // form; the load-time onLoad validators still coerce cross-browser-invalid
@@ -371,7 +384,7 @@ export const handleApplyConfig = async (
     request.body?.expected,
     (appliedConfig) => backgroundRuntime.reset(appliedConfig),
   );
-  await broadcastContentOptions(applied);
+  await broadcastContentOptions(await withMigratedRoutingRules(applied));
   if (Object.hasOwn(applied, "sourcePanelScriptMedia")) {
     await refreshScriptMediaCollectorPermission();
   }

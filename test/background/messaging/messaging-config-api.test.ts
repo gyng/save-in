@@ -582,6 +582,64 @@ describe("config API", () => {
     });
   });
 
+  describe("APPLY_CONFIG with legacy automatic rules", () => {
+    const applyLegacyRules = async () => {
+      (OptionsManagement.OPTION_KEYS as unknown as Array<Record<string, unknown>>).push({
+        name: "autoDownloadRules",
+        type: "VALUE",
+        default: "",
+      });
+      const sendResponse = vi.fn();
+      onMessage(
+        {
+          type: MESSAGE_TYPES.APPLY_CONFIG,
+          body: {
+            config: {
+              autoDownloadRules: "pageurl: example\\.com\nsourcekind: image\ninto: gallery/",
+            },
+          },
+        },
+        {},
+        sendResponse,
+      );
+      await waitForCall(sendResponse);
+    };
+
+    test("pushes the migrated routing rules to existing tabs", async () => {
+      const get = vi.spyOn(global.browser.storage.local, "get");
+      get.mockImplementation(((keys: unknown) =>
+        Promise.resolve(
+          keys === "filenamePatterns" ? { filenamePatterns: "context: ^auto$\ninto: x/" } : {},
+        )) as never);
+
+      await applyLegacyRules();
+
+      expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(42, {
+        type: "CONTENT_OPTIONS_CHANGED",
+        body: {
+          options: expect.objectContaining({ filenamePatterns: "context: ^auto$\ninto: x/" }),
+        },
+      });
+    });
+
+    test.each([
+      ["nothing was migrated", () => Promise.resolve({})],
+      ["storage cannot be read", () => Promise.reject(new Error("unavailable"))],
+    ])("still answers when %s", async (_label, read) => {
+      const get = vi.spyOn(global.browser.storage.local, "get");
+      get.mockImplementation(((keys: unknown) =>
+        keys === "filenamePatterns" ? read() : Promise.resolve({})) as never);
+
+      await applyLegacyRules();
+
+      for (const call of vi.mocked(global.browser.tabs.sendMessage).mock.calls) {
+        expect(call[1]).not.toMatchObject({
+          body: { options: { filenamePatterns: expect.anything() } },
+        });
+      }
+    });
+  });
+
   test("APPLY_CONFIG synchronizes the script-media permission boundary", async () => {
     (OptionsManagement.OPTION_KEYS as unknown as Array<Record<string, unknown>>).push({
       name: "sourcePanelScriptMedia",
