@@ -17,7 +17,9 @@ messages, and feature docs. Each track is one line with its issue refs.
 2. Site template collections (#187, #189, #209, #210). #211 (Instagram
    username prefix) is **not** covered: that template was built and then
    removed as unreliable, and `core-matcher-regressions.test.ts` asserts it is
-   not offered. An Instagram post URL carries no username.
+   not offered. An Instagram post URL carries no username. `csstext:` (below)
+   lets a user name saves after text on the page with a selector of their own,
+   without Save In shipping one it cannot keep working.
 3. Page Sources automatic scan: link-discovered sources.
 4. Per-site disable list (#183).
 5. Undo last save (#102).
@@ -112,6 +114,14 @@ Not features — release hygiene that gates the close-out of everything above.
   time out without blocking the download path indefinitely. Click-to-save
   already owns the clicked element and attaches the same bounded attributes
   directly.
+- A rule can name a save after text on its page (#211, #191): `csstext:` takes a
+  CSS selector, matches when the top-level page has an element for it with
+  text, and exposes that text as `:csstext:`. It extends the one routing
+  language rather than adding a site template, which the Instagram template's
+  removal showed cannot keep up with a site's markup. The text is read only at
+  save intent and only for rules whose page conditions fit the page, is
+  bounded and accepted only from the page's own content script, and is placed
+  only as one sanitized path component.
 - Interactive image saves expose the image's `alt` attribute as `:alttext:` /
   `alttext:`, following the same rules: read only at save intent, requested
   for a right-click save only when configured syntax consumes it and only for

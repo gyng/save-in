@@ -4378,8 +4378,11 @@
   "html_cssMatcherDescription": {
     "message": "Entspricht dem Seitenelement, das die Quelle erkannt hat. Verfügbar für automatische Seitenquellen, Speichern per Klick und Speichern im Seitenquellen-Bereich."
   },
+  "html_cssTextMatcherDescription": {
+    "message": "Trifft zu, wenn die Seite ein Element für diesen CSS-Selektor enthält, das Text enthält, und merkt sich diesen Text für :csstext:. Verfügbar für Kontextmenü, Speichern per Klick, Speichern im Seitenquellen-Bereich und automatische Seitenquellen."
+  },
   "html_cssMatcherSyntax": {
-    "message": "Der Matcher css: verwendet CSS-Selektorsyntax anstelle eines regulären Ausdrucks und akzeptiert keine Flags."
+    "message": "Die Matcher css: und csstext: verwenden CSS-Selektorsyntax anstelle eines regulären Ausdrucks und akzeptieren keine Flags."
   },
   "ruleInvalidCssSelector": {
     "message": "Ungültiger CSS-Selektor"
@@ -4446,6 +4449,15 @@
   },
   "ruleTooManyCssSelectors": {
     "message": "Zu viele unterschiedliche css:-Selektoren"
+  },
+  "ruleExtraCssText": {
+    "message": "Eine Regel kann nur eine csstext:-Klausel enthalten"
+  },
+  "ruleTooManyCssTextSelectors": {
+    "message": "Zu viele csstext:-Klauseln"
+  },
+  "ruleCssTextMissingClause": {
+    "message": ":csstext: benötigt eine csstext:-Klausel in derselben Regel"
   },
   "ruleClauseFlags": {
     "message": "Diese Klausel akzeptiert keine Flags für reguläre Ausdrücke"
@@ -4516,6 +4528,9 @@
   "html_altTextVariableDescription": {
     "message": "Das alt-Attribut des gespeicherten Bildes, wenn die Seite es angibt."
   },
+  "html_cssTextVariableDescription": {
+    "message": "Der Text des Seitenelements, das der csstext:-Selektor der Regel gefunden hat."
+  },
   "html_linkTitleMatcherDescription": {
     "message": "Entspricht dem title-Attribut des angeklickten Links."
   },
@@ -4533,6 +4548,9 @@
   },
   "routeDebuggerAltText": {
     "message": "Bild-Alternativtext"
+  },
+  "routeDebuggerCssText": {
+    "message": "Erfasster Seitentext"
   },
   "notificationRuleExcludedMessage": {
     "message": "$URL$ wurde nicht gespeichert, weil eine Routing-Regel sie ausgeschlossen hat.",

@@ -22,6 +22,9 @@ import {
 } from "./source-panel-model.ts";
 import { startChunkedElementScan, type ChunkedElementScan } from "./chunked-element-scan.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
+import { cssTextSelectorsForPage } from "../routing/css-text.ts";
+import { captureCssText } from "./css-text.ts";
+import type { CssTextCapture } from "../shared/css-text-capture.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { normalizeAutoDownloadLimit } from "../config/content-options.ts";
 import { isPageSourceKind } from "../shared/page-source.ts";
@@ -126,7 +129,13 @@ const AUTO_EXCLUSION_CACHE_LIMIT = 1024;
 // each live rescan, outside the per-page budget, with a failure notice each time.
 const AUTO_FAILED_RETRY_LIMIT = 1;
 const AUTO_FAILED_ATTEMPT_LIMIT = 1024;
-const MUTABLE_AUTOMATIC_MATCHERS = new Set(["css", "mediatype", "pagetitle", "sourcekind"]);
+const MUTABLE_AUTOMATIC_MATCHERS = new Set([
+  "css",
+  "csstext",
+  "mediatype",
+  "pagetitle",
+  "sourcekind",
+]);
 
 const hasMutableAutomaticEvidence = (rule: readonly { name: string }[]): boolean =>
   rule.some((clause) => MUTABLE_AUTOMATIC_MATCHERS.has(clause.name));
@@ -404,11 +413,20 @@ export const setupAutoDownloadDiscovery = (
       if (variants) variants.push(source);
       else sourcesByUrl.set(source.url, [source]);
     }
+    // Page text is read at most once per scan, and only once a source that has
+    // not been decided yet needs routing: a rescan of an unchanged page, or a
+    // page no csstext: rule applies to, reads nothing.
+    let scanCssText: CssTextCapture | undefined;
+    const cssTextForScan = (): CssTextCapture => {
+      scanCssText ??= captureCssText(document, cssTextSelectorsForPage(automaticRules, pageUrl));
+      return scanCssText;
+    };
     for (const [sourceUrl, sources] of sourcesByUrl) {
       // A long data: URL keys the dedup set on its hash so the set never holds a
       // megabyte string; http(s) and short data: URLs key on the string itself.
       const seenKey = seenKeyFor(sourceUrl);
       if (seen.has(seenKey) || excluded.has(seenKey)) continue;
+      const capturedCssText = cssTextForScan();
       const firstSource = sources[0];
       const cssAttestation =
         cssSelectors.length > 0
@@ -425,6 +443,7 @@ export const setupAutoDownloadDiscovery = (
         sourceKind: source.kind,
         ...(source.channel ? { sourceChannel: source.channel } : {}),
         ...(cssAttestation ? { matchedCssSelectorsByOrigin: cssAttestation } : {}),
+        ...(capturedCssText.length > 0 ? { capturedCssText } : {}),
       }));
       let selected: AutomaticRoutingCandidate | undefined;
       let excludedByRule = false;

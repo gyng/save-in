@@ -59,6 +59,64 @@ describe("getFilenameFromContentDisposition", () => {
   });
 });
 
+describe("page text of the winning csstext: rule", () => {
+  const routeMatch = (cssText?: string): RuleMatch => ({
+    outcome: "route",
+    rule: routingRule(),
+    destination: "authors/:csstext:/",
+    fetch: null,
+    rename: null,
+    tabAction: null,
+    ...(cssText ? { cssText } : {}),
+  });
+
+  test.each([
+    [
+      "the plan's match",
+      (state: Pick<DownloadPipelineState, "info" | "scratch">) =>
+        void Download.getRoutingMatch(state),
+    ],
+    [
+      "the late rename-only match",
+      (state: Pick<DownloadPipelineState, "info" | "scratch">) =>
+        void Download.getRoutingMatches(state),
+    ],
+  ])("%s records the captured text and replaces a stale one", (_label, match) => {
+    options.filenamePatterns = [routingRule()];
+    const state: Pick<DownloadPipelineState, "info" | "scratch"> = {
+      info: { url: "x" },
+      scratch: {},
+    };
+
+    vi.mocked(router.matchRulesDetailed).mockReturnValue(routeMatch("example author"));
+    match(state);
+    expect(state.info.cssText).toBe("example author");
+
+    // A later pass can select a rule that captured nothing, an exclusion, or
+    // no rule: none of them may inherit the earlier rule's text.
+    vi.mocked(router.matchRulesDetailed).mockReturnValue(routeMatch());
+    match(state);
+    expect(state.info).not.toHaveProperty("cssText");
+
+    state.info.cssText = "stale";
+    vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      outcome: "exclude",
+      rule: routingRule(),
+      destination: null,
+      fetch: null,
+      rename: null,
+      tabAction: null,
+    });
+    match(state);
+    expect(state.info).not.toHaveProperty("cssText");
+
+    state.info.cssText = "stale";
+    vi.mocked(router.matchRulesDetailed).mockReturnValue(null);
+    match(state);
+    expect(state.info).not.toHaveProperty("cssText");
+  });
+});
+
 describe("getRoutingMatches", () => {
   test("returns null when there are no filename patterns", () => {
     delete (options as Partial<SaveInOptions>).filenamePatterns;

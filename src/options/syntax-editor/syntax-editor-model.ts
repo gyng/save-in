@@ -1,4 +1,5 @@
 import { parsePathLineAst } from "../../config/path-syntax.ts";
+import { isSelectorMatcherName } from "../../routing/rule-types.ts";
 import { FETCH_URL_BANNED_VARIABLES } from "../../routing/path-variables.ts";
 import { routingActionValue } from "../../routing/action-values.ts";
 import { RENAME_SEPARATOR } from "../../routing/rename.ts";
@@ -625,7 +626,7 @@ export const completeRoutingSyntax = (
           name !== "into" &&
           name !== "fetch" &&
           name !== "rename" &&
-          name !== "css" &&
+          !isSelectorMatcherName(name) &&
           !name.startsWith("capture") &&
           routingActionValue(name) === undefined,
       ),

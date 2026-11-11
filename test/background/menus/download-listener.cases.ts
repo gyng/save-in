@@ -14,6 +14,7 @@ import {
   type TestMenuListener,
 } from "./listeners.fixture.ts";
 import type { DownloadPipelineState } from "../../../src/downloads/download-types.ts";
+import { parseRulesCollecting } from "../../../src/routing/rule-parser.ts";
 
 describe("addDownloadListener", () => {
   let Menus: MenusFixture;
@@ -1051,6 +1052,145 @@ describe("addDownloadListener", () => {
       { id: 42 },
     );
     expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
+  });
+
+  describe("page text for csstext: rules", () => {
+    const pageUrl = "https://photos.example/post/1";
+    const imageClick = {
+      menuItemId: "save-in-0",
+      frameId: 0,
+      mediaType: "image",
+      srcUrl: "https://img.example.com/art.png",
+      pageUrl,
+    };
+    const tab = { id: 42, title: "Post" };
+    const useRules = (source: string) => {
+      options.filenamePatterns = parseRulesCollecting(source).rules;
+    };
+    const answer = (value: unknown) => {
+      global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve(value));
+    };
+    const AUTHOR_RULE =
+      "pagedomain: ^photos\\.example$\ncsstext: header .author\ninto: authors/:csstext:/";
+
+    test("asks the top-level page for the selectors of rules that apply to it", async () => {
+      useRules(
+        `${AUTHOR_RULE}\n\npagedomain: ^elsewhere\\.test$\ncsstext: .other\ninto: other/:csstext:/`,
+      );
+      answer([["header .author", "example author"]]);
+      Menus.addPaths(["dir1"], ["image"]);
+
+      // A click inside a frame still asks the top-level document.
+      await listener({ ...imageClick, frameId: 5 }, tab);
+
+      expect(global.browser.tabs.sendMessage).toHaveBeenCalledOnce();
+      expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(
+        42,
+        { type: "SAVE_IN_CSS_TEXT", body: { selectors: ["header .author"] } },
+        { frameId: 0 },
+      );
+      expect(lastState().info.capturedCssText).toEqual([["header .author", "example author"]]);
+    });
+
+    test("keeps only bounded answers for the selectors it asked about", async () => {
+      useRules(AUTHOR_RULE);
+      Menus.addPaths(["dir1"], ["image"]);
+
+      answer([
+        ["header .author", "example author"],
+        [".unasked", "other"],
+      ]);
+      await listener(imageClick, tab);
+      expect(lastState().info.capturedCssText).toEqual([["header .author", "example author"]]);
+
+      for (const malformed of [
+        [["header .author", "x".repeat(513)]],
+        [["header .author", " padded "]],
+        { "header .author": "example author" },
+        "example author",
+        null,
+      ]) {
+        answer(malformed);
+        await listener({ ...imageClick, menuItemId: Menus.IDS.ROUTE_EXCLUSIVE }, tab);
+        expect(lastState().info).not.toHaveProperty("capturedCssText");
+      }
+    });
+
+    test.each([
+      ["no rule captures page text", "pageurl: .\ninto: plain/:filename:", imageClick, tab],
+      [
+        "the only capturing rule is for another page",
+        AUTHOR_RULE,
+        { ...imageClick, pageUrl: "https://elsewhere.test/" },
+        tab,
+      ],
+      [
+        "the click names no page",
+        AUTHOR_RULE,
+        { menuItemId: "save-in-0", mediaType: "image", srcUrl: imageClick.srcUrl },
+        tab,
+      ],
+      ["the click has no usable tab", AUTHOR_RULE, imageClick, { title: "Post" }],
+    ])("does not ask the page when %s", async (_label, source, click, clickTab) => {
+      useRules(source);
+      answer([["header .author", "example author"]]);
+      Menus.addPaths(["dir1"], ["image"]);
+
+      await listener(click, clickTab);
+
+      expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
+      expect(lastState().info).not.toHaveProperty("capturedCssText");
+    });
+
+    test("does not ask when rules are not parsed yet", async () => {
+      options.filenamePatterns = "csstext: header .author\ninto: x/:csstext:";
+      answer([["header .author", "example author"]]);
+      Menus.addPaths(["dir1"], ["image"]);
+
+      await listener(imageClick, tab);
+
+      expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
+    });
+
+    test("saves without page text when the page cannot or does not answer", async () => {
+      useRules(AUTHOR_RULE);
+      Menus.addPaths(["dir1"], ["image"]);
+
+      global.browser.tabs.sendMessage = vi.fn(() => {
+        throw new Error("restricted page");
+      });
+      await listener(imageClick, tab);
+      expect(Download.launchDownload).toHaveBeenCalledTimes(1);
+      expect(lastState().info).not.toHaveProperty("capturedCssText");
+
+      vi.useFakeTimers();
+      try {
+        global.browser.tabs.sendMessage = vi.fn(() => new Promise(() => {}));
+        const pending = listener({ ...imageClick, menuItemId: Menus.IDS.ROUTE_EXCLUSIVE }, tab);
+        await vi.advanceTimersByTimeAsync(500);
+        await pending;
+      } finally {
+        vi.useRealTimers();
+      }
+      expect(Download.launchDownload).toHaveBeenCalledTimes(2);
+      expect(lastState().info).not.toHaveProperty("capturedCssText");
+    });
+
+    test("a keyboard Quick save asks for the active tab's page text", async () => {
+      useRules(AUTHOR_RULE);
+      options.quickSaveEnabled = true;
+      answer([["header .author", "example author"]]);
+      (global.browser.tabs as any).query = vi.fn(() => Promise.resolve([{ id: 42, url: pageUrl }]));
+
+      await Menus.quickSaveActiveTab();
+
+      expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(
+        42,
+        { type: "SAVE_IN_CSS_TEXT", body: { selectors: ["header .author"] } },
+        { frameId: 0 },
+      );
+      expect(lastState().info.capturedCssText).toEqual([["header .author", "example author"]]);
+    });
   });
 
   describe("image alt text", () => {

@@ -2,7 +2,8 @@
 
 Run the bounded property suite with `npm run test:fuzz`. It spends one second
 across directory parsing and edits, routing syntax and semantics, filename
-safety, webhook URL policy, and menu access-key markup. Set `FUZZ_TIME_MS` for a
+safety, page-text containment for `:csstext:`, webhook URL policy, and menu
+access-key markup. Set `FUZZ_TIME_MS` for a
 longer campaign.
 
 Failures report `FUZZ_PROPERTY` and `FUZZ_SEED`, plus `FUZZ_PATH` when a shrink
@@ -18,7 +19,8 @@ to replay the minimized counterexample.
 The recorded hour consists of a 69.94-second clean warm-up and a 3,525.67-second
 uninterrupted campaign with a 3,600,000 ms configured budget. All six property
 groups that existed then completed without a counterexample, crash, or hang;
-menu access-key markup was added afterwards and has not had a recorded campaign.
+menu access-key markup and page-text containment were added afterwards and have
+not had a recorded campaign.
 
 ## Bugs found
 

@@ -1,6 +1,6 @@
 import { getMessage } from "../../platform/localization.ts";
 import { parseRoutingRuleAst } from "../../routing/rule-syntax.ts";
-import type { RuleError } from "../../routing/rule-types.ts";
+import { isSelectorMatcherName, type RuleError } from "../../routing/rule-types.ts";
 
 export const cssSelectorErrors = (
   source: string,
@@ -8,7 +8,7 @@ export const cssSelectorErrors = (
 ): RuleError[] =>
   parseRoutingRuleAst(source).ast.rules.flatMap((rule) =>
     rule.clauses.flatMap((clause) => {
-      if (clause.name !== "css") return [];
+      if (!isSelectorMatcherName(clause.name)) return [];
       const selector = clause.value;
       try {
         root.matches(selector);

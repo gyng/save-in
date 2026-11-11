@@ -4378,8 +4378,11 @@
   "html_cssMatcherDescription": {
     "message": "소스를 발견한 페이지 요소와 일치합니다. 자동 페이지 소스, 클릭하여 저장, 페이지 소스 패널 저장에서 사용할 수 있습니다."
   },
+  "html_cssTextMatcherDescription": {
+    "message": "이 CSS 선택자에 해당하면서 텍스트가 있는 요소가 페이지에 있으면 일치하며, 그 텍스트를 :csstext:에 사용할 수 있도록 보관합니다. 컨텍스트 메뉴, 클릭하여 저장, 페이지 소스 패널 저장, 자동 페이지 소스에서 사용할 수 있습니다."
+  },
   "html_cssMatcherSyntax": {
-    "message": "css: 매처는 정규식 대신 CSS 선택자 구문을 사용하며 플래그를 허용하지 않습니다."
+    "message": "css: 및 csstext: 매처는 정규식 대신 CSS 선택자 구문을 사용하며 플래그를 허용하지 않습니다."
   },
   "ruleInvalidCssSelector": {
     "message": "잘못된 CSS 선택자"
@@ -4446,6 +4449,15 @@
   },
   "ruleTooManyCssSelectors": {
     "message": "고유한 css: 선택자가 너무 많습니다"
+  },
+  "ruleExtraCssText": {
+    "message": "규칙에는 csstext: 절이 하나만 포함될 수 있습니다"
+  },
+  "ruleTooManyCssTextSelectors": {
+    "message": "csstext: 절이 너무 많습니다"
+  },
+  "ruleCssTextMissingClause": {
+    "message": ":csstext:를 사용하려면 같은 규칙에 csstext: 절이 필요합니다"
   },
   "ruleClauseFlags": {
     "message": "이 절에는 정규식 플래그를 사용할 수 없습니다"
@@ -4516,6 +4528,9 @@
   "html_altTextVariableDescription": {
     "message": "페이지에서 제공하는 경우 저장한 이미지의 alt 속성입니다."
   },
+  "html_cssTextVariableDescription": {
+    "message": "규칙의 csstext: 선택자가 찾은 페이지 요소의 텍스트입니다."
+  },
   "html_linkTitleMatcherDescription": {
     "message": "클릭한 링크의 title 속성과 일치합니다."
   },
@@ -4533,6 +4548,9 @@
   },
   "routeDebuggerAltText": {
     "message": "이미지 대체 텍스트"
+  },
+  "routeDebuggerCssText": {
+    "message": "캡처한 페이지 텍스트"
   },
   "notificationRuleExcludedMessage": {
     "message": "라우팅 규칙에서 제외되어 $URL$을(를) 저장하지 않았습니다.",

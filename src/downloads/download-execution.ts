@@ -110,6 +110,7 @@ const retainedDownloadSnapshot = (state: DownloadPipelineState): DownloadPipelin
   delete info.abortSignal;
   delete info.onContentFetchStart;
   delete info.matchedCssSelectorsByOrigin;
+  delete info.capturedCssText;
   for (const [key, value] of Object.entries(info)) {
     if (typeof value === "string") Reflect.set(info, key, compactRetainedString(value));
   }

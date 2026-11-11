@@ -1,4 +1,5 @@
 import { ROUTING_ACTION_VALUES, routingActionValue } from "../../routing/action-values.ts";
+import { isSelectorMatcherName } from "../../routing/rule-types.ts";
 import {
   parseRoutingRuleAst,
   type RoutingClauseNode,
@@ -133,7 +134,7 @@ const hasUnsupportedFlags = (clauses: RoutingClauseNode[]): boolean =>
     (clause) =>
       clause.flagsSpan !== null &&
       (clause.flags !== "i" ||
-        clause.name === "css" ||
+        isSelectorMatcherName(clause.name) ||
         (clause.clauseKind !== "matcher" && clause.clauseKind !== "rename")),
   );
 
@@ -279,8 +280,9 @@ export const updateRoutingClause = (
   if (update.name !== undefined || update.caseInsensitive !== undefined) {
     const name =
       update.name ?? source.slice(clause.nameSpan.start.offset, clause.nameSpan.end.offset);
-    const caseInsensitive =
-      name === "css" ? false : (update.caseInsensitive ?? clause.flags === "i");
+    const caseInsensitive = isSelectorMatcherName(name)
+      ? false
+      : (update.caseInsensitive ?? clause.flags === "i");
     patches.push({
       start: clause.cst.rawName.span.start.offset,
       end: clause.cst.rawName.span.end.offset,

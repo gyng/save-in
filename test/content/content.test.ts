@@ -1831,6 +1831,31 @@ describe("content.js initialisation", () => {
     expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
   });
 
+  test("answers a page text request for exactly the selectors it names", async () => {
+    await importContentWithOptions({ contentClickToSave: false });
+    document.body.innerHTML =
+      '<header><b class="author"> example author </b></header><h1>Title</h1>';
+    const runtimeListener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock
+      .calls[0]?.[0];
+    const respond = vi.fn();
+
+    runtimeListener?.(
+      { type: "SAVE_IN_CSS_TEXT", body: { selectors: ["header .author", ".absent"] } },
+      {},
+      respond,
+    );
+    expect(respond).toHaveBeenLastCalledWith([["header .author", "example author"]]);
+
+    for (const message of [
+      { type: "SAVE_IN_CSS_TEXT" },
+      { type: "SAVE_IN_CSS_TEXT", body: { selectors: "h1" } },
+      { type: "SAVE_IN_CSS_TEXT", body: { selectors: ["h1", 7] } },
+    ]) {
+      runtimeListener?.(message, {}, respond);
+      expect(respond).toHaveBeenLastCalledWith([]);
+    }
+  });
+
   test("returns only the most recently context-clicked image (#237)", async () => {
     await importContentWithOptions({ contentClickToSave: false });
     document.body.innerHTML = '<img src="/art.png" alt="Sunset"><p>Text</p>';
@@ -2099,6 +2124,46 @@ describe("content.js initialisation", () => {
         .mocked(global.chrome.runtime.sendMessage)
         .mock.calls.filter(([message]) => (message as any)?.type === "DOWNLOAD"),
     ).toHaveLength(3);
+  });
+
+  test("a Page Sources save carries the page text its csstext: rule captures", async () => {
+    let runtimeListener: ((message: any) => void) | undefined;
+    vi.resetModules();
+    document.getElementById("save-in-source-panel")?.remove();
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({
+        sourcePanelEnabled: true,
+        sourcePanelBackgrounds: false,
+        sourcePanelLive: false,
+        filenamePatterns: "csstext: h1.author\ninto: authors/:csstext:/",
+      }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+    document.body.innerHTML = `<h1 class="author">example author</h1><img src="cat.jpg">`;
+    await import("../../src/content/content.ts");
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+    vi.mocked(global.chrome.runtime.sendMessage).mockClear();
+
+    document
+      .getElementById("save-in-source-panel")!
+      .shadowRoot!.querySelector<HTMLButtonElement>(".primary-action")!
+      .click();
+
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "DOWNLOAD",
+        body: expect.objectContaining({
+          info: expect.objectContaining({
+            capturedCssText: [["h1.author", "example author"]],
+          }),
+        }),
+      }),
+      expect.any(Function),
+    );
   });
 
   test("sends Page Sources CSS evidence for the saved element", async () => {
@@ -2400,6 +2465,53 @@ describe("setupClickToSave", () => {
       },
     });
     remove();
+  });
+
+  test("click-to-save reads page text only for a csstext: rule that applies to the page", () => {
+    const setup = (filenamePatterns: string) =>
+      ClickToSave.setupClickToSave(
+        {
+          contentClickToSaveCombo: "Ctrl",
+          contentClickToSaveButton: "BACK_CLICK",
+          links: true,
+          filenamePatterns,
+        },
+        acceptTestInput,
+      );
+    document.body.innerHTML =
+      '<header><b class="author"> example\n author </b></header><p class="blank"> </p><img id="i" src="http://x.test/pic.png">';
+    const lastInfo = (): Record<string, unknown> => {
+      const message = downloadsSent().at(-1)?.[0] as
+        | { body: { info: Record<string, unknown> } }
+        | undefined;
+      if (!message) throw new Error("no download was sent");
+      return message.body.info;
+    };
+    const query = vi.spyOn(document, "querySelectorAll");
+
+    let remove = setup("csstext: header .author\ninto: authors/:csstext:/:filename:");
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(document.getElementById("i"), 8);
+    expect(lastInfo().capturedCssText).toEqual([["header .author", "example author"]]);
+    remove();
+
+    // The selector found no text: the rule cannot match, so nothing is sent.
+    remove = setup("csstext: .blank\ninto: authors/:csstext:/:filename:");
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(document.getElementById("i"), 8);
+    expect(lastInfo()).not.toHaveProperty("capturedCssText");
+    remove();
+
+    query.mockClear();
+    remove = setup(
+      "pagedomain: ^elsewhere\\.test$\ncsstext: header .author\ninto: authors/:csstext:/:filename:",
+    );
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(document.getElementById("i"), 8);
+    expect(lastInfo()).not.toHaveProperty("capturedCssText");
+    expect(query).not.toHaveBeenCalledWith("header .author");
+    remove();
+    query.mockRestore();
   });
 
   test("click-to-save carries the clicked image's alt text", () => {

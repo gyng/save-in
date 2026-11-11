@@ -92,6 +92,13 @@ the same element, while a comma-separated selector list uses normal CSS OR
 semantics. Resource-timing hints have no originating element and cannot match
 this condition.
 
+`csstext:` also takes a CSS selector, but reads the page rather than the
+candidate: it matches when the top-level page has an element for the selector
+that contains text, and `:csstext:` names the save after that text. It is a
+page condition in spirit but does not replace the required `pageurl:`,
+`pagedomain:`, or `pagerootdomain:` clause. See
+[Naming a save after text on its page](DESTINATION-AND-SOURCE-WORKFLOWS.md#naming-a-save-after-text-on-its-page).
+
 `sourcekind:` uses the shared Page Sources vocabulary: `image`, `video`,
 `audio`, `stream`, `document`, and `link`. The automatic page scanner always
 queues previewable HTTP(S) image, video, and audio elements. Four further

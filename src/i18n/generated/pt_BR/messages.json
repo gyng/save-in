@@ -4378,8 +4378,11 @@
   "html_cssMatcherDescription": {
     "message": "Corresponde ao elemento da página que descobriu a fonte. Disponível para Fontes da página automáticas, Clique para salvar e salvamentos pelo painel Fontes da página."
   },
+  "html_cssTextMatcherDescription": {
+    "message": "Corresponde quando a página tem um elemento para este seletor CSS que contém texto, e guarda esse texto para :csstext:. Disponível para o menu de contexto, Clique para salvar, salvamentos pelo painel Fontes da página e Fontes da página automáticas."
+  },
   "html_cssMatcherSyntax": {
-    "message": "O correspondente css: usa a sintaxe de seletor CSS em vez de uma expressão regular e não aceita sinalizadores."
+    "message": "Os correspondentes css: e csstext: usam a sintaxe de seletor CSS em vez de uma expressão regular e não aceitam sinalizadores."
   },
   "ruleInvalidCssSelector": {
     "message": "Seletor CSS inválido"
@@ -4446,6 +4449,15 @@
   },
   "ruleTooManyCssSelectors": {
     "message": "Seletores css: distintos em excesso"
+  },
+  "ruleExtraCssText": {
+    "message": "Uma regra pode conter apenas uma cláusula csstext:"
+  },
+  "ruleTooManyCssTextSelectors": {
+    "message": "Cláusulas csstext: em excesso"
+  },
+  "ruleCssTextMissingClause": {
+    "message": ":csstext: precisa de uma cláusula csstext: na mesma regra"
   },
   "ruleClauseFlags": {
     "message": "Esta cláusula não aceita sinalizadores de expressão regular"
@@ -4516,6 +4528,9 @@
   "html_altTextVariableDescription": {
     "message": "O atributo alt da imagem salva, quando fornecido pela página."
   },
+  "html_cssTextVariableDescription": {
+    "message": "O texto do elemento da página encontrado pelo seletor csstext: da regra."
+  },
   "html_linkTitleMatcherDescription": {
     "message": "Corresponde ao atributo title do link clicado."
   },
@@ -4533,6 +4548,9 @@
   },
   "routeDebuggerAltText": {
     "message": "Texto alternativo da imagem"
+  },
+  "routeDebuggerCssText": {
+    "message": "Texto capturado da página"
   },
   "notificationRuleExcludedMessage": {
     "message": "$URL$ não foi salvo porque uma regra de roteamento o excluiu.",

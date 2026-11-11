@@ -247,6 +247,71 @@ For bounded content-to-background messages, one rule may contain up to 64
 The validator rejects larger configurations instead of silently dropping
 selector matches.
 
+## Naming a save after text on its page
+
+Some pages state who or what a file belongs to somewhere other than the file's
+own address: a profile page shows an account name in its header while its
+images have opaque CDN names. `csstext:` lets a rule use that text. Like
+`css:`, its value is a CSS selector rather than a regular expression. The
+clause matches when the page has an element for the selector that contains
+text, and `:csstext:` then expands to that text in the same rule's `into:` or
+`rename:`.
+
+For example, on a photo site whose post pages show the account in
+`<header><a class="account-name">example_account</a>…`, prefix every saved
+image with the account and file it under a folder of the same name:
+
+```text
+pagedomain: (^|\.)photos\.example$
+sourcekind: ^image$
+csstext: header a.account-name
+rename: ^ -> :csstext:_
+into: Photos/:csstext:/:filename:
+```
+
+Saving `8f3a91.jpg` from that page produces
+`Photos/example_account/example_account_8f3a91.jpg`. On a page of the same site
+without that header element the rule does not match, so a later rule or the
+ordinary destination applies.
+
+- **Where the selector looks.** Only the top-level page is read, not frames and
+  not inside shadow roots. The first matching element that has text is used.
+  For a `<meta>` element its `content` attribute is the text, which is often
+  the most stable place a page states an author or title, for example
+  `csstext: meta[property="og:title"]`.
+- **When it is read.** The page is read at the moment you save. With automatic
+  Page Sources saves it is read when discovery evaluates a source it has not
+  decided yet, so a page that keeps adding sources is read again as they
+  appear. Either way only rules whose own `pageurl:`, `pagedomain:`, or
+  `pagerootdomain:` conditions fit that page are looked up: give a `csstext:`
+  rule a page condition so its selector is not read on unrelated sites. No page
+  is read when no rule uses `csstext:`.
+- **What the text can do.** Page text is untrusted. Surrounding whitespace is
+  trimmed, runs of whitespace become one space, and at most 512 characters are
+  kept. `:csstext:` always becomes a single folder or file name: path
+  separators and other unsafe characters are replaced like in any other
+  variable, so page text cannot add folders or leave the destination. Text
+  that happens to look like `:filename:` or `:$1:` stays literal.
+- **Which saves have it.** Context-menu saves, Quick save, click-to-save, the
+  Page Sources panel, and automatic Page Sources saves. A context-menu save
+  asks the page and waits briefly; if the page cannot answer (a browser page,
+  a page opened before the extension was updated, a navigation in progress)
+  the rule does not match and the save continues with your other rules, the
+  same as `css:` without page-element context. Tab-strip saves, ordinary
+  browser downloads, external-extension requests, and **Move save** in History
+  carry no page text, so a `csstext:` rule never matches them.
+- **Limits.** One `csstext:` clause per rule and 64 across the configuration;
+  the validator rejects more. `:csstext:` is accepted only in a rule that has a
+  `csstext:` clause, and `csstext:` cannot be a `capture:` target.
+- **Testing.** The Route debugger's **Captured page text** field stands in for
+  every `csstext:` selector, since the debugger has no page to read. History
+  records the text that named a save, so **Debug this save** replays it.
+
+Sites change their markup without notice, so a selector that works today can
+stop matching. Prefer stable hooks such as `meta` tags, `data-` attributes, or
+semantic elements over generated class names, and keep a fallback rule below
+for when the element is missing.
+
 ## History actions
 
 History records the original source URL for a Save In download, including when

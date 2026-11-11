@@ -52,6 +52,12 @@ import {
   type ContextLinkMetadata,
 } from "../shared/context-link-metadata.ts";
 import { isBrowserTabId } from "../shared/message-protocol.ts";
+import {
+  CSS_TEXT_REQUEST,
+  parseCssTextCapture,
+  type CssTextCapture,
+} from "../shared/css-text-capture.ts";
+import { cssTextSelectorsForPage } from "../routing/css-text.ts";
 
 export { resolveClickTarget } from "./menu-target.ts";
 
@@ -65,7 +71,7 @@ let lastUsedMenuUpdateQueue: Promise<unknown> = Promise.resolve();
 let privateLastUsedMutationQueue: Promise<unknown> = Promise.resolve();
 type PrivateMenuInvocation = { windowId: number | undefined; invalidated: boolean };
 const activePrivateMenuInvocations = new Set<PrivateMenuInvocation>();
-const LINK_METADATA_TIMEOUT_MS = 500;
+const PAGE_ANSWER_TIMEOUT_MS = 500;
 
 // A routing input the page must be asked for. Each is requested only when the
 // configured syntax can consume it, so an ordinary save never waits on a page.
@@ -119,6 +125,33 @@ const usesRoutingInput = (use: RoutingInputUse, storedDestinationPath?: string):
   );
 };
 
+// Every page question races the same short timeout: a restricted page, a stale
+// content script, or a navigation simply leaves the optional input blank, and
+// the save goes ahead without it.
+const askPage = async (
+  tabId: number,
+  message: { type: string; body?: unknown },
+  frameId?: number,
+): Promise<unknown> => {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      webExtensionApi.tabs.sendMessage(
+        tabId,
+        message,
+        frameId === undefined ? undefined : { frameId },
+      ),
+      new Promise<null>((resolve) => {
+        timeout = setTimeout(() => resolve(null), PAGE_ANSWER_TIMEOUT_MS);
+      }),
+    ]);
+  } catch {
+    return null;
+  } finally {
+    if (timeout !== undefined) clearTimeout(timeout);
+  }
+};
+
 const readContextLinkMetadata = async (
   info: ContextMenuClickInfo,
   tab: CurrentTab | null | undefined,
@@ -132,30 +165,14 @@ const readContextLinkMetadata = async (
   ) {
     return null;
   }
-  let timeout: ReturnType<typeof setTimeout> | undefined;
-  try {
-    const messageOptions =
-      typeof info.frameId === "number" && Number.isSafeInteger(info.frameId) && info.frameId >= 0
-        ? { frameId: info.frameId }
-        : undefined;
-    const response = await Promise.race([
-      webExtensionApi.tabs.sendMessage(
-        tab.id,
-        { type: CONTEXT_LINK_METADATA_REQUEST, body: { linkUrl: info.linkUrl } },
-        messageOptions,
-      ),
-      new Promise<null>((resolve) => {
-        timeout = setTimeout(() => resolve(null), LINK_METADATA_TIMEOUT_MS);
-      }),
-    ]);
-    return parseContextLinkMetadata(response, info.linkUrl);
-  } catch {
-    // Restricted pages, stale content scripts, and navigation races simply
-    // leave the optional link metadata blank.
-    return null;
-  } finally {
-    if (timeout !== undefined) clearTimeout(timeout);
-  }
+  const response = await askPage(
+    tab.id,
+    { type: CONTEXT_LINK_METADATA_REQUEST, body: { linkUrl: info.linkUrl } },
+    typeof info.frameId === "number" && Number.isSafeInteger(info.frameId) && info.frameId >= 0
+      ? info.frameId
+      : undefined,
+  );
+  return parseContextLinkMetadata(response, info.linkUrl);
 };
 
 // The browser reports a plain page context for an image that has not finished
@@ -168,22 +185,25 @@ const readContextImage = async (
   tab: CurrentTab | null | undefined,
 ): Promise<ContextImage | null> => {
   if (!isBrowserTabId(tab?.id) || info.frameId !== 0) return null;
-  let timeout: ReturnType<typeof setTimeout> | undefined;
-  try {
-    const response = await Promise.race([
-      webExtensionApi.tabs.sendMessage(tab.id, { type: CONTEXT_IMAGE_REQUEST }, { frameId: 0 }),
-      new Promise<null>((resolve) => {
-        timeout = setTimeout(() => resolve(null), LINK_METADATA_TIMEOUT_MS);
-      }),
-    ]);
-    return parseContextImage(response);
-  } catch {
-    // Restricted pages, stale content scripts, and navigation races leave the
-    // click as the page save the browser described.
-    return null;
-  } finally {
-    if (timeout !== undefined) clearTimeout(timeout);
-  }
+  return parseContextImage(await askPage(tab.id, { type: CONTEXT_IMAGE_REQUEST }, 0));
+};
+
+// csstext: rules name a save after text on its page. The top-level document is
+// asked only when a rule that can apply to this page uses one, and only for
+// those rules' selectors. An unanswered question leaves the capture absent, so
+// such a rule does not match — the same outcome as css: without an attestation.
+const readCssText = async (
+  info: ContextMenuClickInfo,
+  tab: CurrentTab | null | undefined,
+): Promise<CssTextCapture | undefined> => {
+  const rules = options.filenamePatterns;
+  if (!isBrowserTabId(tab?.id) || !Array.isArray(rules)) return undefined;
+  const selectors = cssTextSelectorsForPage(rules, info.pageUrl);
+  if (selectors.length === 0) return undefined;
+  return parseCssTextCapture(
+    await askPage(tab.id, { type: CSS_TEXT_REQUEST, body: { selectors } }, 0),
+    selectors,
+  );
 };
 
 const getContextMenuListenerRegistrar = (
@@ -375,6 +395,7 @@ const handleContextMenuClickInternal = async (
       const image = recoveredImage ?? (await readContextImage(info, clickTab));
       if (image && image.src === boundedContextImageUrl(info.srcUrl)) altText = image.alt;
     }
+    const capturedCssText = await readCssText(info, clickTab);
     // A text selection is saved as an object URL of its text (the pure
     // decision only reports the text)
     let url = target.selectionText != null ? makeObjectUrl(target.selectionText) : target.url;
@@ -488,6 +509,7 @@ const handleContextMenuClickInternal = async (
       linkTitle: contextLinkMetadata?.title,
       linkDownload: contextLinkMetadata?.download,
       altText,
+      ...(capturedCssText ? { capturedCssText } : {}),
       mediaType: info.mediaType,
       now: new Date(),
       pageUrl: info.pageUrl,

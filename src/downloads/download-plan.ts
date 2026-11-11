@@ -33,6 +33,17 @@ import {
   requireDownloadUrl,
 } from "./download-pipeline-state.ts";
 
+// :csstext: expands to what the winning rule's csstext: clause captured, so
+// every fresh match replaces it: a rule that lost on a later pass must not
+// leave its text behind to name another rule's file.
+const recordMatchedCssText = (
+  info: DownloadPipelineState["info"],
+  match: RuleMatch | null,
+): void => {
+  if (match?.outcome === "route" && match.cssText) info.cssText = match.cssText;
+  else delete info.cssText;
+};
+
 export const getRoutingMatch = (state: Pick<DownloadPipelineState, "info">): RuleMatch | null => {
   if (state.info.routingDisabled) return null;
   const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
@@ -40,7 +51,9 @@ export const getRoutingMatch = (state: Pick<DownloadPipelineState, "info">): Rul
     return null;
   }
 
-  return matchRulesDetailed(filenamePatterns, state.info);
+  const match = matchRulesDetailed(filenamePatterns, state.info);
+  recordMatchedCssText(state.info, match);
+  return match;
 };
 
 // comment: and menuindex: read the menu entry a save came from. For
@@ -76,6 +89,7 @@ export const getRoutingMatches = (
     isRenameOnlyEligibleRule,
     isRenameOnlyEligibleMatch,
   );
+  recordMatchedCssText(state.info, match);
   if (match?.outcome === "exclude") {
     state.scratch.routeOutcome = "exclude";
     return null;

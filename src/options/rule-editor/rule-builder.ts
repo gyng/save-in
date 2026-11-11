@@ -20,6 +20,7 @@ const MATCHER_PATTERN_PLACEHOLDERS: Record<string, string> = {
   menuindex: "images|documents",
   comment: "favorites|work",
   css: "article img, .gallery video",
+  csstext: "header .author",
   fileext: "jpg|png",
   urlfileext: "pdf|epub",
   actualfileext: "jpg|png",

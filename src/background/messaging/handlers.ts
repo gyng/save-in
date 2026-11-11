@@ -30,6 +30,7 @@ import { previewRoutes } from "../route-preview.ts";
 import { isEligibleAutomaticRoutingRuleForCandidate } from "../../automation/automatic-routing.ts";
 import { PAGE_SOURCE_KINDS } from "../../shared/page-source.ts";
 import { INTEGRATION_GRAMMARS } from "../integration-grammars.ts";
+import { SELECTOR_MATCHER_NAMES } from "../../routing/rule-types.ts";
 import {
   AUTOMATIC_CONTEXT,
   AUTOMATIC_PAGE_MATCHERS,
@@ -202,7 +203,7 @@ export const handleGetKeywords = (
   sendResponse({
     type: MESSAGE_TYPES.KEYWORD_LIST,
     body: {
-      matchers: [...Object.keys(matcherFunctions), "css"],
+      matchers: [...Object.keys(matcherFunctions), ...SELECTOR_MATCHER_NAMES],
       variables: Object.keys(transformers),
       routingActions: Object.entries(ROUTING_ACTION_VALUES).map(
         ([name, value]) => `${name}: ${value}`,
@@ -279,7 +280,7 @@ export const handleValidate = async (
       });
       const cssWarnings = parsed.rules.flatMap((rule) =>
         rule.flatMap((clause) =>
-          clause.type === "MATCHER" && clause.name === "css" && typeof clause.value === "string"
+          clause.type === "MATCHER" && typeof clause.value === "string"
             ? [
                 {
                   message:
@@ -537,6 +538,8 @@ export const handleDownloadMessage = (
       ...(internal && info.matchedCssSelectorsByOrigin
         ? { matchedCssSelectorsByOrigin: info.matchedCssSelectorsByOrigin }
         : {}),
+      // Page text is evidence only the page's own content script can give.
+      ...(internal && info.capturedCssText ? { capturedCssText: info.capturedCssText } : {}),
       url,
       context: DOWNLOAD_TYPES.CLICK,
     };

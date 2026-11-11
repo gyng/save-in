@@ -67,6 +67,15 @@ cover runtime dependencies, remote code, build provenance, and release contents.
   script that dispatches fake DOM events is not the same compatibility contract.
 - Content scripts can outlive extension reloads, so security checks must retain
   the existing invalidated-context and service-worker retry behavior.
+- Page text captured for `csstext:` rules is attacker-controlled and names
+  files. It must reach a path only through the `:csstext:` variable, which the
+  pipeline sanitizes as one component; never substitute it into a rule template
+  the way `:$1:` captures are, where it could add separators or spell another
+  variable. The background takes it only from the page's own top-frame content
+  script (`isPageContentSender`) in the bounded, canonical form of
+  `shared/css-text-capture.ts`, and a rule's resolved text (`cssText`) is never
+  accepted from a message. Keep reads at save intent and limited to rules whose
+  page conditions fit the page.
 
 ### Native and command-line hand-offs
 

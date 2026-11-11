@@ -349,6 +349,61 @@ test("attests selectors per origin and only queues a complete same-element CSS m
   controller.stop();
 });
 
+test("automatic candidates carry page text read once per scan, and only when a rule can use it", async () => {
+  document.body.innerHTML = '<header><b class="author"> example\n author </b></header>';
+  const image = document.createElement("img");
+  const other = document.createElement("img");
+  fixture.candidates = [
+    { url: "https://cdn.test/one.png", kind: "image", element: image },
+    { url: "https://cdn.test/two.png", kind: "image", element: other },
+  ];
+  const query = vi.spyOn(document, "querySelectorAll");
+  const send = vi.fn<(candidate: AutomaticRoutingCandidate) => Promise<"started">>(async () =>
+    Promise.resolve("started"),
+  );
+  const textRules = String.raw`
+context: ^auto$
+pageurl: ^http://localhost/
+sourcekind: image
+csstext: header .author
+into: authors/:csstext:/
+`;
+  const controller = setupAutoDownloadDiscovery({
+    rules: textRules,
+    live: false,
+    maxPerPage: 10,
+    send,
+  });
+  await controller.idle();
+
+  expect(send).toHaveBeenCalledTimes(2);
+  for (const [candidate] of send.mock.calls) {
+    expect(candidate.capturedCssText).toEqual([["header .author", "example author"]]);
+    expect(matchAutomaticRoutingRule(parseRulesCollecting(textRules).rules, candidate)).toEqual(
+      expect.objectContaining({ destination: "authors/:csstext:/", cssText: "example author" }),
+    );
+  }
+  expect(query.mock.calls.filter(([selector]) => selector === "header .author")).toHaveLength(1);
+  controller.stop();
+
+  // A rule written for another page never has its selector read here, and a
+  // source the page cannot name is not offered.
+  query.mockClear();
+  send.mockClear();
+  const elsewhere = setupAutoDownloadDiscovery({
+    rules: textRules.replace("^http://localhost/", "^https://elsewhere\\.test/"),
+    live: false,
+    maxPerPage: 10,
+    send,
+  });
+  await elsewhere.idle();
+  expect(send).not.toHaveBeenCalled();
+  expect(query).not.toHaveBeenCalledWith("header .author");
+  elsewhere.stop();
+  query.mockRestore();
+  document.body.replaceChildren();
+});
+
 test("preserves rule order when duplicate URLs have different matching origins", async () => {
   const article = document.createElement("article");
   const articleImage = document.createElement("img");

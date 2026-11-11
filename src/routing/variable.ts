@@ -484,6 +484,11 @@ export const transformers: TransformerRegistry = {
       opts => stringSegment(opts.linkDownload),
     [SPECIAL_DIRS.ALT_TEXT]:
       opts => stringSegment(opts.altText),
+    // Page-controlled text chosen by the winning rule's csstext: selector. A
+    // string segment is sanitized as one path component, so it can name a
+    // folder or file but never add a separator.
+    [SPECIAL_DIRS.CSS_TEXT]:
+      opts => stringSegment(opts.cssText),
     [SPECIAL_DIRS.SELECTION_TEXT]:
       opts => stringSegment((opts.selectionText && opts.selectionText.trim()) || ""),
     [SPECIAL_DIRS.MENU_PATH]:

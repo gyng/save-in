@@ -25,6 +25,7 @@ const renderWorkbench = (): void => {
       <input id="route-debugger-link-title">
       <input id="route-debugger-link-download">
       <input id="route-debugger-alt-text">
+      <input id="route-debugger-css-text">
       <input id="route-debugger-selection-text">
       <select id="route-debugger-media-type"><option value=""></option><option value="image">Image</option></select>
       <select id="route-debugger-source-kind"><option value=""></option><option value="image">Image</option></select>
@@ -92,6 +93,8 @@ test("shows production rule and clause decisions and jumps back to their source"
     "linkTitle",
     "linkDownload",
     "altText",
+    "cssText",
+    "pageText",
     "selectionText",
     "mediaType",
     "sourceKind",

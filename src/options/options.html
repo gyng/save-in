@@ -925,7 +925,7 @@ Goal: [describe which downloads to match and where they should be saved]
 
 Save In syntax:
 - Write one clause per line and separate rules with a blank line.
-- Every matcher in one rule must match. Matcher values are JavaScript regular expressions except css:, which takes a CSS selector and no flags. Do not leave a regex matcher empty; write .* explicitly for a match-all condition. Use at most 64 css: matchers in one rule and 256 across the configuration.
+- Every matcher in one rule must match. Matcher values are JavaScript regular expressions except css: and csstext:, which take a CSS selector and no flags. Do not leave a regex matcher empty; write .* explicitly for a match-all condition. Use at most 64 css: matchers in one rule and 256 across the configuration.
 - Common matchers include filename:, finalfilename:, actualfileext:, mime:, sourceurl:, sourcedomain:, sourcerootdomain:, sourcekind:, gesture:, keys:, css:, pageurl:, pagedomain:, pagerootdomain:, referrerurl:, referrerdomain:, pagetitle:, context:, and mediatype:.
 - Add /i to a matcher name for case-insensitive matching, for example filename/i: \.pdf$. Regex flags are allowed only on matcher names and rename:.
 - Every saving rule must contain exactly one into: clause. Its value is a relative destination or filename template and cannot contain .. path components.
@@ -933,6 +933,7 @@ Save In syntax:
 - Add after: close-tab to a destination rule to close the source tab only after the browser accepts a user-initiated save. Automatic Page Sources rules cannot close tabs.
 - End into: with / to move the file while preserving its resolved filename.
 - Otherwise include :filename: unless the goal explicitly requests renaming.
+- To name a save after text on its page, add one csstext: clause with a CSS selector for the element and use :csstext: in into: or rename:. The rule matches only when that element exists on the top-level page and contains text. Use at most one csstext: clause in a rule and 64 across the configuration.
 - Variables use :name: syntax. Useful choices include :filename:, :fileext:, :sourcedomain:, :year:, :month:, :day:, :counter:, and :uuid:.
 - To reuse regex groups in new rules, add capturegroups: followed by the matcher name, then use :$1:, :$2:, and so on in into:. capture: is only for compatibility with legacy flattened indexes.
 - Add an optional fetch: clause with a literal http:// or https:// URL template to download from that address instead of the matched source; into: still sets the destination. It may reuse :$1:, :$2:, and other routing variables except :mime:, :contenttype:, :mimeext:, :sha256:, :sha256full:, :finalurl:, and :redirecturl:. The save fails if expansion does not produce a usable HTTP(S) URL. A rule may contain at most one fetch: clause.
@@ -1272,6 +1273,15 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                             <input
                               type="text"
                               id="route-debugger-alt-text"
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerCssText__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-css-text"
                               data-no-autosave
                               spellcheck="false"
                             />
@@ -3700,6 +3710,14 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
               <tr>
                 <td>
+                  <code class="click-to-copy">:csstext:</code>
+                </td>
+                <td>example_author</td>
+                <td>__MSG_html_cssTextVariableDescription__</td>
+              </tr>
+
+              <tr>
+                <td>
                   <code class="click-to-copy">:selectiontext:</code>
                 </td>
                 <td>A swan created using</td>
@@ -3972,6 +3990,15 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <code>article img, .gallery video</code>
                 </td>
                 <td>__MSG_html_cssMatcherDescription__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">csstext:</code>
+                </td>
+                <td>
+                  <code>header .author</code>
+                </td>
+                <td>__MSG_html_cssTextMatcherDescription__</td>
               </tr>
               <tr>
                 <td>

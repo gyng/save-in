@@ -435,7 +435,7 @@
   },
   "ruleInvalidCssSelector": {
     "message": "Invalid CSS selector",
-    "description": "Validation error for an invalid css: routing matcher value. Used in src/routing/rule-parser.ts and the Options page."
+    "description": "Validation error for an invalid css: or csstext: routing matcher value. Used in src/routing/rule-parser.ts and the Options page."
   },
   "ruleCssFlags": {
     "message": "css: does not accept regular-expression flags",
@@ -444,6 +444,18 @@
   "ruleTooManyCssSelectors": {
     "message": "Too many distinct css: selectors",
     "description": "Validation error when routing configuration exceeds the bounded CSS selector attestation limit. Keep the literal css: clause name. Used in src/routing/rule-parser.ts."
+  },
+  "ruleExtraCssText": {
+    "message": "A rule can contain only one csstext: clause",
+    "description": "Validation error when one routing rule has more than one csstext: clause. Keep the literal clause name csstext:. Used in src/routing/rule-parser.ts."
+  },
+  "ruleTooManyCssTextSelectors": {
+    "message": "Too many csstext: clauses",
+    "description": "Validation error when the routing configuration has more csstext: clauses than the bounded page-text capture allows (64). Keep the literal clause name csstext:. Used in src/routing/rule-parser.ts."
+  },
+  "ruleCssTextMissingClause": {
+    "message": ":csstext: needs a csstext: clause in the same rule",
+    "description": "Validation error when a routing rule's into:, fetch:, or rename: clause uses the :csstext: variable but the rule has no csstext: clause to fill it. Keep the literal names :csstext: and csstext:. Used in src/routing/rule-parser.ts."
   },
   "ruleCssSyntaxUnverified": {
     "message": "CSS selector syntax is not verified in background validation",
@@ -997,6 +1009,10 @@
     "message": "The alt attribute of the image you saved, when the page provides it.",
     "description": "Description of the :alttext: filename variable. This is the HTML alt attribute (alternative text) of an image saved from the context menu, click-to-save, or the Page Sources panel. Keep the literal attribute name alt. Used in src/options/options.html."
   },
+  "html_cssTextVariableDescription": {
+    "message": "The text of the page element found by the rule's csstext: selector.",
+    "description": "Description of the :csstext: filename variable. It expands to the text of the page element that the same routing rule's csstext: clause selected, and is empty outside such a rule. Keep the literal clause name csstext:. Used in src/options/options.html."
+  },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "The currently selected text on the page",
     "description": "Text in the filename-variable reference. Used in src/options/options.html."
@@ -1177,9 +1193,13 @@
     "message": "Matches the page element that discovered the source. Available for automatic Page Sources, click-to-save, and Page Sources panel saves.",
     "description": "Description of the css: routing matcher and the content-originated save paths where DOM context exists. Used in src/options/clauselist.html and src/options/options.html."
   },
+  "html_cssTextMatcherDescription": {
+    "message": "Matches when the page has an element for this CSS selector that contains text, and keeps that text for :csstext:. Available for context menu, click-to-save, Page Sources panel, and automatic Page Sources saves.",
+    "description": "Description of the csstext: routing matcher. Its value is a CSS selector; the rule matches only when the top-level page has a matching element that contains text, and that text becomes the :csstext: variable. Keep the literal variable name :csstext:. Used in src/options/clauselist.html and src/options/options.html."
+  },
   "html_cssMatcherSyntax": {
-    "message": "The css: matcher uses CSS selector syntax instead of a regular expression and does not accept flags.",
-    "description": "CSS syntax exception in the routing matcher reference. Keep the literal css: matcher name. Used in src/options/clauselist.html and src/options/options.html."
+    "message": "The css: and csstext: matchers use CSS selector syntax instead of a regular expression and do not accept flags.",
+    "description": "CSS syntax exception in the routing matcher reference. Keep the literal css: and csstext: matcher names. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheMediaType": {
     "message": "Matches the media type:",
@@ -4738,6 +4758,10 @@
   "routeDebuggerAltText": {
     "message": "Image alt text",
     "description": "Label for the route debugger input that represents an image's HTML alt attribute (alternative text). Used in src/options/options.html."
+  },
+  "routeDebuggerCssText": {
+    "message": "Captured page text",
+    "description": "Label for the route debugger input that holds the page text a csstext: selector would capture; during a test it stands in for every csstext: selector. Also labels that value in the test result. Used in src/options/options.html and src/options/route-debugger/route-debugger.ts."
   },
   "routeDebuggerSelectionText": {
     "message": "Selected text",

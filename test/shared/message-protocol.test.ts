@@ -10,6 +10,36 @@ import {
 } from "../../src/shared/message-protocol.ts";
 
 describe("message protocol runtime validation", () => {
+  test("accepts bounded page text on the three entry points that route with it", () => {
+    const capturedCssText = [["header .author", "example author"]];
+    expect(
+      isInternalMessage({
+        type: MESSAGE_TYPES.DOWNLOAD,
+        body: { url: "https://x/a.png", info: { capturedCssText } },
+      }),
+    ).toBe(true);
+    expect(
+      isInternalMessage({
+        type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+        body: {
+          pageUrl: "https://x/",
+          sourceUrl: "https://x/a.png",
+          sourceKind: "image",
+          capturedCssText,
+        },
+      }),
+    ).toBe(true);
+    expect(
+      isInternalMessage({
+        type: MESSAGE_TYPES.VALIDATE,
+        body: { info: { capturedCssText, cssText: "example author" } },
+      }),
+    ).toBe(true);
+    expect(
+      isWireDownloadState({ info: { cssText: "example author", altText: "Harbor sunset" } }),
+    ).toBe(true);
+  });
+
   test("accepts the bounded CSS proof maximum and rejects one group beyond it", () => {
     const message = (groups: string[][]) => ({
       type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
@@ -187,6 +217,26 @@ describe("message protocol runtime validation", () => {
     {
       type: MESSAGE_TYPES.VALIDATE,
       body: { info: { matchedCssSelectorsByOrigin: "img" } },
+    },
+    // Page text reaches the matcher as selector/text pairs; anything else
+    // would be read as a pair and compared against a rule's selector.
+    { type: MESSAGE_TYPES.VALIDATE, body: { info: { capturedCssText: "example" } } },
+    { type: MESSAGE_TYPES.VALIDATE, body: { info: { capturedCssText: [["a", " padded "]] } } },
+    { type: MESSAGE_TYPES.VALIDATE, body: { info: { cssText: 7 } } },
+    { type: MESSAGE_TYPES.DOWNLOAD, body: { info: { capturedCssText: [["a"]] } } },
+    { type: MESSAGE_TYPES.DOWNLOAD, body: { info: { capturedCssText: { a: "text" } } } },
+    {
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: { info: { capturedCssText: [["a", "x".repeat(513)]] } },
+    },
+    {
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: {
+        pageUrl: "https://x/",
+        sourceUrl: "https://x/a.png",
+        sourceKind: "image",
+        capturedCssText: [["a", ""]],
+      },
     },
     {
       type: MESSAGE_TYPES.VALIDATE,

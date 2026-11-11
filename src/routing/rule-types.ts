@@ -3,6 +3,7 @@ import type { ContentFetchResult } from "../shared/content-fetch-types.ts";
 import type { LazyDownloadMetadata } from "../shared/lazy-download-metadata.ts";
 import type { PageSourceKind } from "../shared/page-source.ts";
 import type { ClickGesture } from "../shared/click-gesture.ts";
+import type { CssTextCapture } from "../shared/css-text-capture.ts";
 
 export type RoutingContent = ContentFetchResult;
 
@@ -51,6 +52,12 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   onContentFetchStart?: ((requestId: string) => void | Promise<void>) | undefined;
   contentFetchDisabled?: boolean | undefined;
   matchedCssSelectorsByOrigin?: string[][] | undefined;
+  // What the page reported for the configured csstext: selectors. Evidence
+  // for matching only: like the CSS attestation it is never persisted.
+  capturedCssText?: CssTextCapture | undefined;
+  // The text the winning rule's csstext: selector captured; :csstext: expands
+  // to it. Set by whoever selects the rule, never taken from a message.
+  cssText?: string | undefined;
 };
 
 export type RuleErrorLocation = {
@@ -101,13 +108,31 @@ export type CssMatcherClause = {
   type: typeof RULE_TYPES.MATCHER;
   matcher: RuleMatcher;
 };
-export type MatcherClause = RegexMatcherClause | CssMatcherClause;
+export type CssTextMatcherClause = {
+  name: "csstext";
+  value: string;
+  type: typeof RULE_TYPES.MATCHER;
+  matcher: RuleMatcher;
+};
+export type MatcherClause = RegexMatcherClause | CssMatcherClause | CssTextMatcherClause;
+
+// Matchers whose value is a CSS selector rather than a regular expression:
+// they take no flags and cannot be a capture: target.
+export const SELECTOR_MATCHER_NAMES = ["css", "csstext"] as const;
+
+export const isSelectorMatcherName = (
+  name: string,
+): name is (typeof SELECTOR_MATCHER_NAMES)[number] =>
+  SELECTOR_MATCHER_NAMES.some((selectorName) => selectorName === name);
 
 export const isCssMatcherClause = (clause: MatcherClause): clause is CssMatcherClause =>
   clause.name === "css";
 
+export const isCssTextMatcherClause = (clause: MatcherClause): clause is CssTextMatcherClause =>
+  clause.name === "csstext";
+
 export const isRegexMatcherClause = (clause: MatcherClause): clause is RegexMatcherClause =>
-  !isCssMatcherClause(clause);
+  !isCssMatcherClause(clause) && !isCssTextMatcherClause(clause);
 export type CaptureClause = {
   name: "capture" | "capturegroups";
   value: string;

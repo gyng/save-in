@@ -12,10 +12,18 @@ import { MENU_IDS } from "../../src/menus/menu-ids.ts";
 import { buildTree } from "../../src/menus/menu-tree.ts";
 import { seedOptions } from "../../src/config/option.ts";
 import { options } from "../../src/config/options-data.ts";
-import { FORBIDDEN_FILENAME_CHARS, RULE_TYPES } from "../../src/shared/constants.ts";
+import {
+  FORBIDDEN_FILENAME_CHARS,
+  PATH_SEGMENT_TYPES,
+  RULE_TYPES,
+  SPECIAL_DIRS,
+} from "../../src/shared/constants.ts";
+import { normalizeCssText } from "../../src/shared/css-text-capture.ts";
+import { transformers } from "../../src/routing/variable.ts";
 import { validateWebhookUrl } from "../../src/shared/webhook.ts";
 import {
   getFilenameDiagnostics,
+  Path,
   RESERVED_DEVICE_NAME_REGEX,
   sanitizeFilename,
 } from "../../src/routing/path.ts";
@@ -471,6 +479,48 @@ const filenameSafety: FuzzTarget = {
     ),
 };
 
+// :csstext: places text a page controls. Whatever the page says, the text
+// must stay the one path component the rule gave it: it may not add a
+// directory level, climb out of one, or disturb its neighbours.
+const pageTextContainment: FuzzTarget = {
+  name: "page-text-containment",
+  run: (parameters) =>
+    fc.check(
+      fc.property(
+        fc.oneof(
+          sourceTextArbitrary,
+          fc.constantFrom("..", ".", "../..", "..\\..", "/", "\\", "a/../b", ":filename:", "C:\\x"),
+        ),
+        fc.boolean(),
+        (pageText, asFilename) => {
+          const segment = transformers[SPECIAL_DIRS.CSS_TEXT](
+            { cssText: normalizeCssText(pageText), now: new Date(0) },
+            { type: PATH_SEGMENT_TYPES.VARIABLE, val: SPECIAL_DIRS.CSS_TEXT },
+            0,
+            [],
+          );
+          invariant(!(segment instanceof Promise), ":csstext: must expand synchronously");
+          const path = new Path(asFilename ? "captured/kept/:csstext:" : "captured/:csstext:/kept");
+          path.buf = path.buf.map((token) =>
+            token.type === PATH_SEGMENT_TYPES.VARIABLE ? segment : token,
+          );
+          const components = path.finalize({ finalComponentIsFilename: true }).split("/");
+          invariant(components.length === 3, "page text changed the number of path components");
+          const [root, second, third] = components;
+          const captured = asFilename ? third : second;
+          invariant(root === "captured", "page text changed the leading component");
+          invariant((asFilename ? second : third) === "kept", "page text changed a sibling");
+          invariant(
+            captured !== undefined && captured !== "" && captured !== "." && captured !== "..",
+            "page text produced an empty or traversing component",
+          );
+          invariant(!captured.includes("\\"), "page text kept a backslash separator");
+        },
+      ),
+      parameters,
+    ),
+};
+
 const safeHttpsArbitrary = fc.webUrl({
   validSchemes: ["https"],
   withQueryParameters: true,
@@ -523,6 +573,7 @@ const targets: FuzzTarget[] = [
   routingLossless,
   routingSemantic,
   filenameSafety,
+  pageTextContainment,
   menuAccessKeyMarkup,
   menuTreeNumbering,
   webhookUrlPolicy,

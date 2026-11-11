@@ -31,6 +31,9 @@ test("history keeps the remaining compact inputs needed to replay routing decisi
       sha256: "abc123",
       gesture: "left-click",
       clickKeys: "ctrl+shift",
+      altText: "Harbor sunset",
+      cssText: "example author",
+      capturedCssText: [["header .author", "example author"]],
     },
   });
 
@@ -46,8 +49,15 @@ test("history keeps the remaining compact inputs needed to replay routing decisi
       sha256: "abc123",
       gesture: "left-click",
       keys: "ctrl+shift",
+      alttext: "Harbor sunset",
+      csstext: "example author",
     }),
   );
+  // Only the text that named the save is recorded, never the page's answers
+  // for the other configured selectors.
+  expect(
+    JSON.stringify(vi.mocked(SaveHistory.addHistoryEntry).mock.calls.at(-1)?.[0]),
+  ).not.toContain("header .author");
 });
 
 test("history stores a truncated, non-fetchable form of a data: URL, never the full payload", () => {

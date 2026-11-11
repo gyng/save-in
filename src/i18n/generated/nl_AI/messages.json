@@ -4378,8 +4378,11 @@
   "html_cssMatcherDescription": {
     "message": "Komt overeen met het pagina-element dat de bron heeft gevonden. Beschikbaar voor automatische paginabronnen, klikken om op te slaan en opslaan via het paneel Paginabronnen."
   },
+  "html_cssTextMatcherDescription": {
+    "message": "Komt overeen wanneer de pagina een element voor deze CSS-selector heeft dat tekst bevat, en bewaart die tekst voor :csstext:. Beschikbaar voor het contextmenu, klikken om op te slaan, opslaan via het paneel Paginabronnen en automatische paginabronnen."
+  },
   "html_cssMatcherSyntax": {
-    "message": "De matcher css: gebruikt CSS-selectorsyntaxis in plaats van een reguliere expressie en accepteert geen vlaggen."
+    "message": "De matchers css: en csstext: gebruiken CSS-selectorsyntaxis in plaats van een reguliere expressie en accepteren geen vlaggen."
   },
   "ruleInvalidCssSelector": {
     "message": "Ongeldige CSS-selector"
@@ -4446,6 +4449,15 @@
   },
   "ruleTooManyCssSelectors": {
     "message": "Te veel verschillende css:-selectors"
+  },
+  "ruleExtraCssText": {
+    "message": "Een regel kan slechts één csstext:-clausule bevatten"
+  },
+  "ruleTooManyCssTextSelectors": {
+    "message": "Te veel csstext:-clausules"
+  },
+  "ruleCssTextMissingClause": {
+    "message": ":csstext: vereist een csstext:-clausule in dezelfde regel"
   },
   "ruleClauseFlags": {
     "message": "Deze clausule accepteert geen vlaggen voor reguliere expressies"
@@ -4516,6 +4528,9 @@
   "html_altTextVariableDescription": {
     "message": "Het alt-attribuut van de opgeslagen afbeelding, wanneer de pagina dit opgeeft."
   },
+  "html_cssTextVariableDescription": {
+    "message": "De tekst van het pagina-element dat de csstext:-selector van de regel heeft gevonden."
+  },
   "html_linkTitleMatcherDescription": {
     "message": "Komt overeen met het title-attribuut van de aangeklikte link."
   },
@@ -4533,6 +4548,9 @@
   },
   "routeDebuggerAltText": {
     "message": "Alternatieve tekst van afbeelding"
+  },
+  "routeDebuggerCssText": {
+    "message": "Vastgelegde paginatekst"
   },
   "notificationRuleExcludedMessage": {
     "message": "$URL$ is niet opgeslagen omdat een routeringsregel het heeft uitgesloten.",

@@ -19,7 +19,7 @@ rule             = clause-line, { comment-line | clause-line } ;
 clause-line      = matcher-clause | css-clause | capture-clause | into-clause
                  | fetch-clause | rename-clause | action-clause | disabled-clause ;
 matcher-clause   = matcher-name, [ "/", regex-flags ], ":", [ " " ], regex ;
-css-clause       = "css:", [ " " ], selector ;
+css-clause       = ( "css:" | "csstext:" ), [ " " ], selector ;
 capture-clause   = ( "capture:" | "capturegroups:" ), [ " " ], matcher-list ;
 into-clause      = "into:", [ " " ], relative-template ;
 fetch-clause     = "fetch:", [ " " ], http-template ;

@@ -14,6 +14,7 @@ import { canonicalFetchRewrite, expandFetchUrl, retargetDownloadInfo } from "./f
 import { applyVariables } from "./variable.ts";
 import { applyRenameTransform, expandRenameTransform, type RenameTransform } from "./rename.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
+import { replayedCssTextCapture } from "./css-text.ts";
 
 export type * from "./rule-types.ts";
 export { matcherFunctions } from "./matchers.ts";
@@ -111,9 +112,17 @@ const normalizeTraceCurrentTab = (value: unknown): RoutingDownloadInfo["currentT
 
 export const traceRules = async (
   rules: RoutingRule[],
-  info: RoutingInfo,
+  suppliedInfo: RoutingInfo,
   isEligible: (rule: RoutingRule) => boolean = () => true,
 ): Promise<RuleTrace> => {
+  // A trace is offline: the debugger's typed text or a History row's recorded
+  // text is all it has, so that text answers for every csstext: selector.
+  const replayedCapture = suppliedInfo.capturedCssText
+    ? undefined
+    : replayedCssTextCapture(rules, suppliedInfo.cssText);
+  const info: RoutingInfo = replayedCapture
+    ? { ...suppliedInfo, capturedCssText: replayedCapture }
+    : suppliedInfo;
   const evaluatedRules = rules.map((rule) => {
     const eligible = isEligible(rule);
     return {
@@ -127,6 +136,7 @@ export const traceRules = async (
             fetch: false as const,
             rename: false as const,
             tabAction: false as const,
+            cssText: false as const,
             clauses: [],
           },
     };
@@ -175,6 +185,8 @@ export const traceRules = async (
     sourceUrl,
     now: info.now instanceof Date ? info.now : new Date(),
     preview: true,
+    // Only the winning rule's own capture expands :csstext:, as in the pipeline.
+    cssText: selectedEvaluation?.cssText || undefined,
   };
   const expandedFetchUrl = selectedFetchTemplate
     ? await expandFetchUrl(selectedFetchTemplate, traceInfo)

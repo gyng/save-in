@@ -4378,8 +4378,11 @@
   "html_cssMatcherDescription": {
     "message": "Matchar sidelementet som hittade källan. Tillgängligt för automatiska sidkällor, klicka för att spara och sparningar från panelen Sidkällor."
   },
+  "html_cssTextMatcherDescription": {
+    "message": "Matchar när sidan har ett element för den här CSS-selektorn som innehåller text, och behåller den texten för :csstext:. Tillgängligt för snabbmenyn, klicka för att spara, sparningar från panelen Sidkällor och automatiska sidkällor."
+  },
   "html_cssMatcherSyntax": {
-    "message": "Matcharen css: använder CSS-selektorsyntax i stället för ett reguljärt uttryck och accepterar inga flaggor."
+    "message": "Matcharna css: och csstext: använder CSS-selektorsyntax i stället för ett reguljärt uttryck och accepterar inga flaggor."
   },
   "ruleInvalidCssSelector": {
     "message": "Ogiltig CSS-selektor"
@@ -4446,6 +4449,15 @@
   },
   "ruleTooManyCssSelectors": {
     "message": "För många olika css:-väljare"
+  },
+  "ruleExtraCssText": {
+    "message": "En regel kan bara innehålla en csstext:-sats"
+  },
+  "ruleTooManyCssTextSelectors": {
+    "message": "För många csstext:-satser"
+  },
+  "ruleCssTextMissingClause": {
+    "message": ":csstext: kräver en csstext:-sats i samma regel"
   },
   "ruleClauseFlags": {
     "message": "Den här satsen accepterar inte flaggor för reguljära uttryck"
@@ -4516,6 +4528,9 @@
   "html_altTextVariableDescription": {
     "message": "Alt-attributet för bilden du sparade, när sidan anger det."
   },
+  "html_cssTextVariableDescription": {
+    "message": "Texten i sidelementet som regelns csstext:-selektor hittade."
+  },
   "html_linkTitleMatcherDescription": {
     "message": "Matchar title-attributet för länken du klickade på."
   },
@@ -4533,6 +4548,9 @@
   },
   "routeDebuggerAltText": {
     "message": "Alternativtext för bild"
+  },
+  "routeDebuggerCssText": {
+    "message": "Fångad sidtext"
   },
   "notificationRuleExcludedMessage": {
     "message": "$URL$ sparades inte eftersom en routningsregel uteslöt den.",

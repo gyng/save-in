@@ -62,6 +62,9 @@ import {
 } from "./css-routing.ts";
 import { contextLinkMetadataFromEvent } from "./context-link-metadata.ts";
 import { contextImageFromEvent, imageAltText } from "./context-image.ts";
+import { captureCssText } from "./css-text.ts";
+import { cssTextSelectorsForPage } from "../routing/css-text.ts";
+import { CSS_TEXT_REQUEST, type CssTextCapture } from "../shared/css-text-capture.ts";
 import { isSourcePanelHost } from "./source-panel-host.ts";
 import { CONTEXT_IMAGE_REQUEST, type ContextImage } from "../shared/context-image.ts";
 import { HOVERED_SOURCE_REQUEST } from "../shared/hovered-source.ts";
@@ -223,6 +226,7 @@ type ContentDownloadRequest = {
     linkDownload?: string;
     altText?: string;
     matchedCssSelectorsByOrigin?: string[][];
+    capturedCssText?: CssTextCapture;
   };
 };
 // The saved element is in hand for click-to-save and panel saves, so its alt
@@ -234,6 +238,16 @@ const altTextInfo = (elements: readonly Element[]): { altText?: string } => {
     if (altText) return { altText };
   }
   return {};
+};
+// The user just asked for a save, which is the only moment page text is read.
+// Only selectors of rules that can apply to this page are looked up.
+const capturedCssTextInfo = (
+  rules: readonly RoutingRule[],
+): { capturedCssText?: CssTextCapture } => {
+  const selectors = cssTextSelectorsForPage(rules, `${window.location}`);
+  if (selectors.length === 0) return {};
+  const capturedCssText = captureCssText(document, selectors);
+  return capturedCssText.length > 0 ? { capturedCssText } : {};
 };
 type DownloadLifecycle = { signal: AbortSignal; retryTimers: Set<number> };
 
@@ -374,6 +388,7 @@ const setupClickToSave = (
           ...(linkMetadata?.title ? { linkTitle: linkMetadata.title } : {}),
           ...(linkMetadata?.download ? { linkDownload: linkMetadata.download } : {}),
           ...altTextInfo([source.element]),
+          ...capturedCssTextInfo(routingRules),
           ...(cssSelectors.length > 0
             ? {
                 matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
@@ -1060,6 +1075,7 @@ const sendDownload = (source: PageSource) => {
       srcUrl: source.url,
       sourceKind: source.kind,
       ...altTextInfo(sourceOriginElements(source)),
+      ...capturedCssTextInfo(rules),
       ...(hasCssSelectors
         ? {
             matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
@@ -1309,6 +1325,12 @@ try {
       // Callback-style Chrome listeners must keep the channel open for the
       // answer that follows the model request; Firefox honors the same value.
       return true;
+    }
+    if (message?.type === CSS_TEXT_REQUEST) {
+      // The background asks only for a menu save whose rules use csstext: on
+      // this page, and names the selectors; a malformed list captures nothing.
+      sendResponse(captureCssText(document, message.body?.selectors));
+      return;
     }
     if (message?.type === CONTENT_OPTIONS_CHANGED_MESSAGE) {
       const changed = normalizeContentOptionsPatch(message.body?.options);

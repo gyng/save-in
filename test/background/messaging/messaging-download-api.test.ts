@@ -647,6 +647,71 @@ describe("handleDownloadMessage", () => {
     expect(Download.launchDownload).not.toHaveBeenCalled();
   });
 
+  describe("captured page text", () => {
+    const textRequest = request({
+      info: {
+        pageUrl: "https://x/",
+        srcUrl: "https://x/file.png",
+        capturedCssText: [["header .author", "example author"]],
+        // A message may carry evidence, never the value a rule resolved to.
+        cssText: "forged",
+      },
+    });
+    const launchedInfo = () => vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info;
+
+    test("is accepted from the page's own top-frame content script", () => {
+      onMessage(textRequest, { url: "https://x/", tab: { id: 8, url: "https://x/" } }, vi.fn());
+      expect(launchedInfo().capturedCssText).toEqual([["header .author", "example author"]]);
+      expect(launchedInfo().cssText).toBeUndefined();
+    });
+
+    test.each([
+      [
+        "another extension page",
+        {
+          url: "chrome-extension://save-in/src/options/options.html",
+          tab: { id: 8, url: "chrome-extension://save-in/src/options/options.html" },
+        },
+      ],
+      ["a subframe", { url: "https://frame.test/", tab: { id: 8, url: "https://x/" } }],
+      [
+        "a frame that names the top page",
+        { url: "https://x/", frameId: 3, tab: { id: 8, url: "https://x/" } },
+      ],
+      ["a page on another origin", { url: "https://y/", tab: { id: 8, url: "https://y/" } }],
+    ])("is dropped when sent by %s", (_label, sender) => {
+      onMessage(textRequest, sender, vi.fn());
+      expect(Download.launchDownload).toHaveBeenCalledOnce();
+      expect(launchedInfo().capturedCssText).toBeUndefined();
+      expect(launchedInfo().cssText).toBeUndefined();
+    });
+
+    test("is dropped from an external extension", async () => {
+      const response = vi.fn();
+      onMessageExternal(textRequest, { id: "trusted-extension", tab: { id: 9 } }, response);
+      await waitForCall(response);
+      expect(launchedInfo().capturedCssText).toBeUndefined();
+      expect(launchedInfo().cssText).toBeUndefined();
+    });
+
+    test("an unbounded or malformed capture rejects the whole request", () => {
+      for (const capturedCssText of [
+        [["header .author", "x".repeat(513)]],
+        [["header .author", " padded "]],
+        "example author",
+      ]) {
+        onMessage(
+          request({
+            info: { pageUrl: "https://x/", srcUrl: "https://x/file.png", capturedCssText },
+          }),
+          { url: "https://x/", tab: { id: 8, url: "https://x/" } },
+          vi.fn(),
+        );
+      }
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+    });
+  });
+
   test("accepts gesture provenance only from the trusted content channel", async () => {
     const gestureRequest = request({
       info: {
@@ -1059,6 +1124,69 @@ into: automatic/
     expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info).toMatchObject({
       matchedCssSelectorsByOrigin: [["article img", "img:not(.avatar)"]],
     });
+  });
+
+  test("names an automatic save after page text only its own page reported", async () => {
+    options.autoDownloadEnabled = true;
+    options.autoDownloadPrivate = false;
+    options.filenamePatterns = parseRulesCollecting(`
+context: ^auto$
+pageurl: ^https://example\\.test/gallery/
+sourcekind: image
+csstext: header .author
+into: authors/:csstext:/
+`).rules;
+    const senderTab = { id: 7, url: request.body.pageUrl, incognito: false };
+    const withText = {
+      ...request,
+      body: { ...request.body, capturedCssText: [["header .author", "example author"]] },
+    };
+
+    const missing = vi.fn();
+    onMessage(request, { url: senderTab.url, tab: senderTab }, missing);
+    await waitForCall(missing);
+    expect(Download.launchDownload).not.toHaveBeenCalled();
+
+    // A frame of the page is not the page: its text does not satisfy the rule.
+    const framed = vi.fn();
+    onMessage(withText, { url: "https://frame.test/", tab: senderTab }, framed);
+    await waitForCall(framed);
+    expect(framed).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: { status: "skipped" },
+    });
+    expect(Download.launchDownload).not.toHaveBeenCalled();
+
+    const matched = vi.fn();
+    onMessage(withText, { url: senderTab.url, tab: senderTab }, matched);
+    await waitForCall(matched);
+    expect(Download.launchDownload).toHaveBeenCalledOnce();
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
+    expect(state.scratch.routeTemplateRaw).toBe("authors/:csstext:/");
+    expect(state.info).toMatchObject({
+      cssText: "example author",
+      capturedCssText: [["header .author", "example author"]],
+    });
+  });
+
+  test("an automatic rule without csstext: launches with no page text", async () => {
+    options.autoDownloadEnabled = true;
+    options.autoDownloadPrivate = false;
+    options.filenamePatterns = parseRulesCollecting(`
+context: ^auto$
+pageurl: ^https://example\\.test/gallery/
+sourcekind: image
+into: automatic/
+`).rules;
+    const senderTab = { id: 7, url: request.body.pageUrl, incognito: false };
+    const sendResponse = vi.fn();
+
+    onMessage(request, { url: senderTab.url, tab: senderTab }, sendResponse);
+    await waitForCall(sendResponse);
+
+    expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info).not.toHaveProperty(
+      "cssText",
+    );
   });
 
   test("passes a matched rule's fetch template through to the launch scratch", async () => {

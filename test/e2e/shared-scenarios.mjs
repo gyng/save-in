@@ -1198,6 +1198,110 @@ into: routed/:linktitle:/:linkdownload:/`,
 };
 
 /**
+ * A csstext: rule names a save after text elsewhere on its page, and :alttext:
+ * after the saved image's own alt attribute. Both live only in the page: the
+ * production menu command asks the real content script for them, which is why
+ * this runs in a browser. The captured text carries a path separator, so the
+ * landed file also shows it stays one folder name.
+ *
+ * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   evaluatePage: (target: string, expression: string) => Promise<unknown>,
+ * }} adapters
+ */
+export const runPageTextRoutingScenario = async ({ control, evaluatePage }) => {
+  const server = http.createServer((req, res) => {
+    if (req.url === "/page-text") {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(
+        `<title>Page text page</title>
+        <header><a class="author">  example/author
+        </a></header>
+        <img id="save-target" src="/photo.png" alt="Harbor sunset" width="40" height="40" />`,
+      );
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "image/png" });
+    res.end(Buffer.from("page text fixture"));
+  });
+  const port = await listenLocal(server);
+  const target = `127.0.0.1:${port}/page-text`;
+  const pageUrl = `http://${target}`;
+  const srcUrl = `http://127.0.0.1:${port}/photo.png`;
+  const optionKeys = ["paths", "filenamePatterns"];
+  const previous = await control.storage.local.get(optionKeys);
+  const missing = optionKeys.filter((key) => !Object.hasOwn(previous, key));
+  let tabId;
+
+  try {
+    await control.options.set({
+      paths: "e2e/page-text",
+      filenamePatterns: `pageurl: /page-text$
+csstext: header .author
+into: captured/:csstext:/:alttext:/`,
+    });
+    const created = await control.tabs.create({ url: pageUrl, active: true });
+    tabId = created.id;
+    await control.tabs.wait({ ...(tabId === undefined ? {} : { id: tabId }), urlIncludes: target });
+    const tab = (await control.tabs.query()).find((candidate) => candidate.url?.includes(target));
+    if (tab?.id === undefined) throw new Error("Page text fixture tab missing");
+    await control.tabs.waitContentReady(tab.id);
+    await evaluatePage(
+      target,
+      `new Promise((resolve, reject) => {
+        const deadline = Date.now() + 5000;
+        const capture = () => {
+          const image = document.querySelector("#save-target");
+          if (image) {
+            image.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true }));
+            resolve(true);
+          } else if (Date.now() >= deadline) reject(new Error("Page text fixture missing"));
+          else requestAnimationFrame(capture);
+        };
+        capture();
+      })`,
+    );
+    await control.background.clickContextMenu({
+      info: { menuItemId: "save-in-0", frameId: 0, mediaType: "image", srcUrl, pageUrl },
+      tab: { id: tab.id, title: "Page text page", url: pageUrl },
+    });
+
+    const rows = await control.downloads.wait({
+      filenameIncludes: `page-text${path.sep}captured`,
+      minimumComplete: 1,
+      timeoutMs: 10000,
+    });
+    const completed = requireValue(
+      rows.find((row) => row.state === "complete"),
+      "Page text save did not complete",
+    );
+    expect(completed.filename).toMatch(
+      /e2e[\\/]page-text[\\/]captured[\\/]example_author[\\/]Harbor sunset[\\/]photo\.png$/,
+    );
+    const history = await control.history.wait({ url: srcUrl, status: "complete" });
+    expect(history).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          variables: expect.objectContaining({
+            csstext: "example/author",
+            alttext: "Harbor sunset",
+          }),
+        }),
+      ]),
+    );
+  } finally {
+    try {
+      await control.storage.local.set(previous);
+      if (missing.length) await control.storage.local.remove(missing);
+      if (tabId !== undefined) await control.tabs.remove(tabId).catch(() => {});
+      await control.runtime.reset();
+    } finally {
+      await closeLocal(server);
+    }
+  }
+};
+
+/**
  * A browser reports a plain page context for an image it has not finished
  * loading or that sits under an empty overlay (#237). The contextmenu event
  * lands on the overlay; the production menu command then describes only the

@@ -7,11 +7,12 @@ import type {
   MatcherClause,
   MatcherResult,
   CssMatcherClause,
+  CssTextMatcherClause,
   RenameClause,
   RoutingInfo,
   RoutingRule,
 } from "./rule-types.ts";
-import { isCssMatcherClause, isRegexMatcherClause } from "./rule-types.ts";
+import { isCssMatcherClause, isCssTextMatcherClause, isRegexMatcherClause } from "./rule-types.ts";
 import { isSafeRelativeDestination } from "./destination-safety.ts";
 
 export type EvaluatedMatcherClause = {
@@ -29,6 +30,10 @@ export type RuleEvaluation = {
   fetch: string | false;
   rename: RenameTransform | false;
   tabAction: "close" | false;
+  // The page text the rule's csstext: clause captured. It stays out of the
+  // templates above: only the :csstext: variable may place it, as one
+  // sanitized path component.
+  cssText: string | false;
   clauses: EvaluatedMatcherClause[];
 };
 
@@ -40,6 +45,8 @@ export type RuleMatch =
       fetch: string | null;
       rename: RenameTransform | null;
       tabAction: "close" | null;
+      // Present only when the rule's csstext: clause captured page text.
+      cssText?: string | undefined;
     }
   | {
       outcome: "exclude";
@@ -82,7 +89,7 @@ type CaptureMatcherResults = {
   matches: RegExpMatchArray[];
 };
 
-const evaluateMatcherClause = (
+export const evaluateMatcherClause = (
   clause: MatcherClause,
   info: RoutingInfo,
 ): EvaluatedMatcherClause => {
@@ -125,6 +132,33 @@ const cssClauseEvaluator = (
   });
 };
 
+// The text the page reported for one csstext: selector, if any.
+export const capturedCssTextFor = (
+  info: Pick<RoutingInfo, "capturedCssText">,
+  selector: string,
+): string | undefined =>
+  info.capturedCssText?.find(([capturedSelector]) => capturedSelector === selector)?.[1];
+
+// A csstext: clause matches when the page reported non-empty text for its
+// selector. Without a capture — a save the page could not answer for, or one
+// with no page at all — it stays unmatched, exactly as css: does without an
+// attestation.
+const evaluateCssTextClause = (
+  clause: CssTextMatcherClause,
+  info: RoutingInfo,
+): EvaluatedMatcherClause => {
+  const text = capturedCssTextFor(info, clause.value);
+  return text
+    ? {
+        clause,
+        result: /^([\s\S]*)$/.exec(text),
+        attempts: [
+          { source: "pageText", value: text, status: "matched", matchedText: text, captures: [] },
+        ],
+      }
+    : { clause, result: null, attempts: [{ source: "pageText", value: null, status: "missing" }] };
+};
+
 const evaluateMatchersWithCssOrigins = (
   clauses: MatcherClause[],
   info: RoutingInfo,
@@ -132,8 +166,17 @@ const evaluateMatchersWithCssOrigins = (
   const cssClauses = clauses.filter(isCssMatcherClause);
   const evaluateCssClause = cssClauseEvaluator(cssClauses, info);
   return clauses.map((clause) =>
-    isCssMatcherClause(clause) ? evaluateCssClause(clause) : evaluateMatcherClause(clause, info),
+    isCssMatcherClause(clause)
+      ? evaluateCssClause(clause)
+      : isCssTextMatcherClause(clause)
+        ? evaluateCssTextClause(clause, info)
+        : evaluateMatcherClause(clause, info),
   );
+};
+
+const capturedCssText = (clauses: EvaluatedMatcherClause[]): string | false => {
+  const evaluated = clauses.find(({ clause }) => isCssTextMatcherClause(clause));
+  return (evaluated?.result && evaluated.result[0]) || false;
 };
 
 const getCaptureMatcherResults = (
@@ -186,6 +229,7 @@ export const evaluateRule = (rule: RoutingRule, info: RoutingInfo): RuleEvaluati
       fetch: false,
       rename: false,
       tabAction: false,
+      cssText: false,
       clauses,
     };
   }
@@ -196,6 +240,7 @@ export const evaluateRule = (rule: RoutingRule, info: RoutingInfo): RuleEvaluati
       fetch: false,
       rename: false,
       tabAction: false,
+      cssText: false,
       clauses,
     };
   }
@@ -207,6 +252,7 @@ export const evaluateRule = (rule: RoutingRule, info: RoutingInfo): RuleEvaluati
       fetch: false,
       rename: false,
       tabAction: false,
+      cssText: false,
       clauses,
     };
   }
@@ -222,6 +268,7 @@ export const evaluateRule = (rule: RoutingRule, info: RoutingInfo): RuleEvaluati
       fetch: false,
       rename: false,
       tabAction: false,
+      cssText: false,
       clauses,
     };
   }
@@ -244,6 +291,7 @@ export const evaluateRule = (rule: RoutingRule, info: RoutingInfo): RuleEvaluati
     )
       ? "close"
       : false,
+    cssText: capturedCssText(clauses),
     clauses,
   };
 };
@@ -282,6 +330,7 @@ export const matchRulesDetailed = (
         fetch: evaluation.fetch || null,
         rename: evaluation.rename || null,
         tabAction: evaluation.tabAction || null,
+        ...(evaluation.cssText ? { cssText: evaluation.cssText } : {}),
       };
       if (isMatchEligible(match)) return match;
     }

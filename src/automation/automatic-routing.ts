@@ -14,6 +14,7 @@ import {
 } from "../shared/page-source.ts";
 import { isDataUrl, isDataUrlWithinCap, parseDataUrlMediaType } from "../shared/data-url.ts";
 import { RULE_TYPES } from "../shared/constants.ts";
+import type { CssTextCapture } from "../shared/css-text-capture.ts";
 
 export type AutomaticRoutingCandidate = {
   pageUrl: string;
@@ -26,6 +27,7 @@ export type AutomaticRoutingCandidate = {
   // sourcekind: alone still selects the destination.
   sourceChannel?: PageSourceChannel | undefined;
   matchedCssSelectorsByOrigin?: string[][] | undefined;
+  capturedCssText?: CssTextCapture | undefined;
   // The tab that declared the source. The background re-match sets it so this
   // match is evaluated against that tab — and, because routing suppresses debug
   // logging for a private tab, so a private automatic save does not print its
@@ -208,6 +210,7 @@ const candidateInfo = (candidate: AutomaticRoutingCandidate): RoutingInfo => ({
   sourceKind: candidate.sourceKind,
   sourceUrl: candidate.sourceUrl,
   matchedCssSelectorsByOrigin: candidate.matchedCssSelectorsByOrigin,
+  capturedCssText: candidate.capturedCssText,
   url: candidate.sourceUrl,
   // A data: URL has no path (fileext:/urlfileext: are empty), so mime-based
   // matching and :mimeext: naming rely on the mediatype parsed from its header.

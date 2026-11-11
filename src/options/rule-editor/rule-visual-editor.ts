@@ -37,6 +37,7 @@ import { completeDirectorySyntax } from "../syntax-editor/syntax-editor-model.ts
 import { bindTabInteractions, syncTabSelection } from "../core/tab-controls.ts";
 import { attachTypeahead } from "../ui/typeahead.ts";
 import { matcherDescription, matcherTestValue } from "../core/matcher-descriptions.ts";
+import { isSelectorMatcherName } from "../../routing/rule-types.ts";
 import {
   clearValidationFields,
   EDITOR_VALIDATION_EVENT,
@@ -64,6 +65,7 @@ const DEFAULT_MATCHERS = [
   "pagetitle",
   "frameurl",
   "css",
+  "csstext",
   "sourceurl",
   "sourcedomain",
   "sourcerootdomain",
@@ -413,7 +415,11 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
             .slice(0, rule.clauses.indexOf(clause) + 1)
             .filter((item) => item.kind === "matcher").length
         : undefined;
-    if (clause.kind === "matcher" && conditionNumber !== undefined && clause.name !== "css") {
+    if (
+      clause.kind === "matcher" &&
+      conditionNumber !== undefined &&
+      !isSelectorMatcherName(clause.name)
+    ) {
       row.append(createMatcherInput(rule, clause, conditionNumber));
     } else {
       const name = document.createElement("span");
@@ -469,7 +475,9 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
             ? "find -> replacement"
             : clause.name === "css"
               ? "article img, .gallery video"
-              : ".*";
+              : clause.name === "csstext"
+                ? "header .author"
+                : ".*";
     value.setAttribute(
       "aria-label",
       clause.kind === "destination"
@@ -522,7 +530,11 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       );
     }
 
-    if (clause.kind === "matcher" && clause.name !== "css" && conditionNumber !== undefined) {
+    if (
+      clause.kind === "matcher" &&
+      !isSelectorMatcherName(clause.name) &&
+      conditionNumber !== undefined
+    ) {
       const insensitive = document.createElement("label");
       insensitive.className = "rule-clause-flag";
       insensitive.title = localize(

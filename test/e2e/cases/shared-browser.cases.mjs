@@ -6,6 +6,7 @@ import {
   runAutomaticRetryScenario,
   runContextMenuScenario,
   runLinkMetadataRoutingScenario,
+  runPageTextRoutingScenario,
   runContextImageScenario,
   runCssRoutingScenario,
   runBrowserDownloadPageDetailsScenario,
@@ -113,6 +114,10 @@ export const registerSharedBrowserCases = (adapters) => {
 
   test("interactive link attributes route through the exact content frame", async () => {
     await runLinkMetadataRoutingScenario({ control, evaluatePage });
+  });
+
+  test("a csstext rule names an image save after text on its page", async () => {
+    await runPageTextRoutingScenario({ control, evaluatePage });
   });
 
   test("a page-context click over a covered image saves the image", async () => {

@@ -1,6 +1,6 @@
 import { RULE_TYPES } from "../shared/constants.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
-import { isCssMatcherClause } from "../routing/rule-types.ts";
+import { isRegexMatcherClause } from "../routing/rule-types.ts";
 import type { RoutingRule } from "../routing/rule-types.ts";
 
 const MAX_RULE_CHARACTERS = 32_768;
@@ -216,14 +216,14 @@ export const isSafeExternalRegex = (regex: RegExp | string): boolean => {
 // rule the response refuses to name.
 export const unsafeExternalRegexSources = (rule: RoutingRule): string[] =>
   rule.flatMap((clause) => {
-    // Only a compiled pattern can be named: a css: matcher's value is a
-    // selector, where `+` is a combinator and `*=` an attribute operator, and
-    // isSafeExternalRegex accepts every string outright rather than read those
-    // as quantifiers. Skipping css here says that in the type instead of
+    // Only a compiled pattern can be named: a css: or csstext: matcher's value
+    // is a selector, where `+` is a combinator and `*=` an attribute operator,
+    // and isSafeExternalRegex accepts every string outright rather than read
+    // those as quantifiers. Skipping them here says that in the type instead of
     // relying on the string arm of a check that can never fail for one.
     if (
       clause.type === RULE_TYPES.MATCHER &&
-      !isCssMatcherClause(clause) &&
+      isRegexMatcherClause(clause) &&
       !isSafeExternalRegex(clause.value)
     ) {
       return [clause.value.source];

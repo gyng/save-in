@@ -1720,7 +1720,7 @@ describe("onMessage", () => {
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.KEYWORD_LIST,
       body: {
-        matchers: [...Object.keys(router.matcherFunctions), "css"],
+        matchers: [...Object.keys(router.matcherFunctions), "css", "csstext"],
         variables: [":date:", ":year:"],
         routingActions: ["exclude: true", "after: close-tab"],
         automaticMatchers: [

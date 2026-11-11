@@ -155,6 +155,18 @@ describe("routing visual editor", () => {
     expect(document.querySelector(".rule-clause-flag")).toBeNull();
   });
 
+  test("shows a selector example and no regex controls for a csstext: row", () => {
+    element<HTMLTextAreaElement>("#filenamePatterns").value =
+      "csstext: header .author\ninto: authors/:csstext:/";
+    setupRuleVisualEditor({ matchers: ["csstext"] });
+
+    const value = element<HTMLInputElement>(".rule-clause-value");
+    expect(value.value).toBe("header .author");
+    expect(value.placeholder).toBe("header .author");
+    expect(document.querySelector(".rule-clause-flag")).toBeNull();
+    expect(document.querySelector(".rule-editor-card-unsupported")).toBeNull();
+  });
+
   test("renders a rename clause as a dedicated rename-the-file row", () => {
     vi.mocked(browser.i18n.getMessage).mockImplementation((key: string) => {
       if (key === "routeVisualRenameLabel") return "Rename the file";
