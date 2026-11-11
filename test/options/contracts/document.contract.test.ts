@@ -192,6 +192,8 @@ test("preserves backward-compatible option defaults", () => {
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier")?.value).toBe("Alt");
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier2")?.value).toBe("");
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveButton")?.value).toBe("left-click");
+  // A gesture saves immediately unless its row says otherwise.
+  expect(document.querySelector<HTMLSelectElement>("#clickToSaveAction")?.value).toBe("save");
   const longPress = document.querySelector<HTMLInputElement>("#contentClickToSaveLongPressMs");
   expect(longPress?.value).toBe("500");
   expect(longPress?.min).toBe("250");

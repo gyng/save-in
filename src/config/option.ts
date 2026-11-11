@@ -52,8 +52,6 @@ export const OptionsManagement: OptionsManagementApi = {
       "Milliseconds to hold the primary mouse button before a long-left-click save.",
     contentClickToSaveUseDefault:
       "Send click-to-save to the default destination instead of the last folder saved to.",
-    contentClickToSavePicker:
-      "Show the in-page folder picker for a click-to-save gesture instead of saving at once.",
     autoDownloadEnabled:
       "Automatically save page sources that match routing rules with context: auto.",
     autoDownloadRules:

@@ -152,11 +152,6 @@ export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
     default: CONTENT_OPTION_DEFAULTS.contentClickToSaveUseDefault,
   },
   {
-    name: "contentClickToSavePicker",
-    type: "BOOL",
-    default: CONTENT_OPTION_DEFAULTS.contentClickToSavePicker,
-  },
-  {
     // Stored as raw newline-delimited match patterns: the content bundle parses
     // it with parseMatchPatternList, and the background backstop re-tests the
     // sender-tab URL against the same string, so no onLoad transform is applied.

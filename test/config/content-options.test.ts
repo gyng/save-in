@@ -136,6 +136,22 @@ test.each([
   }
 });
 
+// The global picker toggle never shipped; a development profile that still
+// stores it must read as if the key were absent, and a binding carries the
+// action instead.
+test("ignores the removed global picker option and keeps a binding's action", () => {
+  const bindings = serializeClickToSaveBindings([
+    { gesture: CLICK_GESTURES.LONG_LEFT, combo: "", action: "picker" },
+  ]);
+  const stored = { contentClickToSavePicker: true, contentClickToSaveBindings: bindings };
+
+  expect(resolveContentOptions(stored)).toEqual({
+    ...CONTENT_OPTION_DEFAULTS,
+    contentClickToSaveBindings: bindings,
+  });
+  expect(normalizeContentOptionsPatch(stored)).toEqual({ contentClickToSaveBindings: bindings });
+});
+
 test("falls back safely when a stored shortcut string contains unknown keys", () => {
   expect(
     resolveContentOptions({

@@ -4727,8 +4727,14 @@
   "pickerNoMatches": {
     "message": "沒有相符的資料夾"
   },
-  "o_cClickToSavePicker": {
-    "message": "顯示資料夾選擇器，而不是立即儲存"
+  "o_lClickToSaveAction": {
+    "message": "動作"
+  },
+  "o_lClickToSaveActionSave": {
+    "message": "立即儲存"
+  },
+  "o_lClickToSaveActionPicker": {
+    "message": "顯示資料夾選擇器"
   },
   "o_cClickToSavePickerHelp": {
     "message": "點選儲存手勢會在指標位置開啟儲存選單中的資料夾。選擇一個資料夾即可儲存到其中，按 Esc 可取消。瀏覽器的內容選單不會改變。"

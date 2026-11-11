@@ -26,6 +26,7 @@ describe("shortcut option guidance", () => {
     <select id="clickToSaveButton">
       <option value="left-click">left</option><option value="right-click">right</option>
     </select>
+      <select id="clickToSaveAction"><option value="save">Save</option><option value="picker">Picker</option></select>
     <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>
     <span id="clickToSaveStatus"></span><div id="click-to-save-warning" hidden></div>`;
 
@@ -43,6 +44,7 @@ describe("shortcut option guidance", () => {
       <select id="clickToSaveModifier"><option value=""></option><option value="Ctrl">Ctrl</option></select>
       <select id="clickToSaveModifier2"><option value=""></option><option value="Shift">Shift</option></select>
       <select id="clickToSaveButton"><option value="left-click">left</option><option value="middle-click">middle</option></select>
+      <select id="clickToSaveAction"><option value="save">Save</option><option value="picker">Picker</option></select>
       <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>
       <span id="clickToSaveStatus"></span>
       <div id="click-to-save-warning" hidden></div>`;
@@ -71,7 +73,8 @@ describe("shortcut option guidance", () => {
       <input id="contentClickToSaveCombo" value="90">
       <select id="clickToSaveModifier"><option value=""></option><option value="Alt">Alt</option></select>
       <select id="clickToSaveModifier2"><option value=""></option></select>
-      <select id="clickToSaveButton"><option value="left-click">left</option></select>`;
+      <select id="clickToSaveButton"><option value="left-click">left</option></select>
+      <select id="clickToSaveAction"><option value="save">Save</option><option value="picker">Picker</option></select>`;
     setupShortcutOptions();
     const modifier = document.querySelector<HTMLSelectElement>("#clickToSaveModifier")!;
     expect(modifier.value).toBe("90");

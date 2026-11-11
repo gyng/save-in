@@ -4727,8 +4727,14 @@
   "pickerNoMatches": {
     "message": "一致するフォルダーはありません"
   },
-  "o_cClickToSavePicker": {
-    "message": "すぐに保存せず、フォルダー選択を表示する"
+  "o_lClickToSaveAction": {
+    "message": "動作"
+  },
+  "o_lClickToSaveActionSave": {
+    "message": "すぐに保存"
+  },
+  "o_lClickToSaveActionPicker": {
+    "message": "フォルダー選択を表示"
   },
   "o_cClickToSavePickerHelp": {
     "message": "クリックして保存のジェスチャーを行うと、保存メニューのフォルダーがポインターの位置に表示されます。フォルダーを選ぶとそこに保存され、Esc キーで取り消せます。ブラウザーのコンテキストメニューは変わりません。"

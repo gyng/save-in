@@ -16,9 +16,18 @@ export const CLICK_GESTURES = {
 
 export type ClickGesture = (typeof CLICK_GESTURES)[keyof typeof CLICK_GESTURES];
 
+// What a matched gesture does. Saving at once is the absence of an action, so
+// a profile written before actions existed keeps its meaning and re-serializes
+// to the same bytes; only the picker is ever spelled out.
+export const CLICK_ACTIONS = {
+  SAVE: "save",
+  PICKER: "picker",
+} as const;
+
 export type ClickToSaveBinding = {
   gesture: ClickGesture;
   combo: string | number;
+  action?: typeof CLICK_ACTIONS.PICKER;
 };
 
 export type ClickToSaveBindings = [ClickToSaveBinding, ...ClickToSaveBinding[]];
@@ -188,7 +197,14 @@ export const parseClickToSaveBindings = (value: unknown): ClickToSaveBindings | 
       ) {
         return null;
       }
-      bindings.push({ gesture: candidate.gesture, combo: candidate.combo });
+      bindings.push({
+        gesture: candidate.gesture,
+        combo: candidate.combo,
+        // An action this version does not know saves at once rather than
+        // invalidating the list: a newer version's profile must keep its
+        // gestures here instead of falling back to the legacy pair.
+        ...(candidate.action === CLICK_ACTIONS.PICKER ? { action: CLICK_ACTIONS.PICKER } : {}),
+      });
     }
     // The length guard above proves this branded non-empty collection.
     return hasBindingConflicts(bindings) ? null : (bindings as ClickToSaveBindings);
@@ -206,7 +222,14 @@ export const trySerializeClickToSaveBindings = (bindings: ClickToSaveBinding[]):
   bindings.some(({ gesture, combo }) => !isClickGesture(gesture) || !isContentClickCombo(combo)) ||
   hasBindingConflicts(bindings)
     ? null
-    : JSON.stringify({ version: CLICK_TO_SAVE_BINDINGS_VERSION, bindings });
+    : JSON.stringify({
+        version: CLICK_TO_SAVE_BINDINGS_VERSION,
+        bindings: bindings.map(({ gesture, combo, action }) => ({
+          gesture,
+          combo,
+          ...(action === CLICK_ACTIONS.PICKER ? { action } : {}),
+        })),
+      });
 
 export const serializeClickToSaveBindings = (bindings: ClickToSaveBinding[]): string => {
   const serialized = trySerializeClickToSaveBindings(bindings);

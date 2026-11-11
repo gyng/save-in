@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { CLICK_TYPES } from "../../src/shared/constants.ts";
 import {
+  CLICK_ACTIONS,
   CLICK_GESTURES,
   clickKeysForCombo,
   contentClickComboToKeyCodes,
@@ -35,6 +36,99 @@ describe("click-to-save gesture bindings", () => {
     ];
 
     expect(parseClickToSaveBindings(serializeClickToSaveBindings(bindings))).toEqual(bindings);
+  });
+
+  test("round-trips a picker action beside an immediate save", () => {
+    const bindings = [
+      { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
+      { gesture: CLICK_GESTURES.LEFT, combo: "Alt+Shift", action: CLICK_ACTIONS.PICKER },
+    ];
+    const serialized = serializeClickToSaveBindings(bindings);
+
+    expect(serialized).toBe(
+      '{"version":1,"bindings":[{"gesture":"left-click","combo":"Alt"},' +
+        '{"gesture":"left-click","combo":"Alt+Shift","action":"picker"}]}',
+    );
+    expect(parseClickToSaveBindings(serialized)).toEqual(bindings);
+  });
+
+  test("a profile that never used the picker keeps its stored bytes", () => {
+    const stored =
+      '{"version":1,"bindings":[{"gesture":"middle-click","combo":"Alt"},' +
+      '{"gesture":"long-left-click","combo":18}]}';
+    const parsed = parseClickToSaveBindings(stored);
+
+    expect(parsed).toEqual([
+      { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt" },
+      { gesture: CLICK_GESTURES.LONG_LEFT, combo: 18 },
+    ]);
+    expect(serializeClickToSaveBindings(parsed ?? [])).toBe(stored);
+  });
+
+  // Only "picker" is an action; everything else, including what a newer
+  // version might store, saves at once without invalidating the gesture list.
+  test.each([
+    ["picker", CLICK_ACTIONS.PICKER],
+    ["save", undefined],
+    [undefined, undefined],
+    [null, undefined],
+    ["", undefined],
+    ["PICKER", undefined],
+    ["copy-link", undefined],
+    [1, undefined],
+    [true, undefined],
+    [["picker"], undefined],
+    [{ type: "picker" }, undefined],
+  ] as const)("parses a stored action of %j as %j", (stored, action) => {
+    const parsed = parseClickToSaveBindings(
+      JSON.stringify({
+        version: 1,
+        bindings: [
+          { gesture: "middle-click", combo: "Alt", action: stored },
+          { gesture: "right-click", combo: "" },
+        ],
+      }),
+    );
+
+    expect(parsed).toEqual([
+      { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt", ...(action ? { action } : {}) },
+      { gesture: CLICK_GESTURES.RIGHT, combo: "" },
+    ]);
+    expect(parsed?.[0] && "action" in parsed[0]).toBe(action !== undefined);
+  });
+
+  test("serializes only the picker action and nothing else a caller attached", () => {
+    const withExtras = [
+      { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt", keyCodes: [18] },
+      { gesture: CLICK_GESTURES.RIGHT, combo: "", action: CLICK_ACTIONS.PICKER, clickKeys: "none" },
+    ];
+
+    expect(trySerializeClickToSaveBindings(withExtras)).toBe(
+      '{"version":1,"bindings":[{"gesture":"middle-click","combo":"Alt"},' +
+        '{"gesture":"right-click","combo":"","action":"picker"}]}',
+    );
+  });
+
+  test("the action is not part of a binding's identity", () => {
+    const bindings = [
+      { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt" },
+      { gesture: CLICK_GESTURES.MIDDLE, combo: "alt", action: CLICK_ACTIONS.PICKER },
+    ];
+
+    expect(trySerializeClickToSaveBindings(bindings)).toBeNull();
+    expect(parseClickToSaveBindings(JSON.stringify({ version: 1, bindings }))).toBeNull();
+    expect(
+      trySerializeClickToSaveBindings([
+        { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
+        { gesture: CLICK_GESTURES.LONG_LEFT, combo: "Ctrl", action: CLICK_ACTIONS.PICKER },
+      ]),
+    ).toBeNull();
+  });
+
+  test("the legacy pair resolves to an immediate save", () => {
+    expect(resolveClickToSaveBindings("", "Ctrl", CLICK_TYPES.MIDDLE_CLICK)).toEqual([
+      { gesture: CLICK_GESTURES.MIDDLE, combo: "Ctrl" },
+    ]);
   });
 
   test("allows one gesture with different keys (#15)", () => {

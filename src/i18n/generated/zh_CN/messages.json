@@ -4727,8 +4727,14 @@
   "pickerNoMatches": {
     "message": "没有匹配的文件夹"
   },
-  "o_cClickToSavePicker": {
-    "message": "显示文件夹选择器，而不是立即保存"
+  "o_lClickToSaveAction": {
+    "message": "操作"
+  },
+  "o_lClickToSaveActionSave": {
+    "message": "立即保存"
+  },
+  "o_lClickToSaveActionPicker": {
+    "message": "显示文件夹选择器"
   },
   "o_cClickToSavePickerHelp": {
     "message": "点击保存手势会在指针位置打开保存菜单中的文件夹。选择一个文件夹即可保存到其中，按 Esc 可取消。浏览器的上下文菜单不会改变。"

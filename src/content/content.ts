@@ -40,6 +40,7 @@ import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import type { RoutingRule } from "../routing/rule-types.ts";
 import { isDataUrl, isDataUrlWithinCap } from "../shared/data-url.ts";
 import {
+  CLICK_ACTIONS,
   CLICK_GESTURES,
   clickKeysForCombo,
   resolveClickToSaveBindings,
@@ -291,7 +292,6 @@ type ResolvedClickToSaveOptions = Pick<
       | "preferLinks"
       | "preferLinksFilterEnabled"
       | "preferLinksFilter"
-      | "contentClickToSavePicker"
     >
   > & { contentClickToSaveBindings?: string; filenamePatterns?: string };
 type GesturePoint = { x: number; y: number };
@@ -316,7 +316,7 @@ const setupClickToSave = (
   acceptInput: (event: KeyboardEvent | MouseEvent) => boolean = (event) => event.isTrusted,
   isDisabled: () => boolean = () => false,
   sharedLongReleaseSuppression?: ReturnType<typeof createLongClickReleaseSuppressor>,
-  // With the opt-in picker setting, a matched gesture shows the destination
+  // A matched gesture whose binding asks for the picker shows the destination
   // picker at the pointer instead of saving at once.
   openPicker?: (
     source: { url: string; kind: PageSource["kind"]; alt?: string },
@@ -375,7 +375,7 @@ const setupClickToSave = (
     linkMetadata: ContextLinkMetadata | null,
     point: GesturePoint,
   ): void => {
-    if (options.contentClickToSavePicker && openPicker) {
+    if (binding.action === CLICK_ACTIONS.PICKER && openPicker) {
       const { altText } = altTextInfo([source.element]);
       openPicker(
         { url: source.url, kind: source.kind, ...(altText ? { alt: altText } : {}) },
@@ -979,7 +979,6 @@ const applyOptions = (next: ContentOptions) => {
       "contentClickToSaveCombo",
       "contentClickToSaveButton",
       "contentClickToSaveLongPressMs",
-      "contentClickToSavePicker",
       "links",
       "preferLinks",
       "preferLinksFilterEnabled",

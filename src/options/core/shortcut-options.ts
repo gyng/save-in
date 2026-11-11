@@ -2,6 +2,7 @@ import { SHORTCUT_EXTENSIONS, isShortcutType, type ShortcutType } from "../../sh
 import { getMessage } from "../../platform/localization.ts";
 import { isClickType } from "../../config/content-options.ts";
 import {
+  CLICK_ACTIONS,
   CLICK_GESTURES,
   LEGACY_CLICK_TO_SAVE_DISABLED_COMBO,
   clickKeysForCombo,
@@ -103,6 +104,7 @@ export const setupShortcutOptions = () => {
   const modifier = document.querySelector<HTMLSelectElement>("#clickToSaveModifier");
   const modifier2 = document.querySelector<HTMLSelectElement>("#clickToSaveModifier2");
   const button = document.querySelector<HTMLSelectElement>("#clickToSaveButton");
+  const action = document.querySelector<HTMLSelectElement>("#clickToSaveAction");
   const apply = document.querySelector<HTMLButtonElement>("#clickToSaveApply");
   const reset = document.querySelector<HTMLButtonElement>("#clickToSaveReset");
   const status = document.querySelector<HTMLElement>("#clickToSaveStatus");
@@ -120,12 +122,13 @@ export const setupShortcutOptions = () => {
     modifier: HTMLSelectElement;
     modifier2: HTMLSelectElement;
     gesture: HTMLSelectElement;
+    action: HTMLSelectElement;
     remove: HTMLButtonElement | null;
   };
   const extraControls: BindingControls[] = [];
   const primaryControls =
-    modifier && modifier2 && button
-      ? { row: null, modifier, modifier2, gesture: button, remove: null }
+    modifier && modifier2 && button && action
+      ? { row: null, modifier, modifier2, gesture: button, action, remove: null }
       : null;
   const gestureLabelKeys: Record<ClickGesture, string> = {
     [CLICK_GESTURES.LEFT]: "o_cKeyboardShortcutModifierLeftClick",
@@ -152,6 +155,13 @@ export const setupShortcutOptions = () => {
     ["Ctrl", "html_ctrl"],
     ["Meta", "html_commandWindowsKey"],
   ] as const;
+  const actionOptions = [
+    [CLICK_ACTIONS.SAVE, "o_lClickToSaveActionSave"],
+    [CLICK_ACTIONS.PICKER, "o_lClickToSaveActionPicker"],
+  ] as const;
+  const writeAction = (controls: BindingControls, binding: ClickToSaveBinding): void => {
+    controls.action.value = binding.action ?? CLICK_ACTIONS.SAVE;
+  };
   const allControls = (): BindingControls[] =>
     primaryControls ? [primaryControls, ...extraControls] : [];
   const writeCombo = (controls: BindingControls, value: string | number): void => {
@@ -180,6 +190,7 @@ export const setupShortcutOptions = () => {
         ? controls.gesture.value
         : CLICK_GESTURES.LEFT,
       combo: [controls.modifier.value, controls.modifier2.value].filter(Boolean).join("+"),
+      ...(controls.action.value === CLICK_ACTIONS.PICKER ? { action: CLICK_ACTIONS.PICKER } : {}),
     };
   };
   const selectedBindings = (): ClickToSaveBinding[] => allControls().map(readBinding);
@@ -257,6 +268,7 @@ export const setupShortcutOptions = () => {
       current.modifier.disabled = !enabled;
       current.modifier2.disabled = !enabled;
       current.gesture.disabled = !enabled;
+      current.action.disabled = !enabled;
       if (current.remove) current.remove.disabled = !enabled;
     });
     // Dim the group via a class the controller owns, not a CSS
@@ -302,7 +314,7 @@ export const setupShortcutOptions = () => {
     label.append(caption, select);
     return { label, select };
   };
-  // Every added row repeats the same three control labels, so assistive tech
+  // Every added row repeats the same four control labels, so assistive tech
   // needs the row itself to carry the distinguishing context. The primary
   // controls are gesture 1; added rows count from 2 and renumber on removal.
   const renumberBindingRows = (): void => {
@@ -330,7 +342,8 @@ export const setupShortcutOptions = () => {
       "o_lClickToSaveButton",
       Object.values(CLICK_GESTURES).map((value) => [value, gestureLabelKeys[value]] as const),
     );
-    [first.select, second.select, gesture.select].forEach((select) =>
+    const rowAction = labeledSelect("o_lClickToSaveAction", actionOptions);
+    [first.select, second.select, gesture.select, rowAction.select].forEach((select) =>
       select.setAttribute("aria-describedby", "clickToSaveStatus"),
     );
     const remove = document.createElement("button");
@@ -341,11 +354,13 @@ export const setupShortcutOptions = () => {
       modifier: first.select,
       modifier2: second.select,
       gesture: gesture.select,
+      action: rowAction.select,
       remove,
     };
     writeCombo(controls, binding.combo);
     controls.gesture.value = binding.gesture;
-    [controls.modifier, controls.modifier2, controls.gesture].forEach((select) =>
+    writeAction(controls, binding);
+    [controls.modifier, controls.modifier2, controls.gesture, controls.action].forEach((select) =>
       select.addEventListener("change", syncClickControls),
     );
     remove.addEventListener("click", () => {
@@ -355,7 +370,7 @@ export const setupShortcutOptions = () => {
       renumberBindingRows();
       syncClickControls();
     });
-    row.append(first.label, second.label, gesture.label, remove);
+    row.append(first.label, second.label, gesture.label, rowAction.label, remove);
     additional.append(row);
     extraControls.push(controls);
     renumberBindingRows();
@@ -373,11 +388,12 @@ export const setupShortcutOptions = () => {
     const [first, ...remaining] = bindings;
     writeCombo(primaryControls, first.combo);
     primaryControls.gesture.value = first.gesture;
+    writeAction(primaryControls, first);
     remaining.forEach(addBindingRow);
     baselineSerialized = serializeClickToSaveBindings(bindings);
     syncClickControls();
   };
-  [button, modifier, modifier2].forEach((control) =>
+  [button, modifier, modifier2, action].forEach((control) =>
     control?.addEventListener("change", syncClickControls),
   );
   clickToSave?.addEventListener("change", syncClickControls);
@@ -429,6 +445,7 @@ export const setupShortcutOptions = () => {
     clearAdditional();
     writeCombo(primaryControls, "Alt");
     primaryControls.gesture.value = CLICK_GESTURES.LEFT;
+    primaryControls.action.value = CLICK_ACTIONS.SAVE;
     applyGesture();
     if (status)
       status.textContent =

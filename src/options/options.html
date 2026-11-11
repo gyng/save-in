@@ -1640,20 +1640,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               </div>
             </div>
 
-            <div class="caption caption-line">
-              <label>
-                <input
-                  type="checkbox"
-                  id="contentClickToSavePicker"
-                  aria-describedby="click-to-save-picker-help"
-                />
-                __MSG_o_cClickToSavePicker__
-              </label>
-              <div class="caption" id="click-to-save-picker-help">
-                __MSG_o_cClickToSavePickerHelp__
-              </div>
-            </div>
-
             <fieldset class="option-group click-to-save-controls">
               <legend class="option-group-heading">__MSG_html_clickToSaveShortcut__</legend>
               <input
@@ -1727,6 +1713,17 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                     </option>
                   </select>
                 </label>
+                <label>
+                  <span class="shortcut-control-label">__MSG_o_lClickToSaveAction__</span>
+                  <select
+                    id="clickToSaveAction"
+                    data-runtime-control="true"
+                    aria-describedby="clickToSaveStatus"
+                  >
+                    <option value="save" selected>__MSG_o_lClickToSaveActionSave__</option>
+                    <option value="picker">__MSG_o_lClickToSaveActionPicker__</option>
+                  </select>
+                </label>
               </div>
               <div id="clickToSaveAdditionalBindings" class="click-to-save-additional"></div>
               <div id="clickToSaveLongPressTiming" class="click-to-save-timing" hidden>
@@ -1763,6 +1760,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   aria-live="polite"
                 ></span>
               </div>
+              <div class="caption caption-line">__MSG_o_cClickToSavePickerHelp__</div>
               <div class="caption caption-line">__MSG_o_cKeyboardShortcutModifierHelp__</div>
               <div class="caption caption-line">__MSG_o_lClickToSaveKeysRoutingHelp__</div>
               <div

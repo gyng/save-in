@@ -4727,8 +4727,14 @@
   "pickerNoMatches": {
     "message": "Geen overeenkomende mappen"
   },
-  "o_cClickToSavePicker": {
-    "message": "Een mapkiezer tonen in plaats van direct op te slaan"
+  "o_lClickToSaveAction": {
+    "message": "Actie"
+  },
+  "o_lClickToSaveActionSave": {
+    "message": "Direct opslaan"
+  },
+  "o_lClickToSaveActionPicker": {
+    "message": "De mapkiezer tonen"
   },
   "o_cClickToSavePickerHelp": {
     "message": "Een gebaar voor klikken om op te slaan opent de mappen van uw Opslagmenu bij de aanwijzer. Kies een map om daar op te slaan of druk op Esc om te annuleren. Het contextmenu van de browser verandert niet."

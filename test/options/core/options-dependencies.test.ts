@@ -8,6 +8,7 @@ describe("option dependencies", () => {
       <input id="contentClickToSaveCombo">
       <select id="clickToSaveModifier"></select>
       <select id="clickToSaveModifier2"></select>
+      <select id="clickToSaveAction"></select>
       <select id="contentClickToSaveButton"></select>
       <input id="contentClickToSaveLongPressMs">
       <input type="checkbox" id="autoDownloadEnabled">
@@ -58,6 +59,7 @@ describe("option dependencies", () => {
     expect((document.querySelector("#clickToSaveModifier") as HTMLSelectElement).disabled).toBe(
       true,
     );
+    expect((document.querySelector("#clickToSaveAction") as HTMLSelectElement).disabled).toBe(true);
     expect(
       (document.querySelector("#contentClickToSaveLongPressMs") as HTMLInputElement).disabled,
     ).toBe(true);

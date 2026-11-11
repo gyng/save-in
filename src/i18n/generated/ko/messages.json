@@ -4727,8 +4727,14 @@
   "pickerNoMatches": {
     "message": "일치하는 폴더 없음"
   },
-  "o_cClickToSavePicker": {
-    "message": "바로 저장하지 않고 폴더 선택기 표시"
+  "o_lClickToSaveAction": {
+    "message": "동작"
+  },
+  "o_lClickToSaveActionSave": {
+    "message": "바로 저장"
+  },
+  "o_lClickToSaveActionPicker": {
+    "message": "폴더 선택기 표시"
   },
   "o_cClickToSavePickerHelp": {
     "message": "클릭하여 저장 제스처를 사용하면 저장 메뉴의 폴더가 포인터 위치에 열립니다. 폴더를 선택하면 그곳에 저장되고, Esc를 누르면 취소됩니다. 브라우저의 컨텍스트 메뉴는 바뀌지 않습니다."

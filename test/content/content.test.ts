@@ -5,7 +5,12 @@ import {
   isSourcePanelCopy,
 } from "../../src/shared/source-panel-copy.ts";
 import { DATA_URL_MAX_LENGTH } from "../../src/shared/data-url.ts";
-import { CLICK_GESTURES, serializeClickToSaveBindings } from "../../src/shared/click-gesture.ts";
+import {
+  CLICK_ACTIONS,
+  CLICK_GESTURES,
+  serializeClickToSaveBindings,
+  type ClickToSaveBinding,
+} from "../../src/shared/click-gesture.ts";
 import { createLongClickReleaseSuppressor } from "../../src/content/click-gesture-model.ts";
 
 const ClickToSave = (await import("../../src/content/content.ts")).default;
@@ -3783,18 +3788,17 @@ describe("destination picker", () => {
     vi.useRealTimers();
   });
 
-  test("a click-to-save gesture hands its source and position to the picker", async () => {
+  test("a picker binding hands its source and position to the picker", async () => {
     vi.useFakeTimers();
     const openPicker = vi.fn();
     const remove = ClickToSave.setupClickToSave(
       {
         contentClickToSaveBindings: serializeClickToSaveBindings([
-          { gesture: CLICK_GESTURES.MIDDLE, combo: "" },
-          { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "" },
+          { gesture: CLICK_GESTURES.MIDDLE, combo: "", action: CLICK_ACTIONS.PICKER },
+          { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "", action: CLICK_ACTIONS.PICKER },
         ]),
         contentClickToSaveCombo: "Alt",
         contentClickToSaveButton: "LEFT_CLICK",
-        contentClickToSavePicker: true,
         links: false,
       },
       acceptTestInput,
@@ -3825,12 +3829,11 @@ describe("destination picker", () => {
     const removeLong = ClickToSave.setupClickToSave(
       {
         contentClickToSaveBindings: serializeClickToSaveBindings([
-          { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
+          { gesture: CLICK_GESTURES.LONG_LEFT, combo: "", action: CLICK_ACTIONS.PICKER },
         ]),
         contentClickToSaveCombo: "Alt",
         contentClickToSaveButton: "LEFT_CLICK",
         contentClickToSaveLongPressMs: 500,
-        contentClickToSavePicker: true,
         links: false,
       },
       acceptTestInput,
@@ -3848,15 +3851,116 @@ describe("destination picker", () => {
     removeLong();
   });
 
-  test("the setting alone, with nothing to open, still saves at once", () => {
+  // The action belongs to the binding (one shortcut saves, another opens the
+  // picker), so each gesture kind is exercised with both in one configuration.
+  const downloads = () => sentTypes().filter((type) => type === "DOWNLOAD").length;
+  const setupMixed = (bindings: ClickToSaveBinding[], openPicker: () => void) =>
+    ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings(bindings),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        contentClickToSaveLongPressMs: 500,
+        links: false,
+      },
+      acceptTestInput,
+      undefined,
+      undefined,
+      openPicker,
+    );
+  const key = (type: "keydown" | "keyup", keyCode: number): void => {
+    const event = new KeyboardEvent(type, { bubbles: true });
+    Object.defineProperty(event, "keyCode", { value: keyCode });
+    document.dispatchEvent(event);
+  };
+
+  test("a single click saves or opens the picker by its own binding", () => {
+    const openPicker = vi.fn();
+    const remove = setupMixed(
+      [
+        { gesture: CLICK_GESTURES.MIDDLE, combo: "" },
+        { gesture: CLICK_GESTURES.MIDDLE, combo: "Shift", action: CLICK_ACTIONS.PICKER },
+        { gesture: CLICK_GESTURES.RIGHT, combo: "", action: CLICK_ACTIONS.PICKER },
+      ],
+      openPicker,
+    );
+    const image = document.getElementById("i");
+
+    press(image, { button: 1, buttons: 4 });
+    expect(downloads()).toBe(1);
+    expect(openPicker).not.toHaveBeenCalled();
+
+    key("keydown", 16);
+    press(image, { button: 1, buttons: 4 });
+    key("keyup", 16);
+    expect(openPicker).toHaveBeenCalledTimes(1);
+    expect(downloads()).toBe(1);
+
+    press(image, { button: 2, buttons: 2 });
+    expect(openPicker).toHaveBeenCalledTimes(2);
+    expect(downloads()).toBe(1);
+    remove();
+  });
+
+  test("a double click saves or opens the picker by its own binding", () => {
+    const openPicker = vi.fn();
+    const remove = setupMixed(
+      [
+        { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "" },
+        { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Shift", action: CLICK_ACTIONS.PICKER },
+      ],
+      openPicker,
+    );
+    const image = document.getElementById("i");
+
+    press(image, { detail: 1 });
+    press(image, { detail: 2 });
+    expect(downloads()).toBe(1);
+    expect(openPicker).not.toHaveBeenCalled();
+
+    key("keydown", 16);
+    press(image, { detail: 1 });
+    press(image, { detail: 2 });
+    key("keyup", 16);
+    expect(openPicker).toHaveBeenCalledTimes(1);
+    expect(downloads()).toBe(1);
+    remove();
+  });
+
+  test("a long press saves or opens the picker by its own binding", async () => {
+    vi.useFakeTimers();
+    const openPicker = vi.fn();
+    const remove = setupMixed(
+      [
+        { gesture: CLICK_GESTURES.LONG_LEFT, combo: "" },
+        { gesture: CLICK_GESTURES.LONG_LEFT, combo: "Shift", action: CLICK_ACTIONS.PICKER },
+      ],
+      openPicker,
+    );
+    const image = document.getElementById("i");
+
+    press(image);
+    await vi.advanceTimersByTimeAsync(500);
+    expect(downloads()).toBe(1);
+    expect(openPicker).not.toHaveBeenCalled();
+
+    key("keydown", 16);
+    press(image);
+    await vi.advanceTimersByTimeAsync(500);
+    key("keyup", 16);
+    expect(openPicker).toHaveBeenCalledTimes(1);
+    expect(downloads()).toBe(1);
+    remove();
+  });
+
+  test("a picker binding with nothing to open still saves at once", () => {
     const remove = ClickToSave.setupClickToSave(
       {
         contentClickToSaveBindings: serializeClickToSaveBindings([
-          { gesture: CLICK_GESTURES.MIDDLE, combo: "" },
+          { gesture: CLICK_GESTURES.MIDDLE, combo: "", action: CLICK_ACTIONS.PICKER },
         ]),
         contentClickToSaveCombo: "Alt",
         contentClickToSaveButton: "LEFT_CLICK",
-        contentClickToSavePicker: true,
         links: false,
       },
       acceptTestInput,
@@ -3868,13 +3972,12 @@ describe("destination picker", () => {
     remove();
   });
 
-  test("with the option on, a real gesture opens the picker and its choice is saved", async () => {
+  test("a real picker gesture opens the picker and its choice is saved", async () => {
     const addEventListener = vi.spyOn(window, "addEventListener");
     await importContentWithOptions({
       contentClickToSave: true,
-      contentClickToSavePicker: true,
       contentClickToSaveBindings: serializeClickToSaveBindings([
-        { gesture: CLICK_GESTURES.MIDDLE, combo: "" },
+        { gesture: CLICK_GESTURES.MIDDLE, combo: "", action: CLICK_ACTIONS.PICKER },
       ]),
     });
     answerPicker();

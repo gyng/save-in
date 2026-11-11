@@ -102,7 +102,6 @@ export type ResolvedContentOptions = {
   contentClickToSaveButton: ClickType;
   contentClickToSaveLongPressMs: number;
   contentClickToSaveUseDefault: boolean;
-  contentClickToSavePicker: boolean;
   links: boolean;
   preferLinks: boolean;
   preferLinksFilterEnabled: boolean;
@@ -148,10 +147,6 @@ export const CONTENT_OPTION_DEFAULTS: ResolvedContentOptions = {
   // opt out of: picking one other folder from the menu silently redirects every
   // later click. Off keeps the inheriting behavior that predates this option.
   contentClickToSaveUseDefault: false,
-  // Off keeps a click-to-save gesture an immediate save. On, the gesture shows
-  // the in-page destination picker instead (#77); the browser context menu is
-  // unaffected either way.
-  contentClickToSavePicker: false,
   links: true,
   preferLinks: false,
   preferLinksFilterEnabled: false,
@@ -243,7 +238,6 @@ const CONTENT_OPTION_NORMALIZERS: ContentOptionNormalizers = {
   contentClickToSaveCombo: (stored) =>
     isContentClickCombo(stored) ? stored : CONTENT_OPTION_DEFAULTS.contentClickToSaveCombo,
   contentClickToSaveUseDefault: booleanOption(CONTENT_OPTION_DEFAULTS.contentClickToSaveUseDefault),
-  contentClickToSavePicker: booleanOption(CONTENT_OPTION_DEFAULTS.contentClickToSavePicker),
   quickSaveOnly: booleanOption(CONTENT_OPTION_DEFAULTS.quickSaveOnly),
   contentClickToSaveButton: (stored) =>
     isClickType(stored) ? stored : CONTENT_OPTION_DEFAULTS.contentClickToSaveButton,

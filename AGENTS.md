@@ -128,7 +128,7 @@ History stay the menu's. A command has no pointer position, so
 `background/hovered-source.ts` asks the top-frame content script for the
 deepest `:hover` element on demand; do not add a mousemove listener for it. The
 picker is opt-in at every entry point (an unbound command, the
-`contentClickToSavePicker` option, the allowlisted external `OPEN_PICKER`
+per-binding `action: "picker"` of a click-to-save gesture, the allowlisted external `OPEN_PICKER`
 message) and must not become a default replacement for the browser context
 menu. The page side receives only ids and titles and returns only an id, which
 `messaging/picker.ts` checks against what the picker would list for that tab

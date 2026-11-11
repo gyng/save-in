@@ -4727,8 +4727,14 @@
   "pickerNoMatches": {
     "message": "Keine passenden Ordner"
   },
-  "o_cClickToSavePicker": {
-    "message": "Ordnerauswahl anzeigen, statt sofort zu speichern"
+  "o_lClickToSaveAction": {
+    "message": "Aktion"
+  },
+  "o_lClickToSaveActionSave": {
+    "message": "Sofort speichern"
+  },
+  "o_lClickToSaveActionPicker": {
+    "message": "Ordnerauswahl anzeigen"
   },
   "o_cClickToSavePickerHelp": {
     "message": "Eine Geste für Speichern per Klick öffnet die Ordner Ihres Speichermenüs am Mauszeiger. Wählen Sie einen Ordner, um dort zu speichern, oder drücken Sie Esc, um abzubrechen. Das Kontextmenü des Browsers bleibt unverändert."

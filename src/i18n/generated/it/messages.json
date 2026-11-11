@@ -4727,8 +4727,14 @@
   "pickerNoMatches": {
     "message": "Nessuna cartella corrispondente"
   },
-  "o_cClickToSavePicker": {
-    "message": "Mostra un selettore di cartelle invece di salvare subito"
+  "o_lClickToSaveAction": {
+    "message": "Azione"
+  },
+  "o_lClickToSaveActionSave": {
+    "message": "Salva subito"
+  },
+  "o_lClickToSaveActionPicker": {
+    "message": "Mostra il selettore di cartelle"
   },
   "o_cClickToSavePickerHelp": {
     "message": "Un gesto di clic per salvare apre le cartelle del tuo Menu di salvataggio accanto al puntatore. Scegline una per salvare lì oppure premi Esc per annullare. Il menu contestuale del browser non cambia."
