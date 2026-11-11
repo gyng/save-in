@@ -6,6 +6,7 @@ import {
 } from "../shared/destination-picker.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 import { closeDestinationPicker, openDestinationPicker } from "./destination-picker.ts";
+import { pickerSubject } from "./destination-picker-model.ts";
 
 // Connects the picker view to the background: the model comes from it, and a
 // choice goes back to it as a menu item id. Message types are spelled out, as
@@ -71,6 +72,7 @@ export const createDestinationPickerClient = (dependencies: PickerClientDependen
       model,
       point,
       theme: dependencies.theme(),
+      subject: pickerSubject(source, document.title),
       onPick: (menuItemId) => {
         void request({ type: "PICKER_SAVE", body: { menuItemId, source } });
       },
@@ -83,7 +85,7 @@ export const createDestinationPickerClient = (dependencies: PickerClientDependen
     // could not save as that element opens nothing, rather than a picker that
     // would save the page in its place.
     openForClick: (
-      clicked: { url: string; kind: string },
+      clicked: { url: string; kind: string; alt?: string },
       point: { x: number; y: number },
     ): Promise<boolean> => {
       const source = parsePickerSource(

@@ -318,7 +318,10 @@ const setupClickToSave = (
   sharedLongReleaseSuppression?: ReturnType<typeof createLongClickReleaseSuppressor>,
   // With the opt-in picker setting, a matched gesture shows the destination
   // picker at the pointer instead of saving at once.
-  openPicker?: (source: { url: string; kind: PageSource["kind"] }, point: GesturePoint) => void,
+  openPicker?: (
+    source: { url: string; kind: PageSource["kind"]; alt?: string },
+    point: GesturePoint,
+  ) => void,
 ) => {
   const routingRules = parseRulesCollecting(options.filenamePatterns ?? "").rules;
   const cssSelectors = cssSelectorsForRules(routingRules);
@@ -373,7 +376,11 @@ const setupClickToSave = (
     point: GesturePoint,
   ): void => {
     if (options.contentClickToSavePicker && openPicker) {
-      openPicker(source, point);
+      const { altText } = altTextInfo([source.element]);
+      openPicker(
+        { url: source.url, kind: source.kind, ...(altText ? { alt: altText } : {}) },
+        point,
+      );
       return;
     }
     void sendRuntimeDownload(

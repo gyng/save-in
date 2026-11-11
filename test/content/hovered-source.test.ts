@@ -43,6 +43,26 @@ describe("hovered source lookup", () => {
     });
   });
 
+  test("reports a hovered image with its alt text", () => {
+    document.body.innerHTML = '<img src="https://x.test/a.png" alt=" Misty forest ">';
+    hover(document.body, element("img"));
+
+    expect(hoveredSourceFromDocument(document, ClickToSave.findSource)).toEqual({
+      media: { url: "https://x.test/a.png", kind: "image", alt: "Misty forest" },
+    });
+  });
+
+  test("reports media from a resolver that names no element", () => {
+    document.body.innerHTML = '<img src="https://x.test/a.png" alt="Misty forest">';
+    hover(document.body, element("img"));
+
+    expect(
+      hoveredSourceFromDocument(document, (_event, allowLinks) =>
+        allowLinks ? undefined : { url: "https://x.test/a.png", kind: "image" },
+      ),
+    ).toEqual({ media: { url: "https://x.test/a.png", kind: "image" } });
+  });
+
   test("reports a linked image as both media and link", () => {
     document.body.innerHTML =
       '<a href="https://x.test/full.jpg"><img src="https://x.test/thumb.jpg"></a>';

@@ -163,5 +163,10 @@ describe("hovered source lookup", () => {
     expect(
       hoveredClickInfo({ media: { url: "https://example.com/v.mp4", kind: "video" } }),
     ).toEqual({ srcUrl: "https://example.com/v.mp4", mediaType: "video" });
+    expect(
+      hoveredClickInfo({
+        media: { url: "https://example.com/a.png", kind: "image", alt: "Misty forest" },
+      }),
+    ).toEqual({ srcUrl: "https://example.com/a.png", mediaType: "image", altText: "Misty forest" });
   });
 });

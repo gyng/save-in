@@ -1,4 +1,4 @@
-import type { PickerModel } from "../shared/destination-picker.ts";
+import type { PickerModel, PickerSource } from "../shared/destination-picker.ts";
 
 // Pure state for the in-page destination picker: the flattened menu, the
 // type-to-filter result, and which destination the keyboard is on.
@@ -121,3 +121,65 @@ export const setPickerActive = (state: PickerState, id: string): PickerState =>
   state.activeId !== id && state.visible.some((row) => isDestination(row) && row.id === id)
     ? { ...state, activeId: id }
     : state;
+
+// What a choice in the picker will save, shown in its header so a picker
+// opened by a keyboard command says what it is about to act on.
+export type PickerSubject = {
+  kind: "image" | "video" | "audio" | "link" | "page";
+  // A file name or the page title; empty when the address carries no name.
+  name: string;
+};
+
+// The last path segment a person would recognize as the file's name, else the
+// host. An inline data: or page-owned blob: address has neither.
+const addressName = (address: string): string => {
+  try {
+    const url = new URL(address);
+    if (url.protocol !== "http:" && url.protocol !== "https:" && url.protocol !== "ftp:") return "";
+    const segment = url.pathname.split("/").findLast((part) => part.length > 0);
+    if (segment === undefined) return url.hostname;
+    try {
+      return decodeURIComponent(segment);
+    } catch {
+      return segment;
+    }
+  } catch {
+    return "";
+  }
+};
+
+export const pickerSubject = (source: PickerSource | null, pageTitle: string): PickerSubject => {
+  if (source?.media) return { kind: source.media.kind, name: addressName(source.media.url) };
+  if (source?.linkUrl) return { kind: "link", name: addressName(source.linkUrl) };
+  return { kind: "page", name: pageTitle.trim() };
+};
+
+// Splits a row title around the filter terms so the view can mark what
+// matched. Terms are found the way filterPickerRows finds them; overlapping
+// and adjacent matches merge into one mark.
+export const splitPickerMatches = (
+  title: string,
+  query: string,
+): Array<{ text: string; match: boolean }> => {
+  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const haystack = title.toLowerCase();
+  // Case folding can change a string's length; marks would then land on the
+  // wrong characters, so such a title is shown unmarked.
+  if (terms.length === 0 || haystack.length !== title.length) {
+    return [{ text: title, match: false }];
+  }
+  const marked = Array.from({ length: title.length }, () => false);
+  for (const term of terms) {
+    for (let at = haystack.indexOf(term); at !== -1; at = haystack.indexOf(term, at + 1)) {
+      marked.fill(true, at, at + term.length);
+    }
+  }
+  const parts: Array<{ text: string; match: boolean }> = [];
+  for (let index = 0; index < title.length; index += 1) {
+    const match = marked[index] === true;
+    const last = parts[parts.length - 1];
+    if (last && last.match === match) last.text += title.charAt(index);
+    else parts.push({ text: title.charAt(index), match });
+  }
+  return parts;
+};

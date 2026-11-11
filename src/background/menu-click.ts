@@ -397,8 +397,14 @@ const handleContextMenuClickInternal = async (
     // is the exact image the browser reported for this click.
     let altText: string | undefined;
     if (info.mediaType === "image" && usesRoutingInput(IMAGE_ALT_USE, storedDestinationPath)) {
-      const image = recoveredImage ?? (await readContextImage(info, clickTab));
-      if (image && image.src === boundedContextImageUrl(info.srcUrl)) altText = image.alt;
+      if (info.altText !== undefined) {
+        // A command or picker save names its own element; there is no
+        // right-click record to consult for it.
+        altText = info.altText;
+      } else {
+        const image = recoveredImage ?? (await readContextImage(info, clickTab));
+        if (image && image.src === boundedContextImageUrl(info.srcUrl)) altText = image.alt;
+      }
     }
     const capturedPageText = await readPageText(info, clickTab);
     // A text selection is saved as an object URL of its text (the pure

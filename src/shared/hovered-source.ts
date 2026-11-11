@@ -1,6 +1,7 @@
 // The content script owns the DOM lookup while the background turns the answer
 // into a save. Neither layer may import the other, so their bounded
 // request/response contract lives here.
+import { boundedImageAltText } from "./context-image.ts";
 import { isStringKeyedRecord } from "./util.ts";
 
 export const HOVERED_SOURCE_REQUEST = "SAVE_IN_HOVERED_SOURCE";
@@ -13,7 +14,9 @@ export type HoveredMediaKind = (typeof HOVERED_MEDIA_KINDS)[number];
 // linkUrl for a menu click, so the background's own "prefer links" settings
 // decide between them instead of the page side.
 export type HoveredSource = {
-  media?: { url: string; kind: HoveredMediaKind };
+  // `alt` is the image's own alt text, read from the element the page side has
+  // in hand, so a command or picker save can name the file by it too.
+  media?: { url: string; kind: HoveredMediaKind; alt?: string };
   linkUrl?: string;
 };
 
@@ -43,9 +46,10 @@ export const parseHoveredSource = (
   const rawMedia = isStringKeyedRecord(value.media) ? value.media : {};
   const mediaUrl = boundedSourceUrl(rawMedia.url, maxUrlLength);
   const linkUrl = boundedSourceUrl(value.linkUrl, maxUrlLength);
+  const alt = rawMedia.kind === "image" ? boundedImageAltText(rawMedia.alt) : undefined;
   const media =
     mediaUrl && isHoveredMediaKind(rawMedia.kind)
-      ? { url: mediaUrl, kind: rawMedia.kind }
+      ? { url: mediaUrl, kind: rawMedia.kind, ...(alt ? { alt } : {}) }
       : undefined;
   if (!media && !linkUrl) return null;
   return { ...(media ? { media } : {}), ...(linkUrl ? { linkUrl } : {}) };

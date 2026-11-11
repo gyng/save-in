@@ -13,8 +13,8 @@
   isolation: isolate;
   writing-mode: horizontal-tb;
   --picker-gutter: var(--source-space-2);
-  --picker-inline-size: min(280px, calc(100dvw - 2 * var(--picker-gutter)));
-  --picker-block-size: min(360px, calc(100dvh - 2 * var(--picker-gutter)));
+  --picker-inline-size: min(304px, calc(100dvw - 2 * var(--picker-gutter)));
+  --picker-block-size: min(420px, calc(100dvh - 2 * var(--picker-gutter)));
   /* Centered near the top by default, which is where a keyboard command opens
      it. A gesture overrides both on the host with the pointer position. Either
      way the picker is clamped inside the viewport. */
@@ -54,23 +54,63 @@
 }
 
 .picker {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  display: flex;
+  flex-direction: column;
   max-block-size: var(--picker-block-size);
+  overflow: hidden;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: calc(var(--radius) * 2);
   background: var(--color-surface-page);
   box-shadow: var(--floating-shadow);
   animation: picker-in var(--source-motion-duration-enter) ease-out both;
 }
 
+svg {
+  flex: none;
+  inline-size: 16px;
+  block-size: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* What will be saved: its kind, the picker's title, then the file or page
+   name, which gives way first when space is short. */
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--source-space-2);
+  min-inline-size: 0;
+  padding: var(--source-space-2) var(--source-space-3) 0;
+  color: var(--color-text-muted);
+}
+
+.header-title {
+  flex: none;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.header-subject {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  overflow: hidden;
+  font-size: var(--text-xs);
+  text-align: end;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .filter {
+  flex: none;
   min-inline-size: 0;
   min-block-size: var(--control-height);
   margin: var(--source-space-2);
   padding: 0 var(--source-space-2);
   border: 1px solid var(--color-control-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   background: var(--color-surface-page);
   color: inherit;
   font: inherit;
@@ -87,6 +127,8 @@
 }
 
 .list {
+  flex: 1 1 auto;
+  min-block-size: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 0 var(--source-space-1) var(--source-space-1);
@@ -94,29 +136,49 @@
 
 .option {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--source-space-2);
   min-block-size: var(--compact-control-size);
   padding-block: var(--source-space-1);
   padding-inline: calc(var(--source-space-2) + var(--picker-depth) * var(--source-space-4))
     var(--source-space-2);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   cursor: default;
-  overflow-wrap: anywhere;
 
-  &:hover {
-    background: var(--color-hover);
+  & .row-icon {
+    color: var(--color-text-muted);
   }
 
+  /* The active row is marked by tint and an accent edge, never by weight: a
+     heavier face would shift the text under the pointer as it moves. */
   &[aria-selected="true"] {
-    color: var(--color-link);
-    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
-    font-weight: 600;
+    background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+    box-shadow: inset 2px 0 0 var(--color-accent);
+
+    & .row-icon {
+      color: var(--color-accent);
+    }
   }
 }
 
+.option-title {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+mark {
+  background: none;
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
 .hint {
-  margin-inline-start: auto;
+  flex: none;
   color: var(--color-text-muted);
   font-size: var(--text-xs);
   font-weight: 400;
@@ -142,6 +204,30 @@
 .empty {
   padding: var(--source-space-2) var(--source-space-3) var(--source-space-3);
   color: var(--color-text-muted);
+}
+
+.keys {
+  display: flex;
+  flex: none;
+  gap: var(--source-space-3);
+  padding: var(--source-space-1) var(--source-space-3) var(--source-space-2);
+  border-block-start: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.key-group {
+  display: flex;
+  gap: 2px;
+}
+
+kbd {
+  min-inline-size: 1.5em;
+  padding: 0 var(--source-space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  text-align: center;
 }
 
 [hidden] {
@@ -179,5 +265,9 @@
   .option[aria-selected="true"] {
     outline: 2px solid Highlight;
     outline-offset: -2px;
+  }
+
+  mark {
+    color: Highlight;
   }
 }

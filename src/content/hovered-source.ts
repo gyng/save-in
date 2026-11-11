@@ -1,4 +1,5 @@
 import { parseHoveredSource, type HoveredSource } from "../shared/hovered-source.ts";
+import { imageAltText } from "./context-image.ts";
 
 // A keyboard command carries no pointer position, and tracking one would cost
 // a mousemove listener on every page. The browser already knows what the
@@ -17,7 +18,7 @@ type SourceLookup = (
   },
   allowLinks: boolean,
   preferLink?: boolean,
-) => { url: string; kind: string } | undefined;
+) => { url: string; kind: string; element?: Element } | undefined;
 
 export const hoveredElement = (root: Document): Element | null => {
   let scope: Document | ShadowRoot = root;
@@ -60,7 +61,11 @@ export const hoveredSourceFromDocument = (
   // The shared parser bounds both addresses, so the page side never answers
   // with something the background would refuse anyway.
   return parseHoveredSource({
-    media,
+    media: media && {
+      url: media.url,
+      kind: media.kind,
+      alt: media.element && imageAltText(media.element),
+    },
     linkUrl: link?.kind === "link" ? link.url : undefined,
   });
 };

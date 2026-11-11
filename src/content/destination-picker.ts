@@ -7,8 +7,11 @@ import {
   movePickerActive,
   setPickerActive,
   setPickerQuery,
+  splitPickerMatches,
   type PickerRow,
+  type PickerSubject,
 } from "./destination-picker-model.ts";
+import { createSourceKindIcon } from "./source-panel-icons.ts";
 import { resolvedPanelTheme } from "./source-panel-format.ts";
 import SOURCE_PANEL_TOKENS_CSS from "./source-panel-tokens.css";
 import SOURCE_PANEL_THEMES_CSS from "./source-panel-themes.css";
@@ -36,6 +39,8 @@ export type DestinationPickerOptions = {
   // keyboard command, which centers it.
   point?: { x: number; y: number } | undefined;
   theme: UiTheme | undefined;
+  // What a choice will save, named in the header.
+  subject?: PickerSubject | undefined;
   onPick: (menuItemId: string) => void;
 };
 
@@ -49,7 +54,30 @@ const acceptsEvent = (event: Event): boolean => event.isTrusted || SAVE_IN_CONTE
 
 const optionId = (index: number): string => `destination-${index}`;
 
-const renderRow = (row: PickerRow, index: number, lastUsedHint: string): HTMLElement => {
+const ROW_ICON_PATHS = {
+  folder: ["M3 6h6l2 2h10v11H3z"],
+  lastUsed: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18", "M12 7v5l3 2"],
+} as const;
+
+const rowIcon = (icon: keyof typeof ROW_ICON_PATHS): SVGSVGElement => {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.classList.add("row-icon");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  ROW_ICON_PATHS[icon].forEach((pathData) => {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", pathData);
+    svg.append(path);
+  });
+  return svg;
+};
+
+const renderRow = (
+  row: PickerRow,
+  index: number,
+  lastUsedHint: string,
+  query: string,
+): HTMLElement => {
   const element = document.createElement("div");
   if (row.kind === "separator") {
     element.className = "separator";
@@ -70,8 +98,17 @@ const renderRow = (row: PickerRow, index: number, lastUsedHint: string): HTMLEle
   // The label carries the ancestors a screen reader cannot get from indentation.
   element.setAttribute("aria-label", row.label);
   const title = document.createElement("span");
-  title.textContent = row.title;
-  element.append(title);
+  title.className = "option-title";
+  // The marks are visual only; the accessible name above is the whole label.
+  title.append(
+    ...splitPickerMatches(row.title, query).map(({ text, match }) => {
+      if (!match) return document.createTextNode(text);
+      const mark = document.createElement("mark");
+      mark.textContent = text;
+      return mark;
+    }),
+  );
+  element.append(rowIcon(row.lastUsed ? "lastUsed" : "folder"), title);
   if (row.lastUsed) {
     const hint = document.createElement("span");
     hint.className = "hint";
@@ -81,6 +118,50 @@ const renderRow = (row: PickerRow, index: number, lastUsedHint: string): HTMLEle
     element.append(hint);
   }
   return element;
+};
+
+// The header says what the picker will save: its kind as an icon and its name
+// when the address or page has one. The dialog's accessible name stays the
+// title alone; the name is page-controlled text and only ever shown.
+const renderHeader = (title: string, subject: PickerSubject | undefined): HTMLElement => {
+  const header = document.createElement("div");
+  header.className = "header";
+  const heading = document.createElement("span");
+  heading.className = "header-title";
+  heading.textContent = title;
+  if (subject)
+    header.append(createSourceKindIcon(subject.kind === "page" ? "document" : subject.kind));
+  header.append(heading);
+  if (subject?.name) {
+    const name = document.createElement("span");
+    name.className = "header-subject";
+    name.textContent = subject.name;
+    name.title = subject.name;
+    header.append(name);
+  }
+  return header;
+};
+
+// Key legend for sighted keyboard users. The keys are glyphs, not words, so
+// there is nothing to translate; assistive technology gets the same contract
+// from the combobox and listbox roles instead.
+const renderKeyLegend = (): HTMLElement => {
+  const legend = document.createElement("div");
+  legend.className = "keys";
+  legend.setAttribute("aria-hidden", "true");
+  for (const group of [["\u2191", "\u2193"], ["\u21B5"], ["esc"]]) {
+    const keys = document.createElement("span");
+    keys.className = "key-group";
+    keys.append(
+      ...group.map((label) => {
+        const key = document.createElement("kbd");
+        key.textContent = label;
+        return key;
+      }),
+    );
+    legend.append(keys);
+  }
+  return legend;
 };
 
 // Returns false without showing anything when the model offers no destination.
@@ -132,7 +213,7 @@ export const openDestinationPicker = (options: DestinationPickerOptions): boolea
   empty.className = "empty";
   empty.setAttribute("role", "status");
   empty.textContent = copy.empty;
-  picker.append(filter, list, empty);
+  picker.append(renderHeader(copy.title, options.subject), filter, list, empty, renderKeyLegend());
   shadow.append(style, picker);
 
   let state = createPickerState(rows);
@@ -153,7 +234,7 @@ export const openDestinationPicker = (options: DestinationPickerOptions): boolea
   };
   const render = (): void => {
     list.replaceChildren(
-      ...state.visible.map((row, index) => renderRow(row, index, copy.lastUsed)),
+      ...state.visible.map((row, index) => renderRow(row, index, copy.lastUsed, state.query)),
     );
     empty.hidden = state.visible.length > 0;
     showActive();

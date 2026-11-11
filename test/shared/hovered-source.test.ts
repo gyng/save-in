@@ -26,6 +26,23 @@ describe("hovered source contract", () => {
     ).toEqual({ media: { url: "data:audio/ogg;base64,AAAA", kind: "audio" } });
   });
 
+  test("keeps an image's bounded alt text and no other kind's", () => {
+    expect(
+      parseHoveredSource({
+        media: { url: "https://x.test/a.png", kind: "image", alt: "  Misty forest  " },
+      }),
+    ).toEqual({ media: { url: "https://x.test/a.png", kind: "image", alt: "Misty forest" } });
+    expect(
+      parseHoveredSource({ media: { url: "https://x.test/a.png", kind: "image", alt: "   " } }),
+    ).toEqual({ media: { url: "https://x.test/a.png", kind: "image" } });
+    expect(
+      parseHoveredSource({ media: { url: "https://x.test/v.mp4", kind: "video", alt: "clip" } }),
+    ).toEqual({ media: { url: "https://x.test/v.mp4", kind: "video" } });
+    expect(
+      parseHoveredSource({ media: { url: "https://x.test/a.png", kind: "image", alt: 7 } }),
+    ).toEqual({ media: { url: "https://x.test/a.png", kind: "image" } });
+  });
+
   test("drops the half of an answer it cannot accept", () => {
     expect(
       parseHoveredSource({

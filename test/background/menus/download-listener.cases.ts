@@ -91,6 +91,32 @@ describe("addDownloadListener", () => {
     expect(Download.launchDownload).not.toHaveBeenCalled();
   });
 
+  test("a command or picker save names its image by the alt text it carries", async () => {
+    options.filenamePatterns = parseRulesCollecting("alttext: forest\ninto: alt/:alttext:/").rules;
+    global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve(null));
+    Menus.addPaths(["dir1"], ["image"]);
+
+    await Menus.handleContextMenuClick(
+      {
+        menuItemId: "save-in-0",
+        pageUrl: "https://example.com/",
+        srcUrl: "https://example.com/a.png",
+        mediaType: "image",
+        altText: "Misty forest",
+      },
+      { id: 42, title: "Page" },
+    );
+
+    const state = vi.mocked(Download.launchDownload).mock.calls.at(-1)![0] as DownloadPipelineState;
+    expect(state.info.altText).toBe("Misty forest");
+    // The element was named by the caller, so no right-click record is read.
+    expect(global.browser.tabs.sendMessage).not.toHaveBeenCalledWith(
+      42,
+      { type: "SAVE_IN_CONTEXT_IMAGE" },
+      expect.anything(),
+    );
+  });
+
   test("a keyboard command saves into a folder the menu is not showing", async () => {
     // Nothing was rendered, so the menu itself could not resolve this id.
     await Menus.handleContextMenuClick(

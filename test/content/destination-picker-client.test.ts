@@ -216,6 +216,25 @@ describe("destination picker client", () => {
     ]);
   });
 
+  test("a clicked image keeps its alt text for the save", async () => {
+    const picker = client();
+    await picker.openForClick(
+      { url: "https://x.test/a.png", kind: "image", alt: "Misty forest" },
+      { x: 5, y: 6 },
+    );
+    pressEnter();
+
+    expect(sent().filter(({ type }) => type === "PICKER_SAVE")).toEqual([
+      {
+        type: "PICKER_SAVE",
+        body: {
+          menuItemId: "save-in-0",
+          source: { media: { url: "https://x.test/a.png", kind: "image", alt: "Misty forest" } },
+        },
+      },
+    ]);
+  });
+
   test("a gesture on something that cannot be saved as itself opens nothing", async () => {
     expect(
       await client().openForClick(

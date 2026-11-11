@@ -3809,12 +3809,15 @@ describe("destination picker", () => {
       { url: "http://x.test/pic.png", kind: "image" },
       { x: 40, y: 60 },
     );
+    // The element is in hand, so its alt text travels with the picker's save.
+    image?.setAttribute("alt", "Misty forest");
     press(image, { detail: 1 });
     press(image, { detail: 2, clientX: 7, clientY: 9 });
     expect(openPicker).toHaveBeenLastCalledWith(
-      { url: "http://x.test/pic.png", kind: "image" },
+      { url: "http://x.test/pic.png", kind: "image", alt: "Misty forest" },
       { x: 7, y: 9 },
     );
+    image?.removeAttribute("alt");
     expect(openPicker).toHaveBeenCalledTimes(2);
     expect(sentTypes()).not.toContain("DOWNLOAD");
     remove();

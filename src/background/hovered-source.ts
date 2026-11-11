@@ -23,7 +23,8 @@ export const readHoveredSource = async (
 // click handler's own link and "prefer links" rules choose what is saved.
 export const hoveredClickInfo = (
   hovered: HoveredSource | null,
-): Pick<ClickInfo, "srcUrl" | "mediaType" | "linkUrl"> => ({
+): Pick<ClickInfo, "srcUrl" | "mediaType" | "linkUrl" | "altText"> => ({
   ...(hovered?.media ? { srcUrl: hovered.media.url, mediaType: hovered.media.kind } : {}),
+  ...(hovered?.media?.alt ? { altText: hovered.media.alt } : {}),
   ...(hovered?.linkUrl ? { linkUrl: hovered.linkUrl } : {}),
 });

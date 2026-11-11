@@ -91,6 +91,53 @@ afterEach(() => {
 });
 
 describe("destination picker view", () => {
+  test("the header names what will be saved, and the dialog keeps its plain title", () => {
+    open({ subject: { kind: "image", name: "forest.jpg" } });
+    const header = root().querySelector(".header")!;
+
+    expect(header.querySelector(".header-title")?.textContent).toBe(copy.title);
+    expect(header.querySelector(".header-subject")?.textContent).toBe("forest.jpg");
+    expect(header.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
+    expect(root().querySelector('[role="dialog"]')?.getAttribute("aria-label")).toBe(copy.title);
+  });
+
+  test.each([
+    ["a page", { kind: "page" as const, name: "" }, 1],
+    ["nothing in particular", undefined, 0],
+  ])("the header shows no name for %s", (_label, subject, icons) => {
+    open({ subject });
+
+    expect(root().querySelector(".header-subject")).toBeNull();
+    expect(root().querySelectorAll(".header svg")).toHaveLength(icons);
+  });
+
+  test("rows carry decorative icons and a key legend nothing reads aloud", () => {
+    open();
+
+    expect(option("save-in-last-used").querySelector("svg.row-icon")).not.toBeNull();
+    expect(option("save-in-0").querySelector("svg.row-icon")?.getAttribute("aria-hidden")).toBe(
+      "true",
+    );
+    const legend = root().querySelector(".keys")!;
+    expect(legend.getAttribute("aria-hidden")).toBe("true");
+    expect([...legend.querySelectorAll("kbd")].map((key) => key.textContent)).toEqual([
+      "\u2191",
+      "\u2193",
+      "\u21B5",
+      "esc",
+    ]);
+  });
+
+  test("marks what the filter matched without changing the row's accessible name", () => {
+    open();
+    type("rep");
+    const row = option("save-in-2");
+
+    expect(row.querySelector("mark")?.textContent).toBe("Rep");
+    expect(row.querySelector(".option-title")?.textContent).toBe("Work / Reports");
+    expect(row.getAttribute("aria-label")).toBe("Work / Reports");
+  });
+
   test("lists Last used, then the menu with headings, and focuses the filter", () => {
     expect(open()).toBe(true);
 

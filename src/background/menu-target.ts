@@ -13,6 +13,9 @@ export type ClickInfo = {
   selectionText?: string | undefined;
   linkText?: string | undefined;
   modifiers?: string[] | undefined;
+  // Never part of a browser menu click. A keyboard command or picker save sets
+  // it from the element the content script resolved, already bounded.
+  altText?: string | undefined;
 };
 
 type ClickOptions = {

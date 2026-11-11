@@ -6,6 +6,8 @@ import {
   movePickerActive,
   setPickerActive,
   setPickerQuery,
+  pickerSubject,
+  splitPickerMatches,
   type PickerRow,
 } from "../../src/content/destination-picker-model.ts";
 import type { PickerItem, PickerModel } from "../../src/shared/destination-picker.ts";
@@ -169,5 +171,77 @@ describe("keyboard state", () => {
     expect(setPickerActive(state, "last")).toBe(state);
     expect(setPickerActive(state, "missing")).toBe(state);
     expect(setPickerActive(setPickerQuery(state, "work"), "a").activeId).toBe("d");
+  });
+});
+
+describe("picker subject", () => {
+  test.each([
+    [
+      "an image by its file name",
+      { media: { url: "https://cdn.test/a/b/forest%20dawn.jpg?x=1", kind: "image" as const } },
+      { kind: "image", name: "forest dawn.jpg" },
+    ],
+    [
+      "media over its link",
+      {
+        media: { url: "https://cdn.test/v.mp4", kind: "video" as const },
+        linkUrl: "https://x.test/page",
+      },
+      { kind: "video", name: "v.mp4" },
+    ],
+    [
+      "a link by its last segment",
+      { linkUrl: "https://x.test/files/doc.pdf" },
+      { kind: "link", name: "doc.pdf" },
+    ],
+    ["a bare host", { linkUrl: "https://x.test/" }, { kind: "link", name: "x.test" }],
+    [
+      "a segment that is not valid percent-encoding",
+      { linkUrl: "https://x.test/100%" },
+      { kind: "link", name: "100%" },
+    ],
+    [
+      "an inline address, which has no name",
+      { media: { url: "data:image/png;base64,AAAA", kind: "image" as const } },
+      { kind: "image", name: "" },
+    ],
+    ["an address that does not parse", { linkUrl: "not a url" }, { kind: "link", name: "" }],
+  ])("names %s", (_label, source, expected) => {
+    expect(pickerSubject(source, "Ignored title")).toEqual(expected);
+  });
+
+  test("names the page by its trimmed title", () => {
+    expect(pickerSubject(null, "  Gallery  ")).toEqual({ kind: "page", name: "Gallery" });
+    expect(pickerSubject({}, "")).toEqual({ kind: "page", name: "" });
+  });
+});
+
+describe("filter match marks", () => {
+  test("leaves a title whole when nothing is being filtered", () => {
+    expect(splitPickerMatches("Images / Nature", "  ")).toEqual([
+      { text: "Images / Nature", match: false },
+    ]);
+  });
+
+  test("marks every term wherever it occurs, in any case", () => {
+    expect(splitPickerMatches("Images / Nature", "na IM")).toEqual([
+      { text: "Im", match: true },
+      { text: "ages / ", match: false },
+      { text: "Na", match: true },
+      { text: "ture", match: false },
+    ]);
+  });
+
+  test("merges overlapping and repeated matches", () => {
+    expect(splitPickerMatches("banana", "ana nan")).toEqual([
+      { text: "b", match: false },
+      { text: "anana", match: true },
+    ]);
+  });
+
+  test("shows a title unmarked when case folding changes its length", () => {
+    expect(splitPickerMatches("\u0130stanbul", "i")).toEqual([
+      { text: "\u0130stanbul", match: false },
+    ]);
   });
 });
