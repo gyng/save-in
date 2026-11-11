@@ -17,6 +17,7 @@ import { backgroundRuntime } from "./runtime.ts";
 import { getLastUsed, menuState } from "./menu-build.ts";
 import { lastUsedMenuExists } from "./menu-click.ts";
 import { resolveClickTarget } from "./menu-target.ts";
+import { assignPickerKeys } from "../menus/picker-keys.ts";
 import { hoveredClickInfo, readHoveredSource } from "./hovered-source.ts";
 import { requestTopFrame } from "./tab-request.ts";
 
@@ -56,11 +57,28 @@ export const buildPickerMenu = (privateContext: boolean): PickerMenu => {
   // A private tab sees only the private Last used destination, as its context
   // menu does, so a regular window's folder never appears in a private page.
   const stored = getLastUsed(privateContext && !options.persistPrivateActivity);
-  const lastUsed =
-    lastUsedMenuExists() && stored.path
-      ? { id: MENU_IDS.LAST_USED, title: stored.meta?.title || stored.path }
-      : null;
+  const hasLastUsed = lastUsedMenuExists() && Boolean(stored.path);
   const tree = buildTree(splitLines(options.paths));
+  const destinations = selectableDestinations(tree).filter(
+    (item) => menuState.pathMappings[item.id],
+  );
+  const keys = assignPickerKeys(
+    hasLastUsed ? { id: MENU_IDS.LAST_USED, key: options.keyLastUsed } : null,
+    destinations.map((item) => ({ id: item.id, override: item.accessKeyOverride })),
+    options.enableNumberedItems,
+  );
+  const withKey = (id: string): { key?: string } => {
+    const key = keys.get(id);
+    return key === undefined ? {} : { key };
+  };
+  const lastUsed =
+    hasLastUsed && stored.path
+      ? {
+          id: MENU_IDS.LAST_USED,
+          title: stored.meta?.title || stored.path,
+          ...withKey(MENU_IDS.LAST_USED),
+        }
+      : null;
   const items = tree.items.flatMap((item): PickerItem[] => {
     if (item.kind === "separator") return [{ kind: "separator" }];
     // Only ids the click handler can resolve are ever offered.
@@ -71,14 +89,13 @@ export const buildPickerMenu = (privateContext: boolean): PickerMenu => {
         id: item.id,
         title: item.title,
         parentId: item.parentId === MENU_IDS.ROOT ? null : item.parentId,
+        ...withKey(item.id),
       },
     ];
   });
   const selectable = new Set([
     ...(lastUsed ? [lastUsed.id] : []),
-    ...selectableDestinations(tree)
-      .filter((item) => menuState.pathMappings[item.id])
-      .map((item) => item.id),
+    ...destinations.map((item) => item.id),
   ]);
   return { model: { lastUsed, items, copy }, selectable };
 };

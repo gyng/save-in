@@ -28,6 +28,22 @@ describe("destination picker contract", () => {
     });
   });
 
+  test("keeps a one-character key and drops anything else", () => {
+    const keyed = (key: unknown) =>
+      parsePickerModel({
+        lastUsed: { id: "save-in-last-used", title: "Photos", key },
+        items: [{ kind: "path", id: "save-in-0", title: "Work", key }],
+        copy,
+      });
+
+    expect(keyed("e")?.lastUsed).toEqual({ id: "save-in-last-used", title: "Photos", key: "e" });
+    expect(keyed("1")?.items[0]).toMatchObject({ key: "1" });
+    for (const bad of ["ab", "", " ", 7, null, undefined]) {
+      expect(keyed(bad)?.lastUsed).toEqual({ id: "save-in-last-used", title: "Photos" });
+      expect(keyed(bad)?.items[0]).not.toHaveProperty("key");
+    }
+  });
+
   test("treats an unusable Last used entry as none", () => {
     expect(parsePickerModel({ lastUsed: null, items: [], copy })?.lastUsed).toBeNull();
     expect(parsePickerModel({ lastUsed: { id: "x" }, items: [], copy })?.lastUsed).toBeNull();

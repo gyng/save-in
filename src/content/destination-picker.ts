@@ -5,6 +5,7 @@ import {
   flattenPickerModel,
   hasPickerDestinations,
   movePickerActive,
+  pickerKeyTarget,
   setPickerActive,
   setPickerQuery,
   splitPickerMatches,
@@ -116,6 +117,15 @@ const renderRow = (
     hint.textContent = lastUsedHint;
     element.setAttribute("aria-describedby", hint.id);
     element.append(hint);
+  }
+  // Shown only while it works: a key picks nothing once a filter is typed.
+  if (row.key && query === "") {
+    const key = document.createElement("kbd");
+    key.className = "row-key";
+    key.textContent = row.key;
+    key.setAttribute("aria-hidden", "true");
+    element.setAttribute("aria-keyshortcuts", row.key);
+    element.append(key);
   }
   return element;
 };
@@ -279,7 +289,15 @@ export const openDestinationPicker = (options: DestinationPickerOptions): boolea
     (event) => {
       // An IME confirms its own composition with Enter and may use the arrows.
       if (!acceptsEvent(event) || event.isComposing) return;
-      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      // A destination's own key, as in the browser menu. Only a bare
+      // keystroke counts, so shortcuts and typed capitals with Ctrl, Alt, or
+      // Meta held are left to the filter and the browser.
+      const keyTarget =
+        event.ctrlKey || event.altKey || event.metaKey ? null : pickerKeyTarget(state, event.key);
+      if (keyTarget !== null) {
+        event.preventDefault();
+        pick(keyTarget);
+      } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
         event.preventDefault();
         state = movePickerActive(state, event.key === "ArrowDown" ? 1 : -1);
         showActive();

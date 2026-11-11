@@ -4,6 +4,7 @@ import {
   flattenPickerModel,
   hasPickerDestinations,
   movePickerActive,
+  pickerKeyTarget,
   setPickerActive,
   setPickerQuery,
   pickerSubject,
@@ -243,5 +244,31 @@ describe("filter match marks", () => {
     expect(splitPickerMatches("\u0130stanbul", "i")).toEqual([
       { text: "\u0130stanbul", match: false },
     ]);
+  });
+});
+
+describe("destination keys", () => {
+  const keyed: PickerModel = {
+    lastUsed: { id: "save-in-last-used", title: "Wallpapers", key: "e" },
+    items: [
+      { kind: "path", id: "save-in-0", title: "Images", parentId: null, key: "1" },
+      { kind: "path", id: "save-in-1", title: "Notes", parentId: null },
+    ],
+    copy,
+  };
+  const state = () => createPickerState(flattenPickerModel(keyed));
+
+  test("a key picks its destination in either case", () => {
+    expect(pickerKeyTarget(state(), "1")).toBe("save-in-0");
+    expect(pickerKeyTarget(state(), "E")).toBe("save-in-last-used");
+  });
+
+  test("a key no destination owns picks nothing", () => {
+    expect(pickerKeyTarget(state(), "x")).toBeNull();
+    expect(pickerKeyTarget(state(), "Enter")).toBeNull();
+  });
+
+  test("keys stop once a filter is being typed, even one that still shows the row", () => {
+    expect(pickerKeyTarget(setPickerQuery(state(), "ima"), "1")).toBeNull();
   });
 });

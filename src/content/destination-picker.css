@@ -206,6 +206,12 @@ mark {
   color: var(--color-text-muted);
 }
 
+.row-key {
+  flex: none;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
 .keys {
   display: flex;
   flex: none;

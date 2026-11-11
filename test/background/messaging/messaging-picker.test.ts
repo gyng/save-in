@@ -80,7 +80,7 @@ beforeEach(() => {
 });
 
 describe("PICKER_MODEL", () => {
-  test("lists the sender tab's destinations by id and title only", async () => {
+  test("lists the sender tab's destinations by id, title, and key only", async () => {
     menuState.lastUsedPath = "wallpapers";
     menuState.privateLastUsedPath = "private-folder";
 
@@ -88,10 +88,10 @@ describe("PICKER_MODEL", () => {
     expect(regular).toEqual({
       type: "PICKER_MODEL",
       body: {
-        lastUsed: { id: "save-in-last-used", title: "wallpapers" },
+        lastUsed: { id: "save-in-last-used", title: "wallpapers", key: "e" },
         items: [
-          { kind: "path", id: "save-in-0", title: "Images", parentId: null },
-          { kind: "path", id: "save-in-1", title: "Work", parentId: null },
+          { kind: "path", id: "save-in-0", title: "Images", parentId: null, key: "1" },
+          { kind: "path", id: "save-in-1", title: "Work", parentId: null, key: "2" },
         ],
         copy: {
           title: "Translated<pickerTitle>",
@@ -107,7 +107,11 @@ describe("PICKER_MODEL", () => {
       { type: "PICKER_MODEL" },
       { tab: { ...pageTab, incognito: true } },
     );
-    expect(isolated.body.lastUsed).toEqual({ id: "save-in-last-used", title: "private-folder" });
+    expect(isolated.body.lastUsed).toEqual({
+      id: "save-in-last-used",
+      title: "private-folder",
+      key: "e",
+    });
     expect((await send(onMessage, { type: "PICKER_MODEL" }, {})).body.lastUsed.title).toBe(
       "wallpapers",
     );

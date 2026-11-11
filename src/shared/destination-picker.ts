@@ -16,11 +16,13 @@ const MAX_PICKER_ITEMS = 2_000;
 const MAX_PICKER_TEXT_LENGTH = 1_024;
 
 export type PickerCopy = { title: string; filter: string; empty: string; lastUsed: string };
+// `key` picks the destination with one keystroke while the filter is empty,
+// the way an access key does in the browser's own menu.
 export type PickerItem =
-  | { kind: "path"; id: string; title: string; parentId: string | null }
+  | { kind: "path"; id: string; title: string; parentId: string | null; key?: string }
   | { kind: "separator" };
 export type PickerModel = {
-  lastUsed: { id: string; title: string } | null;
+  lastUsed: { id: string; title: string; key?: string } | null;
   items: PickerItem[];
   copy: PickerCopy;
 };
@@ -46,13 +48,27 @@ const parsePickerCopy = (value: unknown): PickerCopy | null => {
   return title && filter && empty && lastUsed ? { title, filter, empty, lastUsed } : null;
 };
 
+// Exactly one character, so a malformed model can never turn a whole word
+// typed into the filter into a destination's key.
+const parsePickerKey = (value: unknown): string | undefined =>
+  typeof value === "string" && Array.from(value).length === 1 && value.trim() !== ""
+    ? value
+    : undefined;
+
 const parsePickerItem = (value: unknown): PickerItem | null => {
   if (!isStringKeyedRecord(value)) return null;
   if (value.kind === "separator") return { kind: "separator" };
   const id = boundedText(value.id);
   const title = boundedText(value.title);
   if (value.kind !== "path" || !id || !title) return null;
-  return { kind: "path", id, title, parentId: boundedText(value.parentId) ?? null };
+  const key = parsePickerKey(value.key);
+  return {
+    kind: "path",
+    id,
+    title,
+    parentId: boundedText(value.parentId) ?? null,
+    ...(key ? { key } : {}),
+  };
 };
 
 // A content script from an older or newer version may be talking to this
@@ -66,5 +82,6 @@ export const parsePickerModel = (value: unknown): PickerModel | null => {
   const rawLastUsed = isStringKeyedRecord(value.lastUsed) ? value.lastUsed : {};
   const id = boundedText(rawLastUsed.id);
   const title = boundedText(rawLastUsed.title);
-  return { lastUsed: id && title ? { id, title } : null, items, copy };
+  const key = parsePickerKey(rawLastUsed.key);
+  return { lastUsed: id && title ? { id, title, ...(key ? { key } : {}) } : null, items, copy };
 };

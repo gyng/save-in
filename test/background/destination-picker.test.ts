@@ -42,6 +42,9 @@ beforeEach(() => {
     quickSaveEnabled: false,
     quickSaveOnly: false,
     persistPrivateActivity: false,
+    // Keys have their own cases below; the structural cases read without them.
+    enableNumberedItems: false,
+    keyLastUsed: "",
   });
   Object.assign(menuState, {
     lastUsedPath: null,
@@ -88,6 +91,54 @@ describe("picker menu", () => {
     expect(buildPickerMenu(false).model.lastUsed?.title).toBe("wallpapers");
     options.enableLastLocation = false;
     expect(buildPickerMenu(false).model.lastUsed).toBeNull();
+  });
+
+  test("gives destinations the keys the context menu would, once each", () => {
+    options.paths = "First\nGroup\n>Nested // (key: N)\nThird // (key: 1)\nFourth // (key: )";
+    options.enableNumberedItems = true;
+    options.keyLastUsed = "E";
+    menuState.lastUsedPath = "wallpapers";
+    menuState.pathMappings = Object.fromEntries(
+      [0, 1, 2, 3, 4].map((index) => [`save-in-${index}`, mapping(`dir-${index}`)]),
+    );
+
+    const { model } = buildPickerMenu(false);
+
+    expect(model.lastUsed?.key).toBe("e");
+    expect(
+      model.items.map((item) => (item.kind === "path" ? [item.title, item.key] : null)),
+    ).toEqual([
+      // The explicit "1" on Third wins the key, so First goes without.
+      ["First", undefined],
+      ["Group", undefined],
+      ["Nested", "n"],
+      ["Third", "1"],
+      // An empty key asks for none, numbering included.
+      ["Fourth", undefined],
+    ]);
+  });
+
+  test("numbers the first nine folders in the order the folder commands count them", () => {
+    options.paths = Array.from({ length: 11 }, (_, index) => `Folder ${index + 1}`).join("\n");
+    options.enableNumberedItems = true;
+    menuState.pathMappings = Object.fromEntries(
+      Array.from({ length: 11 }, (_, index) => [`save-in-${index}`, mapping(`dir-${index}`)]),
+    );
+
+    const keys = buildPickerMenu(false).model.items.map((item) =>
+      item.kind === "path" ? item.key : null,
+    );
+
+    expect(keys).toEqual(["1", "2", "3", "4", "5", "6", "7", "8", "9", undefined, undefined]);
+  });
+
+  test("offers no keys when numbering and the Last used key are off", () => {
+    menuState.lastUsedPath = "wallpapers";
+
+    const { model } = buildPickerMenu(false);
+
+    expect(model.lastUsed).not.toHaveProperty("key");
+    expect(model.items.every((item) => item.kind !== "path" || item.key === undefined)).toBe(true);
   });
 
   test("keeps a regular window's Last used out of a private tab", () => {

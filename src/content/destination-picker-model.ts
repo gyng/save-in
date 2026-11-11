@@ -15,6 +15,8 @@ export type PickerRow =
       label: string;
       depth: number;
       lastUsed: boolean;
+      // Picks this destination with one keystroke while nothing is typed.
+      key?: string;
     }
   | { kind: "heading"; title: string; depth: number }
   | { kind: "separator" };
@@ -50,6 +52,7 @@ export const flattenPickerModel = ({ lastUsed, items }: PickerModel): PickerRow[
       label: lastUsed.title,
       depth: 0,
       lastUsed: true,
+      ...(lastUsed.key ? { key: lastUsed.key } : {}),
     });
     pushSeparator(rows);
   }
@@ -67,7 +70,15 @@ export const flattenPickerModel = ({ lastUsed, items }: PickerModel): PickerRow[
     rows.push(
       parents.has(item.id)
         ? { kind: "heading", title: item.title, depth }
-        : { kind: "destination", id: item.id, title: item.title, label, depth, lastUsed: false },
+        : {
+            kind: "destination",
+            id: item.id,
+            title: item.title,
+            label,
+            depth,
+            lastUsed: false,
+            ...(item.key ? { key: item.key } : {}),
+          },
     );
   }
   if (rows[rows.length - 1]?.kind === "separator") rows.pop();
@@ -182,4 +193,13 @@ export const splitPickerMatches = (
     else parts.push({ text: title.charAt(index), match });
   }
   return parts;
+};
+
+// The destination a single keystroke picks, as an access key does in the
+// browser's own menu. Keys act only while the filter is empty: once the user
+// is typing a name, every character belongs to that name.
+export const pickerKeyTarget = (state: PickerState, key: string): string | null => {
+  if (state.query !== "") return null;
+  const pressed = key.toLowerCase();
+  return state.rows.filter(isDestination).find((row) => row.key === pressed)?.id ?? null;
 };

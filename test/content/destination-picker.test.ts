@@ -128,6 +128,56 @@ describe("destination picker view", () => {
     ]);
   });
 
+  describe("destination keys", () => {
+    const keyedModel: PickerModel = {
+      ...model,
+      lastUsed: { id: "save-in-last-used", title: "Wallpapers", key: "e" },
+      items: [
+        { kind: "path", id: "save-in-0", title: "Images", parentId: null, key: "1" },
+        { kind: "path", id: "save-in-4", title: "Read later", parentId: null },
+      ],
+    };
+
+    test("a row shows its key and announces it as a shortcut", () => {
+      open({ model: keyedModel });
+
+      const keyed = option("save-in-0");
+      expect(keyed.querySelector("kbd.row-key")?.textContent).toBe("1");
+      expect(keyed.getAttribute("aria-keyshortcuts")).toBe("1");
+      expect(option("save-in-4").querySelector("kbd.row-key")).toBeNull();
+    });
+
+    test("pressing a key with the filter empty saves there at once", () => {
+      open({ model: keyedModel });
+
+      const event = press("E");
+
+      expect(event.defaultPrevented).toBe(true);
+      expect(onPick).toHaveBeenCalledWith("save-in-last-used");
+      expect(document.querySelector("save-in-picker")).toBeNull();
+    });
+
+    test("a key held with a modifier, or one no row owns, is left to the filter", () => {
+      open({ model: keyedModel });
+
+      expect(press("1", { ctrlKey: true }).defaultPrevented).toBe(false);
+      expect(press("1", { altKey: true }).defaultPrevented).toBe(false);
+      expect(press("1", { metaKey: true }).defaultPrevented).toBe(false);
+      expect(press("x").defaultPrevented).toBe(false);
+      expect(onPick).not.toHaveBeenCalled();
+    });
+
+    test("once a filter is typed, keys are plain characters and their hints go away", () => {
+      open({ model: keyedModel });
+      type("ima");
+
+      expect(option("save-in-0").querySelector("kbd.row-key")).toBeNull();
+      expect(option("save-in-0").hasAttribute("aria-keyshortcuts")).toBe(false);
+      expect(press("1").defaultPrevented).toBe(false);
+      expect(onPick).not.toHaveBeenCalled();
+    });
+  });
+
   test("marks what the filter matched without changing the row's accessible name", () => {
     open();
     type("rep");
