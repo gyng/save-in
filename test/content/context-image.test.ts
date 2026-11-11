@@ -66,8 +66,18 @@ describe("context image extraction (#237)", () => {
     ["text", '<p id="top">Caption</p>'],
     ["a video", '<video id="top"></video>'],
     ["a canvas", '<canvas id="top"></canvas>'],
+    ["a custom element", '<x-widget id="top"></x-widget>'],
+    ["the Page Sources panel", '<aside id="save-in-source-panel"><i id="top"></i></aside>'],
   ])("does not reach past %s to a backdrop image", (_label, top) => {
     document.body.innerHTML = `<img src="/backdrop.png">${top}`;
+    stackAtPoint("body > :not(img)", "img");
+
+    expect(contextImageFromEvent(contextEventOn(element("#top")))).toBeNull();
+  });
+
+  test("does not reach past an open shadow host to a backdrop image", () => {
+    document.body.innerHTML = '<img src="/backdrop.png"><div id="top"></div>';
+    element("#top").attachShadow({ mode: "open" }).innerHTML = "<button>Play</button>";
     stackAtPoint("#top", "img");
 
     expect(contextImageFromEvent(contextEventOn(element("#top")))).toBeNull();

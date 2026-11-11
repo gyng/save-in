@@ -91,6 +91,24 @@ describe("findSource", () => {
     });
   });
 
+  test("does not reach through the Page Sources panel to media beneath it", () => {
+    document.body.innerHTML =
+      '<a href="/under.pdf"><img id="i" src="http://x.test/pic.png"></a><aside id="save-in-source-panel"></aside>';
+    const panel = document.getElementById("save-in-source-panel");
+    const img = document.getElementById("i");
+    document.elementsFromPoint = vi.fn(() =>
+      [panel, img].filter((element): element is HTMLElement => element != null),
+    );
+
+    expect(ClickToSave.findSource(event(panel), true)).toBeUndefined();
+    expect(
+      ClickToSave.findSource(
+        { target: null, clientX: 0, clientY: 0, composedPath: () => [panel, document, window] },
+        true,
+      ),
+    ).toBeUndefined();
+  });
+
   test("falls back to the enclosing link when no media is found (#226)", () => {
     document.body.innerHTML = '<a href="/files/doc.pdf"><span id="s">PDF</span></a>';
     const span = document.getElementById("s");
@@ -1819,6 +1837,26 @@ describe("content.js initialisation", () => {
     document.querySelector("p")?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true }));
     runtimeListener?.({ type: "SAVE_IN_CONTEXT_IMAGE" }, {}, respond);
     expect(respond).toHaveBeenLastCalledWith(null);
+  });
+
+  test("ignores a page-synthesized right-click outside E2E builds", async () => {
+    (globalThis as { SAVE_IN_CONTENT_E2E?: boolean }).SAVE_IN_CONTENT_E2E = false;
+    try {
+      await importContentWithOptions({ contentClickToSave: false });
+      document.body.innerHTML = '<img src="/art.png">';
+      const runtimeListener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock
+        .calls[0]?.[0];
+      const respond = vi.fn();
+
+      document
+        .querySelector("img")
+        ?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true }));
+      runtimeListener?.({ type: "SAVE_IN_CONTEXT_IMAGE" }, {}, respond);
+
+      expect(respond).toHaveBeenLastCalledWith(null);
+    } finally {
+      (globalThis as { SAVE_IN_CONTENT_E2E?: boolean }).SAVE_IN_CONTENT_E2E = true;
+    }
   });
 
   test("returns metadata only for the most recently context-clicked link", async () => {

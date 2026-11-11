@@ -3,6 +3,11 @@ import type { PageSourceKind } from "../shared/page-source.ts";
 
 export const PANEL_HOST_ID = "save-in-source-panel";
 
+// Identified by id rather than by the active-host binding so a host left behind
+// by an earlier content-script instance is recognized too.
+export const isSourcePanelHost = (candidate: unknown): boolean =>
+  candidate instanceof Element && candidate.id === PANEL_HOST_ID;
+
 export const panelCleanups = new WeakMap<Element, () => void>();
 const panelCloseTimers = new WeakMap<Element, number>();
 export const panelPreviousFocus = new WeakMap<Element, HTMLElement>();

@@ -62,6 +62,7 @@ import {
 } from "./css-routing.ts";
 import { contextLinkMetadataFromEvent } from "./context-link-metadata.ts";
 import { contextImageFromEvent } from "./context-image.ts";
+import { isSourcePanelHost } from "./source-panel-host.ts";
 import { CONTEXT_IMAGE_REQUEST, type ContextImage } from "../shared/context-image.ts";
 import {
   CONTEXT_LINK_METADATA_REQUEST,
@@ -109,6 +110,10 @@ const ClickToSave = {
     };
     let source: { url: string; kind: PageSource["kind"]; element: Element } | undefined;
     const path = typeof e.composedPath === "function" ? e.composedPath() : [];
+    // The panel's shadow root is closed, so a gesture on a panel row reports
+    // only the host. The coordinate lookup below would then reach through the
+    // panel and save page media the user cannot even see beneath it.
+    if (path.some(isSourcePanelHost) || isSourcePanelHost(e.target)) return undefined;
     // Report the element's kind so a saved click carries its true source kind:
     // the `sourcekind:` routing matcher and the source sidecar both read it.
     const mediaSource = (
@@ -1038,7 +1043,11 @@ try {
     "contextmenu",
     (event) => {
       lastContextLinkMetadata = contextLinkMetadataFromEvent(event);
-      lastContextImage = contextImageFromEvent(event);
+      // Unlike the link record, nothing later checks this address against
+      // what the browser reported, so a page-synthesized event must not be
+      // able to choose what a "save page" click saves. E2E drives it instead.
+      lastContextImage =
+        event.isTrusted || SAVE_IN_CONTENT_E2E ? contextImageFromEvent(event) : null;
     },
     { capture: true },
   );

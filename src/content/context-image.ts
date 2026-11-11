@@ -1,4 +1,5 @@
 import { boundedContextImageUrl, type ContextImage } from "../shared/context-image.ts";
+import { isSourcePanelHost } from "./source-panel-host.ts";
 
 // The browser decides a context menu's context on its own, and reports a plain
 // "page" for an image it has not finished loading or that sits under an empty
@@ -18,9 +19,15 @@ const imageAtPoint = (event: MouseEvent): HTMLImageElement | null => {
     if (element instanceof HTMLImageElement) return element;
     // Only empty elements are looked through. Text or other content above an
     // image means the user pointed at that content, not at a backdrop image.
+    // A shadow host is never provably empty: its content lives in a tree that
+    // textContent does not read and a closed root does not expose, so a custom
+    // element — and Save In's own panel — counts as content.
     if (
       element instanceof HTMLMediaElement ||
       element instanceof HTMLCanvasElement ||
+      element.shadowRoot ||
+      element.localName.includes("-") ||
+      isSourcePanelHost(element) ||
       element.textContent?.trim()
     ) {
       return null;
