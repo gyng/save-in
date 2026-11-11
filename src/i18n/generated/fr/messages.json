@@ -1427,10 +1427,10 @@
     "message": "destination."
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "Les destinations sont relatives au dossier choisi dans le menu, mais commencent dans votre dossier de téléchargements pour l’enregistrement au clic et les enregistrements automatiques. Les valeurs des critères sont des expressions régulières ; consultez le"
+    "message": "Les destinations sont relatives au dossier choisi dans le menu, mais commencent dans votre dossier de téléchargements pour l’enregistrement au clic et les enregistrements automatiques. Pour l’enregistrement au clic, une règle qui correspond via comment: ou menuindex: reste dans le dernier dossier choisi dans le menu. Les valeurs des critères sont des expressions régulières ; consultez le"
   },
   "html_intoDestinationsStartFromTheMenuFolder": {
-    "message": "Les destinations sont relatives au dossier choisi dans le menu, mais commencent dans votre dossier de téléchargements pour l’enregistrement au clic et les enregistrements automatiques."
+    "message": "Les destinations sont relatives au dossier choisi dans le menu, mais commencent dans votre dossier de téléchargements pour l’enregistrement au clic et les enregistrements automatiques. Pour l’enregistrement au clic, une règle qui correspond via comment: ou menuindex: reste dans le dernier dossier choisi dans le menu."
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "Ajoutez un motif de correspondance WebExtension par ligne. Ce ne sont pas des expressions régulières. Chaque motif utilise un schéma, un hôte et un chemin."

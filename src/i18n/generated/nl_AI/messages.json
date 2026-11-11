@@ -1415,10 +1415,10 @@
     "message": "bestemming."
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "Bestemmingen zijn relatief ten opzichte van de map die u in het menu kiest, maar beginnen in de map Downloads bij klikken om op te slaan en bij automatische opslagacties. Matcherwaarden zijn reguliere expressies; zie de"
+    "message": "Bestemmingen zijn relatief ten opzichte van de map die u in het menu kiest, maar beginnen in de map Downloads bij klikken om op te slaan en bij automatische opslagacties. Bij klikken om op te slaan blijft een regel die overeenkomt via comment: of menuindex: in de map die u het laatst in het menu hebt gekozen. Matcherwaarden zijn reguliere expressies; zie de"
   },
   "html_intoDestinationsStartFromTheMenuFolder": {
-    "message": "Bestemmingen zijn relatief ten opzichte van de map die u in het menu kiest, maar beginnen in de map Downloads bij klikken om op te slaan en bij automatische opslagacties."
+    "message": "Bestemmingen zijn relatief ten opzichte van de map die u in het menu kiest, maar beginnen in de map Downloads bij klikken om op te slaan en bij automatische opslagacties. Bij klikken om op te slaan blijft een regel die overeenkomt via comment: of menuindex: in de map die u het laatst in het menu hebt gekozen."
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "Voeg per regel één WebExtension-overeenkomstpatroon toe. Dit zijn geen reguliere expressies. Elk patroon gebruikt een schema, host en pad."

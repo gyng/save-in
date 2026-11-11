@@ -1368,10 +1368,10 @@
     "message": "destinazione."
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "Le destinazioni sono relative alla cartella scelta dal menu, ma partono dalla cartella Download per il salvataggio con clic e i salvataggi automatici. I valori di corrispondenza sono espressioni regolari; consulta la"
+    "message": "Le destinazioni sono relative alla cartella scelta dal menu, ma partono dalla cartella Download per il salvataggio con clic e i salvataggi automatici. Per il salvataggio con clic, una regola che corrisponde tramite comment: o menuindex: resta nell’ultima cartella scelta dal menu. I valori di corrispondenza sono espressioni regolari; consulta la"
   },
   "html_intoDestinationsStartFromTheMenuFolder": {
-    "message": "Le destinazioni sono relative alla cartella scelta dal menu, ma partono dalla cartella Download per il salvataggio con clic e i salvataggi automatici."
+    "message": "Le destinazioni sono relative alla cartella scelta dal menu, ma partono dalla cartella Download per il salvataggio con clic e i salvataggi automatici. Per il salvataggio con clic, una regola che corrisponde tramite comment: o menuindex: resta nell’ultima cartella scelta dal menu."
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "Aggiungi un pattern di corrispondenza WebExtension per riga. Non sono espressioni regolari. Ogni pattern usa uno schema, un host e un percorso."

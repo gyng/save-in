@@ -1415,10 +1415,10 @@
     "message": "destino."
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "Os destinos são relativos à pasta escolhida no menu, mas começam na pasta padrão de downloads ao clicar para salvar e nos salvamentos automáticos. Os valores dos comparadores são expressões regulares; veja o"
+    "message": "Os destinos são relativos à pasta escolhida no menu, mas começam na pasta padrão de downloads ao clicar para salvar e nos salvamentos automáticos. Ao clicar para salvar, uma regra que corresponde por comment: ou menuindex: permanece na última pasta escolhida no menu. Os valores dos comparadores são expressões regulares; veja o"
   },
   "html_intoDestinationsStartFromTheMenuFolder": {
-    "message": "Os destinos são relativos à pasta escolhida no menu, mas começam na pasta padrão de downloads ao clicar para salvar e nos salvamentos automáticos."
+    "message": "Os destinos são relativos à pasta escolhida no menu, mas começam na pasta padrão de downloads ao clicar para salvar e nos salvamentos automáticos. Ao clicar para salvar, uma regra que corresponde por comment: ou menuindex: permanece na última pasta escolhida no menu."
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "Adicione um padrão de correspondência WebExtension por linha. Eles não são expressões regulares. Cada padrão usa um esquema, host e caminho."

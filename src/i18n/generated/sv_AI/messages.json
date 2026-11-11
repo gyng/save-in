@@ -1415,10 +1415,10 @@
     "message": "mål."
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "Destinationerna är relativa till mappen du väljer i menyn, men utgår från din nedladdningsmapp när du klickar för att spara och vid automatiska sparningar. Matchningsvärden är reguljära uttryck; se"
+    "message": "Destinationerna är relativa till mappen du väljer i menyn, men utgår från din nedladdningsmapp när du klickar för att spara och vid automatiska sparningar. När du klickar för att spara stannar en regel som matchar via comment: eller menuindex: kvar i den mapp du senast valde i menyn. Matchningsvärden är reguljära uttryck; se"
   },
   "html_intoDestinationsStartFromTheMenuFolder": {
-    "message": "Destinationerna är relativa till mappen du väljer i menyn, men utgår från din nedladdningsmapp när du klickar för att spara och vid automatiska sparningar."
+    "message": "Destinationerna är relativa till mappen du väljer i menyn, men utgår från din nedladdningsmapp när du klickar för att spara och vid automatiska sparningar. När du klickar för att spara stannar en regel som matchar via comment: eller menuindex: kvar i den mapp du senast valde i menyn."
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "Lägg till ett WebExtension-matchningsmönster per rad. De är inte reguljära uttryck. Varje mönster använder ett schema, en värd och en sökväg."

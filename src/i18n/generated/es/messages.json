@@ -1415,10 +1415,10 @@
     "message": "destino."
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "Los destinos son relativos a la carpeta que elija en el menú, pero empiezan en su carpeta de descargas al usar Clic para guardar y en los guardados automáticos. Los valores de los comparadores son expresiones regulares; consulte la"
+    "message": "Los destinos son relativos a la carpeta que elija en el menú, pero empiezan en su carpeta de descargas al usar Clic para guardar y en los guardados automáticos. Al usar Clic para guardar, una regla que coincide mediante comment: o menuindex: permanece dentro de la última carpeta elegida en el menú. Los valores de los comparadores son expresiones regulares; consulte la"
   },
   "html_intoDestinationsStartFromTheMenuFolder": {
-    "message": "Los destinos son relativos a la carpeta que elija en el menú, pero empiezan en su carpeta de descargas al usar Clic para guardar y en los guardados automáticos."
+    "message": "Los destinos son relativos a la carpeta que elija en el menú, pero empiezan en su carpeta de descargas al usar Clic para guardar y en los guardados automáticos. Al usar Clic para guardar, una regla que coincide mediante comment: o menuindex: permanece dentro de la última carpeta elegida en el menú."
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "Añada un patrón de coincidencia de WebExtension por línea. No son expresiones regulares. Cada patrón utiliza un esquema, un host y una ruta."
