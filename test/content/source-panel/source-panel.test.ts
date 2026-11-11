@@ -114,7 +114,7 @@ describe("Page Sources panel interactions", () => {
   });
 
   test("leaves the page's own scroll setting alone when reclaiming an orphan", () => {
-    const orphan = strandOrphanedPanel();
+    strandOrphanedPanel();
     document.documentElement.style.setProperty("overflow", "clip");
 
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
@@ -124,7 +124,7 @@ describe("Page Sources panel interactions", () => {
   });
 
   test("leaves a page-owned hidden overflow alone when reclaiming an orphan", () => {
-    const orphan = strandOrphanedPanel();
+    strandOrphanedPanel();
     // Save In's lock is always !important; a plain declaration is the page's.
     document.documentElement.style.setProperty("overflow", "hidden");
 
