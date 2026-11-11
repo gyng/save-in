@@ -60,6 +60,9 @@ const optionId = (index: number): string => `destination-${index}`;
 
 const ROW_ICON_PATHS = {
   folder: ["M3 6h6l2 2h10v11H3z"],
+  // An open folder: a submenu heading is a folder too, shown holding the rows
+  // beneath it, which is why it cannot itself be picked.
+  folderOpen: ["M3 19V6h6l2 2h8v3", "M3 19l3-8h16l-3 8z"],
   lastUsed: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18", "M12 7v5l3 2"],
 } as const;
 
@@ -110,7 +113,7 @@ const renderRow = (
     const heading = document.createElement("span");
     heading.className = "heading-title";
     heading.textContent = row.title;
-    element.append(heading);
+    element.append(rowIcon("folderOpen"), heading);
     appendLiveKey(element, row, state);
     return element;
   }

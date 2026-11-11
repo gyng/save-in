@@ -146,7 +146,6 @@ const matcherSourceLabel = (source: string): string => {
     case "altText":
       return localize("routeDebuggerAltText", "Image alt text");
     case "pageText":
-    case "pageText":
       return localize("routeDebuggerPageText", "Captured page text");
     case "selectionText":
       return localize("routeDebuggerSelectionText", "Selected text");

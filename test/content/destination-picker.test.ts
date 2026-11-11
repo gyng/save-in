@@ -115,6 +115,8 @@ describe("destination picker view", () => {
     open();
 
     expect(option("save-in-last-used").querySelector("svg.row-icon")).not.toBeNull();
+    // A submenu heading is drawn as the open folder holding the rows under it.
+    expect(root().querySelector(".heading svg.row-icon")).not.toBeNull();
     expect(option("save-in-0").querySelector("svg.row-icon")?.getAttribute("aria-hidden")).toBe(
       "true",
     );
