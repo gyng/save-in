@@ -4642,5 +4642,35 @@
   },
   "o_cDupeSkipHelp": {
     "message": "O Firefox inicia o salvamento e o cancela assim que encontra um arquivo com esse nome. O histórico mostra Já existe; você só recebe uma notificação se Notificar quando um download falhar estiver ativado."
+  },
+  "o_cSkipSavedSources": {
+    "message": "Ignorar endereços já salvos:"
+  },
+  "o_cSkipSavedSourcesNever": {
+    "message": "Nunca"
+  },
+  "o_cSkipSavedSourcesAutomatic": {
+    "message": "Somente salvamentos automáticos"
+  },
+  "o_cSkipSavedSourcesAll": {
+    "message": "Todos os salvamentos"
+  },
+  "o_cSkipSavedSourcesHelp": {
+    "message": "O Save In não baixa um endereço novamente enquanto o histórico mantiver um salvamento concluído dele. Nada é ignorado depois que essa entrada some: após limpar o histórico, quando Manter entradas concluídas a remove ou enquanto esse limite for 0. Se você segurar Shift para abrir a caixa de diálogo Salvar como, ou escolher um destino que sempre a abre, o salvamento acontece mesmo assim. Salvamentos privativos que o histórico não lembra nunca são ignorados. Você só recebe uma notificação se Notificar quando um download falhar estiver ativado, e nunca nos salvamentos automáticos."
+  },
+  "notificationSavedSourceSkippedTitle": {
+    "message": "Já salvo"
+  },
+  "notificationSavedSourceSkippedMessage": {
+    "message": "$URL$ não foi salvo novamente porque o histórico já contém um salvamento concluído dele.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateSavedSourceSkippedMessage": {
+    "message": "Um item da navegação privativa não foi salvo novamente porque o histórico já contém um salvamento concluído dele."
   }
 }

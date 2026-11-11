@@ -214,6 +214,7 @@ describe("createExtensionNotification", () => {
         setStatus: () => Promise.resolve(),
         setStatusStrict: () => Promise.resolve(),
         entries: () => Promise.resolve([]),
+        hasCompletedUrl: () => Promise.resolve(false),
         anchorStartTime: () => Promise.resolve(),
       },
       log: { add: vi.fn() },

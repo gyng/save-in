@@ -18,6 +18,7 @@ const history = {
   setStatus: vi.fn(async () => undefined),
   setStatusStrict: vi.fn(async () => undefined),
   entries: vi.fn(async () => []),
+  hasCompletedUrl: vi.fn(async () => false),
   anchorStartTime: vi.fn(async () => undefined),
 };
 const log = { add: vi.fn() };

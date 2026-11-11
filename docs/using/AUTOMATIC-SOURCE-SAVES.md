@@ -247,6 +247,12 @@ block saving a rule.
   the page starts a new visit.
 - A source URL is queued once per page visit, and only after a guarded automatic
   rule matches it.
+- A new visit queues the same sources again. To stop them downloading again,
+  set **Skip addresses already saved** to **Automatic saves only** or **All
+  saves**: a source whose address History already holds as completed is then
+  dropped silently, without a request or a History entry. It still uses one of
+  the visit's **Maximum saves per page visit**. See
+  [Skip addresses already saved](EXISTING-FILES.md#skip-addresses-already-saved).
 
 Chrome cannot assign an extension-started download to its Incognito download
 context, so an allowed private automatic save may appear in Chrome's regular

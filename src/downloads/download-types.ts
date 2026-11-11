@@ -50,6 +50,12 @@ export type DownloadScratch = {
   // previous menu save. The plan clears this unless the winning rule matched on
   // that inherited metadata, so it survives a re-plan of a persisted template.
   keepInheritedFolder?: true | undefined;
+  // This save deliberately repeats one History already holds (a History
+  // re-route downloads the entry's own address again), so the saved-source
+  // check must not decline it.
+  repeatsSavedSource?: true | undefined;
+  // The plan declined this save because History already holds its address.
+  savedSourceSkipped?: true | undefined;
 };
 
 export type DownloadPipelineState = {

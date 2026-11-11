@@ -25,6 +25,7 @@ import {
   resolveDispositionFilename,
 } from "./download-disposition.ts";
 import { ensureHistoryEntry } from "./history-entry.ts";
+import { isSavedSource, isShiftPromptRequest, mayRewriteDownloadUrl } from "./saved-source.ts";
 import {
   addDownloadLog,
   isHttpDownloadUrl,
@@ -132,6 +133,16 @@ export const applyFetchRewrite = async (
   resolveRefererState(state);
 };
 
+// Declines a save History already holds. It answers null like every other
+// plan-time refusal; scratch.savedSourceSkipped tells the caller which one.
+const skipSavedSource = async (state: DownloadPipelineState): Promise<boolean> => {
+  delete state.scratch.savedSourceSkipped;
+  if (!(await isSavedSource(state))) return false;
+  state.scratch.savedSourceSkipped = true;
+  downloadRuntime.forgetPendingState(state);
+  return true;
+};
+
 export const resolveDownloadPlan = async (
   state: DownloadPipelineState,
 ): Promise<DownloadPlan | null> => {
@@ -147,6 +158,13 @@ export const resolveDownloadPlan = async (
   if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
     downloadRuntime.rememberPendingState(state);
   }
+
+  // The saved-source check has to precede every request this save would make,
+  // metadata included. While no fetch: rule can retarget the address it is
+  // already final here; otherwise the check waits for the rewrite below, which
+  // is the earliest point the address to be fetched is known.
+  const urlIsFinal = !mayRewriteDownloadUrl(state);
+  if (urlIsFinal && (await skipSavedSource(state))) return null;
 
   // Firefox attaches Referer to a direct downloads.download request; both
   // browsers use an exact DNR rule for extension-owned metadata/content.
@@ -238,6 +256,7 @@ export const resolveDownloadPlan = async (
       return null;
     }
   }
+  if (!urlIsFinal && (await skipSavedSource(state))) return null;
   // Click-to-save reuses the previous menu directory only as its unmatched
   // fallback. A matched `into:` route is rooted at Downloads so an earlier
   // folder choice cannot be prefixed onto every later dynamic route (#190).
@@ -308,10 +327,7 @@ export const createDownloadPlan = (state: DownloadPipelineState): DownloadPlan =
   const finalFullPath = finalizeFullPath(state);
   state.scratch.hasExtension = finalFullPath && finalFullPath.match(EXTENSION_REGEX);
   const noExtensionPrompt = options.promptIfNoExtension && !state.scratch.hasExtension;
-  const shiftHeldPrompt =
-    options.promptOnShift &&
-    state.info.modifiers &&
-    typeof state.info.modifiers.find((m) => m === "Shift") !== "undefined";
+  const shiftHeldPrompt = isShiftPromptRequest(state);
   const noRuleMatchedPrompt = options.routeFailurePrompt && !state.route;
   const prompt =
     state.info.suppressPrompt === true

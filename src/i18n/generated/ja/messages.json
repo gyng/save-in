@@ -4642,5 +4642,35 @@
   },
   "o_cDupeSkipHelp": {
     "message": "Firefox は保存を開始し、同じ名前のファイルを見つけた時点で取り消します。履歴には「既に存在」と表示され、「ダウンロードが失敗した場合に通知する」がオンの場合のみ通知されます。"
+  },
+  "o_cSkipSavedSources": {
+    "message": "保存済みのアドレスをスキップ:"
+  },
+  "o_cSkipSavedSourcesNever": {
+    "message": "しない"
+  },
+  "o_cSkipSavedSourcesAutomatic": {
+    "message": "自動保存のみ"
+  },
+  "o_cSkipSavedSourcesAll": {
+    "message": "すべての保存"
+  },
+  "o_cSkipSavedSourcesHelp": {
+    "message": "履歴に同じアドレスの完了した保存が残っている間、Save In はそのアドレスを再度ダウンロードしません。その項目がなくなると何もスキップされません。履歴を消去した後、「完了した項目を保持」によって削除された後、またはその上限が 0 の間が該当します。Shift キーを押して「名前を付けて保存」ダイアログを開いた場合や、常にダイアログを開く保存先を選んだ場合は、そのまま保存されます。履歴に記憶されないプライベートの保存はスキップされません。通知は「ダウンロードが失敗した場合に通知する」がオンの場合のみ表示され、自動保存では表示されません。"
+  },
+  "notificationSavedSourceSkippedTitle": {
+    "message": "保存済み"
+  },
+  "notificationSavedSourceSkippedMessage": {
+    "message": "履歴に完了した保存がすでにあるため、$URL$ は再度保存されませんでした。",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateSavedSourceSkippedMessage": {
+    "message": "履歴に完了した保存がすでにあるため、プライベートブラウジングの項目は再度保存されませんでした。"
   }
 }

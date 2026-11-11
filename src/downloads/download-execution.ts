@@ -77,6 +77,7 @@ import {
 import { isTopOfDownloads } from "./conflict-resolution-model.ts";
 import { proposedFilename } from "./browser-downloads.ts";
 import { notifyExclusiveRouteMiss, notifyRouteExclusion } from "./route-outcome-notification.ts";
+import { notifySavedSourceSkipped } from "./saved-source.ts";
 import {
   discardRoutingResolution,
   prepareRoutingResolution,
@@ -732,9 +733,16 @@ export const renameAndDownload = async (
     const url = state.info.url;
     if (url && downloadRuntime.generatedObjectUrls.delete(url)) URL.revokeObjectURL(url);
     const excluded = state.scratch.routeOutcome === "exclude";
-    if (!excluded) await historyPort.setStatus(state.scratch.historyEntryId, "RULE_NO_MATCH");
+    // A save declined because History already holds it never had a row, and
+    // must not gain one: it is not a routing miss.
+    const alreadySaved = state.scratch.savedSourceSkipped === true;
+    if (!excluded && !alreadySaved) {
+      await historyPort.setStatus(state.scratch.historyEntryId, "RULE_NO_MATCH");
+    }
     finishPreparation();
-    if (excluded) {
+    if (alreadySaved) {
+      notifySavedSourceSkipped(state);
+    } else if (excluded) {
       notifyRouteExclusion(state);
     } else if ((state.needRouteMatch || options.routeSkipUnmatched) && options.notifyOnFailure) {
       notifyExclusiveRouteMiss(state);

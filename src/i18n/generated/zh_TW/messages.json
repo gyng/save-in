@@ -4642,5 +4642,35 @@
   },
   "o_cDupeSkipHelp": {
     "message": "Firefox 會開始儲存，並在找到同名檔案時立即取消。歷史記錄會顯示「檔案已存在」；只有開啟「下載失敗時顯示通知」時才會收到通知。"
+  },
+  "o_cSkipSavedSources": {
+    "message": "略過已儲存的位址："
+  },
+  "o_cSkipSavedSourcesNever": {
+    "message": "永不"
+  },
+  "o_cSkipSavedSourcesAutomatic": {
+    "message": "僅自動儲存"
+  },
+  "o_cSkipSavedSourcesAll": {
+    "message": "所有儲存"
+  },
+  "o_cSkipSavedSourcesHelp": {
+    "message": "只要歷史記錄中仍有某個位址的已完成儲存，Save In 就不會再次下載該位址。該項目不存在後不會略過任何儲存：清除歷史記錄之後、「保留已完成的項目」將其移除之後，或該上限為 0 時。按住 Shift 鍵開啟「另存新檔」對話方塊，或選擇一律開啟該對話方塊的目的地時，仍會儲存。歷史記錄不會記住的隱私儲存永遠不會被略過。只有開啟「下載失敗時顯示通知」時才會收到通知，自動儲存則不會通知。"
+  },
+  "notificationSavedSourceSkippedTitle": {
+    "message": "已儲存"
+  },
+  "notificationSavedSourceSkippedMessage": {
+    "message": "由於歷史記錄中已有該位址的已完成儲存，因此未再次儲存 $URL$。",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateSavedSourceSkippedMessage": {
+    "message": "由於歷史記錄中已有已完成的儲存，因此未再次儲存一個隱私瀏覽項目。"
   }
 }

@@ -4642,5 +4642,35 @@
   },
   "o_cDupeSkipHelp": {
     "message": "Firefox start het opslaan en annuleert het zodra er een bestand met die naam wordt gevonden. De geschiedenis toont Bestaat al; je krijgt alleen een melding als Melden wanneer een download mislukt aan staat."
+  },
+  "o_cSkipSavedSources": {
+    "message": "Al opgeslagen adressen overslaan:"
+  },
+  "o_cSkipSavedSourcesNever": {
+    "message": "Nooit"
+  },
+  "o_cSkipSavedSourcesAutomatic": {
+    "message": "Alleen bij automatisch opslaan"
+  },
+  "o_cSkipSavedSourcesAll": {
+    "message": "Bij alle opslagacties"
+  },
+  "o_cSkipSavedSourcesHelp": {
+    "message": "Save In downloadt een adres niet opnieuw zolang de geschiedenis er een voltooide opslagactie van bevat. Er wordt niets overgeslagen zodra dat item weg is: nadat de geschiedenis is gewist, wanneer Voltooide items bewaren het verwijdert, of zolang die limiet 0 is. Als u Shift ingedrukt houdt voor het dialoogvenster Opslaan als, of een bestemming kiest die het altijd opent, wordt er toch opgeslagen. Privé-opslagacties die de geschiedenis niet onthoudt, worden nooit overgeslagen. U krijgt alleen een melding als Melden wanneer een download mislukt aanstaat, en nooit bij automatisch opslaan."
+  },
+  "notificationSavedSourceSkippedTitle": {
+    "message": "Al opgeslagen"
+  },
+  "notificationSavedSourceSkippedMessage": {
+    "message": "$URL$ is niet opnieuw opgeslagen omdat de geschiedenis er al een voltooide opslagactie van bevat.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateSavedSourceSkippedMessage": {
+    "message": "Een item uit privénavigatie is niet opnieuw opgeslagen omdat de geschiedenis er al een voltooide opslagactie van bevat."
   }
 }

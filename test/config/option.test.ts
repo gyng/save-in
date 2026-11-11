@@ -877,6 +877,7 @@ describe("OptionsManagement", () => {
       global.browser.storage.local.get = vi.fn(() =>
         Promise.resolve({
           conflictAction: "destroy",
+          skipSavedSources: "sometimes",
           contentClickToSaveButton: "DOUBLE_CLICK",
           shortcutType: "PDF",
           notifyDuration: -1,
@@ -885,10 +886,26 @@ describe("OptionsManagement", () => {
       );
       const resolved = await OptionsManagement.loadOptions();
       expect(resolved.conflictAction).toBe("uniquify");
+      expect(resolved.skipSavedSources).toBe("never");
       expect(resolved.contentClickToSaveButton).toBe("LEFT_CLICK");
       expect(resolved.shortcutType).toBe("HTML_REDIRECT");
       expect(resolved.notifyDuration).toBe(7000);
       expect(resolved.truncateLength).toBe(240);
+    });
+
+    test.each(["never", "automatic", "all"] as const)(
+      "keeps the stored skipSavedSources value %s",
+      async (value) => {
+        global.browser.storage.local.get = vi.fn(() =>
+          Promise.resolve({ skipSavedSources: value }),
+        );
+        expect((await OptionsManagement.loadOptions()).skipSavedSources).toBe(value);
+      },
+    );
+
+    test("leaves skipSavedSources off for a profile that never stored it", async () => {
+      global.browser.storage.local.get = vi.fn(() => Promise.resolve({}));
+      expect((await OptionsManagement.loadOptions()).skipSavedSources).toBe("never");
     });
 
     test("falls back from whole-number settings outside the safe integer range", async () => {

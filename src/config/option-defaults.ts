@@ -1,4 +1,4 @@
-import { CONFLICT_ACTION, SHORTCUT_TYPES } from "../shared/constants.ts";
+import { CONFLICT_ACTION, SHORTCUT_TYPES, SKIP_SAVED_SOURCES } from "../shared/constants.ts";
 import { CONTENT_OPTION_DEFAULTS } from "./content-options.ts";
 
 export const LEGACY_REFERER_HEADER_FILTER = "*://i.pximg.net/*";
@@ -9,6 +9,9 @@ export const LEGACY_REFERER_HEADER_FILTER = "*://i.pximg.net/*";
 export const OPTION_DEFAULTS = {
   ...CONTENT_OPTION_DEFAULTS,
   conflictAction: CONFLICT_ACTION.UNIQUIFY,
+  // Off: declining a save the user asked for, on the strength of a History row
+  // rather than a file known to exist, has to be the user's own choice.
+  skipSavedSources: SKIP_SAVED_SOURCES.NEVER,
   debug: false,
   // Private browsing keeps its current no-retention behavior unless the user
   // explicitly asks Save In to include those saves in its normal local state.

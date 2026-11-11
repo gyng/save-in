@@ -40,6 +40,8 @@ export const OptionsManagement: OptionsManagementApi = {
   OPTION_DESCRIPTIONS: {
     conflictAction:
       "Filename-collision behaviour: uniquify, overwrite, prompt (emulated on Firefox), or skip (Firefox only).",
+    skipSavedSources:
+      "Skip a save whose address Save In History already holds as completed: never, automatic (automatic Page Sources saves only), or all.",
     contentClickToSave: "Enable click-to-save: hold the modifier and click media to save it.",
     contentClickToSaveBindings:
       "Versioned click-to-save gesture bindings; blank profiles use the legacy combo and button.",

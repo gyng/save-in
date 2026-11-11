@@ -1807,6 +1807,57 @@ export const runAutomaticRetryScenario = async ({ control, waitForDownloads, fil
 };
 
 /**
+ * Proves the opt-in History check against a real server: with "skip addresses
+ * already saved" on, a second save of an address History holds as completed
+ * sends no request, starts no browser download, and adds no History entry.
+ *
+ * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   waitForDownloads: (filename: string, timeoutMs?: number) => Promise<DownloadSummary[]>,
+ *   filename: string,
+ * }} adapters
+ */
+export const runSkipSavedSourceScenario = async ({ control, waitForDownloads, filename }) => {
+  let hits = 0;
+  const server = http.createServer((_req, res) => {
+    hits += 1;
+    res.writeHead(200, { "Content-Type": "application/octet-stream" });
+    res.end(`saved ${filename}`);
+  });
+  const port = await listenLocal(server);
+  const url = `http://127.0.0.1:${port}/${filename}`;
+  const request = { url, suggestedFilename: filename, pageUrl: `http://127.0.0.1:${port}/` };
+  const optionKeys = ["skipSavedSources", "filenamePatterns"];
+  const previous = await control.storage.local.get(optionKeys);
+
+  try {
+    await control.options.set({ skipSavedSources: "all", filenamePatterns: "" });
+    expect(await control.background.startDownload(request)).toMatchObject({ status: "started" });
+    const rows = await waitForDownloads(filename);
+    expect(rows.map((row) => row.state)).toEqual(["complete"]);
+    // The check reads History, which records completion after the browser does.
+    await control.history.wait({ url, status: "complete" });
+    const hitsAfterFirstSave = hits;
+
+    expect(await control.background.startDownload(request)).toEqual({ status: "skipped" });
+
+    expect(hits).toBe(hitsAfterFirstSave);
+    expect(
+      (await control.downloads.search({})).filter((row) => row.filename.includes(filename)),
+    ).toHaveLength(1);
+    expect((await control.history.get()).filter((entry) => entry.url === url)).toHaveLength(1);
+  } finally {
+    try {
+      await control.storage.local.remove(optionKeys);
+      await control.storage.local.set(previous);
+      await control.runtime.reset();
+    } finally {
+      await closeLocal(server);
+    }
+  }
+};
+
+/**
  * Completes a real save, undoes it through the History protocol, and proves
  * the file is removed while the History entry is marked undone rather than
  * deleted. A second save covers the degraded path: a file removed out of band

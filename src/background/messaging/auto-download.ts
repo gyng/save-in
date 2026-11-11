@@ -178,8 +178,9 @@ export const handleAutoDownloadSource = async (
   sendResponse({
     type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
     // To the page, "skipped" means the candidate was never consumed and may be
-    // offered again. A save the pipeline itself declined — an existing file, a
-    // dismissed Save As, a cancelled transfer — was consumed: answering
+    // offered again. A save the pipeline itself declined — an existing file, an
+    // address History already holds, a dismissed Save As, a cancelled transfer —
+    // was consumed: answering
     // "skipped" would repeat the download, its History row, and its notice on
     // every rescan. Older content scripts already hold the slot for "started".
     body: { status: result.status === "skipped" ? "started" : result.status },

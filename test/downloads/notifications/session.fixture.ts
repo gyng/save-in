@@ -72,6 +72,7 @@ const loadNotification = async () => {
       setStatus: (...a: unknown[]) => SaveHistory.setHistoryStatus(...a),
       setStatusStrict: (...a: unknown[]) => SaveHistory.setHistoryStatusStrict(...a),
       entries: (...args) => SaveHistory.getHistoryEntries(...args),
+      hasCompletedUrl: (url: string) => SaveHistory.hasCompletedHistoryUrl(url),
       anchorStartTime: (...a: unknown[]) => SaveHistory.anchorHistoryDownloadStartTime(...a),
     },
     log: { add: (...args: unknown[]) => Log.addLogEntry(...args) },

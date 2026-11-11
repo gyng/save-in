@@ -4642,5 +4642,35 @@
   },
   "o_cDupeSkipHelp": {
     "message": "Firefox 会开始保存，并在发现同名文件时立即取消。历史记录显示“已存在”；只有开启“下载失败时通知”时才会收到通知。"
+  },
+  "o_cSkipSavedSources": {
+    "message": "跳过已保存的地址："
+  },
+  "o_cSkipSavedSourcesNever": {
+    "message": "从不"
+  },
+  "o_cSkipSavedSourcesAutomatic": {
+    "message": "仅自动保存"
+  },
+  "o_cSkipSavedSourcesAll": {
+    "message": "所有保存"
+  },
+  "o_cSkipSavedSourcesHelp": {
+    "message": "只要历史记录中仍有某个地址的已完成保存，Save In 就不会再次下载该地址。该条目不存在后不会跳过任何保存：清除历史记录之后、“保留已完成的条目”将其移除之后，或该上限为 0 时。按住 Shift 键打开“另存为”对话框，或选择始终打开该对话框的目标位置时，仍会保存。历史记录不会记住的隐私保存永远不会被跳过。只有开启“下载失败时通知”时才会收到通知，自动保存则不会通知。"
+  },
+  "notificationSavedSourceSkippedTitle": {
+    "message": "已保存"
+  },
+  "notificationSavedSourceSkippedMessage": {
+    "message": "由于历史记录中已有该地址的已完成保存，未再次保存 $URL$。",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateSavedSourceSkippedMessage": {
+    "message": "由于历史记录中已有已完成的保存，未再次保存一个隐私浏览项目。"
   }
 }

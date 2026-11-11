@@ -54,3 +54,41 @@ original name.
 - A profile imported from Chrome with Ask each time now follows the behavior
   above on Firefox. Earlier versions always saved it under a unique name there,
   because Firefox has no dialog of its own for this.
+
+## Skip addresses already saved
+
+**Options › Save behavior › Existing files › Skip addresses already saved** is
+a separate, opt-in check that works in both browsers. It does not look for a
+file. It asks Save In's own History whether a completed save of the same
+address is still recorded, and if so does not download that address again.
+
+| Choice               | Skips                                                  |
+| -------------------- | ------------------------------------------------------ |
+| Never                | Nothing (the default)                                  |
+| Automatic saves only | Automatic Page Sources saves                           |
+| All saves            | Menu, click-to-save, Page Sources, external, automatic |
+
+- The address compared is the one Save In would download, after a routing
+  rule's `fetch:` rewrite. It must match the recorded address exactly; Save In
+  does not fetch or hash the file to compare contents. `data:` and `blob:`
+  sources are never skipped.
+- Only an entry History shows as completed counts, including a recorded
+  ordinary browser download. Failed, canceled, skipped, and in-progress entries
+  do not, and neither does a file that exists but has no History entry.
+- The check lasts only as long as the entry. After you clear History, once
+  **Keep completed entries** removes the entry, or while that limit is 0,
+  nothing is skipped. A deleted file is still skipped while its entry remains.
+- The check runs before Save In contacts the server. A skipped save adds no
+  History entry and is not sent to webhooks.
+- A skipped menu, click-to-save, Page Sources, or external save shows an
+  "Already saved" notice when **Notify when a download fails** is on; a private
+  save's notice does not name the address. A skipped automatic save is silent.
+- Asking for the Save As dialog saves anyway: hold Shift while **You hold
+  Shift while choosing a menu item** is on, or choose a destination that always
+  opens the dialog. Moving a save from History and retries after a network
+  failure are never skipped.
+- A private save is checked only while **Remember private browsing activity**
+  is on, because otherwise it has no History entry of its own and Save In does
+  not compare it with the regular profile's History.
+- A fetch rule whose address needs the file's hash is checked after that
+  download has started, so it is saved rather than skipped.

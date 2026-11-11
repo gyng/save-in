@@ -273,7 +273,8 @@ const internalHandlers = {
       // The chosen directory is the menu selection; routing rules still run,
       // exactly as they would for a menu click on that directory.
       path: new Path(destination),
-      scratch: {},
+      // The entry being moved is itself the completed save of this address.
+      scratch: { repeatsSavedSource: true },
       info: {
         url: sourceUrl,
         selectedUrl: sourceUrl,

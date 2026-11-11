@@ -4642,5 +4642,35 @@
   },
   "o_cDupeSkipHelp": {
     "message": "Firefox는 저장을 시작했다가 같은 이름의 파일을 찾으면 바로 취소합니다. 기록에는 '이미 존재함'으로 표시되며, '다운로드 실패 시 알림' 설정이 켜져 있을 때만 알림을 받습니다."
+  },
+  "o_cSkipSavedSources": {
+    "message": "이미 저장한 주소 건너뛰기:"
+  },
+  "o_cSkipSavedSourcesNever": {
+    "message": "안 함"
+  },
+  "o_cSkipSavedSourcesAutomatic": {
+    "message": "자동 저장만"
+  },
+  "o_cSkipSavedSourcesAll": {
+    "message": "모든 저장"
+  },
+  "o_cSkipSavedSourcesHelp": {
+    "message": "기록에 같은 주소의 완료된 저장이 남아 있는 동안 Save In은 그 주소를 다시 다운로드하지 않습니다. 해당 항목이 없어지면 아무것도 건너뛰지 않습니다. 기록을 지운 후, '완료된 항목 보관' 설정으로 항목이 제거된 후, 또는 그 한도가 0인 동안이 이에 해당합니다. Shift를 눌러 다른 이름으로 저장 대화 상자를 열거나 항상 대화 상자를 여는 대상을 선택하면 그대로 저장됩니다. 기록에 남지 않는 비공개 저장은 건너뛰지 않습니다. 알림은 '다운로드 실패 시 알림'이 켜져 있을 때만 표시되며 자동 저장에는 표시되지 않습니다."
+  },
+  "notificationSavedSourceSkippedTitle": {
+    "message": "이미 저장됨"
+  },
+  "notificationSavedSourceSkippedMessage": {
+    "message": "기록에 완료된 저장이 이미 있어 $URL$을(를) 다시 저장하지 않았습니다.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateSavedSourceSkippedMessage": {
+    "message": "기록에 완료된 저장이 이미 있어 비공개 브라우징 항목을 다시 저장하지 않았습니다."
   }
 }

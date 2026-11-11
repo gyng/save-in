@@ -17,7 +17,8 @@ these documents assume.
   opt-in close-source-tab action, including ordering and automatic-save limits.
 - [When a file already exists](using/EXISTING-FILES.md) — unique names,
   overwriting, and Firefox's Skip and Ask each time: how Save In detects an
-  existing file and what it cannot see.
+  existing file and what it cannot see. Also the opt-in History check that
+  skips an address already saved, in both browsers.
 
 ## Integrating with Save In — [`integrating/`](integrating/)
 

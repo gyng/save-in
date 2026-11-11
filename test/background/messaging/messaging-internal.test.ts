@@ -310,6 +310,9 @@ describe("onMessage", () => {
     const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
     expect(state.path.finalize()).toBe("moved/here");
     expect(state.info.url).toBe("https://x.test/moved.png");
+    // The move downloads the entry's own address again; the saved-source
+    // check must not decline it for being in History.
+    expect(state.scratch.repeatsSavedSource).toBe(true);
     expect(state.info.suggestedFilename).toBe("moved.png");
     expect(state.info.comment).toBe("archive");
     expect(HistoryMove.registerPendingHistoryMove).toHaveBeenCalledWith(42, {

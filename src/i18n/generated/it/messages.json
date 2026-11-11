@@ -4642,5 +4642,35 @@
   },
   "o_cDupeSkipHelp": {
     "message": "Firefox avvia il salvataggio e lo annulla appena trova un file con quel nome. La cronologia mostra Esiste già; ricevi una notifica solo se Avvisa quando un download fallisce è attivo."
+  },
+  "o_cSkipSavedSources": {
+    "message": "Salta gli indirizzi già salvati:"
+  },
+  "o_cSkipSavedSourcesNever": {
+    "message": "Mai"
+  },
+  "o_cSkipSavedSourcesAutomatic": {
+    "message": "Solo salvataggi automatici"
+  },
+  "o_cSkipSavedSourcesAll": {
+    "message": "Tutti i salvataggi"
+  },
+  "o_cSkipSavedSourcesHelp": {
+    "message": "Save In non scarica di nuovo un indirizzo finché la cronologia ne conserva un salvataggio completato. Non viene saltato nulla quando quella voce non c’è più: dopo aver cancellato la cronologia, quando Conserva le voci completate la rimuove o finché quel limite è 0. Se tieni premuto Shift per aprire la finestra Salva con nome, o scegli una destinazione che la apre sempre, il salvataggio avviene comunque. I salvataggi privati che la cronologia non ricorda non vengono mai saltati. Ricevi una notifica solo se Avvisa quando un download fallisce è attivo, e mai per i salvataggi automatici."
+  },
+  "notificationSavedSourceSkippedTitle": {
+    "message": "Già salvato"
+  },
+  "notificationSavedSourceSkippedMessage": {
+    "message": "$URL$ non è stato salvato di nuovo perché la cronologia ne contiene già un salvataggio completato.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateSavedSourceSkippedMessage": {
+    "message": "Un elemento di navigazione privata non è stato salvato di nuovo perché la cronologia ne contiene già un salvataggio completato."
   }
 }

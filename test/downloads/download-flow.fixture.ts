@@ -159,6 +159,8 @@ beforeEach(() => {
       setStatusStrict: (...a: Parameters<typeof SaveHistory.setHistoryStatusStrict>) =>
         SaveHistory.setHistoryStatusStrict(...a),
       entries: () => SaveHistory.getHistoryEntries(),
+      hasCompletedUrl: (...a: Parameters<typeof SaveHistory.hasCompletedHistoryUrl>) =>
+        SaveHistory.hasCompletedHistoryUrl(...a),
       anchorStartTime: (...a: Parameters<typeof SaveHistory.anchorHistoryDownloadStartTime>) =>
         SaveHistory.anchorHistoryDownloadStartTime(...a),
     },
@@ -245,6 +247,7 @@ beforeEach(() => {
     writeOptions.privateContext && !options.persistPrivateActivity ? null : "h-test",
   );
   vi.spyOn(SaveHistory, "patchHistoryEntry").mockImplementation(() => Promise.resolve());
+  vi.spyOn(SaveHistory, "hasCompletedHistoryUrl").mockImplementation(() => Promise.resolve(false));
   vi.spyOn(SaveHistory, "setHistoryDownloadId").mockImplementation(() => Promise.resolve());
   vi.spyOn(SaveHistory, "setHistoryStatus").mockImplementation(() => Promise.resolve());
   vi.spyOn(SaveHistory, "anchorHistoryDownloadStartTime").mockImplementation(() =>

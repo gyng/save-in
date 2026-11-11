@@ -5952,5 +5952,43 @@
   "o_cDupeSkipHelp": {
     "message": "Firefox starts the save and cancels it as soon as it finds a file with that name. History shows Already exists; you get a notification only if Notify when a download fails is on.",
     "description": "Help under the \"When a file already exists:\" select when Skip is chosen (Firefox only). \"Already exists\" is the History status label and \"Notify when a download fails\" is the setting label; reuse their translations. Used in src/options/options.html."
+  },
+  "o_cSkipSavedSources": {
+    "message": "Skip addresses already saved:",
+    "description": "Label of the select under Save behavior > Existing files that chooses which saves are skipped when Save In History already holds a completed save of the same web address. \"Addresses\" are the web addresses of the files being saved. Used in src/options/options.html."
+  },
+  "o_cSkipSavedSourcesNever": {
+    "message": "Never",
+    "description": "Choice in the \"Skip addresses already saved:\" select: no save is ever skipped (the default). Used in src/options/options.html."
+  },
+  "o_cSkipSavedSourcesAutomatic": {
+    "message": "Automatic saves only",
+    "description": "Choice in the \"Skip addresses already saved:\" select: only automatic Page Sources saves are skipped. Reuse the locale's term for automatic saves. Used in src/options/options.html."
+  },
+  "o_cSkipSavedSourcesAll": {
+    "message": "All saves",
+    "description": "Choice in the \"Skip addresses already saved:\" select: menu, click-to-save, panel and automatic saves are all skipped. Used in src/options/options.html."
+  },
+  "o_cSkipSavedSourcesHelp": {
+    "message": "Save In does not download an address again while History holds a completed save of it. Nothing is skipped once that entry is gone: after History is cleared, when Keep completed entries removes it, or while that limit is 0. Holding Shift for the Save As dialog, or choosing a destination that always opens it, saves anyway. Private saves that History does not remember are never skipped. You get a notification only if Notify when a download fails is on, and never for automatic saves.",
+    "description": "Help under the \"Skip addresses already saved:\" select. History is Save In History, not browser history. \"Keep completed entries\" and \"Notify when a download fails\" are setting labels; reuse their translations. Shift is the keyboard key and stays untranslated. A \"destination that always opens it\" is a Save In menu folder marked to open the Save As dialog. Used in src/options/options.html."
+  },
+  "notificationSavedSourceSkippedTitle": {
+    "message": "Already saved",
+    "description": "Notification title when a save was skipped because Save In History already holds a completed save of the same web address and \"Skip addresses already saved:\" covers the save. Used in src/downloads/saved-source.ts."
+  },
+  "notificationSavedSourceSkippedMessage": {
+    "message": "$URL$ was not saved again because History holds a completed save of it.",
+    "description": "Notification body when a save was skipped because Save In History already holds a completed save of the same web address. URL is that address. History is Save In History, not browser history. Used in src/downloads/saved-source.ts.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateSavedSourceSkippedMessage": {
+    "message": "A private browsing item was not saved again because History holds a completed save of it.",
+    "description": "Privacy-preserving notification body when a private save was skipped because Save In History already holds a completed save of the same web address. Do not identify the item. Used in src/downloads/saved-source.ts."
   }
 }

@@ -2431,6 +2431,8 @@ describe("concurrent downloads (pendingStates)", () => {
         setStatusStrict: (...a: Parameters<typeof freshHistory.setHistoryStatusStrict>) =>
           freshHistory.setHistoryStatusStrict(...a),
         entries: () => freshHistory.getHistoryEntries(),
+        hasCompletedUrl: (...a: Parameters<typeof freshHistory.hasCompletedHistoryUrl>) =>
+          freshHistory.hasCompletedHistoryUrl(...a),
         anchorStartTime: (...a: Parameters<typeof freshHistory.anchorHistoryDownloadStartTime>) =>
           freshHistory.anchorHistoryDownloadStartTime(...a),
       },

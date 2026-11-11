@@ -43,6 +43,7 @@ export interface E2EStoredOptionValues {
   setRefererHeaderFilter: string;
   shortcutTab: boolean;
   shortcutType: "HTML_REDIRECT" | "MAC" | "MAC_WEBLOC" | "FREEDESKTOP" | "WINDOWS";
+  skipSavedSources: "never" | "automatic" | "all";
   sourcePanelEnabled: boolean;
   sourcePanelLive: boolean;
   sourcePanelLinks: boolean;

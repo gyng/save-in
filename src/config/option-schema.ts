@@ -4,10 +4,12 @@ import {
   MAX_RECENT_DESTINATIONS,
   REJECTED_SHORTCUT_TYPES,
   SHORTCUT_TYPES,
+  SKIP_SAVED_SOURCES,
   UNSAFE_INVISIBLE_FILENAME_CHARS,
   isShortcutType,
   type ConflictAction,
   type ShortcutType,
+  type SkipSavedSources,
 } from "../shared/constants.ts";
 import { isSelectableLocale, type SelectableLocale } from "../shared/generated-locales.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
@@ -136,6 +138,13 @@ export const OPTION_KEYS = defineOptions([
     validate: (value: unknown): value is ConflictAction =>
       isStringMember(Object.values(CONFLICT_ACTION), value),
     default: OPTION_DEFAULTS.conflictAction,
+  },
+  {
+    name: "skipSavedSources",
+    type: OPTION_TYPES.VALUE,
+    validate: (value: unknown): value is SkipSavedSources =>
+      isStringMember(Object.values(SKIP_SAVED_SOURCES), value),
+    default: OPTION_DEFAULTS.skipSavedSources,
   },
   ...CONTENT_FEATURE_OPTION_DEFINITIONS,
   { name: "debug", type: OPTION_TYPES.BOOL, fn: null, default: OPTION_DEFAULTS.debug },

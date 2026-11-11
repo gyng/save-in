@@ -171,7 +171,7 @@ test("keeps behavior controls owned by their semantic groups", () => {
     ],
     "private-browsing": ["persistPrivateActivity"],
     "save-dialog": ["prompt", "promptIfNoExtension", "promptOnShift", "promptOnFailure"],
-    "existing-files": ["conflictAction"],
+    "existing-files": ["conflictAction", "skipSavedSources"],
     "context-menu-access-keys": ["keyRoot", "keyLastUsed", "enableNumberedItems"],
   };
 

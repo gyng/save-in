@@ -29,6 +29,7 @@ export const EXTENSION_NOTIFICATION_STREAMS = Object.freeze({
   PREFER_LINKS_PATTERN_ERROR: "prefer-links-pattern-error",
   ROUTE_MATCH: "route-match",
   ROUTE_MISS: "route-miss",
+  SAVED_SOURCE_SKIP: "saved-source-skip",
 });
 
 export type ExtensionNotificationStream =

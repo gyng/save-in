@@ -17,6 +17,7 @@ import {
   runRenameRoutingScenario,
   runRoutingScenario,
   runRoutingActionsScenario,
+  runSkipSavedSourceScenario,
   runShortcutScenario,
   runSymlinkDestinationScenario,
   runTabStripScenario,
@@ -352,6 +353,14 @@ export const registerSharedBrowserCases = (adapters) => {
       control,
       waitForDownloads,
       filename: `flaky-${browserLabel}.bin`,
+    });
+  });
+
+  test("an address History already saved is not downloaded again", async () => {
+    await runSkipSavedSourceScenario({
+      control,
+      waitForDownloads,
+      filename: `saved-once-${browserLabel}.bin`,
     });
   });
 };

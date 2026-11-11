@@ -4642,5 +4642,35 @@
   },
   "o_cDupeSkipHelp": {
     "message": "Firefox startar sparandet och avbryter det så snart den hittar en fil med det namnet. Historiken visar Finns redan; du får bara en avisering om Meddela när en nedladdning misslyckas är på."
+  },
+  "o_cSkipSavedSources": {
+    "message": "Hoppa över adresser som redan sparats:"
+  },
+  "o_cSkipSavedSourcesNever": {
+    "message": "Aldrig"
+  },
+  "o_cSkipSavedSourcesAutomatic": {
+    "message": "Endast automatisk sparning"
+  },
+  "o_cSkipSavedSourcesAll": {
+    "message": "Alla sparningar"
+  },
+  "o_cSkipSavedSourcesHelp": {
+    "message": "Save In laddar inte ned en adress igen så länge historiken innehåller en slutförd sparning av den. Inget hoppas över när den posten är borta: efter att historiken har rensats, när Behåll slutförda poster tar bort den eller så länge den gränsen är 0. Om du håller ned Shift för dialogrutan Spara som, eller väljer ett mål som alltid öppnar den, sparas filen ändå. Privata sparningar som historiken inte kommer ihåg hoppas aldrig över. Du får bara en avisering om Meddela när en nedladdning misslyckas är på, och aldrig vid automatisk sparning."
+  },
+  "notificationSavedSourceSkippedTitle": {
+    "message": "Redan sparad"
+  },
+  "notificationSavedSourceSkippedMessage": {
+    "message": "$URL$ sparades inte igen eftersom historiken redan innehåller en slutförd sparning av den.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateSavedSourceSkippedMessage": {
+    "message": "Ett objekt från privat surfning sparades inte igen eftersom historiken redan innehåller en slutförd sparning av det."
   }
 }

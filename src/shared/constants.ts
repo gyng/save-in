@@ -128,6 +128,15 @@ export const CONFLICT_ACTION = {
 } as const;
 export type ConflictAction = (typeof CONFLICT_ACTION)[keyof typeof CONFLICT_ACTION];
 
+// Which saves are not downloaded again while Save In History still holds a
+// completed save of the same address (downloads/saved-source-model.ts).
+export const SKIP_SAVED_SOURCES = {
+  NEVER: "never",
+  AUTOMATIC: "automatic",
+  ALL: "all",
+} as const;
+export type SkipSavedSources = (typeof SKIP_SAVED_SOURCES)[keyof typeof SKIP_SAVED_SOURCES];
+
 export const RULE_TYPES = {
   MATCHER: "MATCHER",
   CAPTURE: "CAPTURE",

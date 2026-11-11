@@ -34,10 +34,56 @@ type HistoryIndex = {
   terminalCount?: number;
 };
 
+// The "Skip addresses already saved" option asks, for every save it applies to,
+// whether a completed entry still records one exact address. Answering from
+// storage would read every entry shard — up to HISTORY_LIMIT rows — once per
+// candidate, and an automatic scan offers about a hundred candidates per page.
+// So the answer comes from a count of completed entries per address, held only
+// in memory:
+// - It is built by one full read on the first lookup, so a profile with the
+//   option off never pays for it, and nothing here assumes it survives: a
+//   restarted worker starts with null and rebuilds on its next lookup.
+// - Every History write goes through this module's serialised queue, and each
+//   one adjusts the count for the single entry it changed (completion, undo,
+//   retention prune, cap eviction). Dropping the index on every write instead
+//   would force a full reread per completed save once History is at its
+//   retention limit, where each completion also prunes a row.
+// - Anything that cannot be tracked exactly — a failed write, Clear history, a
+//   legacy migration — drops the index so the next lookup rereads the truth.
+// Only http(s) addresses within the length cap are indexed: data: and blob:
+// have no stable identity, and the cap bounds memory to the row limit times a
+// realistic address rather than a page-controlled payload.
+const COMPLETED_URL_INDEX_MAX_LENGTH = 4096;
+let completedUrlCounts: Map<string, number> | null = null;
+
+// A row without a status predates statuses and is shown as complete.
+const completedHistoryUrl = (entry: HistoryEntry | null): string | null => {
+  if (!entry || (entry.status || "complete") !== "complete") return null;
+  const { url } = entry;
+  return typeof url === "string" &&
+    url.length <= COMPLETED_URL_INDEX_MAX_LENGTH &&
+    /^https?:/i.test(url)
+    ? url
+    : null;
+};
+
+const countCompletedUrl = (
+  counts: Map<string, number> | null,
+  entry: HistoryEntry | null,
+  delta: 1 | -1,
+): void => {
+  const url = completedHistoryUrl(entry);
+  if (!counts || url === null) return;
+  const next = (counts.get(url) ?? 0) + delta;
+  if (next > 0) counts.set(url, next);
+  else counts.delete(url);
+};
+
 const recordHistoryFailure = (
   operation: "read" | "write" | "remove" | "migrate",
   error: unknown,
 ): void => {
+  if (operation !== "read") completedUrlCounts = null;
   recordPersistenceFailure({ area: "local", operation, key: HISTORY_STORAGE_KEY }, error);
 };
 
@@ -117,6 +163,7 @@ const readShardedHistory = async (
 // The index is authoritative only after the transaction succeeds; a failed
 // migration leaves the legacy value readable and can be retried safely.
 const migrateLegacyHistory = async (legacyValue: unknown[]): Promise<HistoryIndex> => {
+  completedUrlCounts = null;
   const legacy = migrateLegacyHistoryTimestamps(legacyValue).slice(-HISTORY_LIMIT);
   const writes: Record<string, unknown> = { [HISTORY_STORAGE_KEY]: [] };
   const keys: string[] = [];
@@ -228,13 +275,17 @@ const pruneTerminalHistory = async (index: HistoryIndex): Promise<HistoryIndex> 
   const expectedRemovals =
     index.terminalCount === undefined ? undefined : Math.max(0, index.terminalCount - limit);
   const terminalLocators: string[] = [];
+  const terminalEntries = new Map<string, HistoryEntry>();
   let scannedAllLocators = true;
   for (let offset = 0; offset < locators.length; offset += HISTORY_ENTRY_READ_BATCH_SIZE) {
     const batch = locators.slice(offset, offset + HISTORY_ENTRY_READ_BATCH_SIZE);
     const entries = await storageSnapshot(batch.map(historyEntryStorageKey));
     for (const [batchIndex, locator] of batch.entries()) {
       const entry = normalizeHistoryEntry(entries[historyEntryStorageKey(locator)]);
-      if (entry !== null && entry.status !== "pending") terminalLocators.push(locator);
+      if (entry !== null && entry.status !== "pending") {
+        terminalLocators.push(locator);
+        if (completedUrlCounts) terminalEntries.set(locator, entry);
+      }
       if (
         expectedRemovals !== undefined &&
         terminalLocators.length >= expectedRemovals &&
@@ -331,6 +382,9 @@ const pruneTerminalHistory = async (index: HistoryIndex): Promise<HistoryIndex> 
     ...obsoleteChunks,
   ]);
   await webExtensionApi.storage.local.set(writes);
+  for (const id of removeIds) {
+    countCompletedUrl(completedUrlCounts, terminalEntries.get(id) ?? null, -1);
+  }
   return nextIndex;
 };
 
@@ -378,6 +432,7 @@ export const addHistoryEntry = (
       let firstChunk = index.firstChunk;
       let length = index.length + 1;
       let terminalCount = index.terminalCount;
+      let evictedEntry: HistoryEntry | null = null;
       if (length > HISTORY_LIMIT) {
         // Non-compact pruning legitimately leaves empty (deleted) chunks
         // between firstChunk and nextChunk. Skip past any such holes so the
@@ -411,12 +466,14 @@ export const addHistoryEntry = (
         if (removed) {
           const removedEntryKey = historyEntryStorageKey(removed);
           removeKeys.push(removedEntryKey);
-          if (terminalCount !== undefined) {
+          if (terminalCount !== undefined || completedUrlCounts) {
             const removedSnapshot = await storageSnapshot([removedEntryKey]);
-            const removedEntry = normalizeHistoryEntry(removedSnapshot[removedEntryKey]);
-            if (!removedEntry) {
+            evictedEntry = normalizeHistoryEntry(removedSnapshot[removedEntryKey]);
+          }
+          if (terminalCount !== undefined) {
+            if (!evictedEntry) {
               terminalCount = undefined;
-            } else if (removedEntry.status !== "pending") {
+            } else if (evictedEntry.status !== "pending") {
               terminalCount = Math.max(0, terminalCount - 1);
             }
           }
@@ -453,6 +510,7 @@ export const addHistoryEntry = (
       // nothing ever garbage-collects short of Clear history.
       if (removeKeys.length > 0) await webExtensionApi.storage.local.remove(removeKeys);
       await webExtensionApi.storage.local.set(writes);
+      countCompletedUrl(completedUrlCounts, evictedEntry, -1);
     })
     .catch((error) => recordHistoryFailure("write", error));
 
@@ -511,6 +569,8 @@ const queueHistoryPatch = (
       [entryKey]: merged,
       ...(nextIndex === loaded.index ? {} : { [HISTORY_INDEX_STORAGE_KEY]: nextIndex }),
     });
+    countCompletedUrl(completedUrlCounts, entry, -1);
+    countCompletedUrl(completedUrlCounts, merged, 1);
     if (wasTerminal !== isTerminal) await pruneTerminalHistory(nextIndex);
     return requireExisting ? true : undefined;
   });
@@ -602,45 +662,66 @@ export const anchorHistoryDownloadStartTime = (
       : {},
   );
 
-export const getHistoryEntries = (onlyId?: string): Promise<HistoryEntry[]> => {
-  // Queue the read itself, not just the wait before it: an add accepted while
-  // a legacy read was in flight must land after that migration, or the stale
-  // migration snapshot could replace the newly appended index.
-  const task = writeQueue.then(async () => {
-    let snapshot: Record<string, unknown>;
+const readStoredHistory = async (onlyId?: string): Promise<HistoryEntry[]> => {
+  let snapshot: Record<string, unknown>;
+  try {
+    snapshot = await rootStorageSnapshot();
+  } catch (error) {
+    recordHistoryFailure("read", error);
+    throw error;
+  }
+
+  const index = normalizeHistoryIndex(snapshot[HISTORY_INDEX_STORAGE_KEY]);
+  if (index) {
     try {
-      snapshot = await rootStorageSnapshot();
+      return await readShardedHistory(index, onlyId);
     } catch (error) {
       recordHistoryFailure("read", error);
       throw error;
     }
+  }
 
-    const index = normalizeHistoryIndex(snapshot[HISTORY_INDEX_STORAGE_KEY]);
-    if (index) {
-      try {
-        return await readShardedHistory(index, onlyId);
-      } catch (error) {
-        recordHistoryFailure("read", error);
-        throw error;
-      }
+  const legacy = snapshot[HISTORY_STORAGE_KEY];
+  const history = normalizeHistory(legacy);
+  if (Array.isArray(legacy)) {
+    try {
+      await migrateLegacyHistory(legacy);
+    } catch (error) {
+      recordHistoryFailure("migrate", error);
     }
+  }
+  return onlyId === undefined ? history : history.filter(({ id }) => id === onlyId);
+};
 
-    const legacy = snapshot[HISTORY_STORAGE_KEY];
-    const history = normalizeHistory(legacy);
-    if (Array.isArray(legacy)) {
-      try {
-        await migrateLegacyHistory(legacy);
-      } catch (error) {
-        recordHistoryFailure("migrate", error);
-      }
-    }
-    return onlyId === undefined ? history : history.filter(({ id }) => id === onlyId);
-  });
+// Queue the read itself, not just the wait before it: an add accepted while
+// a legacy read was in flight must land after that migration, or the stale
+// migration snapshot could replace the newly appended index.
+const queueHistoryRead = <Result>(read: () => Promise<Result>): Promise<Result> => {
+  const task = writeQueue.then(read);
   writeQueue = task.then(
     () => undefined,
     () => undefined,
   );
   return task;
+};
+
+export const getHistoryEntries = (onlyId?: string): Promise<HistoryEntry[]> =>
+  queueHistoryRead(() => readStoredHistory(onlyId));
+
+// Whether a completed entry still records this exact address (see the index
+// constraints above). A built index answers without touching storage or the
+// queue; the first lookup builds it inside the queue so no write can land
+// between the read and the index it produces. Rejects when History cannot be
+// read: the caller decides what an unanswerable lookup means.
+export const hasCompletedHistoryUrl = (url: string): Promise<boolean> => {
+  if (completedUrlCounts) return Promise.resolve(completedUrlCounts.has(url));
+  return queueHistoryRead(async () => {
+    if (completedUrlCounts) return completedUrlCounts.has(url);
+    const counts = new Map<string, number>();
+    for (const entry of await readStoredHistory()) countCompletedUrl(counts, entry, 1);
+    completedUrlCounts = counts;
+    return counts.has(url);
+  });
 };
 
 export const enforceHistoryRetention = (): Promise<void> => {
@@ -666,6 +747,8 @@ export const clearHistory = (): Promise<void> => {
           key.startsWith(HISTORY_INDEX_CHUNK_STORAGE_PREFIX) ||
           key.startsWith(HISTORY_ENTRY_STORAGE_PREFIX),
       );
+      // Dropped before the removal: a partial failure leaves an unknown set.
+      completedUrlCounts = null;
       if (keys.length > 0) await webExtensionApi.storage.local.remove(keys);
     });
   writeQueue = task.catch((error) => recordHistoryFailure("remove", error));

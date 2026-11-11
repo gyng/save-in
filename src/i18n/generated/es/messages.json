@@ -4642,5 +4642,35 @@
   },
   "o_cDupeSkipHelp": {
     "message": "Firefox inicia la descarga y la cancela en cuanto encuentra un archivo con ese nombre. El historial muestra Ya existe; solo recibes una notificación si Notificar cuando falla una descarga está activado."
+  },
+  "o_cSkipSavedSources": {
+    "message": "Omitir direcciones ya guardadas:"
+  },
+  "o_cSkipSavedSourcesNever": {
+    "message": "Nunca"
+  },
+  "o_cSkipSavedSourcesAutomatic": {
+    "message": "Solo guardados automáticos"
+  },
+  "o_cSkipSavedSourcesAll": {
+    "message": "Todos los guardados"
+  },
+  "o_cSkipSavedSourcesHelp": {
+    "message": "Save In no vuelve a descargar una dirección mientras el historial conserve un guardado completado de ella. No se omite nada cuando esa entrada ya no está: después de borrar el historial, cuando Conservar entradas completadas la elimina o mientras ese límite sea 0. Si mantiene pulsada la tecla Shift para abrir el diálogo Guardar como, o elige un destino que siempre lo abre, se guarda igualmente. Los guardados privados que el historial no recuerda nunca se omiten. Solo recibe una notificación si Notificar cuando falla una descarga está activado, y nunca en los guardados automáticos."
+  },
+  "notificationSavedSourceSkippedTitle": {
+    "message": "Ya guardado"
+  },
+  "notificationSavedSourceSkippedMessage": {
+    "message": "$URL$ no se volvió a guardar porque el historial ya contiene un guardado completado de esa dirección.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/photo.jpg"
+      }
+    }
+  },
+  "notificationPrivateSavedSourceSkippedMessage": {
+    "message": "No se volvió a guardar un elemento de navegación privada porque el historial ya contiene un guardado completado de él."
   }
 }
