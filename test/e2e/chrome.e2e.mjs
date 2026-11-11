@@ -3186,6 +3186,21 @@ registerSharedBrowserCases({
   evaluate: evalSW,
   evaluateOptions: evalOptions,
   evaluatePage: (target, expression) => cdp.evalInTarget(PORT, target, expression),
+  clickPage: (target, x, y) =>
+    cdp.dispatchInput(PORT, target, [
+      {
+        method: "Input.dispatchMouseEvent",
+        params: { type: "mouseMoved", x, y, button: "none", buttons: 0 },
+      },
+      {
+        method: "Input.dispatchMouseEvent",
+        params: { type: "mousePressed", x, y, button: "left", buttons: 1, clickCount: 1 },
+      },
+      {
+        method: "Input.dispatchMouseEvent",
+        params: { type: "mouseReleased", x, y, button: "left", buttons: 0, clickCount: 1 },
+      },
+    ]),
   waitForDownloads,
   waitForLog,
   downloadDir: () => DOWNLOADS,

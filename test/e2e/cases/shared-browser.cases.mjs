@@ -45,6 +45,7 @@ import { decodeBoolean, decodeString, evaluateJson, objectOf, requireValue } fro
  *   evaluate: (expression: string) => Promise<unknown>,
  *   evaluateOptions: (expression: string) => Promise<unknown>,
  *   evaluatePage: (target: string, expression: string) => Promise<unknown>,
+ *   clickPage: (target: string, x: number, y: number) => Promise<unknown>,
  *   waitForDownloads: (filename: string, timeoutMs?: number) => Promise<DownloadSummary[]>,
  *   waitForLog: (baseline: number, messages: string[], timeoutMs?: number) => Promise<LogEntry[]>,
  *   downloadDir: () => string,
@@ -63,6 +64,7 @@ export const registerSharedBrowserCases = (adapters) => {
     evaluate,
     evaluateOptions,
     evaluatePage,
+    clickPage,
     waitForDownloads,
     waitForLog,
     downloadDir,
@@ -129,7 +131,7 @@ export const registerSharedBrowserCases = (adapters) => {
   });
 
   test("a folder command and the destination picker each save into their folder", async () => {
-    await runDestinationPickerScenario({ control, evaluatePage });
+    await runDestinationPickerScenario({ control, evaluatePage, clickPage });
   });
 
   test("production tab-strip handler saves the selected real tab", async () => {

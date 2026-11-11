@@ -4,20 +4,33 @@
  * space, and type value here is one of those semantic roles.
  */
 :host {
-  all: initial;
-  box-sizing: border-box;
-  position: fixed;
+  /* The page owns the host element: its stylesheet matches `save-in-picker`
+     and beats any normal declaration made here, so it could fade the picker
+     out or scale it across the viewport and steer a real click onto a row the
+     user cannot see. An important declaration from inside the shadow tree is
+     the one thing an outer rule cannot override, important or not, so every
+     property the host's visibility and geometry depend on is important:
+     `all` resets the rest (opacity, visibility, transform, filter, clip-path,
+     pointer-events, margins, sizes, transitions), and each value set below
+     must then be important to survive that reset. */
+  /* biome-ignore-start lint/complexity/noImportantStyles: an important declaration inside the shadow tree is the only one the page's own stylesheet cannot override on this host; see above */
+  all: initial !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  position: fixed !important;
   /* The picker floats over arbitrary pages, so it must outrank page-owned
      stacking contexts rather than sharing the options-page z-index scale. */
-  z-index: 2147483647;
-  isolation: isolate;
-  writing-mode: horizontal-tb;
-  --picker-gutter: var(--source-space-2);
-  --picker-inline-size: min(304px, calc(100dvw - 2 * var(--picker-gutter)));
-  --picker-block-size: min(420px, calc(100dvh - 2 * var(--picker-gutter)));
+  z-index: 2147483647 !important;
+  isolation: isolate !important;
+  writing-mode: horizontal-tb !important;
+  user-select: none !important;
+  --picker-gutter: var(--source-space-2) !important;
+  --picker-inline-size: min(304px, calc(100dvw - 2 * var(--picker-gutter))) !important;
+  --picker-block-size: min(420px, calc(100dvh - 2 * var(--picker-gutter))) !important;
   /* Centered near the top by default, which is where a keyboard command opens
-     it. A gesture overrides both on the host with the pointer position. Either
-     way the picker is clamped inside the viewport. */
+     it. A gesture overrides both on the host with the pointer position, which
+     is why these two stay normal declarations. Either way the picker is
+     clamped inside the viewport. */
   --picker-x: calc((100dvw - var(--picker-inline-size)) / 2);
   --picker-y: 20dvh;
   /* Each row sets its own nesting depth. */
@@ -26,17 +39,18 @@
     var(--picker-gutter),
     var(--picker-x),
     calc(100dvw - var(--picker-inline-size) - var(--picker-gutter))
-  );
+  ) !important;
   inset-block-start: clamp(
     var(--picker-gutter),
     var(--picker-y),
     calc(100dvh - var(--picker-block-size) - var(--picker-gutter))
-  );
-  inline-size: var(--picker-inline-size);
-  color: var(--color-text);
-  accent-color: var(--color-accent);
-  color-scheme: light dark;
-  font: var(--text-base) / 1.35 var(--font-stack);
+  ) !important;
+  inline-size: var(--picker-inline-size) !important;
+  color: var(--color-text) !important;
+  accent-color: var(--color-accent) !important;
+  color-scheme: light dark !important;
+  font: var(--text-base) / 1.35 var(--font-stack) !important;
+  /* biome-ignore-end lint/complexity/noImportantStyles: end of the host's page-proof declarations */
 }
 
 *,
@@ -46,11 +60,13 @@
 }
 
 :host([data-theme="light"]) {
-  color-scheme: only light;
+  /* biome-ignore lint/complexity/noImportantStyles: must outrank the host's own important color-scheme above */
+  color-scheme: only light !important;
 }
 
 :host([data-theme="dark"]) {
-  color-scheme: only dark;
+  /* biome-ignore lint/complexity/noImportantStyles: must outrank the host's own important color-scheme above */
+  color-scheme: only dark !important;
 }
 
 .picker {

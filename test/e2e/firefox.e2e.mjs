@@ -1827,6 +1827,22 @@ registerSharedBrowserCases({
   evaluate: evalBackground,
   evaluateOptions: evalOptions,
   evaluatePage: (target, expression) => session.evaluateInTab(target, expression),
+  clickPage: async (target, x, y) =>
+    session.bidi.send("input.performActions", {
+      context: await session.bidi.findContext(target),
+      actions: [
+        {
+          type: "pointer",
+          id: "save-in-page-click",
+          parameters: { pointerType: "mouse" },
+          actions: [
+            { type: "pointerMove", x, y, duration: 0, origin: "viewport" },
+            { type: "pointerDown", button: 0 },
+            { type: "pointerUp", button: 0 },
+          ],
+        },
+      ],
+    }),
   waitForDownloads,
   waitForLog,
   downloadDir: () => session.downloadDir,

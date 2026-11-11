@@ -58,6 +58,27 @@ const acceptsEvent = (event: Event): boolean => event.isTrusted || SAVE_IN_CONTE
 
 const optionId = (index: number): string => `destination-${index}`;
 
+// A closed shadow root hides nodes from page script, but not text: find-in-page
+// (`window.find`) answers whether a string is on screen, and a selection
+// extended across the document serializes whatever it covers. Both skip inert
+// content (measured in Chrome and Firefox; `user-select: none` alone still
+// answers `find`), so every piece of text the picker shows is drawn inside an
+// inert element. Inert content is also skipped by hit-testing, so a click or
+// pointer move over the text targets the row that holds it, and it leaves the
+// accessibility tree, so each row carries its name and description as ARIA
+// attributes instead.
+const shieldedText = <K extends "span" | "kbd">(
+  tag: K,
+  className: string,
+  text: string,
+): HTMLElementTagNameMap[K] => {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  element.textContent = text;
+  element.setAttribute("inert", "");
+  return element;
+};
+
 const ROW_ICON_PATHS = {
   folder: ["M3 6h6l2 2h10v11H3z"],
   // An open folder: a submenu heading is a folder too, shown holding the rows
@@ -83,9 +104,7 @@ const rowIcon = (icon: keyof typeof ROW_ICON_PATHS): SVGSVGElement => {
 // currently in, and never once a filter is being typed.
 const appendLiveKey = (element: HTMLElement, row: PickerRow, state: PickerState): void => {
   if (row.kind === "separator" || row.key === undefined || !isPickerKeyLive(state, row)) return;
-  const key = document.createElement("kbd");
-  key.className = "row-key";
-  key.textContent = row.key;
+  const key = shieldedText("kbd", "row-key", row.key);
   key.setAttribute("aria-hidden", "true");
   if (row.kind === "destination") element.setAttribute("aria-keyshortcuts", row.key);
   element.append(key);
@@ -110,10 +129,7 @@ const renderRow = (
     element.setAttribute("role", "presentation");
     // The submenu the keys have stepped into reads as the current one.
     if (state.scope === row.id) element.dataset.scope = "current";
-    const heading = document.createElement("span");
-    heading.className = "heading-title";
-    heading.textContent = row.title;
-    element.append(rowIcon("folderOpen"), heading);
+    element.append(rowIcon("folderOpen"), shieldedText("span", "heading-title", row.title));
     appendLiveKey(element, row, state);
     return element;
   }
@@ -123,9 +139,8 @@ const renderRow = (
   element.setAttribute("role", "option");
   // The label carries the ancestors a screen reader cannot get from indentation.
   element.setAttribute("aria-label", row.label);
-  const title = document.createElement("span");
-  title.className = "option-title";
   // The marks are visual only; the accessible name above is the whole label.
+  const title = shieldedText("span", "option-title", "");
   title.append(
     ...splitPickerMatches(row.title, query).map(({ text, match }) => {
       if (!match) return document.createTextNode(text);
@@ -136,12 +151,10 @@ const renderRow = (
   );
   element.append(rowIcon(row.lastUsed ? "lastUsed" : "folder"), title);
   if (row.lastUsed) {
-    const hint = document.createElement("span");
-    hint.className = "hint";
-    hint.id = `${element.id}-hint`;
-    hint.textContent = lastUsedHint;
-    element.setAttribute("aria-describedby", hint.id);
-    element.append(hint);
+    // Not `aria-describedby`: the visible hint is inert, and an inert element
+    // describes nothing.
+    element.setAttribute("aria-description", lastUsedHint);
+    element.append(shieldedText("span", "hint", lastUsedHint));
   }
   appendLiveKey(element, row, state);
   return element;
@@ -153,18 +166,14 @@ const renderRow = (
 const renderHeader = (title: string, subject: PickerSubject | undefined): HTMLElement => {
   const header = document.createElement("div");
   header.className = "header";
-  const heading = document.createElement("span");
-  heading.className = "header-title";
-  heading.textContent = title;
   if (subject)
     header.append(createSourceKindIcon(subject.kind === "page" ? "document" : subject.kind));
-  header.append(heading);
+  header.append(shieldedText("span", "header-title", title));
   if (subject?.name) {
-    const name = document.createElement("span");
-    name.className = "header-subject";
-    name.textContent = subject.name;
-    name.title = subject.name;
-    header.append(name);
+    // The tooltip for a clipped name sits on the header: an inert element is
+    // never hovered.
+    header.title = subject.name;
+    header.append(shieldedText("span", "header-subject", subject.name));
   }
   return header;
 };
@@ -176,6 +185,7 @@ const renderKeyLegend = (): HTMLElement => {
   const legend = document.createElement("div");
   legend.className = "keys";
   legend.setAttribute("aria-hidden", "true");
+  legend.setAttribute("inert", "");
   for (const group of [["\u2191", "\u2193"], ["\u21B5"], ["esc"]]) {
     const keys = document.createElement("span");
     keys.className = "key-group";
@@ -239,7 +249,10 @@ export const openDestinationPicker = (options: DestinationPickerOptions): boolea
   const empty = document.createElement("div");
   empty.className = "empty";
   empty.setAttribute("role", "status");
-  empty.textContent = copy.empty;
+  // The status keeps its place in the accessibility tree and takes its text
+  // from the label; the visible copy is inert like every other string here.
+  empty.setAttribute("aria-label", copy.empty);
+  empty.append(shieldedText("span", "", copy.empty));
   picker.append(renderHeader(copy.title, options.subject), filter, list, empty, renderKeyLegend());
   shadow.append(style, picker);
 

@@ -1401,15 +1401,18 @@ export const runContextImageScenario = async ({ control, evaluatePage }) => {
  * handlers are reached through the background control command; the picker is
  * then operated in the page, whose shadow root E2E builds leave open.
  *
- * The pointer is over nothing in a headless page, so both saves are of the
+ * The pointer is over nothing in a headless page, so every save is of the
  * page itself: what the scenario proves is the destination each one reaches.
+ * It also plays the hostile page the picker floats over, which must neither
+ * read the folder names it shows nor restyle its host out of sight.
  *
  * @param {{
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   evaluatePage: (target: string, expression: string) => Promise<unknown>,
+ *   clickPage: (target: string, x: number, y: number) => Promise<unknown>,
  * }} adapters
  */
-export const runDestinationPickerScenario = async ({ control, evaluatePage }) => {
+export const runDestinationPickerScenario = async ({ control, evaluatePage, clickPage }) => {
   const server = http.createServer((_req, res) => {
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end("<title>Picker fixture</title><p>Destination picker fixture</p>");
@@ -1444,6 +1447,104 @@ export const runDestinationPickerScenario = async ({ control, evaluatePage }) =>
       "Folder command save did not complete",
     );
     expect(fs.readFileSync(commandSave.filename, "utf8")).toContain("Destination picker fixture");
+
+    // A hostile page: its stylesheet tries to hide the picker and stretch it
+    // over the viewport, and its script tries to read the folder names out of
+    // the shadow root with find-in-page and a serialized selection.
+    await control.background.runCommand("open-picker");
+    const shielded = await evaluateJson(
+      (expression) => evaluatePage(target, expression),
+      `(() => {
+        const host = document.querySelector("save-in-picker");
+        const root = host?.shadowRoot;
+        const row = root?.querySelector('.option[data-id="save-in-0"]');
+        const title = row?.querySelector(".option-title");
+        if (!host || !root || !row || !title) throw new Error("Destination picker did not open");
+        const hostile = document.createElement("style");
+        hostile.textContent = "save-in-picker { opacity: 0 !important; visibility: hidden !important;"
+          + " display: none !important; transform: scale(40) !important; filter: opacity(0) !important;"
+          + " clip-path: inset(50%) !important; pointer-events: none !important;"
+          + " position: static !important; z-index: -1 !important; inset: -9999px !important;"
+          + " width: 5000px !important; height: 5000px !important; inline-size: 5000px !important;"
+          + " --picker-inline-size: 5000px !important; --picker-gutter: -9999px !important; }";
+        document.head.append(hostile);
+        const style = getComputedStyle(host);
+        const hostRect = host.getBoundingClientRect();
+        const needle = "picker-first";
+        const selection = getSelection();
+        const selected = [];
+        selection.removeAllRanges();
+        // Wrapping, and in both directions: the search starts at the focused
+        // filter, which is the last thing in the document.
+        const find = (text) => window.find(text, false, false, true) || window.find(text, false, true, true);
+        const foundNeedle = find(needle);
+        selected.push(selection.toString());
+        selection.removeAllRanges();
+        const foundPageText = find("Destination picker fixture");
+        selection.modify("extend", "backward", "documentboundary");
+        selected.push(selection.toString());
+        selection.modify("extend", "forward", "documentboundary");
+        selected.push(selection.toString());
+        selection.selectAllChildren(document.documentElement);
+        selected.push(selection.toString());
+        document.execCommand("selectAll");
+        selected.push(selection.toString());
+        selection.removeAllRanges();
+        const rect = title.getBoundingClientRect();
+        const x = Math.round(rect.left + Math.min(rect.width / 2, 20));
+        const y = Math.round(rect.top + rect.height / 2);
+        return JSON.stringify({
+          shown: title.textContent,
+          foundNeedle,
+          foundPageText,
+          selectionReadsNeedle: selected.some((text) => text.includes(needle)),
+          selectionReadsPage: selected.some((text) => text.includes("picker fixture")),
+          style: [style.opacity, style.visibility, style.display, style.transform, style.filter,
+            style.clipPath, style.pointerEvents, style.position, style.zIndex].join(" "),
+          hostWithinViewport: hostRect.left >= 0 && hostRect.top >= 0
+            && hostRect.right <= innerWidth && hostRect.width <= 304 && hostRect.height <= 420,
+          hit: root.elementFromPoint(x, y)?.className ?? "",
+          x,
+          y,
+        });
+      })()`,
+      objectOf({
+        shown: decodeString,
+        foundNeedle: decodeBoolean,
+        foundPageText: decodeBoolean,
+        selectionReadsNeedle: decodeBoolean,
+        selectionReadsPage: decodeBoolean,
+        style: decodeString,
+        hostWithinViewport: decodeBoolean,
+        hit: decodeString,
+        x: decodeNumber,
+        y: decodeNumber,
+      }),
+    );
+    expect(shielded).toMatchObject({
+      // The title is on screen, and find-in-page and selection both work on
+      // this page: they read its own text, and none of the picker's.
+      shown: expect.stringContaining("picker-first"),
+      foundNeedle: false,
+      foundPageText: true,
+      selectionReadsNeedle: false,
+      selectionReadsPage: true,
+      style: "1 visible block none none none auto fixed 2147483647",
+      hostWithinViewport: true,
+      // The text is inert, so the pointer lands on the row that holds it.
+      hit: "option",
+    });
+    // A browser-synthesized press over the title still chooses that row.
+    await clickPage(target, shielded.x, shielded.y);
+    const clickedRows = await control.downloads.wait({
+      filenameIncludes: `e2e${path.sep}picker-first`,
+      minimumComplete: 2,
+      timeoutMs: 10000,
+    });
+    expect(clickedRows.filter((row) => row.state === "complete")).toHaveLength(2);
+    expect(await evaluatePage(target, `document.querySelector("save-in-picker") === null`)).toBe(
+      true,
+    );
 
     // The command resolves once the page has answered, so the picker is there.
     await control.background.runCommand("open-picker");

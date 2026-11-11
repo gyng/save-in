@@ -258,10 +258,38 @@ describe("destination picker view", () => {
     expect(input.getAttribute("aria-controls")).toBe(list?.id);
     expect(input.getAttribute("aria-activedescendant")).toBe(lastUsed.id);
     expect(option("save-in-2").getAttribute("aria-label")).toBe("Work / Reports");
-    expect(option("save-in-2").hasAttribute("aria-describedby")).toBe(false);
-    const hintId = lastUsed.getAttribute("aria-describedby");
-    expect(hintId).toBeTruthy();
-    expect(root().querySelector(`[id="${hintId}"]`)?.textContent).toBe(copy.lastUsed);
+    expect(option("save-in-2").hasAttribute("aria-description")).toBe(false);
+    // The visible hint is inert, so it cannot be what describes the row.
+    expect(lastUsed.hasAttribute("aria-describedby")).toBe(false);
+    expect(lastUsed.getAttribute("aria-description")).toBe(copy.lastUsed);
+  });
+
+  // A page can read text through a closed shadow root with find-in-page and by
+  // serializing a selection; both skip inert content, and nothing else.
+  test.each([
+    ["as opened", () => {}],
+    ["with a filter matching", () => type("rep")],
+    ["with a filter matching nothing", () => type("zzz")],
+    ["inside a submenu", () => press("w")],
+  ])("keeps every string it shows inside an inert element, %s", (_label, arrange) => {
+    open({ subject: { kind: "image", name: "forest.jpg" } });
+    arrange();
+
+    const exposed: string[] = [];
+    const walker = document.createTreeWalker(root(), NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const parent = node.parentElement;
+      if (parent?.localName === "style" || parent?.closest("[inert]")) continue;
+      exposed.push(node.textContent ?? "");
+    }
+    expect(exposed).toEqual([]);
+    // What a screen reader needs is carried by attributes instead.
+    expect(root().querySelector(".empty")?.getAttribute("aria-label")).toBe(copy.empty);
+    expect(root().querySelector<HTMLElement>(".header")?.title).toBe("forest.jpg");
+    for (const row of root().querySelectorAll(".option")) {
+      expect(row.hasAttribute("inert")).toBe(false);
+      expect(row.getAttribute("aria-label")).toBeTruthy();
+    }
   });
 
   test("opens at the gesture position, or centered when there is none", () => {
