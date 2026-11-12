@@ -94,6 +94,8 @@ test.each([
   [String.raw`[^[\/]]*\/[^[\/]]*\.jpg`, "iv", true],
   [String.raw`[^[?]]*\/[^[?]]*\.jpg`, "v", false],
   [String.raw`(?:[[a]*]x)+`, "v", true],
+  // Without v a "[" inside a class is a literal and opens nothing.
+  [String.raw`[[](a+)+$`, "", false],
   [String.raw`x\u{110000}`, "", true],
   [String.raw`.*\u{2F}.*x`, "", false],
   [String.raw`[^\u{2F}]*\/[^\u{2F}]*x`, "u", true],
