@@ -8,7 +8,7 @@
 .visual-editor-control {
   min-inline-size: var(--compact-control-size);
   min-block-size: var(--compact-control-size);
-  padding: 4px 6px;
+  padding: var(--space-1) 6px;
   border: none;
   border-radius: var(--radius-sm);
   color: var(--color-text-muted);

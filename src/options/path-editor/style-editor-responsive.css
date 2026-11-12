@@ -105,7 +105,7 @@
     align-self: start;
     grid-column: 1;
     grid-row: 1;
-    margin-block-start: 4px;
+    margin-block-start: var(--space-1);
   }
 
   .rule-clause-row .rule-clause-name,

@@ -21,7 +21,7 @@
   scrollbar-gutter: stable;
   padding: var(--space-1);
   border: 1px solid var(--panel-border);
-  border-radius: 8px;
+  border-radius: var(--radius-dialog);
   background-color: var(--page-bg);
   box-shadow: var(--preview-shadow);
   font-size: var(--text-base);
@@ -43,7 +43,7 @@
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
-  padding: 4px var(--space-2);
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius);
   cursor: default;
 }
@@ -94,7 +94,7 @@
   margin-inline-start: auto;
   padding: 1px 5px;
   border: 1px solid var(--panel-border);
-  border-radius: 4px;
+  border-radius: var(--radius);
   background-color: var(--panel-bg);
   color: var(--color-text-muted);
   font-family: var(--font-mono);

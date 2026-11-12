@@ -116,7 +116,7 @@
 }
 
 .history-pager button {
-  padding: 4px 12px;
+  padding: var(--space-1) var(--space-3);
 }
 
 .history-pager-label {
@@ -124,7 +124,7 @@
 }
 
 .status-badge {
-  padding: 1px 8px;
+  padding: 1px var(--space-2);
 }
 
 .status-badge.status-ok {

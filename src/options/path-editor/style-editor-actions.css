@@ -210,7 +210,7 @@
   inset-inline-end: 6px;
   bottom: -11px;
   padding: 1px 5px;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   background: var(--color-accent);
   color: var(--color-on-accent);
   font-size: var(--text-sm);

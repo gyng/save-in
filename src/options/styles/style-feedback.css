@@ -76,7 +76,7 @@
 
 .error-error {
   padding: 1px 6px;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   background-color: var(--chip-bg);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
