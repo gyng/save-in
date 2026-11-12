@@ -29,6 +29,20 @@ test("finishing an old controller does not remove its replacement", () => {
   expect(second.signal.aborted).toBe(true);
 });
 
+test("a replaced transfer is marked superseded, a canceled one is not", () => {
+  const first = new AbortController();
+  const second = new AbortController();
+  ActiveTransfers.registerActiveTransfer("h1", first);
+  ActiveTransfers.registerActiveTransfer("h1", second);
+  ActiveTransfers.cancelActiveTransfer("h1");
+
+  expect(ActiveTransfers.isSupersededTransfer(first.signal)).toBe(true);
+  expect((first.signal.reason as DOMException).name).toBe("AbortError");
+  expect(ActiveTransfers.isSupersededTransfer(second.signal)).toBe(false);
+  expect(ActiveTransfers.isSupersededTransfer(new AbortController().signal)).toBe(false);
+  expect(ActiveTransfers.isSupersededTransfer(undefined)).toBe(false);
+});
+
 test("reset aborts every transfer and drains persistence", async () => {
   const publicController = new AbortController();
   const privateController = new AbortController();

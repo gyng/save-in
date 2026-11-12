@@ -62,6 +62,7 @@ import { resolveFirefoxDownloadContext } from "./auth-context.ts";
 import {
   finishActiveTransfer,
   holdTransferKeepalive,
+  isSupersededTransfer,
   registerActiveTransfer,
   releaseTransferKeepalive,
   updateActiveTransfer,
@@ -520,7 +521,11 @@ export const executeBrowserDownload = async (
       }
       backfillDownloadStartTime(historyEntryId, downloadId, historyPort.anchorStartTime);
     }
-    if (signal?.aborted) {
+    // A retry that takes over this row after a fast failure supersedes the
+    // controller while this bookkeeping is still running (measured on Firefox,
+    // where a refused connection fails at once). The download started and its
+    // failure is already recorded; only the user's own cancel undoes it.
+    if (signal?.aborted && !isSupersededTransfer(signal)) {
       await webExtensionApi.downloads.cancel(downloadId).catch(() => {});
       // A canceled download may never fire its filename event; a state left
       // queued would consume the NEXT same-URL save's event and strand that

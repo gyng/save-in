@@ -422,6 +422,25 @@ describe("renameAndDownload: browserDownload", () => {
     );
   });
 
+  // Measured on Firefox: a refused connection fails before this bookkeeping
+  // ends, and the automatic retry's registration supersedes the controller.
+  test("a retry superseding a started save does not cancel it or report a user cancel", async () => {
+    setCurrentBrowser("CHROME");
+    vi.mocked(global.browser.downloads.download).mockImplementation(async () => {
+      ActiveTransfers.registerActiveTransfer("h-test", new AbortController());
+      return 101;
+    });
+    const state = makeState();
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({
+      status: "started",
+      downloadId: 101,
+    });
+
+    expect(global.browser.downloads.cancel).not.toHaveBeenCalled();
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith("h-test", "USER_CANCELED", 101);
+  });
+
   test("cancels a browser download when preparation is aborted as it starts", async () => {
     setCurrentBrowser("CHROME");
     vi.mocked(global.browser.downloads.cancel).mockRejectedValue(new Error("already stopped"));

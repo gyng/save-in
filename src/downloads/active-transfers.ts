@@ -80,6 +80,14 @@ const persist = (historyId: string, record?: ActiveTransferRecord) =>
     },
   );
 
+// A transfer replaced on the same History row (an automatic retry taking over a
+// failed save) is aborted with this reason, so its owner can tell being
+// superseded from the user canceling. Still an AbortError for fetch and friends.
+const SUPERSEDED = new DOMException("Transfer superseded by its replacement", "AbortError");
+
+export const isSupersededTransfer = (signal: AbortSignal | undefined): boolean =>
+  signal?.aborted === true && signal.reason === SUPERSEDED;
+
 export const registerActiveTransfer = (
   historyId: string,
   controller: AbortController,
@@ -90,7 +98,7 @@ export const registerActiveTransfer = (
     updateActiveTransfer(historyId, fields);
     return;
   }
-  previous?.controller.abort();
+  previous?.controller.abort(SUPERSEDED);
   const record = { ...fields, updatedAt: Date.now(), controller };
   controllers.set(historyId, record);
   void persist(historyId, record);
