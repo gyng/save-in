@@ -4,10 +4,10 @@
 //   1. Chrome-only. Firefox has no equivalent, so every entry point
 //      feature-detects and callers degrade to the hand-authoring path.
 //   2. Not available in Web Workers ("responsible document" requirement), so
-//      the MV3 background service worker cannot call it. The reachable
-//      contexts are the offscreen document and extension pages (options).
-//      Shared background code must route a request to the offscreen document
-//      rather than import a caller of runPrompt directly.
+//      the MV3 background service worker cannot call it. The rule assistant
+//      calls it directly from the options page, an extension document. The
+//      offscreen document does not host it: giving background code a route
+//      there would also change what the offscreen permission is declared for.
 //
 // Inference is on-device: no network after the one-time model download, and
 // no prompt content leaves the machine — the property that makes local

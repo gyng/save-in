@@ -8,7 +8,6 @@
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { isOffscreenFetchResponse } from "../shared/content-fetch-types.ts";
 import type { ContentFetchResult } from "../shared/content-fetch-types.ts";
-import { isOffscreenPromptResponse } from "../shared/prompt-message-types.ts";
 import type { ExtensionFetchCredentials } from "../shared/content-fetch-types.ts";
 
 type OffscreenClientApi = {
@@ -24,7 +23,6 @@ type OffscreenClientApi = {
   release: (requestId: string) => Promise<unknown>;
   appendBlob: (requestId: string, data: string) => Promise<void>;
   completeBlob: (requestId: string, mime: string) => Promise<string>;
-  prompt: (input: string) => Promise<string | null>;
 };
 
 // Carries the offscreen document's HTTP failure detail so callers can extend
@@ -157,16 +155,5 @@ export const OffscreenClient: OffscreenClientApi = {
           throw new Error("offscreen blob assembly failed");
         }
         return res.blobUrl;
-      }),
-
-  prompt: (input) =>
-    OffscreenClient.ensure()
-      .then(() => chrome.runtime.sendMessage({ type: MESSAGE_TYPES.OFFSCREEN_PROMPT, input }))
-      .then((response: unknown) => {
-        if (!isOffscreenPromptResponse(response)) {
-          throw new Error("offscreen prompt failed");
-        }
-        if ("error" in response) throw new Error(response.error);
-        return response.output;
       }),
 };
