@@ -4736,6 +4736,12 @@
   "o_lPickerGestureConflict": {
     "message": "「點選儲存」已使用此手勢，因此會直接儲存而不會開啟資料夾選擇器。請在此選擇其他手勢。"
   },
+  "o_lPickerPlainLeftClickWarning": {
+    "message": "未按任何按鍵時，以滑鼠左鍵點選可儲存的媒體或連結會開啟資料夾選擇器，而不是執行其正常動作。"
+  },
+  "o_lPickerLongClickHelp": {
+    "message": "短按仍會正常運作。請保持指標不動，直到資料夾選擇器開啟；移動會取消手勢。此手勢需要滑鼠；觸控輸入不會觸發。"
+  },
   "o_lPickerOtherWays": {
     "message": "也可以透過「顯示資料夾選擇器」鍵盤命令或已核准的擴充功能開啟資料夾選擇器。"
   },

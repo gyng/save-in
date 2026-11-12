@@ -1659,7 +1659,7 @@
   },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "The page still receives the first click. A linked image may open or take you to another page before the second click.",
-    "description": "Warning shown when double-left-click saving is configured. Used in src/options/options.html."
+    "description": "Warning shown when a double left click is configured as a click-to-save gesture or as the folder picker gesture. Used in src/options/options.html."
   },
   "o_lClickToSaveLongClickHelp": {
     "message": "Short clicks remain normal. Hold still until the save starts; moving cancels the gesture. After saving, the release click is blocked so links do not open. The gesture needs a mouse; touch input does not trigger it.",
@@ -6074,6 +6074,14 @@
   "o_lPickerGestureConflict": {
     "message": "Click-to-save already uses this gesture, so it saves instead of opening the folder picker. Choose a different gesture here.",
     "description": "Warning shown under the folder picker's gesture controls when the chosen gesture is also a current click-to-save gesture while both features are on: click-to-save keeps the gesture and saves immediately. Click-to-save is the feature name; reuse its translation. Used in src/options/options.html."
+  },
+  "o_lPickerPlainLeftClickWarning": {
+    "message": "With no keys held, every left click on savable media or a link opens the folder picker instead of its usual action.",
+    "description": "Warning shown under the folder picker's gesture controls when its gesture is a left click with no modifier keys: ordinary left clicks on links and on media that Save In can save then open the in-page folder picker. Used in src/options/options.html."
+  },
+  "o_lPickerLongClickHelp": {
+    "message": "Short clicks remain normal. Hold still until the folder picker opens; moving cancels the gesture. The gesture needs a mouse; touch input does not trigger it.",
+    "description": "Behavior guidance shown under the folder picker's gesture controls when its gesture is a long left click (press and hold). Reuse the wording of the matching click-to-save long-click help. Used in src/options/options.html."
   },
   "o_lPickerOtherWays": {
     "message": "The folder picker also opens with the Show the folder picker keyboard command and from approved extensions.",

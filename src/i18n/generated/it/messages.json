@@ -4736,6 +4736,12 @@
   "o_lPickerGestureConflict": {
     "message": "«Salvataggio con clic» usa già questo gesto, quindi salva invece di aprire il selettore di cartelle. Scegli qui un altro gesto."
   },
+  "o_lPickerPlainLeftClickWarning": {
+    "message": "Senza tasti premuti, ogni clic sinistro su un contenuto multimediale salvabile o su un collegamento apre il selettore di cartelle invece della sua azione normale."
+  },
+  "o_lPickerLongClickHelp": {
+    "message": "I clic brevi restano normali. Tieni fermo il puntatore finché si apre il selettore di cartelle; il movimento annulla il gesto. Il gesto richiede un mouse; il tocco non lo attiva."
+  },
   "o_lPickerOtherWays": {
     "message": "Il selettore di cartelle si apre anche con il comando da tastiera «Mostra il selettore di cartelle» e dalle estensioni approvate."
   },

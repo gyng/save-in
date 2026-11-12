@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { setupOptionDependencies } from "../../../src/options/core/options-dependencies.ts";
 import { setupShortcutOptions } from "../../../src/options/core/shortcut-options.ts";
 import {
   CLICK_GESTURES,
@@ -641,5 +642,35 @@ describe("shortcut option controller", () => {
     input(root);
     expect(root.hasAttribute("aria-invalid")).toBe(false);
     expect(document.querySelector("#access-key-status")!.textContent).toBe("");
+  });
+
+  // The option dependency list re-runs on every watched switch, the folder
+  // picker's among them; it must not undo the controller's dirty check.
+  test("keeps Apply and Add as the controller left them when another switch changes", () => {
+    document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>
+      <input id="contentClickToSaveBindings" value="">
+      <input id="contentClickToSaveCombo" value="Alt">
+      <input id="contentClickToSaveButton" value="LEFT_CLICK">
+      <select id="clickToSaveModifier"><option></option><option value="Alt">Alt</option></select>
+      <select id="clickToSaveModifier2"><option></option></select>
+      <select id="clickToSaveButton"><option value="left-click">Left</option></select>
+      <div id="clickToSaveAdditionalBindings"></div>
+      <button id="clickToSaveAdd"></button><button id="clickToSaveApply"></button>
+      <button id="clickToSaveReset"></button>
+      <input type="checkbox" id="contentPickerGesture">`;
+    setupOptionDependencies();
+    setupShortcutOptions();
+    const apply = document.querySelector<HTMLButtonElement>("#clickToSaveApply")!;
+    const add = document.querySelector<HTMLButtonElement>("#clickToSaveAdd")!;
+    const picker = document.querySelector<HTMLInputElement>("#contentPickerGesture")!;
+    // Nothing to apply yet; Add stays free to offer another gesture.
+    expect([apply.disabled, add.disabled]).toEqual([true, false]);
+
+    picker.checked = true;
+    change(picker);
+    expect([apply.disabled, add.disabled]).toEqual([true, false]);
+    picker.checked = false;
+    change(picker);
+    expect([apply.disabled, add.disabled]).toEqual([true, false]);
   });
 });

@@ -4736,6 +4736,12 @@
   "o_lPickerGestureConflict": {
     "message": "„Speichern per Klick“ verwendet diese Geste bereits und speichert daher, statt die Ordnerauswahl zu öffnen. Wählen Sie hier eine andere Geste."
   },
+  "o_lPickerPlainLeftClickWarning": {
+    "message": "Ohne gedrückte Taste öffnet jeder Linksklick auf speicherbare Medien oder einen Link die Ordnerauswahl, statt wie gewohnt zu reagieren."
+  },
+  "o_lPickerLongClickHelp": {
+    "message": "Kurze Klicks funktionieren wie gewohnt. Halten Sie die Maus ruhig, bis sich die Ordnerauswahl öffnet; eine Bewegung bricht die Geste ab. Die Geste erfordert eine Maus; Toucheingaben lösen sie nicht aus."
+  },
   "o_lPickerOtherWays": {
     "message": "Die Ordnerauswahl lässt sich auch mit dem Tastaturbefehl „Ordnerauswahl anzeigen“ und von zugelassenen Erweiterungen öffnen."
   },

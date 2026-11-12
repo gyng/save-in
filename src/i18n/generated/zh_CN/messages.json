@@ -4736,6 +4736,12 @@
   "o_lPickerGestureConflict": {
     "message": "“点击保存”已使用此手势，因此会直接保存而不会打开文件夹选择器。请在此处选择其他手势。"
   },
+  "o_lPickerPlainLeftClickWarning": {
+    "message": "不按任何键时，左键单击可保存的媒体或链接会打开文件夹选择器，而不是执行其正常操作。"
+  },
+  "o_lPickerLongClickHelp": {
+    "message": "短按仍按正常方式工作。保持指针不动直到文件夹选择器打开；移动会取消手势。该手势需要鼠标；触摸输入不会触发。"
+  },
   "o_lPickerOtherWays": {
     "message": "也可以通过“显示文件夹选择器”键盘命令或已批准的扩展程序打开文件夹选择器。"
   },

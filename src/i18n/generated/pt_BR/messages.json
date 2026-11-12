@@ -4736,6 +4736,12 @@
   "o_lPickerGestureConflict": {
     "message": "“Clique para salvar” já usa este gesto, então ele salva em vez de abrir o seletor de pastas. Escolha outro gesto aqui."
   },
+  "o_lPickerPlainLeftClickWarning": {
+    "message": "Sem nenhuma tecla pressionada, cada clique esquerdo em mídias ou links salváveis abre o seletor de pastas em vez da ação normal."
+  },
+  "o_lPickerLongClickHelp": {
+    "message": "Cliques breves continuam normais. Mantenha o ponteiro parado até o seletor de pastas abrir; mover cancela o gesto. O gesto exige um mouse; a entrada por toque não o aciona."
+  },
   "o_lPickerOtherWays": {
     "message": "O seletor de pastas também abre pelo comando de teclado “Mostrar o seletor de pastas” e por extensões aprovadas."
   },

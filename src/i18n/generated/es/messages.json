@@ -4736,6 +4736,12 @@
   "o_lPickerGestureConflict": {
     "message": "«Clic para guardar» ya usa este gesto, así que guarda en lugar de abrir el selector de carpetas. Elija aquí otro gesto."
   },
+  "o_lPickerPlainLeftClickWarning": {
+    "message": "Sin ninguna tecla pulsada, cada clic izquierdo en un enlace o en contenido multimedia que se pueda guardar abre el selector de carpetas en lugar de hacer lo habitual."
+  },
+  "o_lPickerLongClickHelp": {
+    "message": "Los clics breves funcionan con normalidad. Mantenga el puntero quieto hasta que se abra el selector de carpetas; moverlo cancela el gesto. El gesto requiere un ratón; la entrada táctil no lo activa."
+  },
   "o_lPickerOtherWays": {
     "message": "El selector de carpetas también se abre con el comando de teclado «Mostrar el selector de carpetas» y desde las extensiones aprobadas."
   },

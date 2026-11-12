@@ -4736,6 +4736,12 @@
   "o_lPickerGestureConflict": {
     "message": "”Klicka för att spara” använder redan den här gesten och sparar därför i stället för att öppna mappväljaren. Välj en annan gest här."
   },
+  "o_lPickerPlainLeftClickWarning": {
+    "message": "Utan nedtryckt tangent öppnar varje vänsterklick på media eller länkar som kan sparas mappväljaren i stället för den vanliga åtgärden."
+  },
+  "o_lPickerLongClickHelp": {
+    "message": "Korta klick fungerar som vanligt. Håll pekaren stilla tills mappväljaren öppnas; rörelse avbryter gesten. Gesten kräver en mus; pekskärmsinmatning utlöser den inte."
+  },
   "o_lPickerOtherWays": {
     "message": "Mappväljaren öppnas också med tangentbordskommandot ”Visa mappväljaren” och från godkända tillägg."
   },

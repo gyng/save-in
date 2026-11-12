@@ -44,9 +44,12 @@ const mount = ({
       <select id="pickerGestureModifier2">${MODIFIERS}</select>
       <select id="pickerGestureButton">
         <option value="left-click">Left</option><option value="middle-click">Middle</option>
-        <option value="long-left-click">Long</option>
+        <option value="double-left-click">Double</option><option value="long-left-click">Long</option>
       </select>
       <div id="pickerGestureStatus" role="status" hidden>Already used</div>
+      <div id="picker-gesture-warning" role="status" hidden>Plain left click</div>
+      <div id="picker-gesture-double-warning" role="status" hidden>Double</div>
+      <div id="picker-gesture-long-warning" role="status" hidden>Long</div>
     </fieldset>`;
   setupPickerGesture();
 };
@@ -169,6 +172,50 @@ describe("folder picker gesture controller", () => {
     expect(status().hidden).toBe(true);
   });
 
+  test("describes its selects only by the notices on screen", () => {
+    const describedBy = () =>
+      ["pickerGestureModifier", "pickerGestureModifier2", "pickerGestureButton"].map((id) =>
+        select(id).getAttribute("aria-describedby"),
+      );
+    mount();
+    // A hidden status is still reported as a description, so none is named.
+    expect(describedBy()).toEqual([null, null, null]);
+
+    choose("pickerGestureModifier", "Alt");
+    choose("pickerGestureModifier2", "");
+    expect(status().hidden).toBe(false);
+    expect(describedBy()).toEqual(Array(3).fill("pickerGestureStatus"));
+
+    choose("pickerGestureButton", "long-left-click");
+    expect(describedBy()).toEqual(Array(3).fill("pickerGestureStatus picker-gesture-long-warning"));
+
+    toggle("contentPickerGesture", false);
+    expect(describedBy()).toEqual([null, null, null]);
+  });
+
+  // These take over ordinary clicks on links and media, as for click-to-save.
+  test("warns about a plain left click and about double and long left clicks", () => {
+    const shown = () =>
+      ["picker-gesture-warning", "picker-gesture-double-warning", "picker-gesture-long-warning"]
+        .filter((id) => !element(id).hidden)
+        .join();
+    mount({ savesOn: false });
+    expect(shown()).toBe("");
+
+    choose("pickerGestureModifier2", "");
+    choose("pickerGestureModifier", "");
+    expect(shown()).toBe("picker-gesture-warning");
+    choose("pickerGestureButton", "middle-click");
+    expect(shown()).toBe("");
+    choose("pickerGestureButton", "double-left-click");
+    expect(shown()).toBe("picker-gesture-double-warning");
+    choose("pickerGestureModifier", "Ctrl");
+    choose("pickerGestureButton", "long-left-click");
+    expect(shown()).toBe("picker-gesture-long-warning");
+    toggle("contentPickerGesture", false);
+    expect(shown()).toBe("");
+  });
+
   test("reads a legacy click-to-save button it does not know as a left click", () => {
     mount({ picker: stored({ gesture: CLICK_GESTURES.LEFT, combo: "Alt" }) });
     element<HTMLInputElement>("contentClickToSaveButton").value = "MIDDLE_CLICK";
@@ -183,6 +230,7 @@ describe("folder picker gesture controller", () => {
   test("works without a status element or its group", () => {
     mount();
     status().remove();
+    element("picker-gesture-warning").remove();
     element("pickerGestureControls").replaceWith(...element("pickerGestureControls").childNodes);
     setupPickerGesture();
 

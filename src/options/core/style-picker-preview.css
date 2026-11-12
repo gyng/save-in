@@ -21,7 +21,7 @@
   grid-column: 1 / -1;
 }
 
-#pickerGestureStatus {
+.picker-gesture .feedback-warning {
   max-inline-size: 100%;
   margin-block-start: var(--space-3);
 }

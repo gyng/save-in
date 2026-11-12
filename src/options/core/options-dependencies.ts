@@ -31,6 +31,10 @@ export const setupOptionDependencies = () => {
     return control?.checked === true && !control.disabled;
   };
   const dependencies: Dependency[] = [
+    // Not click-to-save's Apply or Add gesture buttons: shortcut-options.ts
+    // enables those only for an unapplied change or a free gesture. This list
+    // re-runs whenever any watched switch changes (the folder picker's among
+    // them), and would otherwise re-enable Apply with nothing to apply.
     {
       parent: "contentClickToSave",
       children: [
@@ -40,8 +44,6 @@ export const setupOptionDependencies = () => {
         "clickToSaveModifier2",
         "contentClickToSaveButton",
         "clickToSaveButton",
-        "clickToSaveApply",
-        "clickToSaveAdd",
         "clickToSaveReset",
       ],
     },

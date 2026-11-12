@@ -1796,11 +1796,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 <div class="click-to-save-row">
                   <label>
                     <span class="shortcut-control-label">__MSG_html_primaryModifier__</span>
-                    <select
-                      id="pickerGestureModifier"
-                      data-runtime-control="true"
-                      aria-describedby="pickerGestureStatus"
-                    >
+                    <select id="pickerGestureModifier" data-runtime-control="true">
                       <option value="">__MSG_html_none__</option>
                       <option value="Alt" selected>__MSG_html_altOption__</option>
                       <option value="Ctrl">__MSG_html_ctrl__</option>
@@ -1810,11 +1806,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   </label>
                   <label>
                     <span class="shortcut-control-label">__MSG_html_secondModifier__</span>
-                    <select
-                      id="pickerGestureModifier2"
-                      data-runtime-control="true"
-                      aria-describedby="pickerGestureStatus"
-                    >
+                    <select id="pickerGestureModifier2" data-runtime-control="true">
                       <option value="">__MSG_html_none__</option>
                       <option value="Shift" selected>__MSG_html_shift__</option>
                       <option value="Alt">__MSG_html_altOption__</option>
@@ -1824,11 +1816,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   </label>
                   <label>
                     <span class="shortcut-control-label">__MSG_o_lClickToSaveButton__</span>
-                    <select
-                      id="pickerGestureButton"
-                      data-runtime-control="true"
-                      aria-describedby="pickerGestureStatus"
-                    >
+                    <select id="pickerGestureButton" data-runtime-control="true">
                       <option value="left-click">
                         __MSG_o_cKeyboardShortcutModifierLeftClick__
                       </option>
@@ -1860,6 +1848,30 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   hidden
                 >
                   __MSG_o_lPickerGestureConflict__
+                </div>
+                <div
+                  id="picker-gesture-warning"
+                  class="feedback feedback-warning feedback-inline warning notice"
+                  role="status"
+                  hidden
+                >
+                  __MSG_o_lPickerPlainLeftClickWarning__
+                </div>
+                <div
+                  id="picker-gesture-double-warning"
+                  class="feedback feedback-warning feedback-inline warning notice"
+                  role="status"
+                  hidden
+                >
+                  __MSG_o_lClickToSaveDoubleClickHelp__
+                </div>
+                <div
+                  id="picker-gesture-long-warning"
+                  class="feedback feedback-warning feedback-inline warning notice"
+                  role="status"
+                  hidden
+                >
+                  __MSG_o_lPickerLongClickHelp__
                 </div>
               </fieldset>
               <div class="caption caption-line">__MSG_o_lPickerOtherWays__</div>

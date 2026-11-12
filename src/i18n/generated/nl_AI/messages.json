@@ -4736,6 +4736,12 @@
   "o_lPickerGestureConflict": {
     "message": "‘Klikken om op te slaan’ gebruikt dit gebaar al en slaat dus op in plaats van de mapkiezer te openen. Kies hier een ander gebaar."
   },
+  "o_lPickerPlainLeftClickWarning": {
+    "message": "Zonder ingedrukte toets opent elke linkerklik op media of koppelingen die kunnen worden opgeslagen de mapkiezer in plaats van de normale actie."
+  },
+  "o_lPickerLongClickHelp": {
+    "message": "Korte klikken werken normaal. Houd de aanwijzer stil totdat de mapkiezer opent; bewegen annuleert het gebaar. Het gebaar vereist een muis; aanraakinvoer activeert het niet."
+  },
   "o_lPickerOtherWays": {
     "message": "De mapkiezer opent ook met de toetsenbordopdracht ‘De mapkiezer tonen’ en vanuit goedgekeurde extensies."
   },

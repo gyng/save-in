@@ -4736,6 +4736,12 @@
   "o_lPickerGestureConflict": {
     "message": "« Enregistrement au clic » utilise déjà ce geste : il enregistre au lieu d’ouvrir le sélecteur de dossiers. Choisissez ici un autre geste."
   },
+  "o_lPickerPlainLeftClickWarning": {
+    "message": "Sans touche enfoncée, chaque clic gauche sur un média enregistrable ou un lien ouvre le sélecteur de dossiers au lieu de son action habituelle."
+  },
+  "o_lPickerLongClickHelp": {
+    "message": "Les clics brefs restent normaux. Gardez le pointeur immobile jusqu’à l’ouverture du sélecteur de dossiers ; tout mouvement annule le geste. Le geste nécessite une souris ; l’appui tactile ne le déclenche pas."
+  },
   "o_lPickerOtherWays": {
     "message": "Le sélecteur de dossiers s’ouvre aussi avec la commande clavier « Afficher le sélecteur de dossiers » et depuis les extensions approuvées."
   },
