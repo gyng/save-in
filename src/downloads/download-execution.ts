@@ -394,7 +394,11 @@ export const executeBrowserDownload = async (
     privateContext,
   });
   try {
-    if (acquired.url !== state.info.url) downloadRuntime.movePendingState(state, acquired.url);
+    // Re-queue at launch, not only on a URL change: a same-URL save planned
+    // later can launch first, and its filename event must not take this plan.
+    if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
+      downloadRuntime.launchPendingState(state, acquired.url);
+    }
     const browserFilenameResolution =
       WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
       acquired.source === "direct" &&

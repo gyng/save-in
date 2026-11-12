@@ -19,6 +19,37 @@ describe("download runtime state", () => {
     expect(runtime.pendingStates.get("blob:replacement")).toEqual([state]);
   });
 
+  it("queues launched states ahead of states still planning, in launch order", () => {
+    const runtime = createDownloadRuntimeState();
+    const url = "https://example.test/shared";
+    const [first, second, third] = [stateFor(url), stateFor(url), stateFor(url)];
+    runtime.rememberPendingState(first);
+    runtime.rememberPendingState(second);
+    runtime.rememberPendingState(third);
+
+    runtime.launchPendingState(third, url);
+    expect(runtime.pendingStates.get(url)).toEqual([third, first, second]);
+    runtime.launchPendingState(first, url);
+    expect(runtime.pendingStates.get(url)).toEqual([third, first, second]);
+    runtime.launchPendingState(second, url);
+    expect(runtime.pendingStates.get(url)).toEqual([third, first, second]);
+
+    // A forgotten state no longer counts as launched once queued again.
+    const fourth = stateFor(url);
+    runtime.forgetPendingState(third);
+    runtime.rememberPendingState(third);
+    runtime.launchPendingState(fourth, url);
+    expect(runtime.pendingStates.get(url)).toEqual([first, second, fourth, third]);
+
+    // A launch under another URL (an acquired blob) leaves the original queue.
+    runtime.launchPendingState(third, "blob:acquired");
+    expect(runtime.pendingStates.get(url)).toEqual([first, second, fourth]);
+    expect(runtime.pendingStates.get("blob:acquired")).toEqual([third]);
+
+    runtime.launchPendingState(first, "");
+    expect(runtime.pendingStates.get(url)).toEqual([second, fourth]);
+  });
+
   it("retains every live pending correlation across URLs", () => {
     const runtime = createDownloadRuntimeState();
     for (let index = 0; index < 60; index += 1) {

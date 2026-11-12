@@ -1872,6 +1872,50 @@ describe("onDeterminingFilename listener: sync path", () => {
     await launch;
   });
 
+  // Planning order is not launch order: a save whose plan awaits a HEAD can be
+  // overtaken by a later save of the same URL. Chrome fires the filename event
+  // per downloads.download call, so each event must reach the save that made it.
+  test("names same-URL saves by launch order when a later plan launches first", async () => {
+    setCurrentBrowser("CHROME");
+    options.filenamePatterns = [routingRule("mime"), routingRule("filename")];
+    let releaseFirstMime: ((mime: string) => void) | undefined;
+    vi.spyOn(Variable, "resolveMime")
+      .mockImplementationOnce(
+        () =>
+          new Promise<string>((resolve) => {
+            releaseFirstMime = resolve;
+          }),
+      )
+      .mockResolvedValue("image/png");
+    const url = "https://example.com/same.png";
+    const suggestions: unknown[] = [];
+    let nextId = 300;
+    vi.mocked(hostBrowser.downloads.download).mockImplementation(async () => {
+      const id = nextId++;
+      capturedListener(
+        { id, byExtensionId: global.browser.runtime.id, url, filename: "same.png" },
+        (suggestion?: unknown) => suggestions.push(suggestion),
+      );
+      return id;
+    });
+    const first = makeState({ path: new Path.Path("first"), info: { url } });
+    const second = makeState({ path: new Path.Path("second"), info: { url } });
+
+    const firstLaunch = Download.renameAndDownload(first);
+    await vi.waitFor(() => expect(releaseFirstMime).toBeTypeOf("function"));
+    const secondLaunch = Download.renameAndDownload(second);
+    await expect(secondLaunch).resolves.toEqual({ status: "started", downloadId: 300 });
+    expect(suggestions).toEqual([expect.objectContaining({ filename: "second/same.png" })]);
+
+    releaseFirstMime?.("image/png");
+    await expect(firstLaunch).resolves.toEqual({ status: "started", downloadId: 301 });
+    expect(suggestions).toEqual([
+      expect.objectContaining({ filename: "second/same.png" }),
+      expect.objectContaining({ filename: "first/same.png" }),
+    ]);
+    expect(Download.downloadRuntime.pendingStates.has(url)).toBe(false);
+  });
+
   // The persisted state carries an optional filename, so a record written by an
   // older version can come back without one. Recovering it against a download
   // Chrome also resolved namelessly leaves the MIME type as the only thing to
