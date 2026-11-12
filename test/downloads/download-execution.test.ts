@@ -1916,6 +1916,60 @@ describe("onDeterminingFilename listener: sync path", () => {
     expect(Download.downloadRuntime.pendingStates.has(url)).toBe(false);
   });
 
+  // A failed direct launch falls back to fetching the file. While that fetch
+  // runs, the failed attempt has no filename event coming, so a same-URL save
+  // launched meanwhile must not queue behind it and take its name.
+  test("names a same-URL save launched while an earlier save falls back to fetch", async () => {
+    setCurrentBrowser("CHROME");
+    const url = "https://example.com/same.png";
+    let releaseFetch: ((response: Response) => void) | undefined;
+    vi.mocked(global.fetch).mockImplementationOnce(
+      () =>
+        new Promise<Response>((resolve) => {
+          releaseFetch = resolve;
+        }),
+    );
+    const suggestions: unknown[] = [];
+    let nextId = 400;
+    vi.mocked(hostBrowser.downloads.download)
+      .mockImplementationOnce(() => Promise.reject(new Error("denied")))
+      .mockImplementation(async (downloadOptions) => {
+        const id = nextId++;
+        capturedListener(
+          {
+            id,
+            byExtensionId: global.browser.runtime.id,
+            url: downloadOptions.url,
+            filename: "same.png",
+          },
+          (suggestion?: unknown) => suggestions.push(suggestion),
+        );
+        return id;
+      });
+    // Separate History rows, so the second save's transfer cannot cancel the first.
+    vi.mocked(SaveHistory.addHistoryEntry)
+      .mockReturnValueOnce("h-first")
+      .mockReturnValueOnce("h-second");
+    const first = makeState({ path: new Path.Path("first"), info: { url } });
+    const second = makeState({ path: new Path.Path("second"), info: { url } });
+
+    const firstLaunch = Download.renameAndDownload(first);
+    await vi.waitFor(() => expect(releaseFetch).toBeTypeOf("function"));
+    await expect(Download.renameAndDownload(second)).resolves.toEqual({
+      status: "started",
+      downloadId: 400,
+    });
+    expect(suggestions).toEqual([expect.objectContaining({ filename: "second/same.png" })]);
+
+    releaseFetch?.(new Response(new Uint8Array([1]), { headers: { "content-type": "image/png" } }));
+    await expect(firstLaunch).resolves.toEqual({ status: "started", downloadId: 401 });
+    expect(suggestions).toEqual([
+      expect.objectContaining({ filename: "second/same.png" }),
+      expect.objectContaining({ filename: "first/same.png" }),
+    ]);
+    expect(Download.downloadRuntime.pendingStates.has(url)).toBe(false);
+  });
+
   // The persisted state carries an optional filename, so a record written by an
   // older version can come back without one. Recovering it against a download
   // Chrome also resolved namelessly leaves the MIME type as the only thing to

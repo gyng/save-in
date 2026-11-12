@@ -532,6 +532,11 @@ export const executeBrowserDownload = async (
     }
     return { status: "started", downloadId };
   } catch (e) {
+    // The failed call fires no filename event, so leave the launch queue now:
+    // a same-URL save launching during the fetch fallback would otherwise queue
+    // behind this state and take its name. The fallback re-launches it under
+    // its acquired URL; every other branch below ends the pipeline.
+    downloadRuntime.forgetPendingState(state);
     // Void the failed attempt's armed wait — its filename event will never
     // fire — but remember the flag: the fallback recursion below must re-arm,
     // or its own filename event races the post-start effects again.
@@ -540,7 +545,6 @@ export const executeBrowserDownload = async (
     cancelExpectedDownload(expected);
     await releaseAcquiredDownload(acquired);
     if (signal?.aborted) {
-      downloadRuntime.forgetPendingState(state);
       await historyPort.setStatus(historyEntryId, "USER_CANCELED");
       return { status: "skipped" };
     }
@@ -548,7 +552,6 @@ export const executeBrowserDownload = async (
       // The user's answer, not an API failure: fetching the file to ask again
       // would reopen the dialog they just closed and then report a failure.
       addDownloadLog(state, "Save As dialog dismissed");
-      downloadRuntime.forgetPendingState(state);
       await historyPort.setStatus(historyEntryId, "USER_CANCELED");
       return { status: "skipped" };
     }
@@ -562,7 +565,6 @@ export const executeBrowserDownload = async (
       if (rearmRoutingResolution) state.scratch.deferredRoutingResolution = true;
       return await executeBrowserDownload(plan, fallback, signal);
     } else {
-      downloadRuntime.forgetPendingState(state);
       await historyPort.setStatus(historyEntryId, "DOWNLOAD_API_FAILED");
       if (!isSourceSidecar(state)) {
         const failureName = finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(state));
