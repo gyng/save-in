@@ -90,15 +90,12 @@ the peripheral features fit a single purpose:
 ### `offscreen`
 
 > A Chrome MV3 service worker has no DOM, so Save In opens a short-lived offscreen
-> document to perform three tasks that require a document context:
+> document to perform two tasks that require a document context:
 >
 > (1) creating the temporary Blob object URL that a fetched download is handed to
-> the downloads API as;
+> the downloads API as; and
 > (2) computing SHA-256 hashes of those same bytes for the :sha256: filename
-> variables; and
-> (3) running the optional, off-by-default on-device rule assistant, because
-> Chrome's built-in Prompt API requires a responsible document and refuses to run
-> inside a worker.
+> variables.
 >
 > The offscreen document is created only when one of these is needed and is
 > closed afterward. It performs no background or persistent activity.

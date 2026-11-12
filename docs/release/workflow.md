@@ -45,10 +45,10 @@ Use these permission rationales:
   can include private saves in the normal local activity stores.
 - `offscreen`: lend the Chrome service worker a document, which has no DOM of
   its own. It creates the temporary Blob URL a fetched download is handed to
-  Chrome as, hashes those same bytes for the SHA-256 variables, and runs the
-  on-device rule assistant's prompts, because Chrome's Prompt API requires a
-  responsible document and refuses to run in a worker. Name all three: a
-  justification that omits the model is the one a re-review finds.
+  Chrome as, and hashes those same bytes for the SHA-256 variables. Name only
+  these two: the optional on-device rule assistant calls Chrome's Prompt API
+  from the options page, not from the offscreen document, so a justification
+  that claims the model for this permission overstates what it does.
 - `<all_urls>`: identify and fetch user-selected resources on arbitrary sites.
 - `webRequest` (optional): held only after the user turns on the off-by-default
   Page Sources "Detect media loaded by scripts" option; watches media-carrying

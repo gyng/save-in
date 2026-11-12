@@ -288,8 +288,11 @@ and generated configurations should write unified routing rules directly.
 WebMCP is an experimental browser API currently distributed through a Chrome
 origin trial. Its API and availability may change; see the
 [Chrome WebMCP documentation](https://developer.chrome.com/docs/ai/webmcp).
-When a compatible in-browser WebMCP context is available, the open options page
-registers seven tools:
+Agent access is off by default. Save In registers no tools until the user turns
+on **Let an AI agent read and change Save In settings** under **Advanced →
+External integrations → WebMCP**; the options page then reloads, and while it is
+open in a browser that provides a compatible WebMCP context it registers seven
+tools:
 
 | Tool | Mutation | Purpose |
 | --- | --- | --- |
@@ -311,9 +314,13 @@ Recommended agent flow:
 6. Correct every reported error
 7. `save_in_apply_config`
 
-Tools exist only while the options page is open and the browser provides WebMCP. Inputs may contain untrusted page data; tool annotations distinguish read-only and mutating operations.
+Tools exist only while the switch is on, the options page is open, and the browser provides WebMCP. Every call checks the saved switch again before it runs, so a call made after the user turns agent access off, even from a page that registered its tools earlier, fails with `Agent access is turned off in Save In` instead of acting. Inputs may contain untrusted page data; tool annotations distinguish read-only and mutating operations.
 `save_in_get_config` returns the complete saved configuration, including text settings such as destinations, routing rules, approved extension IDs, and webhook details. It does not add a Save In-specific consent step. Mutating tools remain marked with `readOnlyHint: false` so the agent or browser can apply its normal confirmation policy.
-`save_in_apply_config` applies every valid key and reports invalid keys separately, so a mixed request can partially succeed. Read the returned `applied` and `rejected` lists before continuing.
+`save_in_apply_config` applies every valid key and reports invalid keys separately, so a mixed request can partially succeed. Read the returned `applied` and `rejected` lists before continuing. Two guards apply only here:
+
+- It never changes `webmcpEnabled`, the switch itself. The key is listed in `rejected`, and only the user can turn agent access on or off; a request naming nothing else fails outright.
+- Lowering `historyRetentionLimit` below its current value permanently deletes older completed History entries, so the tool refuses it with an error on `config.historyRetentionLimit` unless the call also passes `acknowledgeHistoryPruning: true`. Read the current value with `save_in_get_config` first.
+
 `save_in_download` runs from the options page, so the browser reports Save In's own settings tab as the request's tab. Save In does not treat that tab as the page being saved: the save has no page title for `pagetitle:` rules or `:pagetitle:`, History records no page title for it, it writes no source sidecar, an `after: close-tab` rule does not close any tab, and it never sends a webhook. Pass `pageUrl` to give routing the page the URL came from.
 
 ## Webhooks
@@ -323,8 +330,8 @@ They are disabled by default. Only non-private downloads started by a direct
 Save In command are eligible. Ordinary browser downloads, automatic Page Sources
 saves, external Download API requests, WebMCP `save_in_download` calls,
 private-window activity, failed preparations, and rejected downloads never send
-one. Webhook failure never
-changes the download result, and Save In does not retry delivery.
+one. Webhook failure never changes the download result, and Save In does not
+retry delivery.
 
 Each eligible download can send a start event and one outcome event, each
 separately enabled in Options:

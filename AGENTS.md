@@ -85,8 +85,8 @@ Execution contexts:
   via `runtime.sendMessage` (never `getBackgroundPage()`, which MV3 lacks).
 - **Offscreen document** (`src/offscreen/offscreen.ts`, `src/offscreen.html`):
   Chrome-only. Lends the service worker a DOM so a fetched download becomes a
-  blob object URL instead of a base64 data URL; it also hashes the same bytes
-  and runs Prompt API calls.
+  blob object URL instead of a base64 data URL; it also hashes the same bytes.
+  The rule assistant's Prompt API calls run in the options page, not here.
 
 The on-device rule assistant asks Gemini Nano for the facts of a request under a
 response schema and assembles the rule text itself; it never asks the model to
