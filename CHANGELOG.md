@@ -31,6 +31,16 @@
   shortcuts, the kind filters keep keyboard focus, opening or closing the panel
   no longer takes focus from the page, and a page that changes its own root
   attributes no longer empties the background-image rows.
+- Saving the same address twice in quick succession in Chrome no longer gives
+  the two files each other's names or leaves one History row stuck in
+  progress.
+- A History move that lands on the file's own path keeps the file instead of
+  deleting it, and Undo or a move no longer deletes a file that a later save
+  has taken over.
+- An automatic retry of a save you directed through the Save As dialog asks
+  again instead of saving to the planned folder.
+- **Restore defaults** now applies to tabs that are already open, including
+  click-to-save and the folder picker gesture.
 - Security hardening against hostile pages and servers. A page can no longer
   read the folder picker's folder names or restyle it out of sight; a server
   can no longer give a saved image, video, or audio file a program's file name
