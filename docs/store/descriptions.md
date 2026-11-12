@@ -38,35 +38,38 @@ Right-click to save images, video, audio, links and pages into organized folders
 
 ## Firefox description
 
-```text
-Save In helps manage and organize your downloads. It adds configurable context-menu destinations for images, videos, audio, links, selected text, and pages, and can sort and rename them automatically with rules you write once. Rebuilt from the first character to the last for Manifest V3, and still filing your downloads with the same stubborn logic it has used since 2017.
+AMO renders this Markdown; it is the live listing text.
 
-Features
+```text
+**Save In** helps you manage and organize your downloads. Right-click any image, video, audio, link, selected text, or page and save it straight into a destination you configure — and let rules you write once sort and rename each file automatically.
+
+**Features**
 
 - Build a hierarchical destination menu with aliases, separators, submenus, and a last-used location.
-- Route and rename downloads with rules based on the page, source URL, filename, media type, page text, image alt text, date, counters, and other variables.
-- Start from searchable rule templates, add common matchers with Quick add, insert variables and clauses with autocomplete, and test unsaved rules in the route debugger.
-- Use click-to-save for quick downloads and Page Sources to find media exposed by the current page.
-- Optionally open a folder picker at the pointer with its own click gesture or keyboard command, and save what is under the pointer to Last used or your first three folders with keyboard commands.
-- Optionally save newly discovered Page Sources automatically with site-scoped routing rules, private-window controls, and a per-page limit.
-- Save links or pages as .webloc or HTML redirect shortcuts.
-- Search and filter local download history, choose how many completed entries to keep, and export JSON or spreadsheet-safe CSV/TSV.
-- When a file already exists, create a unique name, overwrite it, skip the save, or ask each time.
+- Route and rename downloads with rules based on the **page, source URL, filename, media type, page text, image alt text, date, counters**, and other variables.
+- Start from searchable **rule templates**, add matchers with Quick add, insert variables and clauses with autocomplete, and test unsaved rules in the **route debugger**.
+- Use **click-to-save** for one-click downloads, and **Page Sources** to find the media a page exposes.
+- Optionally open a **folder picker** at the pointer with its own click gesture or keyboard command, and use **keyboard commands** to save what is under the pointer to Last used or your first three folders.
+- Optionally save newly discovered Page Sources **automatically**, with site-scoped rules, private-window controls, and a per-page limit.
+- Save links or pages as **.webloc** or HTML redirect shortcuts.
+- Search and filter local **download history**, with JSON and spreadsheet-safe CSV/TSV export.
+- When a file already exists, create a unique name, overwrite it, **skip** the save, or **ask** each time.
 - Optionally record matching ordinary Firefox downloads in Save In history.
-- Optionally use browser Save As subfolders inside Downloads as the Last used destination.
 
-Browsers only allow for saving into directories relative to the default download directory. Symlinks can be used to get around this limitation:
+**A note on folders**
 
-Windows: mklink /D C:\path\to\symlink D:\path\to\actual
-macOS/Unix: ln -s /path/to/actual /path/to/symlink
+Browsers only allow saving into directories *relative to the default download directory*. You can use a symlink to reach anywhere else:
 
-Make sure the actual directories exist, or downloads will silently fail.
+- Windows: `mklink /D C:\path\to\symlink D:\path\to\actual`
+- macOS/Linux: `ln -s /path/to/actual /path/to/symlink`
 
-Privacy and permissions
+Make sure the target directory exists, or the download will silently fail.
 
-Save In does not collect or transmit any data. All data is stored and kept on device. If you use any external integrations data will be transmitted to them.
+**Privacy and permissions**
 
-Requires Firefox 140 or later.
+Save In does not collect or transmit any data — everything is stored and processed on your device. The only exception is integrations *you* configure (such as webhooks), which send data only to the endpoint you choose.
+
+Requires **Firefox 140 or later**. Rebuilt with the same stubborn logic it has used since 2017.
 ```
 
 ## Chrome description
