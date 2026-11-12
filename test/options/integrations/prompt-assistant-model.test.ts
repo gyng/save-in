@@ -602,6 +602,66 @@ describe("rule request guardrails", () => {
   );
 });
 
+describe("requests that depend on what the page shows", () => {
+  const refusal =
+    "The rule cannot match alt text, page text, or page elements as the request asks.";
+
+  // A plan can only name file types, a category, a site, and a destination, so
+  // each of these assembles to a rule that saves every matching source.
+  test.each([
+    ["save images whose alt text mentions cat into /cats", "sourcekind: ^image$"],
+    ["save images with alt=cat into /cats", "sourcekind: ^image$"],
+    ["save pictures whose alt-tag says cat into /cats", "sourcekind: ^image$"],
+    ["save pdf files when the page text mentions invoice into /invoices", "fileext: ^pdf$"],
+    ["save images if the text on the page says sale into /sales", "sourcekind: ^image$"],
+    ["save images under the h1 heading into /heroes", "sourcekind: ^image$"],
+    ["save images whose caption mentions cat into /cats", "sourcekind: ^image$"],
+    ["save images inside the .gallery element into /gallery", "sourcekind: ^image$"],
+    ["save images matching the CSS selector article img into /articles", "sourcekind: ^image$"],
+    ["save images inside <figure> into /figures", "sourcekind: ^image$"],
+    [
+      "save images from example.com whose alt text is cat into /cats",
+      "sourcekind: ^image$\npagedomain: (?:^|\\.)example\\.com$",
+    ],
+  ])("refuses %j", (request, matchers) => {
+    const folder = /\/(\w+)$/.exec(request)![1];
+    expect(
+      ruleRequestGuardrailIssues(request, `${matchers}\ninto: ${folder}/:filename:`),
+    ).toContain(refusal);
+  });
+
+  test.each([
+    [
+      "save images from example.com into /cats",
+      "sourcekind: ^image$\npagedomain: (?:^|\\.)example\\.com$\ninto: cats/:filename:",
+    ],
+    ["save png into /Images", "fileext: ^png$\ninto: Images/:filename:"],
+    [
+      "save images from css-tricks.com into /tricks",
+      "sourcekind: ^image$\npagedomain: (?:^|\\.)css-tricks\\.com$\ninto: tricks/:filename:",
+    ],
+    [
+      "save videos from https://alt.example/elements into /clips",
+      "sourcekind: ^video$\npagedomain: (?:^|\\.)alt\\.example$\ninto: clips/:filename:",
+    ],
+    [
+      "save images from alternative sites into /other",
+      "sourcekind: ^image$\ninto: other/:filename:",
+    ],
+  ])("does not refuse %j", (request, rule) => {
+    expect(ruleRequestGuardrailIssues(request, rule)).not.toContain(refusal);
+  });
+
+  test("accepts a rule that does carry the page-content matcher", () => {
+    expect(
+      ruleRequestGuardrailIssues(
+        "save images whose alt text mentions cat into /cats",
+        "sourcekind: ^image$\nalttext/i: cat\ninto: cats/:filename:",
+      ),
+    ).not.toContain(refusal);
+  });
+});
+
 describe("plan fields the model must fill in", () => {
   test("requires every field so the model cannot answer with the folder alone", () => {
     // Constrained decoding lets the model stop once the required fields are

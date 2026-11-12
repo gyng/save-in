@@ -764,8 +764,39 @@ const requestRequirementLines = (request: string): string[] => {
     : [];
 };
 
+// Whether the request selects saves by what the page shows: an image's alt
+// text, the page's text, or an element on it. A site's hostname is removed
+// first, so a domain such as css-tricks.com is not read as asking for CSS.
+const PAGE_CONTENT_REQUESTS: readonly RegExp[] = [
+  /\balt(?:[\s-]?(?:text|attributes?|tags?))?\s*=/i,
+  /\balt[\s-]?(?:text|attributes?|tags?)\b|\balttext\b/i,
+  /\bpage[\s-]?text\b/i,
+  /\b(?:text|words?|content)\s+(?:on|of|in)\s+(?:the\s+)?(?:page|site|website)\b/i,
+  /\bpage(?:'s)?\s+(?:content|headings?|elements?)\b/i,
+  /\b(?:headings?|captions?)\b/i,
+  /\b(?:selectors?|elements?|css)\b/i,
+  /<[a-z][a-z0-9-]*\b/i,
+];
+
+const namesPageContent = (request: string): boolean => {
+  const withoutSites = request.replaceAll(
+    /\b(?:https?:\/\/)?[a-z0-9-]+(?:\.[a-z0-9-]+)+[^\s,;!?]*/gi,
+    " ",
+  );
+  return PAGE_CONTENT_REQUESTS.some((pattern) => pattern.test(withoutSites));
+};
+
 export const ruleRequestGuardrailIssues = (request: string, rule: string): string[] => {
   const issues: string[] = [];
+  // Page content asked for and not delivered. Reported: "save images whose alt
+  // text mentions cat into /cats" became sourcekind: ^image$ / into:
+  // cats/:filename: — every image — and passed the guardrails and VALIDATE,
+  // leaving only the stochastic reviewer between it and Add. A plan has no
+  // field for alt text, page text, or an element, so assembleRule can never
+  // produce the matcher such a request needs.
+  if (namesPageContent(request) && !/^\s*(?:alttext|pagetext|css)(?:\/\S+)?:/im.test(rule)) {
+    issues.push("The rule cannot match alt text, page text, or page elements as the request asks.");
+  }
   // Grouping asked for and not delivered. Measured: "save png into /Images
   // sorted by site and date" was answered with into: Images/:filename: and
   // accepted — the guardrails ask whether what a rule does is permitted, never
