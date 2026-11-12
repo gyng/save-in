@@ -203,6 +203,11 @@
   site such as pixiv, or with **Always download through Save In**) no longer
   names the file after the temporary copy's random ID when a routing rule uses
   `:filename:`; it keeps the image's own name.
+- A save that fails at once (common in Firefox for a refused connection) is
+  no longer recorded in History as canceled while Save In retries it or asks
+  where to save; the row keeps the failure, and a save the retry recovers
+  updates Last used. Firefox's generic `CRASH` failure is shown as "Download
+  failed".
 - Chrome no longer shows the **You hold Shift while choosing a menu item**
   Save As condition: Chrome does not tell extensions which keys were held, so
   it never worked there. Firefox is unchanged.
