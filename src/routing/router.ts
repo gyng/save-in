@@ -117,7 +117,7 @@ export const traceRules = async (
 ): Promise<RuleTrace> => {
   // A trace is offline: the debugger's typed text or a History row's recorded
   // text is all it has. A History row also names the selector that captured
-  // it, and then only that selector may answer with it.
+  // it, and then only that selector may answer with it while a rule uses it.
   const replayedCapture = suppliedInfo.capturedPageText
     ? undefined
     : replayedPageTextCapture(rules, suppliedInfo.pageText, suppliedInfo.pageTextSelector);

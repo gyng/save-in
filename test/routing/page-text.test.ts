@@ -412,10 +412,19 @@ describe("selectors worth reading on a page", () => {
   });
 
   // A History row names the selector its text came from; the replay offers the
-  // text to that selector alone. Typed text and older rows name none.
+  // text to that selector alone while a rule still uses it. Typed text, older
+  // rows, and a selector since edited out of the rules offer it to every one.
   test.each([
     ["a recorded selector one rule uses", ".gallery-title", [[".gallery-title", "recorded name"]]],
-    ["a recorded selector no rule uses", ".gone", [[".gone", "recorded name"]]],
+    [
+      "a recorded selector no rule uses any more",
+      ".gone",
+      [
+        ["header .author", "recorded name"],
+        [".gallery-title", "recorded name"],
+        [".anywhere", "recorded name"],
+      ],
+    ],
     [
       "no recorded selector (older row or typed text)",
       undefined,

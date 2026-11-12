@@ -48,10 +48,11 @@ export const pageTextSelectorOf = (rule: RoutingRule): string | undefined =>
   rule.filter(isMatcher).find(isPageTextMatcherClause)?.value;
 
 // A replay has no page to ask. A recorded selector says which pagetext: clause
-// the text came from, so only that selector sees it; every other one sees no
-// capture, exactly as on a page without its element. Hand-typed text and
-// History rows recorded before the selector have none, so their text stands in
-// for every pagetext: selector and the rule that used it can still be traced.
+// the text came from, so while a rule still uses it only that selector sees the
+// text; every other one sees no capture, exactly as on a page without its
+// element. Hand-typed text, History rows recorded before the selector, and a
+// selector since edited out of the rules have no clause to name, so their text
+// stands in for every pagetext: selector and the rule can still be traced.
 export const replayedPageTextCapture = (
   rules: readonly RoutingRule[],
   text: string | undefined,
@@ -59,12 +60,14 @@ export const replayedPageTextCapture = (
 ): PageTextCapture | undefined => {
   const normalized = normalizePageText(text ?? "");
   if (!normalized) return undefined;
-  if (recordedSelector) return [[recordedSelector, normalized]];
   const selectors = new Set(
     rules
       .flatMap((rule) => rule.filter(isMatcher).filter(isPageTextMatcherClause))
       .map((clause) => clause.value),
   );
+  if (recordedSelector && selectors.has(recordedSelector)) {
+    return [[recordedSelector, normalized]];
+  }
   return [...selectors]
     .slice(0, MAX_PAGE_TEXT_SELECTORS)
     .map((selector): PageTextCapture[number] => [selector, normalized]);
