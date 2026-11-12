@@ -126,7 +126,7 @@ describe("destination picker view", () => {
       "\u2191",
       "\u2193",
       "\u21B5",
-      "esc",
+      "Esc",
     ]);
   });
 
@@ -169,6 +169,8 @@ describe("destination picker view", () => {
       expect(press("2").defaultPrevented).toBe(true);
       expect(onPick).not.toHaveBeenCalled();
       expect(root().querySelector('.heading[data-scope="current"]')?.textContent).toContain("Work");
+      // The list is named by the submenu its keys now apply to.
+      expect(root().querySelector('[role="listbox"]')?.getAttribute("aria-label")).toBe("Work");
       expect(shownKeys()).toEqual(["1"]);
       expect(activeId()).toBe("save-in-2");
 
@@ -183,6 +185,7 @@ describe("destination picker view", () => {
       press("2");
       expect(press("Backspace").defaultPrevented).toBe(true);
       expect(root().querySelector('.heading[data-scope="current"]')).toBeNull();
+      expect(root().querySelector('[role="listbox"]')?.getAttribute("aria-label")).toBe(copy.title);
       expect(shownKeys()).toEqual(["e", "1", "2"]);
     });
 
@@ -218,6 +221,22 @@ describe("destination picker view", () => {
       expect(press("1").defaultPrevented).toBe(false);
       expect(onPick).not.toHaveBeenCalled();
     });
+  });
+
+  test("offers a line break after each slash in a title, marked or not", () => {
+    open({
+      model: {
+        ...model,
+        items: [path("save-in-0", "Documents/Receipts/2026"), path("save-in-1", "Archive")],
+      },
+    });
+    const title = option("save-in-0").querySelector(".option-title")!;
+    expect(title.innerHTML).toBe("Documents/<wbr>Receipts/<wbr>2026");
+
+    type("pts/2");
+    expect(option("save-in-0").querySelector(".option-title")?.innerHTML).toBe(
+      "Documents/<wbr>Recei<mark>pts/<wbr>2</mark>026",
+    );
   });
 
   test("marks what the filter matched without changing the row's accessible name", () => {
@@ -282,9 +301,9 @@ describe("destination picker view", () => {
       if (parent?.localName === "style" || parent?.closest("[inert]")) continue;
       exposed.push(node.textContent ?? "");
     }
-    expect(exposed).toEqual([]);
+    // Only the fixed no-match status is readable; it names no folder.
+    expect(exposed.filter((text) => text !== copy.empty)).toEqual([]);
     // What a screen reader needs is carried by attributes instead.
-    expect(root().querySelector(".empty")?.getAttribute("aria-label")).toBe(copy.empty);
     expect(root().querySelector<HTMLElement>(".header")?.title).toBe("forest.jpg");
     for (const row of root().querySelectorAll(".option")) {
       expect(row.hasAttribute("inert")).toBe(false);
@@ -331,6 +350,7 @@ describe("destination picker view", () => {
     expect(option("save-in-2").textContent).toBe("Work / Reports");
     expect(root().querySelector(".heading")).toBeNull();
     expect(root().querySelector<HTMLElement>(".empty")?.hidden).toBe(true);
+    expect(root().querySelector('[role="status"]')?.textContent).toBe("");
 
     press("Enter");
     expect(onPick).toHaveBeenCalledExactlyOnceWith("save-in-2");
@@ -343,6 +363,10 @@ describe("destination picker view", () => {
     expect(optionIds()).toEqual([]);
     expect(root().querySelector<HTMLElement>(".empty")?.hidden).toBe(false);
     expect(root().querySelector(".empty")?.textContent).toBe(copy.empty);
+    // The visible copy is inert, so an always-present status carries it.
+    const status = root().querySelector('[role="status"]');
+    expect(status?.textContent).toBe(copy.empty);
+    expect(status?.closest("[inert]")).toBeNull();
     expect(filter().hasAttribute("aria-activedescendant")).toBe(false);
 
     press("Enter");

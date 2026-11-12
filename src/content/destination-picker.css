@@ -177,10 +177,12 @@ svg {
   }
 }
 
+/* Titles offer a break after each "/" (see withPathBreaks); a single word
+   longer than the row still breaks rather than overflowing. */
 .option-title {
   flex: 1 1 auto;
   min-inline-size: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 mark {
@@ -196,7 +198,7 @@ mark {
 .hint {
   flex: none;
   color: var(--color-text-muted);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-weight: 400;
   white-space: nowrap;
 }
@@ -211,11 +213,18 @@ mark {
   min-block-size: var(--compact-control-size);
   color: var(--color-text-muted);
   font-weight: 600;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 
-  /* The submenu the keys have stepped into. */
+  /* The submenu the keys have stepped into: an underline as well as the
+     color, so it does not rest on color alone. */
   &[data-scope="current"] {
     color: var(--color-link);
+
+    & .heading-title {
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 3px;
+    }
   }
 }
 
@@ -226,6 +235,7 @@ mark {
 }
 
 .empty {
+  display: block;
   padding: var(--source-space-2) var(--source-space-3) var(--source-space-3);
   color: var(--color-text-muted);
 }
@@ -271,6 +281,15 @@ kbd {
   display: none;
 }
 
+.visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: clip;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 @keyframes picker-in {
   from {
     opacity: 0;
@@ -306,5 +325,9 @@ kbd {
 
   mark {
     color: Highlight;
+  }
+
+  .heading[data-scope="current"] {
+    color: LinkText;
   }
 }

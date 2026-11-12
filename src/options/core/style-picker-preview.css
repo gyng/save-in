@@ -125,11 +125,17 @@
   color: var(--color-accent);
 }
 
+/* Long names wrap as in the real picker, after a "/" where there is one. */
 .picker-demo-title {
   flex: 1 1 auto;
   min-inline-size: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: break-word;
+}
+
+.picker-demo-hint {
+  flex: none;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
   white-space: nowrap;
 }
 

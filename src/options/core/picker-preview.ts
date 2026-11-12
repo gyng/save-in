@@ -29,18 +29,35 @@ const icon = (name: keyof typeof ICON_PATHS): SVGSVGElement => {
 export type PickerPreviewSettings = {
   numbered: boolean;
   // The Last used row the picker lists first, or null with that item off. The
-  // real row is titled with the folder last saved to; the picture has no such
-  // folder to name, so it shows the item's own label.
+  // real row is titled with the folder last saved to and hinted "Last used";
+  // the picture stands in the first folder that can be picked for that title.
   lastUsed: { label: string; key: string } | null;
 };
 
-const lastUsedRow = ({ label, key }: { label: string; key: string }): HTMLElement[] => {
-  const row = document.createElement("div");
-  row.className = "picker-demo-option active";
+// The same line-break chances the real picker offers: after each "/".
+const titleText = (text: string): HTMLSpanElement => {
   const title = document.createElement("span");
   title.className = "picker-demo-title";
-  title.textContent = label;
-  row.append(icon("lastUsed"), title);
+  text.split(/(?<=\/)/).forEach((part, index) => {
+    if (index > 0) title.append(document.createElement("wbr"));
+    title.append(part);
+  });
+  return title;
+};
+
+const lastUsedRow = (
+  { label, key }: { label: string; key: string },
+  folder: string | undefined,
+): HTMLElement[] => {
+  const row = document.createElement("div");
+  row.className = "picker-demo-option active";
+  row.append(icon("lastUsed"), titleText(folder ?? label));
+  if (folder !== undefined) {
+    const hint = document.createElement("span");
+    hint.className = "picker-demo-hint";
+    hint.textContent = label;
+    row.append(hint);
+  }
   const accessKey = resolveMenuAccessKey(key);
   if (accessKey !== null) {
     const chip = document.createElement("kbd");
@@ -59,6 +76,7 @@ export const renderPickerPreview = (
 ): void => {
   const paths = items.filter((item) => item.kind === "path");
   const parents = new Set(paths.map((item) => item.parentId));
+  const firstFolder = paths.find((item) => !parents.has(item.id))?.title;
   const depths = new Map<string, number>();
   // The picker opens with its first destination highlighted: Last used when
   // it is listed, else the first folder that can be picked.
@@ -74,10 +92,7 @@ export const renderPickerPreview = (
       row.classList.add("active");
       firstDestination = false;
     }
-    const title = document.createElement("span");
-    title.className = "picker-demo-title";
-    title.textContent = item.title;
-    row.append(icon(heading ? "folderOpen" : "folder"), title);
+    row.append(icon(heading ? "folderOpen" : "folder"), titleText(item.title));
     // Only the top level's keys are live when the picker opens.
     const key =
       depth === 0
@@ -90,14 +105,14 @@ export const renderPickerPreview = (
     }
     return row;
   });
-  container.replaceChildren(...(lastUsed ? lastUsedRow(lastUsed) : []), ...rows);
+  container.replaceChildren(...(lastUsed ? lastUsedRow(lastUsed, firstFolder) : []), ...rows);
 };
 
 // The picker's key legend. The keys are glyphs, not words, so there is nothing
 // to translate.
 export const renderPickerPreviewLegend = (container: HTMLElement): void => {
   container.replaceChildren(
-    ...[["\u2191", "\u2193"], ["\u21B5"], ["esc"]].map((group) => {
+    ...[["\u2191", "\u2193"], ["\u21B5"], ["Esc"]].map((group) => {
       const keys = document.createElement("span");
       keys.append(
         ...group.map((label) => {

@@ -73,11 +73,22 @@ const shieldedText = <K extends "span" | "kbd">(
   text: string,
 ): HTMLElementTagNameMap[K] => {
   const element = document.createElement(tag);
-  if (className) element.className = className;
+  element.className = className;
   element.textContent = text;
   element.setAttribute("inert", "");
   return element;
 };
+
+// A folder name is often a path. Offer a line break after each "/" so a long
+// one wraps between its folders before it breaks inside a word.
+const withPathBreaks = (text: string): Node[] =>
+  text
+    .split(/(?<=\/)/)
+    .flatMap((part, index) =>
+      index === 0
+        ? [document.createTextNode(part)]
+        : [document.createElement("wbr"), document.createTextNode(part)],
+    );
 
 const ROW_ICON_PATHS = {
   folder: ["M3 6h6l2 2h10v11H3z"],
@@ -129,7 +140,9 @@ const renderRow = (
     element.setAttribute("role", "presentation");
     // The submenu the keys have stepped into reads as the current one.
     if (state.scope === row.id) element.dataset.scope = "current";
-    element.append(rowIcon("folderOpen"), shieldedText("span", "heading-title", row.title));
+    const title = shieldedText("span", "heading-title", "");
+    title.append(...withPathBreaks(row.title));
+    element.append(rowIcon("folderOpen"), title);
     appendLiveKey(element, row, state);
     return element;
   }
@@ -142,12 +155,14 @@ const renderRow = (
   // The marks are visual only; the accessible name above is the whole label.
   const title = shieldedText("span", "option-title", "");
   title.append(
-    ...splitPickerMatches(row.title, query).map(({ text, match }) => {
-      if (!match) return document.createTextNode(text);
-      const mark = document.createElement("mark");
-      mark.textContent = text;
-      return mark;
-    }),
+    ...splitPickerMatches(row.title, query)
+      .map(({ text, match }) => {
+        if (!match) return withPathBreaks(text);
+        const mark = document.createElement("mark");
+        mark.append(...withPathBreaks(text));
+        return [mark];
+      })
+      .flat(),
   );
   element.append(rowIcon(row.lastUsed ? "lastUsed" : "folder"), title);
   if (row.lastUsed) {
@@ -186,7 +201,7 @@ const renderKeyLegend = (): HTMLElement => {
   legend.className = "keys";
   legend.setAttribute("aria-hidden", "true");
   legend.setAttribute("inert", "");
-  for (const group of [["\u2191", "\u2193"], ["\u21B5"], ["esc"]]) {
+  for (const group of [["\u2191", "\u2193"], ["\u21B5"], ["Esc"]]) {
     const keys = document.createElement("span");
     keys.className = "key-group";
     keys.append(
@@ -246,14 +261,23 @@ export const openDestinationPicker = (options: DestinationPickerOptions): boolea
   list.id = LIST_ID;
   list.setAttribute("role", "listbox");
   list.setAttribute("aria-label", copy.title);
-  const empty = document.createElement("div");
-  empty.className = "empty";
-  empty.setAttribute("role", "status");
-  // The status keeps its place in the accessibility tree and takes its text
-  // from the label; the visible copy is inert like every other string here.
-  empty.setAttribute("aria-label", copy.empty);
-  empty.append(shieldedText("span", "", copy.empty));
-  picker.append(renderHeader(copy.title, options.subject), filter, list, empty, renderKeyLegend());
+  const empty = shieldedText("span", "empty", copy.empty);
+  // A live region announces only text that changes inside it while it is
+  // rendered, and inert text is not in the accessibility tree at all. So the
+  // status is always present, visually hidden, and gets its text when the
+  // list empties. That text is fixed extension copy, never a folder name, so
+  // it is the one string here find-in-page may see.
+  const status = document.createElement("div");
+  status.className = "visually-hidden";
+  status.setAttribute("role", "status");
+  picker.append(
+    renderHeader(copy.title, options.subject),
+    filter,
+    list,
+    empty,
+    status,
+    renderKeyLegend(),
+  );
   shadow.append(style, picker);
 
   let state = createPickerState(rows);
@@ -277,6 +301,13 @@ export const openDestinationPicker = (options: DestinationPickerOptions): boolea
       ...state.visible.map((row, index) => renderRow(row, index, copy.lastUsed, state)),
     );
     empty.hidden = state.visible.length > 0;
+    const statusText = empty.hidden ? "" : copy.empty;
+    if (status.textContent !== statusText) status.textContent = statusText;
+    // Inside a submenu the list is named by that folder, so a screen reader
+    // hears where the keys now apply. An attribute, not text: a folder name
+    // must stay out of reach of find-in-page.
+    const scope = state.rows.find((row) => row.kind === "heading" && row.id === state.scope);
+    list.setAttribute("aria-label", scope?.kind === "heading" ? scope.title : copy.title);
     showActive();
   };
 

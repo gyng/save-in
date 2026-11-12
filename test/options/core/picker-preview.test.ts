@@ -18,6 +18,7 @@ const rows = (container: HTMLElement) =>
   [...container.children].map((row) => ({
     kind: row.className,
     title: row.querySelector(".picker-demo-title")?.textContent,
+    hint: row.querySelector(".picker-demo-hint")?.textContent,
     key: row.querySelector("kbd")?.textContent ?? null,
     depth: (row as HTMLElement).style.getPropertyValue("--picker-demo-depth"),
   }));
@@ -27,33 +28,51 @@ describe("folder picker preview", () => {
     expect(
       rows(render(["Inbox", "Images", ">Nature // (key: N)", "---", "Docs // (key: D)"])),
     ).toEqual([
-      { kind: "picker-demo-option active", title: "Inbox", key: "1", depth: "0" },
-      { kind: "picker-demo-heading", title: "Images", key: "2", depth: "0" },
+      { kind: "picker-demo-option active", title: "Inbox", hint: undefined, key: "1", depth: "0" },
+      { kind: "picker-demo-heading", title: "Images", hint: undefined, key: "2", depth: "0" },
       // A nested folder's key is live only after stepping into its submenu.
-      { kind: "picker-demo-option", title: "Nature", key: null, depth: "1" },
-      { kind: "picker-demo-option", title: "Docs", key: "d", depth: "0" },
+      { kind: "picker-demo-option", title: "Nature", hint: undefined, key: null, depth: "1" },
+      { kind: "picker-demo-option", title: "Docs", hint: undefined, key: "d", depth: "0" },
     ]);
   });
 
   test("shows only explicit keys with numbering off, and highlights the first folder it can pick", () => {
     expect(rows(render(["Group", ">Child", "Plain", "Keyed // (key: K)"], false))).toEqual([
-      { kind: "picker-demo-heading", title: "Group", key: null, depth: "0" },
-      { kind: "picker-demo-option active", title: "Child", key: null, depth: "1" },
-      { kind: "picker-demo-option", title: "Plain", key: null, depth: "0" },
-      { kind: "picker-demo-option", title: "Keyed", key: "k", depth: "0" },
+      { kind: "picker-demo-heading", title: "Group", hint: undefined, key: null, depth: "0" },
+      { kind: "picker-demo-option active", title: "Child", hint: undefined, key: null, depth: "1" },
+      { kind: "picker-demo-option", title: "Plain", hint: undefined, key: null, depth: "0" },
+      { kind: "picker-demo-option", title: "Keyed", hint: undefined, key: "k", depth: "0" },
     ]);
   });
 
   test("lists Last used first, highlighted, with its key and a divider", () => {
-    const container = render(["Inbox"], true, { label: "Last used", key: "E" });
+    // The real row names the folder last saved to; the picture stands in the
+    // first folder that can be picked, and hints that it is Last used.
+    const container = render(["Group", ">Inbox"], true, { label: "Last used", key: "E" });
 
     expect(rows(container)).toEqual([
-      { kind: "picker-demo-option active", title: "Last used", key: "e", depth: "" },
-      { kind: "picker-demo-separator", title: undefined, key: null, depth: "" },
-      { kind: "picker-demo-option", title: "Inbox", key: "1", depth: "0" },
+      { kind: "picker-demo-option active", title: "Inbox", hint: "Last used", key: "e", depth: "" },
+      { kind: "picker-demo-separator", title: undefined, hint: undefined, key: null, depth: "" },
+      { kind: "picker-demo-heading", title: "Group", hint: undefined, key: "1", depth: "0" },
+      { kind: "picker-demo-option", title: "Inbox", hint: undefined, key: null, depth: "1" },
     ]);
-    // A cleared Last used key shows no chip.
-    expect(rows(render([], true, { label: "Last used", key: "" }))[0]?.key).toBeNull();
+    // With no folder to stand in, the row is titled by the item itself, and a
+    // cleared Last used key shows no chip.
+    expect(rows(render([], true, { label: "Last used", key: "" }))[0]).toEqual({
+      kind: "picker-demo-option active",
+      title: "Last used",
+      hint: undefined,
+      key: null,
+      depth: "",
+    });
+  });
+
+  test("offers a line break after each slash in a long folder name", () => {
+    const container = render(["Documents/Receipts/2026"]);
+
+    expect(container.querySelector(".picker-demo-title")?.innerHTML).toBe(
+      "Documents/<wbr>Receipts/<wbr>2026",
+    );
   });
 
   test("keeps the picture short and replaces what it drew before", () => {
@@ -73,7 +92,7 @@ describe("folder picker preview", () => {
       "↑",
       "↓",
       "↵",
-      "esc",
+      "Esc",
     ]);
   });
 });
