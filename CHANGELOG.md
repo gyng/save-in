@@ -3,11 +3,18 @@
 - Right-clicking an image and choosing a Save In folder no longer saves the
   page in its place when the browser reports only a page (#237). This happened
   for images that had not finished loading or that sit under an empty overlay.
-  Save In now saves the image the pointer was on.
+  Save In now saves the image the pointer was on, as an image: page-only
+  settings such as page shortcuts and closing the tab after a page save do not
+  apply to it.
 - Click-to-save keeps the folder of the menu item whose `comment:` or
   `menuindex:` rule it reuses (#238), and takes that folder from Last used, so
   it no longer depends on whether the background had gone idle. Rules that do
-  not match on the menu entry are still rooted at the download folder.
+  not match on the menu entry are still rooted at the download folder. This
+  means click-to-save now goes to the folder last picked from the menu even
+  after the browser has been idle, where it previously fell back to Downloads;
+  turn on **Always save to the default destination** to keep it there.
+  Quick save, Page Sources, automatic, and external saves no longer change
+  where the next click goes.
 - A click-to-save gesture on a left click no longer also follows the link or
   opens the page's own viewer, and `gesture:`, `keys:`, and `css:` rules keep
   matching after an in-page navigation on single-page sites.
@@ -49,7 +56,10 @@
   accept; a `fetch:` rule's host can no longer be chosen by page text; and
   automatic saves are counted per tab and site, so reloading a page cannot
   exceed the limit (three times **Maximum saves per page visit** in ten
-  minutes).
+  minutes; saves over it are skipped and noted only in the debug log). A link
+  or media item whose address is not http, https, ftp, `data:`, or `blob:` is
+  no longer saved, and a shortcut is made only for http, https, and ftp
+  addresses.
 
 - An optional in-page folder picker lists your Save menu folders at the
   pointer so you can choose where one item goes (#77, #21). It is off by
@@ -134,7 +144,9 @@
   name becomes `_`, and reserved names such as `CLOCK$`, `desktop.ini`, and
   `.lnk`/`.local` endings are renamed on every system (`nas.local` saves as
   `nas_local`). Stored menu, Quick save, and Last used folders that 4.1.0
-  accepted keep working.
+  accepted are still accepted, but on Firefox, which saved such names as
+  written, they are now renamed the same way (a folder `~/Pics` saves to
+  `_/Pics`).
 - Fixed menu folders that place a space, dot, or tilde beside a variable, such
   as `Pics - :date:`, being rejected as invalid.
 - Fixed a variable, capture, or `././` route that expands to `.` producing a
