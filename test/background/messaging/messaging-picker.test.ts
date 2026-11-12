@@ -119,14 +119,26 @@ describe("PICKER_MODEL", () => {
     );
   });
 
-  // The click handler that performs the save reads the private Last used when
-  // either tab is private, so the list must name that same folder.
-  test("lists the private Last used when only the tracked tab is private", async () => {
+  // The click handler that performs the save decides privacy from the tab the
+  // save came from, falling back to the tracked tab only without one. The
+  // tracked tab stays private after a visit to a private window, so it must
+  // not make a regular tab's list name the private Last used.
+  test("lists the regular Last used for a regular tab after a private window", async () => {
     menuState.lastUsedPath = "wallpapers";
     menuState.privateLastUsedPath = "private-folder";
     setCurrentTab({ ...pageTab, incognito: true });
 
     const model = await send(onMessage, { type: "PICKER_MODEL" }, { tab: pageTab });
+
+    expect(model.body.lastUsed.title).toBe("wallpapers");
+  });
+
+  test("lists the private Last used for a tabless request while the tracked tab is private", async () => {
+    menuState.lastUsedPath = "wallpapers";
+    menuState.privateLastUsedPath = "private-folder";
+    setCurrentTab({ ...pageTab, incognito: true });
+
+    const model = await send(onMessage, { type: "PICKER_MODEL" }, {});
 
     expect(model.body.lastUsed.title).toBe("private-folder");
   });
@@ -245,11 +257,13 @@ describe("PICKER_SAVE", () => {
     });
   });
 
-  test("applies the private menu when only the tracked tab is private", async () => {
+  test("applies the regular menu to a regular tab after a private window", async () => {
     menuState.lastUsedPath = "wallpapers";
     setCurrentTab({ ...pageTab, incognito: true });
 
-    expect(await save({ menuItemId: "save-in-last-used" }, { tab: pageTab })).toEqual(refused);
+    expect(await save({ menuItemId: "save-in-last-used" }, { tab: pageTab })).toEqual({
+      type: MESSAGE_TYPES.OK,
+    });
   });
 
   test("ignores a malformed request and is not an external message", async () => {

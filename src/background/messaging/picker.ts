@@ -20,12 +20,14 @@ type PickerModelRequest = MessageOf<typeof MESSAGE_TYPES.PICKER_MODEL>;
 type PickerSaveRequest = MessageOf<typeof MESSAGE_TYPES.PICKER_SAVE>;
 type OpenPickerRequest = MessageOf<typeof MESSAGE_TYPES.OPEN_PICKER>;
 
-// The click handler that performs the save classifies a click as private when
-// either its own tab or the tracked current tab is private, and reads Last
-// used accordingly. The list is built under the same rule, or a row could name
-// the regular Last used folder while the save lands in the private one.
+// The click handler that performs the save classifies a click as private from
+// its own tab, falling back to the tracked current tab only when it has none,
+// and reads Last used accordingly. The list is built under the same rule, or a
+// row could name one Last used folder while the save lands in the other. The
+// tracked tab follows activation, not window focus, so after a visit to a
+// private window it stays private while the user is in a regular one.
 const isPrivatePickerTab = (tab: CurrentTab | null | undefined): boolean =>
-  tab?.incognito === true || currentTab?.incognito === true;
+  tab ? tab.incognito === true : currentTab?.incognito === true;
 
 export const handlePickerModel = (
   _request: PickerModelRequest,
