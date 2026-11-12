@@ -21,7 +21,11 @@ import { respondAsync } from "../message-dispatch.ts";
 import { addLogEntry } from "../log.ts";
 import { clearHistory, getHistoryEntries, setHistoryStatus } from "../history.ts";
 import { syncSourcePanelToTab, setSourcePanelOpenState } from "../source-panel-state.ts";
-import { pushBufferedScriptMedia } from "../script-media-collector.ts";
+import {
+  pushBufferedScriptMedia,
+  refreshScriptMediaCollectorPermission,
+} from "../script-media-collector.ts";
+import { broadcastContentSnapshot } from "../content-options.ts";
 import { cancelActiveTransfer, getActiveTransfer } from "../../downloads/active-transfers.ts";
 import { findVerifiedDownload, undoDownloadAndMark } from "../../downloads/undo-download.ts";
 import {
@@ -446,6 +450,13 @@ const internalHandlers = {
   },
   [MESSAGE_TYPES.OPTIONS_LOADED]: async (_request, _sender, sendResponse) => {
     const generation = await backgroundRuntime.reset();
+    // Restore defaults removes stored keys from the options page and then
+    // sends this. Open tabs learn of content options only by a push, so
+    // without one they keep the old click-to-save and picker gestures, panel,
+    // and rules until reloaded. Push the whole content snapshot, and give back
+    // the optional webRequest permission if its toggle is now off.
+    await broadcastContentSnapshot();
+    await refreshScriptMediaCollectorPermission();
     sendResponse({
       type: MESSAGE_TYPES.OK,
       body: { instanceId: backgroundRuntime.instanceId, generation },

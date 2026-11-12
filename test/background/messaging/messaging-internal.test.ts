@@ -1667,6 +1667,60 @@ describe("onMessage", () => {
     });
   });
 
+  test("OPTIONS_LOADED pushes the reset content options to open tabs", async () => {
+    backgroundRuntime.reset = vi.fn(() => Promise.resolve(3));
+    global.browser.tabs.query = vi.fn(() => Promise.resolve([{ id: 42 }])) as never;
+    global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve()) as never;
+    global.browser.storage.local.get = vi.fn(() => Promise.resolve({})) as never;
+    const sendResponse = vi.fn();
+
+    onMessage({ type: MESSAGE_TYPES.OPTIONS_LOADED }, {}, sendResponse);
+    await waitForCall(sendResponse);
+
+    // Every key has been removed, so the tab is told the defaults: the gestures
+    // a reset turned off must stop working without a reload.
+    expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(42, {
+      type: "CONTENT_OPTIONS_CHANGED",
+      body: {
+        options: expect.objectContaining({
+          contentClickToSave: false,
+          contentPickerGesture: false,
+          filenamePatterns: "",
+        }),
+      },
+    });
+  });
+
+  test("OPTIONS_LOADED pushes the stored routing rules text as it is", async () => {
+    backgroundRuntime.reset = vi.fn(() => Promise.resolve(5));
+    global.browser.tabs.query = vi.fn(() => Promise.resolve([{ id: 42 }])) as never;
+    global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve()) as never;
+    global.browser.storage.local.get = vi.fn(() =>
+      Promise.resolve({ filenamePatterns: "into: kept/" }),
+    ) as never;
+    const sendResponse = vi.fn();
+
+    onMessage({ type: MESSAGE_TYPES.OPTIONS_LOADED }, {}, sendResponse);
+    await waitForCall(sendResponse);
+
+    expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(42, {
+      type: "CONTENT_OPTIONS_CHANGED",
+      body: { options: expect.objectContaining({ filenamePatterns: "into: kept/" }) },
+    });
+  });
+
+  test("OPTIONS_LOADED still answers when stored options cannot be read", async () => {
+    backgroundRuntime.reset = vi.fn(() => Promise.resolve(4));
+    global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve()) as never;
+    global.browser.storage.local.get = vi.fn(() => Promise.reject(new Error("gone"))) as never;
+    const sendResponse = vi.fn();
+
+    onMessage({ type: MESSAGE_TYPES.OPTIONS_LOADED }, {}, sendResponse);
+    await waitForCall(sendResponse);
+
+    expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
+  });
+
   test("OPTIONS responds with the current options", () => {
     const sendResponse = vi.fn();
     onMessage({ type: MESSAGE_TYPES.OPTIONS }, {}, sendResponse);

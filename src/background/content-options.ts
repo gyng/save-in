@@ -1,6 +1,8 @@
 import {
   CONTENT_OPTIONS_CHANGED_MESSAGE,
+  CONTENT_STORAGE_KEYS,
   normalizeContentOptionsPatch,
+  resolveContentOptions,
 } from "../config/content-options.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 
@@ -33,4 +35,19 @@ export const broadcastContentOptions = async (values: unknown): Promise<void> =>
       }
     }),
   );
+};
+
+// Every content option as stored now, with defaults for removed keys, plus the
+// routing rules text. For writers that change many keys without knowing which
+// (Restore defaults removes them all), where a delta cannot be computed.
+export const broadcastContentSnapshot = async (): Promise<void> => {
+  const stored = await webExtensionApi.storage.local
+    .get([...CONTENT_STORAGE_KEYS])
+    .catch(() => null);
+  if (stored === null) return;
+  const rules: unknown = Reflect.get(stored, "filenamePatterns");
+  await broadcastContentOptions({
+    ...resolveContentOptions(stored),
+    filenamePatterns: typeof rules === "string" ? rules : "",
+  });
 };
