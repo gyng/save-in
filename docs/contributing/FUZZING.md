@@ -1,10 +1,10 @@
 # Fuzzing
 
 Run the bounded property suite with `npm run test:fuzz`. It spends one second
-across directory parsing and edits, routing syntax and semantics, filename
-safety, page-text containment for `:pagetext:`, webhook URL policy, and menu
-access-key markup. Set `FUZZ_TIME_MS` for a
-longer campaign.
+across directory parsing and edits, routing syntax and semantics, rule parsing
+that never throws on a regex the engine accepts, filename safety, page-text
+containment for `:pagetext:`, webhook URL policy, and menu access-key markup.
+Set `FUZZ_TIME_MS` for a longer campaign.
 
 Failures report `FUZZ_PROPERTY` and `FUZZ_SEED`, plus `FUZZ_PATH` when a shrink
 path is available. Pass the reported values back through `scripts/with-env.js`

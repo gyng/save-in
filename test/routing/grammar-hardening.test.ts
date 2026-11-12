@@ -333,3 +333,15 @@ describe("routing grammar hardening", () => {
     }
   });
 });
+
+describe("v-flag nested character classes", () => {
+  test.each([
+    "filename/v: [^[a-z]--[aeiou]]+\\.jpg\ninto: y/",
+    "sourceurl/v: [^[a]]x\ninto: y/",
+    "filename: .*\nrename/v: [^[a]]+ -> b\ninto: y/",
+  ])("still parse as the 4.1.0 rule %j", (source) => {
+    const parsed = parseRulesCollecting(source);
+    expect(parsed.errors.filter((error) => !error.warning)).toEqual([]);
+    expect(parsed.rules).toHaveLength(1);
+  });
+});

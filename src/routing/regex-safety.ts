@@ -69,15 +69,19 @@ const longestChain = (chains: Wildcard[][]): Wildcard[] =>
 type Atom = { length: number; literal?: string; wildcard?: Wildcard };
 
 const decodeEscape = (
+  unicode: boolean,
   length: number,
   braced: string | undefined,
-  unicode: string | undefined,
+  fourDigit: string | undefined,
   hex: string | undefined,
   control: string | undefined,
   other: string | undefined,
 ): Atom => {
+  // Without the u or v flag `\u{...}` is an identity-escaped "u" followed by a
+  // literal or a quantifier, and its digits need not name a code point.
+  if (braced !== undefined && !unicode) return { length: 2, literal: "u" };
   if (braced !== undefined) return { length, literal: String.fromCodePoint(parseInt(braced, 16)) };
-  const code = unicode ?? hex;
+  const code = fourDigit ?? hex;
   if (code !== undefined) return { length, literal: String.fromCharCode(parseInt(code, 16)) };
   if (control !== undefined)
     return { length, literal: String.fromCharCode(control.charCodeAt(0) % 32) };
@@ -90,7 +94,7 @@ const decodeEscape = (
   return { length };
 };
 
-const escapedAtom = (source: string, index: number): Atom => {
+const escapedAtom = (source: string, index: number, unicode: boolean): Atom => {
   // A replacer receives the match without the nullable result exec returns.
   let atom: Atom = { length: 1 };
   source
@@ -100,12 +104,12 @@ const escapedAtom = (source: string, index: number): Atom => {
       (
         text: string,
         braced: string | undefined,
-        unicode: string | undefined,
+        fourDigit: string | undefined,
         hex: string | undefined,
         control: string | undefined,
         other: string | undefined,
       ) => {
-        atom = decodeEscape(text.length, braced, unicode, hex, control, other);
+        atom = decodeEscape(unicode, text.length, braced, fourDigit, hex, control, other);
         return text;
       },
     );
@@ -118,8 +122,26 @@ const escapedAtom = (source: string, index: number): Atom => {
 // unanchored search tries O(n) start positions. A required literal that a
 // pending wildcard excludes (the `/` in `[^/]*\/[^/]*`) ends that wildcard's
 // reach. Returns the resulting polynomial degree, conservatively approximated.
+// Returns the index just past the class opened at `start`. Under the v flag a
+// class may contain nested classes (`[^[a-z]--[aeiou]]`), so it does not end at
+// its first unescaped "]"; elsewhere "[" inside a class is a literal.
+const characterClassEnd = (source: string, start: number, nested: boolean): number => {
+  let depth = 0;
+  let end = start;
+  do {
+    const token = source.charAt(end);
+    if (token === "\\") end += 1;
+    else if (token === "[" && (nested || depth === 0)) depth += 1;
+    else if (token === "]") depth -= 1;
+    end += 1;
+  } while (depth > 0 && end < source.length);
+  return end;
+};
+
 const backtrackingDegree = ({ source, flags }: RegExp): number => {
   const classFlags = flags.replace(/[gy]/g, "");
+  const unicode = /[uv]/.test(flags);
+  const nestedClasses = flags.includes("v");
   const anyCharacter = new RegExp(".", classFlags);
   const dot: Wildcard = (character) => !anyCharacter.test(character);
   let frame: AlternationFrame = { start: [], ends: [] };
@@ -165,15 +187,14 @@ const backtrackingDegree = ({ source, flags }: RegExp): number => {
       literal: token,
     };
     if (token === "\\") {
-      atom = escapedAtom(source, index);
+      atom = escapedAtom(source, index, unicode);
     } else if (token === "[") {
-      let end = index + 1;
-      while (source.charAt(end) !== "]") end += source.charAt(end) === "\\" ? 2 : 1;
-      atom = { length: end + 1 - index };
+      const end = characterClassEnd(source, index, nestedClasses);
+      atom = { length: end - index };
       if (source.charAt(index + 1) === "^") {
-        // A negated class excludes exactly what the same class un-negated matches.
-        const excluded = new RegExp(`[${source.slice(index + 2, end)}]`, classFlags);
-        atom.wildcard = (character) => excluded.test(character);
+        // A negated class can never consume exactly what it does not match.
+        const negated = new RegExp(source.slice(index, end), classFlags);
+        atom.wildcard = (character) => !negated.test(character);
       }
     } else if (token === ".") {
       atom = { length: 1, wildcard: dot };
@@ -208,13 +229,14 @@ export const isSafeRoutingRegex = (regex: RegExp | string): boolean => {
   // construction. An unbalanced ")" leaves `parents` empty and is ignored.
   let current: RegexGroupState = { hasAlternation: false, hasQuantifier: false, start: -1 };
   const parents: RegexGroupState[] = [];
-  let inCharacterClass = false;
+  const nestedClasses = regex.flags.includes("v");
+  let classDepth = 0;
   for (let index = 0; index < source.length; index += 1) {
     const token = source.charAt(index);
     if (token === "\\") {
       const escaped = source[index + 1];
       if (
-        !inCharacterClass &&
+        classDepth === 0 &&
         escaped &&
         (/[1-9]/.test(escaped) || (escaped === "k" && source[index + 2] === "<"))
       ) {
@@ -224,14 +246,14 @@ export const isSafeRoutingRegex = (regex: RegExp | string): boolean => {
       continue;
     }
     if (token === "[") {
-      inCharacterClass = true;
+      if (classDepth === 0 || nestedClasses) classDepth += 1;
       continue;
     }
-    if (token === "]" && inCharacterClass) {
-      inCharacterClass = false;
+    if (token === "]" && classDepth > 0) {
+      classDepth -= 1;
       continue;
     }
-    if (inCharacterClass) continue;
+    if (classDepth > 0) continue;
 
     if (token === "(") {
       parents.push(current);
@@ -271,5 +293,12 @@ export const isSafeRoutingRegex = (regex: RegExp | string): boolean => {
       current.hasQuantifier = true;
     }
   }
-  return backtrackingDegree(regex) < 3;
+  // The analysis is a heuristic over syntax the engine already accepted, and it
+  // runs while options load: a case it misreads must cost only the warning,
+  // never the whole rule set.
+  try {
+    return backtrackingDegree(regex) < 3;
+  } catch {
+    return false;
+  }
 };

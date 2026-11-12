@@ -85,3 +85,24 @@ test.each([
 ])("rejects compounding unbounded wildcards %#", (regex) => {
   expect(isSafeRoutingRegex(regex)).toBe(false);
 });
+
+// Under the v flag a class may nest classes, so the class does not end at its
+// first "]"; 4.1.0 accepted these rules and the analysis must not throw on them.
+test.each([
+  [String.raw`[^[a-z]--[aeiou]]+\.jpg`, "v", true],
+  [String.raw`[^[a]]x`, "v", true],
+  [String.raw`[^[\/]]*\/[^[\/]]*\.jpg`, "iv", true],
+  [String.raw`[^[?]]*\/[^[?]]*\.jpg`, "v", false],
+  [String.raw`(?:[[a]*]x)+`, "v", true],
+  [String.raw`x\u{110000}`, "", true],
+  [String.raw`.*\u{2F}.*x`, "", false],
+  [String.raw`[^\u{2F}]*\/[^\u{2F}]*x`, "u", true],
+])("analyses %j with flags %j without throwing", (source, flags, safe) => {
+  expect(isSafeRoutingRegex(new RegExp(source, flags))).toBe(safe);
+});
+
+test("reports an expression it cannot analyse as unsafe instead of throwing", () => {
+  const regex = /x/;
+  Object.defineProperty(regex, "flags", { value: "not-a-flag" });
+  expect(isSafeRoutingRegex(regex)).toBe(false);
+});

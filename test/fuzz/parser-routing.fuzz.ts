@@ -419,6 +419,91 @@ const routingSemantic: FuzzTarget = {
     ),
 };
 
+// Every analysis rule parsing runs over a regex is new code reading syntax the
+// engine already accepted; a misreading must surface as an issue, never as an
+// exception, because parsing runs while options load.
+const regexTokenArbitrary = fc.constantFrom(
+  "a",
+  "Z",
+  "0",
+  ".",
+  "x",
+  "/",
+  "\\/",
+  "-",
+  "--",
+  "&&",
+  "^",
+  "$",
+  "[",
+  "]",
+  "[^",
+  "(",
+  ")",
+  "(?:",
+  "(?<n>",
+  "(?=",
+  "(?<!",
+  "|",
+  "*",
+  "+",
+  "?",
+  "{2}",
+  "{1,}",
+  "{",
+  "}",
+  "\\",
+  "\\d",
+  "\\w",
+  "\\s",
+  "\\S",
+  "\\u{41}",
+  "\\u{110000}",
+  "\\u0041",
+  "\\x41",
+  "\\cJ",
+  "\\p{L}",
+  "\\q{ab}",
+  "\\k<n>",
+  "\\1",
+  "\\b",
+  "é",
+  "😀",
+);
+const REGEX_FLAG_SETS = ["", "i", "u", "v", "iu", "iv"];
+const engineAccepts = (pattern: string, flags: string): boolean => {
+  try {
+    return new RegExp(pattern, flags) instanceof RegExp;
+  } catch {
+    return false;
+  }
+};
+
+const regexAnalysisTotality: FuzzTarget = {
+  name: "regex-analysis-totality",
+  run: (parameters) =>
+    fc.check(
+      fc.property(fc.array(regexTokenArbitrary, { minLength: 1, maxLength: 12 }), (tokens) => {
+        const pattern = tokens.join("");
+        for (const flags of REGEX_FLAG_SETS.filter((set) => engineAccepts(pattern, set))) {
+          const suffix = flags ? `/${flags}` : "";
+          for (const source of [
+            `filename${suffix}: ${pattern}\ninto: y/`,
+            `sourceurl${suffix}: ${pattern}\ninto: y/`,
+            `filename: .*\nrename${suffix}: ${pattern} -> b\ninto: y/`,
+          ]) {
+            try {
+              parseRulesCollecting(source);
+            } catch (error) {
+              invariant(false, `parsing ${JSON.stringify(source)} threw ${String(error)}`);
+            }
+          }
+        }
+      }),
+      parameters,
+    ),
+};
+
 const filenameSafety: FuzzTarget = {
   name: "filename-safety",
   run: (parameters) =>
@@ -574,6 +659,7 @@ const targets: FuzzTarget[] = [
   directoryEdits,
   routingLossless,
   routingSemantic,
+  regexAnalysisTotality,
   filenameSafety,
   pageTextContainment,
   menuAccessKeyMarkup,
