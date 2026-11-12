@@ -388,6 +388,7 @@ export const executeBrowserDownload = async (
     retried: false,
     allowOriginalUrlFallback,
     saveAsPrompted: prompt,
+    ...(plan.askAboutExistingFile ? { askAboutExistingFile: true } : {}),
     ...(historyEntryId ? { historyEntryId } : {}),
     ...(isSourceSidecar(state) ? { sourceSidecar: true } : {}),
     ...(pendingSourceSidecar ? { pendingSourceSidecar } : {}),
@@ -410,8 +411,9 @@ export const executeBrowserDownload = async (
       // Firefox seeds its picker with the name its conflict action resolves,
       // so uniquify would propose name(1).ext for the file Ask is about. With
       // overwrite it proposes the original name, and the picker itself asks
-      // before replacing. Only this request: the retry record keeps the
-      // native action, because a retry has no dialog to confirm anything.
+      // before replacing. Only this request: the record keeps the native
+      // action and marks askAboutExistingFile, so a network retry, which asks
+      // through Save As again, uses overwrite only behind that dialog.
       conflictAction: plan.askAboutExistingFile
         ? CONFLICT_ACTION.OVERWRITE
         : nativeConflictAction(),
@@ -487,6 +489,7 @@ export const executeBrowserDownload = async (
         retried: false,
         allowOriginalUrlFallback,
         saveAsPrompted: prompt,
+        ...(plan.askAboutExistingFile ? { askAboutExistingFile: true } : {}),
         ...(acquired.offscreenRequestId ? { offscreenRequestId: acquired.offscreenRequestId } : {}),
         ...(historyEntryId ? { historyEntryId } : {}),
         ...(isSourceSidecar(state) ? { sourceSidecar: true } : {}),

@@ -300,6 +300,8 @@ describe("state service instances", () => {
             17: { webhookDownloadId: -1 },
             18: { webhookDownloadId: "7" },
             19: { webhookDownloadId: 1.5 },
+            20: { saveAsPrompted: true, askAboutExistingFile: true },
+            21: { askAboutExistingFile: "yes" },
             nope: { adopted: true },
             8: "not-a-record",
           },
@@ -344,6 +346,8 @@ describe("state service instances", () => {
       [17, {}],
       [18, {}],
       [19, {}],
+      [20, { saveAsPrompted: true, askAboutExistingFile: true }],
+      [21, {}],
     ]);
   });
 

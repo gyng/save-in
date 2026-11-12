@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { CONFLICT_ACTION } from "../shared/constants.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
 import { normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
@@ -177,7 +178,13 @@ export const retryViaFetch = async (
     const downloadOptions: Parameters<typeof webExtensionApi.downloads.download>[0] = {
       url: downloadUrl,
       filename,
-      conflictAction: record.conflictAction,
+      // The dialog Firefox's emulated Ask opened was seeded with overwrite so
+      // it proposes the existing file's name, not name(1).ext; asking again
+      // must do the same, and the picker still confirms any replacement.
+      conflictAction:
+        prompted && record.askAboutExistingFile === true
+          ? CONFLICT_ACTION.OVERWRITE
+          : record.conflictAction,
       ...(prompted ? { saveAs: true } : {}),
     };
     Object.assign(

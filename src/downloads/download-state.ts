@@ -40,6 +40,11 @@ export type DownloadRecord = {
   // A Save As dialog can place a Save In download outside the browser's
   // Downloads root, so its absolute result must never be used to infer that root.
   saveAsPrompted?: boolean | undefined;
+  // The Save As dialog Firefox's emulated "Ask about existing file" opened for
+  // a file it knows exists. That dialog is requested with overwrite, so the
+  // picker proposes the existing name rather than name(1).ext; a retry asks
+  // through the same kind of dialog. Absent means no, as for older records.
+  askAboutExistingFile?: boolean | undefined;
   // Whether this download's outcome may be reported to a webhook, decided when
   // it started and persisted as the decision rather than recomputed from the
   // privacy state. Private records exist only under the explicit persistence
@@ -145,6 +150,7 @@ function normalizeDownloadRecord(value: unknown): PersistedDownloadRecord | null
     "webhookEligible",
     "browserDownloadRouted",
     "saveAsPrompted",
+    "askAboutExistingFile",
   ] as const;
   strings.forEach((key) => {
     const item = value[key];

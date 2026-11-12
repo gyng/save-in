@@ -165,8 +165,13 @@ describe("Ask each time, emulated on Firefox", () => {
       // file is known to exist; the picker itself confirms the replacement.
       conflictAction: "overwrite",
     });
-    // A later network retry has no dialog, so it must never overwrite.
-    expect(downloadState.records.get(102)?.conflictAction).toBe("uniquify");
+    // The record keeps the native action and marks the Ask dialog, so a
+    // network retry asks again through the same overwrite-seeded dialog.
+    expect(downloadState.records.get(102)).toMatchObject({
+      conflictAction: "uniquify",
+      saveAsPrompted: true,
+      askAboutExistingFile: true,
+    });
     expect(global.browser.downloads.erase).toHaveBeenCalledWith({ id: 101 });
     // The dialog replaces the check, so the replacement is never re-examined.
     expect(global.browser.downloads.download).toHaveBeenCalledTimes(2);

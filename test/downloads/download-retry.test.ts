@@ -109,6 +109,34 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     expect(downloadState.records.get(204)).toMatchObject({ saveAsPrompted: prompted });
   });
 
+  // Firefox seeds its picker with the name the conflict action resolves; the
+  // Ask dialog used overwrite so it proposes the existing file's own name, and
+  // its retry must ask the same way rather than propose name(1).ext.
+  test.each([
+    [true, true, "overwrite"],
+    [false, true, "uniquify"],
+    [true, false, "uniquify"],
+  ])(
+    "retries an Ask-about-existing-file save (%s, prompted %s) with %s",
+    async (askAboutExistingFile, prompted, conflictAction) => {
+      await seedStartedDownload();
+      await Download.rememberStartedDownload(101, {
+        saveAsPrompted: prompted,
+        askAboutExistingFile,
+      });
+      global.fetch = vi.fn(() =>
+        Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+      ) as any;
+      (global.browser.downloads as any).download = vi.fn(() => Promise.resolve(205));
+
+      await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+      expect(global.browser.downloads.download).toHaveBeenCalledWith(
+        expect.objectContaining({ conflictAction }),
+      );
+    },
+  );
+
   test("takes a dismissed retry dialog as the user's cancel, not a failure", async () => {
     const SaveHistory = await import("../../src/background/history.ts");
     await seedStartedDownload();
