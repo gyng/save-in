@@ -102,21 +102,20 @@ the peripheral features fit a single purpose:
 
 ### `webRequest` (optional)
 
-> Save In requests this permission only when the user turns on the off-by-default
-> Page Sources option "Detect media loaded by scripts." It is not held on
-> install and no prompt is shown until that action.
+<!-- The Chrome Web Store field holds 1,000 characters; this is the submitted text. -->
+
+> Save In requests this permission only when the user turns on the
+> off-by-default Page Sources option "Detect media loaded by scripts." It is not
+> held on install and no prompt is shown until that action.
 >
 > When granted, a background listener observes only the request types that can
-> carry media (`xmlhttprequest`, `media`, `object`, `other`, plus `main_frame`
-> so a page navigation resets what was seen) to find media a page loads with
-> scripts — for example HLS/DASH manifests or fetch/XHR media, including from
-> workers and cross-origin frames — that the page's own DOM does not expose.
-> Recognized URLs are added to the same Page Sources list the DOM scan
-> produces, entirely on the device. If the user also turns on the
-> off-by-default automatic-save option "Include media loaded by scripts,"
-> whole files among them that the page being viewed requested are offered to
-> the user's own automatic save rules under the same page, rule, and per-page
-> limits as media found in the DOM.
+> carry media (xmlhttprequest, media, object, other, plus main_frame so a
+> navigation resets what was seen) to find media a page loads with scripts — for
+> example HLS/DASH manifests or fetch/XHR media — that the page's own DOM does
+> not expose. Recognized URLs are added to the same Page Sources list the DOM
+> scan produces, entirely on the device. Whole files among them can also feed
+> the user's own automatic save rules if the off-by-default "Include media
+> loaded by scripts" automatic option is on.
 >
 > Turning the option off, denying the permission prompt, or removing the
 > permission from the browser's extension settings immediately drops it and
