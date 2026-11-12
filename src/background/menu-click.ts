@@ -346,11 +346,14 @@ const handleContextMenuClickInternal = async (
   // behind or belong to another window, and its title is mutated by
   // later tab updates (#172, #188)
   const clickTab = tab || currentTab;
-  // Harden the privacy classification independently of which candidate wins
-  // above: if the browser ever delivered onClicked without a tab while
-  // currentTab pointed at a public one (or vice versa), a private candidate
-  // from EITHER source must still classify this click as private.
-  const privateContext = tab?.incognito === true || currentTab?.incognito === true;
+  // The tab the browser delivered is the window the click happened in, so it
+  // alone decides privacy. The tracked current tab is only a fallback for a
+  // click delivered without one: it follows tab activation, not window focus,
+  // so after a private window it stays private while the user is back in a
+  // regular one. Consulting it as well made every such regular save private:
+  // Last used then saved into the folder last picked in private browsing, and
+  // the regular save's own Last used went to the private session slot.
+  const privateContext = tab ? tab.incognito === true : currentTab?.incognito === true;
   const isolatedPrivateContext = privateContext && !options.persistPrivateActivity;
 
   // A keyboard command names a configured folder directly, so it still saves
@@ -612,7 +615,9 @@ const handleContextMenuClickInternal = async (
         await queuePrivateLastUsedMutation(async () => {
           if (privateInvocation?.invalidated) return;
           await setLastUsed(selectedLocation.path, selectedLocation.meta, true);
-          if (options.enableLastLocation && !dynamicLastUsedMenu) {
+          // As on the regular branch above: a keyboard command can save here
+          // while the menu has no Last used item to update.
+          if (!dynamicLastUsedMenu && lastUsedMenuExists()) {
             await enablePrivateLastUsedMenu();
           }
         });

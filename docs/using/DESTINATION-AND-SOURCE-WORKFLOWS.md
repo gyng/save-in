@@ -99,8 +99,9 @@ private-window handling apply. Keep these points in mind:
   **Show only Quick save in the context menu** or **Hide folder choices**,
   changes the menu only; a key you bound still saves to Last used or to that
   folder.
-- The quick save command keeps its own rules: it always saves the page and
-  works only while **Show a quick save item** is on.
+- The quick save command keeps its own rules: it saves the page, and works
+  only while **Show a quick save item** and **Show an action for the current
+  page** are on.
 
 <a id="destination-picker"></a>
 

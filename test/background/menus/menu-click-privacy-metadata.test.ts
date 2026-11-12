@@ -117,16 +117,29 @@ describe("context menu click privacy and metadata hardening", () => {
       await listener({ menuItemId: "save-in-0", pageUrl: "https://x.test/page" }, clickTab);
     };
 
-    test("routes last-used bookkeeping to the private path when the delivered tab is public but currentTab is private", async () => {
+    // The tracked tab follows activation, not window focus: it is still the
+    // private tab after the user clicks back into a regular window. The click's
+    // own tab is the window the save happened in.
+    test("a click in a regular window stays regular while the tracked tab is still private", async () => {
       setCurrentTab({ id: 1, incognito: true, url: "https://x.test/private" } as never);
 
       await clickPathItem({ id: 2, incognito: false, url: "https://x.test/public" });
 
-      expect(global.browser.storage.session.set).toHaveBeenCalledWith(
+      expect(global.browser.storage.local.set).toHaveBeenCalledWith(
+        expect.objectContaining({ [LAST_USED_PATH_STORAGE_KEY]: "archive" }),
+      );
+      expect(global.browser.storage.session.set).not.toHaveBeenCalledWith(
         expect.objectContaining({ [PRIVATE_LAST_USED_SESSION_KEY]: expect.anything() }),
       );
-      expect(global.browser.storage.local.set).not.toHaveBeenCalledWith(
-        expect.objectContaining({ [LAST_USED_PATH_STORAGE_KEY]: expect.anything() }),
+    });
+
+    test("a click delivered without a tab falls back to the tracked tab's privacy", async () => {
+      setCurrentTab({ id: 1, incognito: true, url: "https://x.test/private" } as never);
+
+      await clickPathItem(undefined);
+
+      expect(global.browser.storage.session.set).toHaveBeenCalledWith(
+        expect.objectContaining({ [PRIVATE_LAST_USED_SESSION_KEY]: expect.anything() }),
       );
     });
 

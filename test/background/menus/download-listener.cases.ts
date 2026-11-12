@@ -410,6 +410,25 @@ describe("addDownloadListener", () => {
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
   });
 
+  test("a private keyboard save with no Last used item still runs its tab action", async () => {
+    Reflect.deleteProperty(global.browser.contextMenus, "onShown");
+    Reflect.deleteProperty(global.browser.contextMenus, "onHidden");
+    Reflect.deleteProperty(global.browser.contextMenus, "refresh");
+    Menus.addDownloadListener();
+    options.routeHideFolderChoices = true;
+    vi.mocked(global.browser.contextMenus.update).mockClear();
+
+    // A command names its folder itself; the menu built no Last used item.
+    await Menus.handleContextMenuClick(
+      { menuItemId: "save-in-0", pageUrl: "https://example.com/" },
+      { id: 8, incognito: true, windowId: 3 },
+      { parsedDir: "private/path", comment: "", menuIndex: "1", title: "private/path" },
+    );
+
+    expect(global.browser.contextMenus.update).not.toHaveBeenCalled();
+    expect(global.browser.storage.session.set).toHaveBeenCalled();
+  });
+
   test("keeps a private-only Last used enabled across a static menu rebuild", async () => {
     Reflect.deleteProperty(global.browser.contextMenus, "onShown");
     Menus.addDownloadListener();
