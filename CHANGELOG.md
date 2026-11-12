@@ -48,6 +48,21 @@
   again instead of saving to the planned folder.
 - **Restore defaults** now applies to tabs that are already open, including
   click-to-save and the folder picker gesture.
+- A routing rule whose regular expression uses the `v` flag with a nested
+  character class no longer stops Save In's settings from loading, and a
+  `rename:` on a very long file name no longer stalls the background.
+- `fetch:` addresses may contain a literal colon, such as Wikimedia's
+  `Special:FilePath/`.
+- A menu folder's `:counter:` no longer advances when a save is skipped as
+  unmatched.
+- After you visit a private window, saving in a regular window is no longer
+  treated as private, so **Last used** there saves to the regular folder.
+- **Debug this save** in History replays a `pagetext:` capture against the rule
+  that actually ran.
+- The rule assistant refuses requests about alt text, page text, or page
+  elements instead of drafting a rule that ignores that part of the request.
+- The WebMCP download tool no longer treats Save In's settings page as the
+  page being saved.
 - Security hardening against hostile pages and servers. A page can no longer
   read the folder picker's folder names or restyle it out of sight; a server
   can no longer give a saved image, video, or audio file a program's file name
