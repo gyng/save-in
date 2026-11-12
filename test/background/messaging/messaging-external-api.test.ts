@@ -179,7 +179,7 @@ describe("external DOWNLOAD API v1", () => {
       expect(JSON.stringify(sendResponse.mock.calls)).not.toContain("private.example");
     });
 
-    test("does not attribute a tabless request to a private tracked tab", async () => {
+    test("keeps a tabless request private without handing it the private tab", async () => {
       setCurrentTab(privateTab);
       const sendResponse = vi.fn();
 
@@ -190,7 +190,11 @@ describe("external DOWNLOAD API v1", () => {
       );
       await waitForCall(sendResponse);
 
-      expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.currentTab).toBeNull();
+      // Private, so it stays out of History and diagnostics; nothing else of
+      // the tab — address, title, id — reaches the caller's save.
+      expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.currentTab).toEqual({
+        incognito: true,
+      });
     });
 
     test("still attributes a tabless request to a regular tracked tab", async () => {

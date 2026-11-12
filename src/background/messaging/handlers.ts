@@ -479,9 +479,13 @@ export const handleDownloadMessage = (
       body: { status: MESSAGE_TYPES.ERROR, error, message, version },
     });
   // Allowing an integration grants downloads, not private-tab access: an
-  // external caller never borrows a private tab it did not send from.
+  // external caller never borrows a private tab it did not send from — no
+  // address, title, or id reaches its save. The save is still private, though:
+  // a gesture made while a private window has focus must stay out of History,
+  // diagnostics, and the regular download list, as it did before the tab's
+  // details were withheld. Only the private marker is kept.
   const ambientTab = (): CurrentTab | null =>
-    external && currentTab?.incognito === true ? null : currentTab;
+    external && currentTab?.incognito === true ? { incognito: true } : currentTab;
   const launch = (
     url: string,
     selectedTab?: CurrentTab,
