@@ -147,6 +147,7 @@ let permissionCheckGeneration = 0;
 const permissionsApi = ():
   | {
       contains?: (p: { permissions: string[] }) => Promise<boolean>;
+      remove?: (p: { permissions: string[] }) => Promise<boolean>;
       onAdded?: { addListener: (fn: (permissions?: PermissionChange) => void) => void };
       onRemoved?: { addListener: (fn: (permissions?: PermissionChange) => void) => void };
     }
@@ -753,6 +754,23 @@ export const refreshScriptMediaCollectorPermission = async (): Promise<void> => 
     startListening();
   } else if (held === false) {
     stopListening();
+  }
+};
+
+// The permission is held only while the toggle is on. The options checkbox's
+// change handler is the usual remover, but Restore defaults rewrites the toggle
+// without a change event, so the reset boundary hands the permission back here.
+// Callers follow with refreshScriptMediaCollectorPermission, which detaches the
+// listener from the authoritative result; a failed removal keeps the permission
+// and the listener, whose events already no-op while the toggle is off.
+export const releaseScriptMediaPermissionWhenOff = async (): Promise<void> => {
+  if (isConfigured()) return;
+  const permissions = permissionsApi();
+  if (typeof permissions?.remove !== "function") return;
+  try {
+    await permissions.remove({ permissions: ["webRequest"] });
+  } catch {
+    // The reset must still be acknowledged.
   }
 };
 

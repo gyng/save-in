@@ -24,6 +24,7 @@ import { syncSourcePanelToTab, setSourcePanelOpenState } from "../source-panel-s
 import {
   pushBufferedScriptMedia,
   refreshScriptMediaCollectorPermission,
+  releaseScriptMediaPermissionWhenOff,
 } from "../script-media-collector.ts";
 import { broadcastContentSnapshot } from "../content-options.ts";
 import { cancelActiveTransfer, getActiveTransfer } from "../../downloads/active-transfers.ts";
@@ -454,8 +455,11 @@ const internalHandlers = {
     // sends this. Open tabs learn of content options only by a push, so
     // without one they keep the old click-to-save and picker gestures, panel,
     // and rules until reloaded. Push the whole content snapshot, and give back
-    // the optional webRequest permission if its toggle is now off.
+    // the optional webRequest permission if its toggle is now off: the reset
+    // fires no checkbox change event, the only other place that removes it.
+    // The refresh then detaches the listener from the permission's real state.
     await broadcastContentSnapshot();
+    await releaseScriptMediaPermissionWhenOff();
     await refreshScriptMediaCollectorPermission();
     sendResponse({
       type: MESSAGE_TYPES.OK,

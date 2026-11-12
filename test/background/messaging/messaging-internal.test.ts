@@ -1721,6 +1721,58 @@ describe("onMessage", () => {
     expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
   });
 
+  test("OPTIONS_LOADED gives back the webRequest permission when the reset turns script media off", async () => {
+    backgroundRuntime.reset = vi.fn(() => {
+      options.sourcePanelEnabled = true;
+      options.sourcePanelScriptMedia = false;
+      return Promise.resolve(6);
+    });
+    vi.mocked(global.browser.permissions.remove).mockClear();
+    const sendResponse = vi.fn();
+
+    onMessage({ type: MESSAGE_TYPES.OPTIONS_LOADED }, {}, sendResponse);
+    await waitForCall(sendResponse);
+
+    expect(global.browser.permissions.remove).toHaveBeenCalledWith({
+      permissions: ["webRequest"],
+    });
+  });
+
+  test("OPTIONS_LOADED keeps the webRequest permission while script media stays on", async () => {
+    backgroundRuntime.reset = vi.fn(() => {
+      options.sourcePanelEnabled = true;
+      options.sourcePanelScriptMedia = true;
+      return Promise.resolve(7);
+    });
+    vi.mocked(global.browser.permissions.remove).mockClear();
+    const sendResponse = vi.fn();
+
+    onMessage({ type: MESSAGE_TYPES.OPTIONS_LOADED }, {}, sendResponse);
+    await waitForCall(sendResponse);
+
+    expect(global.browser.permissions.remove).not.toHaveBeenCalled();
+  });
+
+  test("OPTIONS_LOADED still answers when giving back the permission fails", async () => {
+    backgroundRuntime.reset = vi.fn(() => {
+      options.sourcePanelScriptMedia = false;
+      return Promise.resolve(8);
+    });
+    vi.mocked(global.browser.permissions.remove)
+      .mockClear()
+      .mockRejectedValueOnce(new Error("busy"));
+    const sendResponse = vi.fn();
+
+    onMessage({ type: MESSAGE_TYPES.OPTIONS_LOADED }, {}, sendResponse);
+    await waitForCall(sendResponse);
+
+    expect(global.browser.permissions.remove).toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.OK,
+      body: { instanceId: backgroundRuntime.instanceId, generation: 8 },
+    });
+  });
+
   test("OPTIONS responds with the current options", () => {
     const sendResponse = vi.fn();
     onMessage({ type: MESSAGE_TYPES.OPTIONS }, {}, sendResponse);

@@ -605,6 +605,30 @@ test("rebinds an already attached listener after config apply", async () => {
   expect(onBeforeRequest.addListener).toHaveBeenCalledTimes(1);
 });
 
+test("a reset that turns the toggle off gives back the permission and detaches the listener", async () => {
+  const { mod, onBeforeRequest } = await setup();
+  await drain();
+  const { options } = await import("../../src/config/options-data.ts");
+  options.sourcePanelScriptMedia = false;
+  const remove = vi.fn(() => {
+    (browser as any).permissions.contains = vi.fn(() => Promise.resolve(false));
+    return Promise.resolve(true);
+  });
+  (browser as any).permissions.remove = remove;
+  onBeforeRequest.removeListener.mockClear();
+
+  await mod.releaseScriptMediaPermissionWhenOff();
+  await mod.refreshScriptMediaCollectorPermission();
+
+  expect(remove).toHaveBeenCalledWith({ permissions: ["webRequest"] });
+  expect(onBeforeRequest.removeListener).toHaveBeenCalledTimes(1);
+});
+
+test("releasing the permission is a no-op without a permissions.remove API", async () => {
+  const { mod } = await setup({ sourcePanelEnabled: false });
+  await expect(mod.releaseScriptMediaPermissionWhenOff()).resolves.toBeUndefined();
+});
+
 test("refresh is a safe no-op when the webRequest API is unavailable", async () => {
   const { mod } = await setup({}, false);
   await expect(mod.refreshScriptMediaCollectorPermission()).resolves.toBeUndefined();
