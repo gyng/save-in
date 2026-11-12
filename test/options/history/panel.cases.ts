@@ -205,6 +205,7 @@ describe("history filter controls", () => {
     expect(document.querySelectorAll("#history-list th").length).toBeGreaterThan(0);
     expect(document.querySelector("#history-list .history-empty-row")).not.toBeNull();
     expect(document.querySelector("#history-list .history-pager")).toBeNull();
+    expect(document.querySelector<HTMLElement>("#history-count")?.hidden).toBe(true);
     expect(document.querySelector("#history-list .history-empty-title")?.textContent).toContain(
       "No downloads saved yet",
     );
@@ -258,6 +259,7 @@ describe("history filter controls", () => {
     search.value = "missing";
     search.dispatchEvent(new Event("input"));
     expect(document.querySelector("#history-count")?.textContent).toBe("0 of 1 results");
+    expect(document.querySelector<HTMLElement>("#history-count")?.hidden).toBe(false);
     expect(document.querySelector(".history-empty-row")?.textContent).toContain(
       "No history matches",
     );

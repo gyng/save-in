@@ -52,6 +52,7 @@
 
 .button-danger:disabled,
 .danger-button:disabled {
+  color: var(--disabled-control-color);
   border-color: var(--panel-border);
   background: var(--panel-bg);
 }

@@ -174,8 +174,12 @@ export const renderHistoryTable = (): void => {
   updateHistoryFilterUi();
   updateHistoryActionAvailability(total > 0);
 
-  const countEl = document.querySelector("#history-count");
-  if (countEl) renderCount(countEl, matchCount, total);
+  const countEl = document.querySelector<HTMLElement>("#history-count");
+  if (countEl) {
+    renderCount(countEl, matchCount, total);
+    // "0 results" says nothing before the first save; the empty row does.
+    countEl.hidden = total === 0;
+  }
 
   container.textContent = "";
 
