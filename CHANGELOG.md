@@ -76,6 +76,12 @@
   under the pointer, or else the page, exactly as choosing that menu item
   would. They have no default keys; assign them in the browser's extension
   shortcut settings.
+- **Remember private browsing activity** now also lets approved extensions
+  act in private windows: a `DOWNLOAD` with `target: "activeTab"` saves from a
+  private active tab, a request sent without a tab is attributed to the
+  focused private tab, and `OPEN_PICKER` opens the folder picker there. With
+  the option off, approved extensions still cannot reach private tabs.
+  Webhooks and browser credentials stay off in private windows either way.
 - With browser-download History on, a page-built `data:` download now stores a
   shortened URL instead of its whole payload, which could be megabytes. Like
   automatic `data:` saves, such rows can no longer be moved from History.
@@ -165,7 +171,8 @@
   page changes or the panel closes. A batch save stops when the panel closes.
 - After Chrome updates, disables, or removes Save In, a page that is still
   open stops intercepting click-to-save gestures.
-- Private browsing: external downloads never target a private tab, Chrome's
+- Private browsing: external downloads never target a private tab unless
+  **Remember private browsing activity** is on, Chrome's
   private Last used is disabled when private browsing ends and survives menu
   rebuilds, and restart recovery adopts only downloads it can attribute.
 - The failure Save As prompt now follows Chrome routing and stays out of

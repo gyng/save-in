@@ -11,6 +11,17 @@ describe("extension fetch credentials", () => {
     options.includeFetchCredentials = true;
     expect(getExtensionFetchCredentials()).toBe("include");
   });
+
+  test("never sends browser credentials from a private window, even when it is remembered", () => {
+    options.includeFetchCredentials = true;
+    options.persistPrivateActivity = true;
+    try {
+      expect(getExtensionFetchCredentials(true)).toBe("omit");
+    } finally {
+      options.persistPrivateActivity = false;
+      options.includeFetchCredentials = false;
+    }
+  });
 });
 
 describe("direct Firefox download context", () => {

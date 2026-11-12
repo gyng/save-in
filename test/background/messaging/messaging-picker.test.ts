@@ -370,6 +370,45 @@ describe("external OPEN_PICKER", () => {
     expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
   });
 
+  describe("with Remember private browsing activity on", () => {
+    beforeEach(() => {
+      options.persistPrivateActivity = true;
+    });
+    afterEach(() => {
+      options.persistPrivateActivity = false;
+    });
+
+    test("opens in a private active tab", async () => {
+      vi.mocked(global.browser.tabs.query).mockResolvedValue([
+        { ...pageTab, incognito: true },
+      ] as never);
+
+      expect((await openPicker({ url: "https://example.com/a.png" })).body.status).toBe(
+        MESSAGE_TYPES.OK,
+      );
+      expect(openRequests()).toHaveLength(1);
+    });
+
+    test("opens in the private tab the request came from", async () => {
+      const response = await openPicker(
+        { url: "https://example.com/a.png" },
+        { ...allowed, tab: { ...pageTab, incognito: true } },
+      );
+
+      expect(response.body.status).toBe(MESSAGE_TYPES.OK);
+    });
+
+    test("still refuses a tabless blob URL", async () => {
+      vi.mocked(global.browser.tabs.query).mockResolvedValue([
+        { ...pageTab, incognito: true },
+      ] as never);
+
+      expect(await openPicker({ url: "blob:https://example.com/1" })).toEqual(
+        failure("INVALID_URL"),
+      );
+    });
+  });
+
   test("treats a failed tab lookup as no tab", async () => {
     vi.mocked(global.browser.tabs.query).mockRejectedValue(new Error("no window"));
 

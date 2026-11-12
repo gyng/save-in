@@ -19,7 +19,7 @@ Use these principals and boundaries:
 | --- | --- | --- |
 | Web page | DOM data, URLs, response metadata, filenames, and synthetic events | A page must not turn content-script access into a privileged action without the configured real gesture or rule |
 | Unapproved extension | External messages and resource use | Another installed extension already has meaningful local authority; rate its behavior by what Save In newly enables |
-| Approved integration | Requested downloads and supplied metadata | Approval is capability-specific, not blanket access to private tabs or configuration |
+| Approved integration | Requested downloads and supplied metadata | Approval is capability-specific, not blanket access to configuration; private tabs only under **Remember private browsing activity** |
 | WebMCP agent | Tool inputs, prompt-injected instructions, and returned data | Deliberate full access is an accepted trust decision when accurately disclosed, not automatically a vulnerability |
 | Remote origin | Bodies, redirects, latency, size, and server filenames | Distinguish intended download traffic from credential, private-data, or local-network amplification |
 | Local profile or OS observer | Extension storage, browser downloads, clipboard, and notifications | A profile compromise is normally out of scope, but OS surfaces can violate a stated private-browsing promise |
@@ -93,6 +93,10 @@ cover runtime dependencies, remote code, build provenance, and release contents.
   downloads for an external caller.
 - Treat approval as a named capability. Ask whether active-tab lookup, private
   context, history, configuration, or response data exceed the visible grant.
+- An approved extension reaches private tabs (`DOWNLOAD` `activeTab`, tabless
+  attribution, `OPEN_PICKER`) only while **Remember private browsing activity**
+  is on. That opt-in never enables webhooks, credentialed private fetches, or a
+  tabless `blob:` URL, and it loosens no boundary a page can reach.
 - Rate-limit only where Save In adds meaningful amplification. An unapproved
   installed extension causing minor local notification churn is hardening work,
   not equivalent to a web-origin remote attack.

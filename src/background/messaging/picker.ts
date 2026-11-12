@@ -1,6 +1,6 @@
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { currentTab, type CurrentTab } from "../../platform/current-tab.ts";
-import { options } from "../../config/options-data.ts";
+import { allowsExternalPrivateTabs, options } from "../../config/options-data.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
 import { parsePickerSource, type PickerSource } from "../../shared/destination-picker.ts";
 import type { MessageOf } from "../../shared/message-protocol.ts";
@@ -105,10 +105,15 @@ export const handleOpenPickerMessage = async (
       await webExtensionApi.tabs.query({ active: true, lastFocusedWindow: true }).catch(() => [])
     )[0];
   const tabUrl = tab?.url;
-  // Allowing an integration grants no private-tab access. A private tab
+  // Allowing an integration grants no private-tab access unless the user also
+  // chose to remember private browsing activity. Otherwise a private tab
   // answers exactly like a missing one, so the caller learns neither its
   // address nor that a private window has focus.
-  if (!tab || tabUrl == null || (external && tab.incognito === true)) {
+  if (
+    !tab ||
+    tabUrl == null ||
+    (external && tab.incognito === true && !allowsExternalPrivateTabs())
+  ) {
     fail(API_ERRORS.BAD_REQUEST, "No tab that can show the picker was found");
     return;
   }

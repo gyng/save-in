@@ -965,7 +965,7 @@
     "message": "Navigation privée"
   },
   "persistPrivateActivityHelp": {
-    "message": "Ajoute les enregistrements privés à « Dernier emplacement », aux emplacements récents, à l’historique, au compteur, aux diagnostics et à la récupération après redémarrage. Ces données peuvent rester visibles après la fermeture de la navigation privée. Désactiver cette option arrête les nouveaux enregistrements sans supprimer ceux qui existent déjà. Les webhooks et les identifiants de connexion du navigateur restent désactivés dans les fenêtres privées."
+    "message": "Ajoute les enregistrements privés à « Dernier emplacement », aux emplacements récents, à l’historique, au compteur, aux diagnostics et à la récupération après redémarrage. Ces données peuvent rester visibles après la fermeture de la navigation privée. Désactiver cette option arrête les nouveaux enregistrements sans supprimer ceux qui existent déjà. Les extensions approuvées peuvent aussi enregistrer depuis les fenêtres privées et y ouvrir le sélecteur de dossiers. Les webhooks et les identifiants de connexion du navigateur restent désactivés dans les fenêtres privées."
   },
   "o_cSaveLinks": {
     "message": "Afficher les actions pour les liens"

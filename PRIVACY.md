@@ -25,8 +25,10 @@ off. When enabled, private saves can enter Save In's normal local Last used,
 Recent locations, History, counter, diagnostic, and restart-recovery state.
 Those records follow each data type's normal retention and can remain visible
 after private browsing closes. Turning the option off stops new private records
-but does not remove records already kept. It does not enable webhooks,
-credentialed private requests, or external access to private tabs.
+but does not remove records already kept. It also lets extensions you approved
+under **External integrations** save from private windows and open the folder
+picker there, as they can in regular windows. It does not enable webhooks or
+credentialed private requests.
 
 ## How does Save In use the information?
 

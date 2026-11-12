@@ -256,6 +256,92 @@ describe("external DOWNLOAD API v1", () => {
     });
   });
 
+  // "Remember private browsing activity" also lets an extension the user
+  // allowlisted act in private windows; with it off, the refusals above hold.
+  describe("private tabs with Remember private browsing activity on", () => {
+    const privateTab = {
+      id: 5,
+      title: "Private",
+      url: "https://private.example/",
+      incognito: true,
+    };
+    beforeEach(() => {
+      options.persistPrivateActivity = true;
+    });
+    afterEach(() => {
+      options.persistPrivateActivity = false;
+    });
+
+    test("saves from a private active tab", async () => {
+      vi.mocked(global.browser.tabs.query).mockResolvedValueOnce([privateTab] as any);
+      const sendResponse = vi.fn();
+
+      onMessageExternal(
+        download({ target: "activeTab" }),
+        { id: "trusted-extension" },
+        sendResponse,
+      );
+      await waitForCall(sendResponse);
+
+      const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
+      expect(state.info.url).toBe("https://private.example/");
+      expect(state.info.currentTab).toBe(privateTab);
+      expect(sendResponse).toHaveBeenCalledWith({
+        type: MESSAGE_TYPES.DOWNLOAD,
+        body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://private.example/" },
+      });
+    });
+
+    test("attributes a tabless request to the tracked private tab", async () => {
+      setCurrentTab(privateTab);
+      const sendResponse = vi.fn();
+
+      onMessageExternal(
+        download({ url: "https://x/f.png" }),
+        { id: "trusted-extension" },
+        sendResponse,
+      );
+      await waitForCall(sendResponse);
+
+      expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.currentTab).toBe(
+        privateTab,
+      );
+    });
+
+    test("still refuses a blob URL that is not tied to the caller's tab", async () => {
+      setCurrentTab(privateTab);
+      const sendResponse = vi.fn();
+
+      onMessageExternal(
+        download({ url: "blob:https://private.example/0b8c" }),
+        { id: "trusted-extension" },
+        sendResponse,
+      );
+      await waitForCall(sendResponse);
+
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+      expect(sendResponse).toHaveBeenCalledWith(
+        expect.objectContaining({ body: expect.objectContaining({ error: "INVALID_URL" }) }),
+      );
+    });
+
+    test("does not make the save eligible for webhooks", async () => {
+      vi.mocked(global.browser.tabs.query).mockResolvedValueOnce([privateTab] as any);
+      const sendResponse = vi.fn();
+
+      onMessageExternal(
+        download({ target: "activeTab" }),
+        { id: "trusted-extension" },
+        sendResponse,
+      );
+      await waitForCall(sendResponse);
+
+      expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.webhookEligible).toBe(
+        false,
+      );
+    });
+  });
+
   test("matches external extension ids as trimmed, exact allowlist lines", async () => {
     options.externalDownloadAllowlist = "other-extension\n  trusted-extension  \n";
     const sendResponse = vi.fn();

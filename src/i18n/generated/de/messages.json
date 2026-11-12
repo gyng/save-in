@@ -953,7 +953,7 @@
     "message": "Privates Surfen"
   },
   "persistPrivateActivityHelp": {
-    "message": "Fügt private Speicherungen zu „Zuletzt verwendet“, den zuletzt verwendeten Speicherorten, dem Verlauf, dem Zähler, der Diagnose und der Wiederherstellung nach einem Neustart hinzu. Diese Daten können nach dem Ende des privaten Surfens sichtbar bleiben. Wenn Sie dies deaktivieren, werden keine neuen Einträge mehr gespeichert, vorhandene jedoch nicht entfernt. Webhooks und Browser-Anmeldedaten bleiben in privaten Fenstern deaktiviert."
+    "message": "Fügt private Speicherungen zu „Zuletzt verwendet“, den zuletzt verwendeten Speicherorten, dem Verlauf, dem Zähler, der Diagnose und der Wiederherstellung nach einem Neustart hinzu. Diese Daten können nach dem Ende des privaten Surfens sichtbar bleiben. Wenn Sie dies deaktivieren, werden keine neuen Einträge mehr gespeichert, vorhandene jedoch nicht entfernt. Zugelassene Erweiterungen können außerdem aus privaten Fenstern speichern und dort die Ordnerauswahl öffnen. Webhooks und Browser-Anmeldedaten bleiben in privaten Fenstern deaktiviert."
   },
   "o_cSaveLinks": {
     "message": "Aktionen für Links anzeigen"

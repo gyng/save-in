@@ -9,7 +9,7 @@ import { ROUTING_ACTION_VALUES } from "../../routing/action-values.ts";
 import { isRoutingAccepted } from "../../downloads/download-pipeline-state.ts";
 import { Path } from "../../routing/path.ts";
 import { OptionsManagement } from "../../config/option.ts";
-import { options } from "../../config/options-data.ts";
+import { allowsExternalPrivateTabs, options } from "../../config/options-data.ts";
 import { buildTree } from "../../menus/menu-tree.ts";
 import { resolveDefaultDestination } from "../../menus/quick-save-target.ts";
 import { matcherFunctions, parseRulesCollecting, traceRules } from "../../routing/router.ts";
@@ -478,14 +478,17 @@ export const handleDownloadMessage = (
       type: MESSAGE_TYPES.DOWNLOAD,
       body: { status: MESSAGE_TYPES.ERROR, error, message, version },
     });
-  // Allowing an integration grants downloads, not private-tab access: an
+  // Allowing an integration grants downloads, not private-tab access, unless
+  // the user also chose to remember private browsing activity: otherwise an
   // external caller never borrows a private tab it did not send from — no
   // address, title, or id reaches its save. The save is still private, though:
   // a gesture made while a private window has focus must stay out of History,
   // diagnostics, and the regular download list, as it did before the tab's
   // details were withheld. Only the private marker is kept.
   const ambientTab = (): CurrentTab | null =>
-    external && currentTab?.incognito === true ? { incognito: true } : currentTab;
+    external && currentTab?.incognito === true && !allowsExternalPrivateTabs()
+      ? { incognito: true }
+      : currentTab;
   const launch = (
     url: string,
     selectedTab?: CurrentTab,
@@ -654,9 +657,14 @@ export const handleDownloadMessage = (
     .query({ active: true, lastFocusedWindow: true })
     .then((tabs) => {
       const tab = tabs[0];
-      // A private active tab answers exactly like a missing one, so the caller
-      // learns neither its URL nor that a private window has focus.
-      if (!tab || !tab.url || (external && tab.incognito === true)) {
+      // Unless private activity is remembered, a private active tab answers
+      // exactly like a missing one, so the caller learns neither its URL nor
+      // that a private window has focus.
+      if (
+        !tab ||
+        !tab.url ||
+        (external && tab.incognito === true && !allowsExternalPrivateTabs())
+      ) {
         fail(API_ERRORS.BAD_REQUEST, "No active tab with a URL was found");
         return;
       }

@@ -953,7 +953,7 @@
     "message": "Navegação privativa"
   },
   "persistPrivateActivityHelp": {
-    "message": "Adiciona salvamentos privativos a Último local, Locais recentes, Histórico, contador, diagnósticos e recuperação após reinicialização. Esses dados podem continuar visíveis depois que a navegação privativa for encerrada. Desativar esta opção interrompe novos registros, mas não remove os existentes. Webhooks e credenciais do navegador permanecem desativados em janelas privativas."
+    "message": "Adiciona salvamentos privativos a Último local, Locais recentes, Histórico, contador, diagnósticos e recuperação após reinicialização. Esses dados podem continuar visíveis depois que a navegação privativa for encerrada. Desativar esta opção interrompe novos registros, mas não remove os existentes. Extensões aprovadas também podem salvar a partir de janelas privativas e abrir nelas o seletor de pastas. Webhooks e credenciais do navegador permanecem desativados em janelas privativas."
   },
   "o_cSaveLinks": {
     "message": "Mostrar ações para links"

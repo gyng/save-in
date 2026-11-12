@@ -1458,8 +1458,8 @@
     "description": "Heading for private browsing behavior controls. Used in src/options/options.html."
   },
   "persistPrivateActivityHelp": {
-    "message": "Adds private saves to Last used, Recent locations, History, the counter, diagnostics, and restart recovery. This data can remain visible after private browsing closes. Turning this off stops new records but does not remove existing ones. Webhooks and browser credentials stay off in private windows.",
-    "description": "Privacy disclosure beneath the private activity persistence option. Used in src/options/options.html."
+    "message": "Adds private saves to Last used, Recent locations, History, the counter, diagnostics, and restart recovery. This data can remain visible after private browsing closes. Turning this off stops new records but does not remove existing ones. Approved extensions can also save from private windows and open the folder picker there. Webhooks and browser credentials stay off in private windows.",
+    "description": "Privacy disclosure beneath the private activity persistence option. The option also lets extensions the user approved under External integrations act in private windows (start saves and open the folder picker). Used in src/options/options.html."
   },
   "o_cSaveLinks": {
     "message": "Show actions for links",

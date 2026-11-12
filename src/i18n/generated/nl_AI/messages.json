@@ -953,7 +953,7 @@
     "message": "Privénavigatie"
   },
   "persistPrivateActivityHelp": {
-    "message": "Voegt privé-opslagacties toe aan Laatst gebruikt, Recente locaties, Geschiedenis, de teller, diagnostiek en herstel na opnieuw opstarten. Deze gegevens kunnen zichtbaar blijven nadat privénavigatie is gesloten. Als u dit uitschakelt, worden geen nieuwe gegevens meer vastgelegd, maar bestaande gegevens worden niet verwijderd. Webhooks en browseraanmeldgegevens blijven uitgeschakeld in privévensters."
+    "message": "Voegt privé-opslagacties toe aan Laatst gebruikt, Recente locaties, Geschiedenis, de teller, diagnostiek en herstel na opnieuw opstarten. Deze gegevens kunnen zichtbaar blijven nadat privénavigatie is gesloten. Als u dit uitschakelt, worden geen nieuwe gegevens meer vastgelegd, maar bestaande gegevens worden niet verwijderd. Goedgekeurde extensies kunnen ook vanuit privévensters opslaan en daar de mapkiezer openen. Webhooks en browseraanmeldgegevens blijven uitgeschakeld in privévensters."
   },
   "o_cSaveLinks": {
     "message": "Toon acties voor links"

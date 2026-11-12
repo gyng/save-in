@@ -154,8 +154,10 @@ used state is the narrow data-bearing exception: it uses storage.session only,
 stays separate from the regular destination, and is cleared when private
 browsing ends. The explicit,
 off-by-default **Remember private browsing activity** option admits private
-saves to normal local activity storage without enabling webhooks, credentialed
-private fetches, or external private-tab access. Add a background module by
+saves to normal local activity storage and also grants allowlisted extensions
+external private-tab access (`DOWNLOAD` `activeTab`, tabless attribution, and
+`OPEN_PICKER`), without enabling webhooks, credentialed private fetches, or
+any hostile-page authority. Add a background module by
 importing it from the relevant entry
 — there is no hand-maintained file list to keep in sync anymore.
 

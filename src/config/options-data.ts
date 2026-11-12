@@ -13,6 +13,11 @@ export const options: SaveInOptions = defaultOptions();
 export const shouldPersistActivity = (privateContext: boolean): boolean =>
   !privateContext || options.persistPrivateActivity;
 
+// The same opt-in lets an extension the user allowlisted act in private
+// windows. It loosens nothing a page can reach, and it never enables webhooks,
+// browser credentials, or anything else that sends private data off the device.
+export const allowsExternalPrivateTabs = (): boolean => options.persistPrivateActivity === true;
+
 export const replaceOptions = (next: SaveInOptions): void => {
   Object.keys(options).forEach((key) => Reflect.deleteProperty(options, key));
   Object.assign(options, next);

@@ -2780,6 +2780,8 @@ describe("private browsing persistence", () => {
       info: {
         currentTab: { incognito: true, title: "Private gallery" },
         pageUrl: "https://private.example/gallery/",
+        // Remembering private activity never turns webhooks on for it.
+        webhookEligible: true,
       },
     });
 

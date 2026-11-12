@@ -953,7 +953,7 @@
     "message": "Navegación privada"
   },
   "persistPrivateActivityHelp": {
-    "message": "Añade los guardados privados a Última ubicación, Ubicaciones recientes, Historial, el contador, los diagnósticos y la recuperación tras reiniciar. Estos datos pueden seguir visibles después de cerrar la navegación privada. Desactivar esta opción impide crear registros nuevos, pero no elimina los existentes. Los webhooks y las credenciales del navegador permanecen desactivados en las ventanas privadas."
+    "message": "Añade los guardados privados a Última ubicación, Ubicaciones recientes, Historial, el contador, los diagnósticos y la recuperación tras reiniciar. Estos datos pueden seguir visibles después de cerrar la navegación privada. Desactivar esta opción impide crear registros nuevos, pero no elimina los existentes. Las extensiones aprobadas también pueden guardar desde las ventanas privadas y abrir allí el selector de carpetas. Los webhooks y las credenciales del navegador permanecen desactivados en las ventanas privadas."
   },
   "o_cSaveLinks": {
     "message": "Mostrar acciones para enlaces"

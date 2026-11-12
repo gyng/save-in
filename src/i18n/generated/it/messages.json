@@ -834,7 +834,7 @@
     "message": "Navigazione privata"
   },
   "persistPrivateActivityHelp": {
-    "message": "Aggiunge i salvataggi privati a Ultima destinazione usata, Posizioni recenti, Cronologia, contatore, diagnostica e ripristino dopo il riavvio. Questi dati possono rimanere visibili dopo la chiusura della navigazione privata. La disattivazione interrompe la creazione di nuovi record ma non elimina quelli esistenti. I webhook e le credenziali del browser rimangono disattivati nelle finestre private."
+    "message": "Aggiunge i salvataggi privati a Ultima destinazione usata, Posizioni recenti, Cronologia, contatore, diagnostica e ripristino dopo il riavvio. Questi dati possono rimanere visibili dopo la chiusura della navigazione privata. La disattivazione interrompe la creazione di nuovi record ma non elimina quelli esistenti. Le estensioni approvate possono anche salvare dalle finestre private e aprirvi il selettore di cartelle. I webhook e le credenziali del browser rimangono disattivati nelle finestre private."
   },
   "o_cSaveLinks": {
     "message": "Mostra azioni per i collegamenti"

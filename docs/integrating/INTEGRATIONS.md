@@ -77,9 +77,9 @@ const response = await browser.runtime.sendMessage(SAVE_IN_ID, {
 });
 ```
 
-An explicit `url` takes precedence if both fields are present. For `target: "activeTab"`, Save In prefers the originating tab when the message came from a tab; otherwise it queries the active tab in the last-focused browser window. A private active tab is never resolved: the request fails with the same `BAD_REQUEST` as a missing active tab, so the response reveals neither the private URL nor that a private window has focus. Check for the `active_tab` capability returned by `PING` before using this target.
+An explicit `url` takes precedence if both fields are present. For `target: "activeTab"`, Save In prefers the originating tab when the message came from a tab; otherwise it queries the active tab in the last-focused browser window. A private active tab is resolved only when **Remember private browsing activity** is on in Save In; otherwise the request fails with the same `BAD_REQUEST` as a missing active tab, so the response reveals neither the private URL nor that a private window has focus. Check for the `active_tab` capability returned by `PING` before using this target.
 
-Accepted URL schemes are `http`, `https`, `ftp`, `data`, and `blob`. A `blob` URL is accepted only from a message sent by a tab, or as the page of a resolved `activeTab`; a background-context caller's `blob` URL fails with `INVALID_URL`. An explicit-URL request sent without a tab never receives a private tab's address, title, or id, even when one was last focused; while a private window has focus, such a save is treated as private, so it stays out of Save In History and diagnostics. The `url` echoed in the response is the WHATWG-canonical form of the requested URL, which may differ from the caller's spelling — correlate requests yourself rather than string-comparing the echo. A successful response acknowledges a well-formed request from an authorized caller, not a completed — or even started — save: routing may still exclude the item or skip it as unmatched, and download failures surface asynchronously in History/notifications.
+Accepted URL schemes are `http`, `https`, `ftp`, `data`, and `blob`. A `blob` URL is accepted only from a message sent by a tab, or as the page of a resolved `activeTab`; a background-context caller's `blob` URL fails with `INVALID_URL`. While a private window has focus, an explicit-URL request sent without a tab is treated as a private save. Unless **Remember private browsing activity** is on, it never receives that private tab's address, title, or id, and it stays out of Save In History and diagnostics; with the option on, it is attributed to the focused private tab like a regular one and kept like any other remembered private save. Webhooks and browser credentials stay off for private saves either way. The `url` echoed in the response is the WHATWG-canonical form of the requested URL, which may differ from the caller's spelling — correlate requests yourself rather than string-comparing the echo. A successful response acknowledges a well-formed request from an authorized caller, not a completed — or even started — save: routing may still exclude the item or skip it as unmatched, and download failures surface asynchronously in History/notifications.
 
 `linkText`, `linkTitle`, and `linkDownload` are independent optional routing
 inputs. The latter two correspond to an HTML anchor's `title` and `download`
@@ -143,10 +143,12 @@ await browser.runtime.sendMessage(SAVE_IN_ID, {
 - `OPEN_PICKER` needs the same approval as `DOWNLOAD`: an extension that is not
   on the allowlist receives `UNAUTHORIZED` and appears under **Pending
   approval**.
-- It never opens in a private tab for an external caller, whether that tab is
-  the active one or the one the message came from. Both fail with the same
-  `BAD_REQUEST` as a missing tab, so the response reveals neither a private
-  address nor that a private window has focus.
+- Unless **Remember private browsing activity** is on, it never opens in a
+  private tab for an external caller, whether that tab is the active one or
+  the one the message came from. Both fail with the same `BAD_REQUEST` as a
+  missing tab, so the response reveals neither a private address nor that a
+  private window has focus. With the option on, it opens there as in a
+  regular tab.
 - URL rules match `DOWNLOAD`: `http`, `https`, `ftp`, `data`, and `blob`, with
   `blob` accepted only from a message sent by a tab. An address longer than
   2,097,152 characters fails with `INVALID_URL`.

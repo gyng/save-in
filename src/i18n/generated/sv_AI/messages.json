@@ -953,7 +953,7 @@
     "message": "Privat surfning"
   },
   "persistPrivateActivityHelp": {
-    "message": "Lägger till privata sparningar i Senast använd, Senaste platser, Historik, räknaren, diagnostik och återställning efter omstart. Dessa data kan förbli synliga efter att privat surfning har avslutats. Om du stänger av detta stoppas nya poster, men befintliga tas inte bort. Webhooks och inloggningsuppgifter från webbläsaren förblir avstängda i privata fönster."
+    "message": "Lägger till privata sparningar i Senast använd, Senaste platser, Historik, räknaren, diagnostik och återställning efter omstart. Dessa data kan förbli synliga efter att privat surfning har avslutats. Om du stänger av detta stoppas nya poster, men befintliga tas inte bort. Godkända tillägg kan också spara från privata fönster och öppna mappväljaren där. Webhooks och inloggningsuppgifter från webbläsaren förblir avstängda i privata fönster."
   },
   "o_cSaveLinks": {
     "message": "Visa åtgärder för länkar"
