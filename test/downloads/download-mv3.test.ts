@@ -1378,7 +1378,12 @@ describe("onDeterminingFilename listener (Chrome)", () => {
 
     test("a name Save In passed to the browser itself is not treated as the server's", async () => {
       const state = pending(
-        { context: "MEDIA", mediaType: "image", filename: "kept.exe" },
+        {
+          context: "MEDIA",
+          mediaType: "image",
+          filename: "kept.exe",
+          resolvedFilename: "kept.exe",
+        },
         { browserFilenameResolution: false },
       );
 
@@ -1410,6 +1415,42 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       );
       expect(refusals()).toHaveLength(1);
     });
+  });
+
+  // Measured on Chrome 150 with a Referer-protected pixiv image: the fetched
+  // blob: copy reached onDeterminingFilename named after the blob's UUID, and a
+  // :filename: route saved it as "<hash>-<uuid>.jpeg".
+  test("a fetched blob copy keeps its own name, not the blob's address", async () => {
+    const { Path } = await import("../../src/routing/path.ts");
+    freshOptions.filenamePatterns = [[{ name: "sourcedomain", value: "x" }]] as any;
+    const blobUrl =
+      "blob:chrome-extension://self-extension-id/39d6bba3-406d-434f-99ef-e06d4e99fa63";
+    const state: DownloadPipelineState = {
+      path: new Path("downloads"),
+      route: new Path("pixiv/151846258_p0.jpg"),
+      scratch: { browserFilenameResolution: false, routeTemplateRaw: "pixiv/:filename:" },
+      info: {
+        url: "https://i.pximg.net/151846258_p0.jpg",
+        filename: "151846258_p0.jpg",
+        resolvedFilename: "151846258_p0.jpg",
+      },
+    };
+    freshDownload.downloadRuntime.launchPendingState(state, blobUrl);
+    const suggest = vi.fn();
+
+    listener(
+      {
+        byExtensionId: "self-extension-id",
+        filename: "39d6bba3-406d-434f-99ef-e06d4e99fa63.jpeg",
+        url: blobUrl,
+      },
+      suggest,
+    );
+
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalled());
+    expect(suggest.mock.calls[0]?.[0]?.filename).toBe("downloads/pixiv/151846258_p0.jpg");
+    expect(state.info.filename).toBe("151846258_p0.jpg");
+    expect(state.info.resolvedFilename).toBe("151846258_p0.jpg");
   });
 
   test("keeps the pending filename when Chrome supplies no replacement", () => {

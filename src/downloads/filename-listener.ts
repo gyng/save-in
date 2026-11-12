@@ -635,14 +635,23 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
 
     pendingState.info = pendingState.info || {};
     const previousFilename = pendingState.info.filename;
-    // Without browserFilenameResolution the name Chrome reports is the one
-    // Save In passed to downloads.download, not the server's.
+    // browserFilenameResolution false means Save In named the download itself.
+    // For a fetched blob: or data: copy Chrome still reports a name derived from
+    // that address (measured on Chrome 150: the blob's UUID), which says nothing
+    // about the file and would replace :filename: on re-expansion, so it is
+    // ignored and any name the fetch resolved is kept. Unset means a page-owned
+    // download, whose reported name is the server's.
+    const savedInNamedIt = pendingState.scratch?.browserFilenameResolution === false;
     const browserFilename = pendingState.scratch?.browserFilenameResolution
       ? browserFilenameFor(pendingState)
-      : downloadItem.filename;
-    pendingState.info.resolvedFilename = browserFilename
-      ? proposedFilename(browserFilename)
-      : undefined;
+      : savedInNamedIt
+        ? undefined
+        : downloadItem.filename;
+    if (!savedInNamedIt) {
+      pendingState.info.resolvedFilename = browserFilename
+        ? proposedFilename(browserFilename)
+        : undefined;
+    }
     pendingState.info.filename = pendingState.scratch?.browserFilenameResolution
       ? browserFilename || pendingState.info.suggestedFilename || pendingState.info.filename
       : pendingState.info.suggestedFilename || browserFilename || pendingState.info.filename;

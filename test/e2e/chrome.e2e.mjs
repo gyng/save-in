@@ -1621,6 +1621,74 @@ test("Referer-protected downloads use a scoped DNR offscreen fetch", async () =>
   }
 });
 
+// Measured with a pixiv image: Chrome names the fetched blob: copy after the
+// blob's UUID in onDeterminingFilename, and a :filename: route used to adopt it.
+test("a Referer-protected save routed by :filename: keeps the image's own name", async () => {
+  /** @type {string[]} */
+  const imageReferers = [];
+  const server = http.createServer((req, res) => {
+    if (req.url === "/artwork/67") {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end("<title>artwork 67</title><img src='/artwork-67_p0.webp'>");
+      return;
+    }
+    imageReferers.push(req.headers.referer || "");
+    if (!req.headers.referer?.endsWith("/artwork/67")) {
+      res.writeHead(403, { "Content-Type": "text/plain" });
+      res.end("missing referer");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "image/webp" });
+    res.end("referer routed image");
+  });
+  const port = await listenLocal(server);
+  const pageUrl = `http://127.0.0.1:${port}/artwork/67`;
+  const previous = {
+    setRefererHeader: await control.options.get("setRefererHeader"),
+    setRefererHeaderFilter: await control.options.get("setRefererHeaderFilter"),
+  };
+  const previousRules = await control.storage.local.get("filenamePatterns");
+  /** @type {number | undefined} */
+  let tabId;
+  try {
+    await control.options.set({
+      setRefererHeader: true,
+      // Only the image's own path: matching the page too would put the page
+      // load under the DNR rule's scope.
+      setRefererHeaderFilter: "*://127.0.0.1/artwork-67_p0.webp",
+      filenamePatterns: "fileext: webp\ninto: e2e/referer-routed/:filename:",
+    });
+    const created = await control.tabs.create({ url: pageUrl, active: true });
+    tabId = requireValue(created.id, "Referer-routed page tab has no ID");
+    const tab = await control.tabs.wait({ id: tabId, urlIncludes: "/artwork/67" });
+    await control.background.clickContextMenu({
+      info: {
+        menuItemId: "save-in-0",
+        srcUrl: `http://127.0.0.1:${port}/artwork-67_p0.webp`,
+        mediaType: "image",
+        pageUrl,
+      },
+      tab: { id: tabId, windowId: tab.windowId, title: tab.title, url: tab.url },
+    });
+    const rows = await waitForDownloads("artwork-67_p0");
+    const done = requireValue(
+      rows.find((row) => row.state === "complete"),
+      "Referer-routed Chrome download did not complete",
+    );
+    expect(imageReferers.some((referer) => referer === pageUrl)).toBe(true);
+    expect(done.filename).toContain(path.join("e2e", "referer-routed", "artwork-67_p0.webp"));
+  } finally {
+    if (tabId !== undefined) await control.tabs.remove(tabId).catch(() => {});
+    await control.options.set(previous);
+    if (Object.hasOwn(previousRules, "filenamePatterns")) {
+      await control.storage.local.set(previousRules);
+    } else {
+      await control.storage.local.remove("filenamePatterns");
+    }
+    await closeLocal(server);
+  }
+});
+
 test("distinct Referer-protected fetches overlap while keeping exact headers", async () => {
   /** @type {Array<{path: string, method: string, referer: string}>} */
   const requests = [];
