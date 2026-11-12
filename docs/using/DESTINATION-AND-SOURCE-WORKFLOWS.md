@@ -76,7 +76,7 @@ Shortcuts**, or in Chrome at `chrome://extensions/shortcuts`.
 | Save to the first folder in the menu  | What is under the pointer, else the page | Saves to the first folder you can pick            |
 | Save to the second folder in the menu | What is under the pointer, else the page | Saves to the second folder you can pick           |
 | Save to the third folder in the menu  | What is under the pointer, else the page | Saves to the third folder you can pick            |
-| Show the folder picker                | What is under the pointer, else the page | Opens the [destination picker](#destination-picker) |
+| Show the folder picker                | What is under the pointer, else the page | Opens the [folder picker](#folder-picker)          |
 
 The Last used and folder commands (#15) act as if you had opened the context
 menu on what the pointer is over and chosen that item: the same routing rules,
@@ -102,9 +102,11 @@ private-window handling apply. Keep these points in mind:
 - The quick save command keeps its own rules: it always saves the page and
   works only while **Show a quick save item** is on.
 
-## Destination picker
+<a id="destination-picker"></a>
 
-The destination picker is an optional list of your Save menu folders that
+## Folder picker
+
+The folder picker is an optional list of your Save menu folders that
 opens inside the page, at the pointer, so you can choose where one item goes
 without the browser context menu. It is off until you choose one of the ways to
 open it, and it never replaces or changes the context menu.
@@ -151,7 +153,7 @@ There are three ways to open it:
   shows your folders. If both are set to the same gesture, click-to-save keeps
   it and the options page says so.
 - **Another extension**, such as a mouse-gesture add-on you have approved. See
-  [Opening the destination picker](../integrating/INTEGRATIONS.md#opening-the-destination-picker).
+  [Opening the folder picker](../integrating/INTEGRATIONS.md#opening-the-folder-picker).
 
 Limits worth knowing:
 

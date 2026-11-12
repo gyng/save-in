@@ -259,7 +259,7 @@ block saving a rule.
   stops there; further candidates are left unsaved until earlier saves are more
   than ten minutes old, and the debug log records
   `automatic Page Sources: tab budget reached` once per ten minutes. Saves that
-  were skipped, declined, or failed do not count, nor do saves in another tab or
+  were skipped or declined, or that failed to start, do not count, nor do saves in another tab or
   on another site. In a private window the count is per tab only, so no site
   address is kept for it. The count is held for the browser session and is not
   a setting; raise **Maximum saves per page visit** if you page through more

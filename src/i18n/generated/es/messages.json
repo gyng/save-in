@@ -4433,7 +4433,7 @@
     "message": "Guardar siempre en el destino predeterminado"
   },
   "o_cClickToSaveUseDefaultHelp": {
-    "message": "De lo contrario, clic para guardar reutiliza la última carpeta que eligió en el menú."
+    "message": "De lo contrario, «Clic para guardar» reutiliza la última carpeta que eligió en el menú."
   },
   "historyMovePending": {
     "message": "Descargando en la nueva carpeta. El archivo original se eliminará cuando termine."
@@ -4671,7 +4671,7 @@
     "message": "Firefox muestra su diálogo Guardar como solo después de encontrar un archivo con ese nombre. Al guardar directamente en Descargas, conserva un nombre único y muestra un aviso si está activada la opción Notificar cuando falla una descarga."
   },
   "o_cDupeSkipHelp": {
-    "message": "Firefox inicia la descarga y la cancela en cuanto encuentra un archivo con ese nombre. El historial muestra Ya existe; solo recibes una notificación si Notificar cuando falla una descarga está activado."
+    "message": "Firefox inicia la descarga y la cancela en cuanto encuentra un archivo con ese nombre. El historial muestra «Ya existe»; solo recibe una notificación si «Notificar cuando falla una descarga» está activado."
   },
   "o_cSkipSavedSources": {
     "message": "Omitir direcciones ya guardadas:"
@@ -4686,7 +4686,7 @@
     "message": "Todos los guardados"
   },
   "o_cSkipSavedSourcesHelp": {
-    "message": "Save In no vuelve a descargar una dirección mientras el historial conserve un guardado completado de ella. No se omite nada cuando esa entrada ya no está: después de borrar el historial, cuando Conservar entradas completadas la elimina o mientras ese límite sea 0. Si mantiene pulsada la tecla Shift para abrir el diálogo Guardar como, o elige un destino que siempre lo abre, se guarda igualmente. Los guardados privados que el historial no recuerda nunca se omiten. Solo recibe una notificación si Notificar cuando falla una descarga está activado, y nunca en los guardados automáticos."
+    "message": "Save In no vuelve a descargar una dirección mientras el historial conserve un guardado completado de ella. Si borra el historial o pide el diálogo Guardar como, se vuelve a guardar."
   },
   "notificationSavedSourceSkippedTitle": {
     "message": "Ya guardado"
@@ -4743,7 +4743,7 @@
     "message": "Los clics breves funcionan con normalidad. Mantenga el puntero quieto hasta que se abra el selector de carpetas; moverlo cancela el gesto. El gesto requiere un ratón; la entrada táctil no lo activa."
   },
   "o_lPickerOtherWays": {
-    "message": "El selector de carpetas también se abre con el comando de teclado «Mostrar el selector de carpetas» y desde las extensiones aprobadas."
+    "message": "El selector de carpetas también se abre con el comando de teclado «Mostrar el selector de carpetas» y desde las extensiones aprobadas. El comando no tiene tecla hasta que le asigne una en la configuración de atajos de teclado de las extensiones del navegador."
   },
   "o_cClickToSavePickerHelp": {
     "message": "El gesto abre las carpetas de su Menú de guardado junto al puntero. Elija una para guardar en ella o pulse Esc para cancelar. El menú contextual del navegador no cambia."

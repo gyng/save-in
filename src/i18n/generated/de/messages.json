@@ -4433,7 +4433,7 @@
     "message": "Immer am Standardziel speichern"
   },
   "o_cClickToSaveUseDefaultHelp": {
-    "message": "Klick zum Speichern verwendet sonst den zuletzt im Menü gewählten Ordner erneut."
+    "message": "„Speichern per Klick“ verwendet sonst den zuletzt im Menü gewählten Ordner erneut."
   },
   "historyMovePending": {
     "message": "Download in den neuen Ordner läuft. Die Originaldatei wird nach Abschluss entfernt."
@@ -4671,7 +4671,7 @@
     "message": "Firefox zeigt seinen Dialog „Speichern unter“ erst, nachdem eine Datei mit diesem Namen gefunden wurde. Beim Speichern direkt in Downloads behält Firefox stattdessen einen eindeutigen Namen bei und zeigt einen Hinweis, wenn „Benachrichtigen, wenn ein Download fehlschlägt“ aktiviert ist."
   },
   "o_cDupeSkipHelp": {
-    "message": "Firefox startet das Speichern und bricht es ab, sobald eine Datei mit diesem Namen gefunden wird. Der Verlauf zeigt Bereits vorhanden; eine Benachrichtigung erhalten Sie nur, wenn Benachrichtigen, wenn ein Download fehlschlägt aktiviert ist."
+    "message": "Firefox startet das Speichern und bricht es ab, sobald eine Datei mit diesem Namen gefunden wird. Der Verlauf zeigt „Bereits vorhanden“; eine Benachrichtigung erhalten Sie nur, wenn „Benachrichtigen, wenn ein Download fehlschlägt“ aktiviert ist."
   },
   "o_cSkipSavedSources": {
     "message": "Bereits gespeicherte Adressen überspringen:"
@@ -4686,7 +4686,7 @@
     "message": "Alle Speichervorgänge"
   },
   "o_cSkipSavedSourcesHelp": {
-    "message": "Save In lädt eine Adresse nicht erneut herunter, solange der Verlauf einen abgeschlossenen Speichervorgang dafür enthält. Sobald dieser Eintrag fehlt, wird nichts übersprungen: nachdem der Verlauf gelöscht wurde, wenn „Abgeschlossene Einträge behalten“ ihn entfernt oder solange dieses Limit 0 ist. Wenn Sie Shift für den Dialog „Speichern unter“ gedrückt halten oder ein Ziel wählen, das ihn immer öffnet, wird trotzdem gespeichert. Private Speichervorgänge, die der Verlauf nicht speichert, werden nie übersprungen. Eine Benachrichtigung erhalten Sie nur, wenn „Benachrichtigen, wenn ein Download fehlschlägt“ aktiviert ist, und nie bei automatischen Speichervorgängen."
+    "message": "Save In lädt eine Adresse nicht erneut herunter, solange der Verlauf einen abgeschlossenen Speichervorgang dafür enthält. Nach dem Löschen des Verlaufs oder mit dem Dialog „Speichern unter“ wird sie wieder gespeichert."
   },
   "notificationSavedSourceSkippedTitle": {
     "message": "Bereits gespeichert"
@@ -4743,7 +4743,7 @@
     "message": "Kurze Klicks funktionieren wie gewohnt. Halten Sie die Maus ruhig, bis sich die Ordnerauswahl öffnet; eine Bewegung bricht die Geste ab. Die Geste erfordert eine Maus; Toucheingaben lösen sie nicht aus."
   },
   "o_lPickerOtherWays": {
-    "message": "Die Ordnerauswahl lässt sich auch mit dem Tastaturbefehl „Ordnerauswahl anzeigen“ und von zugelassenen Erweiterungen öffnen."
+    "message": "Die Ordnerauswahl lässt sich auch mit dem Tastaturbefehl „Ordnerauswahl anzeigen“ und von zugelassenen Erweiterungen öffnen. Der Befehl hat keine Taste, bis Sie in den Tastenkombinations-Einstellungen des Browsers für Erweiterungen eine festlegen."
   },
   "o_cClickToSavePickerHelp": {
     "message": "Die Geste öffnet die Ordner Ihres Speichermenüs am Mauszeiger. Wählen Sie einen Ordner, um dort zu speichern, oder drücken Sie Esc, um abzubrechen. Das Kontextmenü des Browsers bleibt unverändert."

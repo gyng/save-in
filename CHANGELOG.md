@@ -41,7 +41,7 @@
   exceed the limit (three times **Maximum saves per page visit** in ten
   minutes).
 
-- An optional in-page destination picker lists your Save menu folders at the
+- An optional in-page folder picker lists your Save menu folders at the
   pointer so you can choose where one item goes (#77, #21). It is off by
   default and does not replace the context menu. Open it with the new unbound
   **Show the folder picker** command, with its own click gesture under

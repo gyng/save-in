@@ -1,7 +1,7 @@
 # When a file already exists
 
-**Options › Save behavior › Existing files › When a file already exists**
-decides what happens when the destination folder already has a file with the
+**Options → Save menu → Save behavior → Existing files → When a file already
+exists** decides what happens when the destination folder already has a file with the
 name Save In chose.
 
 | Choice               | Firefox                                                      | Chrome                     |
@@ -57,8 +57,8 @@ original name.
 
 ## Skip addresses already saved
 
-**Options › Save behavior › Existing files › Skip addresses already saved** is
-a separate, opt-in check that works in both browsers. It does not look for a
+**Options → Save menu → Save behavior → Existing files → Skip addresses already
+saved** is a separate, opt-in check that works in both browsers. It does not look for a
 file. It asks Save In's own History whether a completed save of the same
 address is still recorded, and if so does not download that address again.
 

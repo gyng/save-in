@@ -5910,8 +5910,8 @@
     "description": "Checkbox label: send click-to-save to the default destination rather than the last folder saved to. Used in src/options/options.html."
   },
   "o_cClickToSaveUseDefaultHelp": {
-    "message": "Click to save otherwise reuses whichever folder you last picked from the menu.",
-    "description": "Help text explaining that click-to-save otherwise reuses whichever folder was last picked from the menu. Used in src/options/options.html."
+    "message": "Click-to-save otherwise reuses whichever folder you last picked from the menu.",
+    "description": "Help text under \"Always save to the default destination\" explaining that click-to-save otherwise reuses whichever folder was last picked from the menu. Click-to-save is the feature name; reuse its translation. Used in src/options/options.html."
   },
   "ruleClauseFlags": {
     "message": "This clause does not accept regular-expression flags",
@@ -5990,7 +5990,7 @@
     "description": "Help under the \"When a file already exists:\" select when Ask each time is chosen on Firefox. Saves directly in Downloads keep a unique name; subfolders use Save As. \"Notify when a download fails\" is the setting label; reuse its translation. Used in src/options/options.html."
   },
   "o_cDupeSkipHelp": {
-    "message": "Firefox starts the save and cancels it as soon as it finds a file with that name. History shows Already exists; you get a notification only if Notify when a download fails is on.",
+    "message": "Firefox starts the save and cancels it as soon as it finds a file with that name. History shows “Already exists”; you get a notification only if “Notify when a download fails” is on.",
     "description": "Help under the \"When a file already exists:\" select when Skip is chosen (Firefox only). \"Already exists\" is the History status label and \"Notify when a download fails\" is the setting label; reuse their translations. Used in src/options/options.html."
   },
   "o_cSkipSavedSources": {
@@ -6010,8 +6010,8 @@
     "description": "Choice in the \"Skip addresses already saved:\" select: menu, click-to-save, panel and automatic saves are all skipped. Used in src/options/options.html."
   },
   "o_cSkipSavedSourcesHelp": {
-    "message": "Save In does not download an address again while History holds a completed save of it. Nothing is skipped once that entry is gone: after History is cleared, when Keep completed entries removes it, or while that limit is 0. Holding Shift for the Save As dialog, or choosing a destination that always opens it, saves anyway. Private saves that History does not remember are never skipped. You get a notification only if Notify when a download fails is on, and never for automatic saves.",
-    "description": "Help under the \"Skip addresses already saved:\" select. History is Save In History, not browser history. \"Keep completed entries\" and \"Notify when a download fails\" are setting labels; reuse their translations. Shift is the keyboard key and stays untranslated. A \"destination that always opens it\" is a Save In menu folder marked to open the Save As dialog. Used in src/options/options.html."
+    "message": "Save In does not download an address again while History holds a completed save of it. Clearing History, or asking for the Save As dialog, saves it again.",
+    "description": "Help under the \"Skip addresses already saved:\" select. History is Save In History, not browser history. \"Asking for the Save As dialog\" covers holding Shift for it and choosing a destination that always opens it. Used in src/options/options.html."
   },
   "notificationSavedSourceSkippedTitle": {
     "message": "Already saved",
@@ -6084,8 +6084,8 @@
     "description": "Behavior guidance shown under the folder picker's gesture controls when its gesture is a long left click (press and hold). Reuse the wording of the matching click-to-save long-click help. Used in src/options/options.html."
   },
   "o_lPickerOtherWays": {
-    "message": "The folder picker also opens with the Show the folder picker keyboard command and from approved extensions.",
-    "description": "Help text under the folder picker's gesture controls listing the other ways to open the picker. \"Show the folder picker\" is the name of the browser keyboard command and \"approved extensions\" are the browser extensions allowed under External integrations; reuse their translations. Used in src/options/options.html."
+    "message": "The folder picker also opens with the “Show the folder picker” keyboard command and from approved extensions. The command has no key until you assign one in the browser's keyboard shortcut settings for extensions.",
+    "description": "Help text under the folder picker's gesture controls listing the other ways to open the picker, and saying where the command's key is set: the browser's own page for extension keyboard shortcuts, since the command has no default key. \"Show the folder picker\" is the name of the browser keyboard command and \"approved extensions\" are the browser extensions allowed under External integrations; reuse their translations. Used in src/options/options.html."
   },
   "o_cClickToSavePickerHelp": {
     "message": "The gesture opens your Save menu folders at the pointer. Choose one to save there, or press Esc to cancel. The browser context menu is not changed.",

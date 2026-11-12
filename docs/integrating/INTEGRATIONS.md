@@ -1,7 +1,7 @@
 # Save In integrations
 
 This document is the source-controlled contract for the shipped external
-Download API, the external request to open the in-page destination picker,
+Download API, the external request to open the in-page folder picker,
 externally available read-only configuration discovery and validation messages, same-extension configuration tools, and experimental
 WebMCP tools. The
 [Integrations wiki](https://github.com/gyng/save-in/wiki/Integrations) is the
@@ -90,7 +90,7 @@ accepted only from Save In's own content script, so a `pagetext:` rule never
 matches an external `DOWNLOAD` request; `VALIDATE` accepts an `info.pageText`
 string that stands in for every `pagetext:` selector in the trace.
 
-Download errors are `UNAUTHORIZED`, `BAD_REQUEST`, or `INVALID_URL`; unknown external message types return `UNKNOWN_TYPE`. `OPEN_PICKER` adds `UNAVAILABLE`, described [below](#opening-the-destination-picker). Treat `UNAUTHORIZED` as a request for user configuration, not as a transient error to retry repeatedly.
+Download errors are `UNAUTHORIZED`, `BAD_REQUEST`, or `INVALID_URL`; unknown external message types return `UNKNOWN_TYPE`. `OPEN_PICKER` adds `UNAVAILABLE`, described [below](#opening-the-folder-picker). Treat `UNAUTHORIZED` as a request for user configuration, not as a transient error to retry repeatedly.
 
 For a non-private `UNAUTHORIZED` request with a browser-authenticated caller ID, Save In shows a native notification. Clicking it opens Options. **Advanced → External integrations → Pending approval** lists up to 20 rejected caller IDs with their attempt count, request kind, and last-seen time; selecting **Approve** appends that exact ID to the approved list and clears the rejection. Save In does not retain the rejected URL. Private-window rejections are neither recorded nor notified.
 
@@ -98,9 +98,11 @@ The browser may deliver external messages from any installed extension, but Save
 
 There is no `externally_connectable` declaration, so web pages cannot call Save In directly. A userscript needs a narrowly scoped companion extension or another explicit relay; do not expose a general page-to-extension forwarding bridge.
 
-## Opening the destination picker
+<a id="opening-the-destination-picker"></a>
 
-`OPEN_PICKER` asks Save In to show its in-page destination picker instead of
+## Opening the folder picker
+
+`OPEN_PICKER` asks Save In to show its in-page folder picker instead of
 saving at once: a small list of the user's Save menu folders, drawn over the
 page, from which the user picks where the item goes. It suits a gesture or
 keyboard extension whose user wants to choose a folder each time. Nothing is

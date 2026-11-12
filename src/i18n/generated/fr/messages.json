@@ -4433,7 +4433,7 @@
     "message": "Toujours enregistrer vers la destination par défaut"
   },
   "o_cClickToSaveUseDefaultHelp": {
-    "message": "Sinon, le clic pour enregistrer réutilise le dernier dossier choisi dans le menu."
+    "message": "Sinon, « Enregistrement au clic » réutilise le dernier dossier choisi dans le menu."
   },
   "historyMovePending": {
     "message": "Téléchargement vers le nouveau dossier en cours. Le fichier d’origine sera supprimé à la fin."
@@ -4671,7 +4671,7 @@
     "message": "Firefox n’affiche sa boîte de dialogue Enregistrer sous qu’après avoir trouvé un fichier portant ce nom. Pour les enregistrements directement dans Téléchargements, il conserve un nom unique et affiche un avis si l’option Avertir lorsqu’un téléchargement échoue est activée."
   },
   "o_cDupeSkipHelp": {
-    "message": "Firefox démarre l’enregistrement et l’annule dès qu’il trouve un fichier portant ce nom. L’historique indique Existe déjà ; vous ne recevez une notification que si Avertir lorsqu’un téléchargement échoue est activé."
+    "message": "Firefox démarre l’enregistrement et l’annule dès qu’il trouve un fichier portant ce nom. L’historique indique « Existe déjà » ; vous ne recevez une notification que si « Avertir lorsqu’un téléchargement échoue » est activé."
   },
   "o_cSkipSavedSources": {
     "message": "Ignorer les adresses déjà enregistrées :"
@@ -4686,7 +4686,7 @@
     "message": "Tous les enregistrements"
   },
   "o_cSkipSavedSourcesHelp": {
-    "message": "Save In ne télécharge pas de nouveau une adresse tant que l’historique en conserve un enregistrement terminé. Rien n’est ignoré une fois cette entrée disparue : après l’effacement de l’historique, lorsque Conserver les entrées terminées la supprime, ou tant que cette limite vaut 0. Si vous maintenez Shift pour ouvrir la boîte de dialogue Enregistrer sous, ou si vous choisissez une destination qui l’ouvre toujours, l’enregistrement a lieu malgré tout. Les enregistrements privés que l’historique ne mémorise pas ne sont jamais ignorés. Vous ne recevez une notification que si Avertir lorsqu’un téléchargement échoue est activé, et jamais pour les enregistrements automatiques."
+    "message": "Save In ne télécharge pas de nouveau une adresse tant que l’historique en conserve un enregistrement terminé. Effacer l’historique ou demander la boîte de dialogue Enregistrer sous permet de l’enregistrer à nouveau."
   },
   "notificationSavedSourceSkippedTitle": {
     "message": "Déjà enregistré"
@@ -4743,7 +4743,7 @@
     "message": "Les clics brefs restent normaux. Gardez le pointeur immobile jusqu’à l’ouverture du sélecteur de dossiers ; tout mouvement annule le geste. Le geste nécessite une souris ; l’appui tactile ne le déclenche pas."
   },
   "o_lPickerOtherWays": {
-    "message": "Le sélecteur de dossiers s’ouvre aussi avec la commande clavier « Afficher le sélecteur de dossiers » et depuis les extensions approuvées."
+    "message": "Le sélecteur de dossiers s’ouvre aussi avec la commande clavier « Afficher le sélecteur de dossiers » et depuis les extensions approuvées. La commande n’a aucune touche tant que vous ne lui en attribuez pas une dans les paramètres de raccourcis clavier des extensions du navigateur."
   },
   "o_cClickToSavePickerHelp": {
     "message": "Le geste ouvre les dossiers de votre Menu d’enregistrement à l’emplacement du pointeur. Choisissez-en un pour y enregistrer, ou appuyez sur Esc pour annuler. Le menu contextuel du navigateur reste inchangé."

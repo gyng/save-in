@@ -4433,7 +4433,7 @@
     "message": "Sempre salvar no destino padrão"
   },
   "o_cClickToSaveUseDefaultHelp": {
-    "message": "Caso contrário, clicar para salvar reutiliza a última pasta escolhida no menu."
+    "message": "Caso contrário, “Clique para salvar” reutiliza a última pasta escolhida no menu."
   },
   "historyMovePending": {
     "message": "Baixando para a nova pasta. O arquivo original será removido após a conclusão."
@@ -4671,7 +4671,7 @@
     "message": "O Firefox mostra a caixa de diálogo Salvar como só depois de encontrar um arquivo com esse nome. Ao salvar direto em Downloads, mantém um nome único e mostra um aviso se Notificar quando um download falhar estiver ativado."
   },
   "o_cDupeSkipHelp": {
-    "message": "O Firefox inicia o salvamento e o cancela assim que encontra um arquivo com esse nome. O histórico mostra Já existe; você só recebe uma notificação se Notificar quando um download falhar estiver ativado."
+    "message": "O Firefox inicia o salvamento e o cancela assim que encontra um arquivo com esse nome. O histórico mostra “Já existe”; você só recebe uma notificação se “Notificar quando um download falhar” estiver ativado."
   },
   "o_cSkipSavedSources": {
     "message": "Ignorar endereços já salvos:"
@@ -4686,7 +4686,7 @@
     "message": "Todos os salvamentos"
   },
   "o_cSkipSavedSourcesHelp": {
-    "message": "O Save In não baixa um endereço novamente enquanto o histórico mantiver um salvamento concluído dele. Nada é ignorado depois que essa entrada some: após limpar o histórico, quando Manter entradas concluídas a remove ou enquanto esse limite for 0. Se você segurar Shift para abrir a caixa de diálogo Salvar como, ou escolher um destino que sempre a abre, o salvamento acontece mesmo assim. Salvamentos privativos que o histórico não lembra nunca são ignorados. Você só recebe uma notificação se Notificar quando um download falhar estiver ativado, e nunca nos salvamentos automáticos."
+    "message": "O Save In não baixa um endereço novamente enquanto o histórico mantiver um salvamento concluído dele. Se você limpar o histórico ou pedir a caixa de diálogo Salvar como, ele é salvo de novo."
   },
   "notificationSavedSourceSkippedTitle": {
     "message": "Já salvo"
@@ -4743,7 +4743,7 @@
     "message": "Cliques breves continuam normais. Mantenha o ponteiro parado até o seletor de pastas abrir; mover cancela o gesto. O gesto exige um mouse; a entrada por toque não o aciona."
   },
   "o_lPickerOtherWays": {
-    "message": "O seletor de pastas também abre pelo comando de teclado “Mostrar o seletor de pastas” e por extensões aprovadas."
+    "message": "O seletor de pastas também abre pelo comando de teclado “Mostrar o seletor de pastas” e por extensões aprovadas. O comando não tem tecla até você atribuir uma nas configurações de atalhos de teclado de extensões do navegador."
   },
   "o_cClickToSavePickerHelp": {
     "message": "O gesto abre as pastas do seu Menu de salvamento junto ao ponteiro. Escolha uma para salvar nela ou pressione Esc para cancelar. O menu de contexto do navegador não muda."

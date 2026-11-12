@@ -4433,7 +4433,7 @@
     "message": "Spara alltid till standardmålet"
   },
   "o_cClickToSaveUseDefaultHelp": {
-    "message": "Annars återanvänder klicka för att spara den mapp du senast valde i menyn."
+    "message": "Annars återanvänder ”Klicka för att spara” den mapp du senast valde i menyn."
   },
   "historyMovePending": {
     "message": "Laddar ner till den nya mappen. Originalfilen tas bort när nedladdningen är klar."
@@ -4671,7 +4671,7 @@
     "message": "Firefox visar dialogrutan Spara som först när den hittar en fil med det namnet. När du sparar direkt i Hämtade filer behåller Firefox i stället ett unikt namn och visar ett meddelande om Meddela när en nedladdning misslyckas är på."
   },
   "o_cDupeSkipHelp": {
-    "message": "Firefox startar sparandet och avbryter det så snart den hittar en fil med det namnet. Historiken visar Finns redan; du får bara en avisering om Meddela när en nedladdning misslyckas är på."
+    "message": "Firefox startar sparandet och avbryter det så snart den hittar en fil med det namnet. Historiken visar ”Finns redan”; du får bara en avisering om ”Meddela när en nedladdning misslyckas” är på."
   },
   "o_cSkipSavedSources": {
     "message": "Hoppa över adresser som redan sparats:"
@@ -4686,7 +4686,7 @@
     "message": "Alla sparningar"
   },
   "o_cSkipSavedSourcesHelp": {
-    "message": "Save In laddar inte ned en adress igen så länge historiken innehåller en slutförd sparning av den. Inget hoppas över när den posten är borta: efter att historiken har rensats, när Behåll slutförda poster tar bort den eller så länge den gränsen är 0. Om du håller ned Shift för dialogrutan Spara som, eller väljer ett mål som alltid öppnar den, sparas filen ändå. Privata sparningar som historiken inte kommer ihåg hoppas aldrig över. Du får bara en avisering om Meddela när en nedladdning misslyckas är på, och aldrig vid automatisk sparning."
+    "message": "Save In laddar inte ned en adress igen så länge historiken innehåller en slutförd sparning av den. Om du rensar historiken eller ber om dialogrutan Spara som sparas den igen."
   },
   "notificationSavedSourceSkippedTitle": {
     "message": "Redan sparad"
@@ -4743,7 +4743,7 @@
     "message": "Korta klick fungerar som vanligt. Håll pekaren stilla tills mappväljaren öppnas; rörelse avbryter gesten. Gesten kräver en mus; pekskärmsinmatning utlöser den inte."
   },
   "o_lPickerOtherWays": {
-    "message": "Mappväljaren öppnas också med tangentbordskommandot ”Visa mappväljaren” och från godkända tillägg."
+    "message": "Mappväljaren öppnas också med tangentbordskommandot ”Visa mappväljaren” och från godkända tillägg. Kommandot har ingen tangent förrän du tilldelar en i webbläsarens inställningar för kortkommandon för tillägg."
   },
   "o_cClickToSavePickerHelp": {
     "message": "Gesten öppnar mapparna i din Sparmeny vid pekaren. Välj en mapp för att spara där, eller tryck på Esc för att avbryta. Webbläsarens snabbmeny ändras inte."

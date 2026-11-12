@@ -4433,7 +4433,7 @@
     "message": "Altijd naar de standaardbestemming opslaan"
   },
   "o_cClickToSaveUseDefaultHelp": {
-    "message": "Anders hergebruikt klikken om op te slaan de map die u als laatste in het menu koos."
+    "message": "Anders hergebruikt ‘Klikken om op te slaan’ de map die u als laatste in het menu koos."
   },
   "historyMovePending": {
     "message": "Downloaden naar de nieuwe map. Het oorspronkelijke bestand wordt na voltooiing verwijderd."
@@ -4671,7 +4671,7 @@
     "message": "Firefox toont het dialoogvenster Opslaan als pas nadat het een bestand met die naam vindt. Bij opslaan direct in Downloads behoudt Firefox een unieke naam en toont het een melding als Melden wanneer een download mislukt aanstaat."
   },
   "o_cDupeSkipHelp": {
-    "message": "Firefox start het opslaan en annuleert het zodra er een bestand met die naam wordt gevonden. De geschiedenis toont Bestaat al; je krijgt alleen een melding als Melden wanneer een download mislukt aan staat."
+    "message": "Firefox start het opslaan en annuleert het zodra er een bestand met die naam wordt gevonden. De geschiedenis toont ‘Bestaat al’; u krijgt alleen een melding als ‘Melden wanneer een download mislukt’ aanstaat."
   },
   "o_cSkipSavedSources": {
     "message": "Al opgeslagen adressen overslaan:"
@@ -4686,7 +4686,7 @@
     "message": "Bij alle opslagacties"
   },
   "o_cSkipSavedSourcesHelp": {
-    "message": "Save In downloadt een adres niet opnieuw zolang de geschiedenis er een voltooide opslagactie van bevat. Er wordt niets overgeslagen zodra dat item weg is: nadat de geschiedenis is gewist, wanneer Voltooide items bewaren het verwijdert, of zolang die limiet 0 is. Als u Shift ingedrukt houdt voor het dialoogvenster Opslaan als, of een bestemming kiest die het altijd opent, wordt er toch opgeslagen. Privé-opslagacties die de geschiedenis niet onthoudt, worden nooit overgeslagen. U krijgt alleen een melding als Melden wanneer een download mislukt aanstaat, en nooit bij automatisch opslaan."
+    "message": "Save In downloadt een adres niet opnieuw zolang de geschiedenis er een voltooide opslagactie van bevat. Na het wissen van de geschiedenis of met het dialoogvenster Opslaan als wordt het opnieuw opgeslagen."
   },
   "notificationSavedSourceSkippedTitle": {
     "message": "Al opgeslagen"
@@ -4743,7 +4743,7 @@
     "message": "Korte klikken werken normaal. Houd de aanwijzer stil totdat de mapkiezer opent; bewegen annuleert het gebaar. Het gebaar vereist een muis; aanraakinvoer activeert het niet."
   },
   "o_lPickerOtherWays": {
-    "message": "De mapkiezer opent ook met de toetsenbordopdracht ‘De mapkiezer tonen’ en vanuit goedgekeurde extensies."
+    "message": "De mapkiezer opent ook met de toetsenbordopdracht ‘De mapkiezer tonen’ en vanuit goedgekeurde extensies. De opdracht heeft geen toets totdat u er een toewijst in de instellingen voor sneltoetsen van extensies in de browser."
   },
   "o_cClickToSavePickerHelp": {
     "message": "Het gebaar opent de mappen van uw Opslagmenu bij de aanwijzer. Kies een map om daar op te slaan of druk op Esc om te annuleren. Het contextmenu van de browser verandert niet."

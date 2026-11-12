@@ -4433,7 +4433,7 @@
     "message": "Salva sempre nella destinazione predefinita"
   },
   "o_cClickToSaveUseDefaultHelp": {
-    "message": "Altrimenti il clic per salvare riusa l'ultima cartella scelta dal menu."
+    "message": "Altrimenti «Salvataggio con clic» riusa l'ultima cartella scelta dal menu."
   },
   "historyMovePending": {
     "message": "Download nella nuova cartella in corso. Il file originale verrà rimosso al termine."
@@ -4671,7 +4671,7 @@
     "message": "Firefox mostra la finestra Salva con nome solo dopo aver trovato un file con quel nome. Per i salvataggi direttamente in Download, mantiene invece un nome univoco e mostra un avviso se è attiva l’opzione Avvisa quando un download fallisce."
   },
   "o_cDupeSkipHelp": {
-    "message": "Firefox avvia il salvataggio e lo annulla appena trova un file con quel nome. La cronologia mostra Esiste già; ricevi una notifica solo se Avvisa quando un download fallisce è attivo."
+    "message": "Firefox avvia il salvataggio e lo annulla appena trova un file con quel nome. La cronologia mostra «Esiste già»; ricevi una notifica solo se «Avvisa quando un download fallisce» è attivo."
   },
   "o_cSkipSavedSources": {
     "message": "Salta gli indirizzi già salvati:"
@@ -4686,7 +4686,7 @@
     "message": "Tutti i salvataggi"
   },
   "o_cSkipSavedSourcesHelp": {
-    "message": "Save In non scarica di nuovo un indirizzo finché la cronologia ne conserva un salvataggio completato. Non viene saltato nulla quando quella voce non c’è più: dopo aver cancellato la cronologia, quando Conserva le voci completate la rimuove o finché quel limite è 0. Se tieni premuto Shift per aprire la finestra Salva con nome, o scegli una destinazione che la apre sempre, il salvataggio avviene comunque. I salvataggi privati che la cronologia non ricorda non vengono mai saltati. Ricevi una notifica solo se Avvisa quando un download fallisce è attivo, e mai per i salvataggi automatici."
+    "message": "Save In non scarica di nuovo un indirizzo finché la cronologia ne conserva un salvataggio completato. Se cancelli la cronologia o chiedi la finestra Salva con nome, viene salvato di nuovo."
   },
   "notificationSavedSourceSkippedTitle": {
     "message": "Già salvato"
@@ -4743,7 +4743,7 @@
     "message": "I clic brevi restano normali. Tieni fermo il puntatore finché si apre il selettore di cartelle; il movimento annulla il gesto. Il gesto richiede un mouse; il tocco non lo attiva."
   },
   "o_lPickerOtherWays": {
-    "message": "Il selettore di cartelle si apre anche con il comando da tastiera «Mostra il selettore di cartelle» e dalle estensioni approvate."
+    "message": "Il selettore di cartelle si apre anche con il comando da tastiera «Mostra il selettore di cartelle» e dalle estensioni approvate. Il comando non ha alcun tasto finché non ne assegni uno nelle impostazioni delle scorciatoie da tastiera per le estensioni del browser."
   },
   "o_cClickToSavePickerHelp": {
     "message": "Il gesto apre le cartelle del tuo Menu di salvataggio accanto al puntatore. Scegline una per salvare lì oppure premi Esc per annullare. Il menu contestuale del browser non cambia."
