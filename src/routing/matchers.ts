@@ -51,7 +51,7 @@ const logMatch = (match: MatcherResult, regex: RegExp, info: RoutingInfo): void 
 // quadratically when it fails: over 20 s against a 100 KB data: URL. Matching
 // only the first 4,096 characters bounds that to tens of milliseconds, yet leaves
 // every value up to that length (ordinary URLs included) matched exactly.
-const MAX_MATCHED_CHARACTERS = 4_096;
+export const MAX_MATCHED_CHARACTERS = 4_096;
 
 const matchValue = (value: string, regex: RegExp): RegExpMatchArray | null =>
   new RegExp(regex.source, regex.flags).exec(value.slice(0, MAX_MATCHED_CHARACTERS));

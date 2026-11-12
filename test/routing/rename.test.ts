@@ -143,3 +143,32 @@ describe("isRenameTransform", () => {
     expect(isRenameTransform({ find: "a", flags: "g", replacement: 1 })).toBe(false);
   });
 });
+
+// A page controls the filename's length (a data: URL link can carry 2 MB), and
+// an ordinary find such as `(.*)\.(jpe?g|png)$` backtracks quadratically on
+// it, so the find sees at most the matchers' 4,096-character bound.
+describe("applyRenameTransform input bound", () => {
+  test("runs the find over a page-length name with its stem truncated and extension kept", () => {
+    const renamed = applyRenameTransform(
+      `${"a".repeat(200_000)}.jpg`,
+      transform("(.*)\\.(jpe?g|png)$", "x.png"),
+    );
+    expect(renamed).toBe("x.png");
+
+    const appended = applyRenameTransform(`${"a".repeat(200_000)}.jpg`, transform("$", "!"));
+    expect(appended).toBe(`${"a".repeat(4_092)}.jpg!`);
+  });
+
+  test("leaves a name at the bound untouched", () => {
+    const name = `${"a".repeat(4_092)}.jpg`;
+    expect(applyRenameTransform(name, transform("$", "!"))).toBe(`${name}!`);
+  });
+
+  test("truncates a name without an extension and never splits a surrogate pair", () => {
+    expect(applyRenameTransform("b".repeat(10_000), transform("$", "!"))).toBe(
+      `${"b".repeat(4_096)}!`,
+    );
+    const emoji = applyRenameTransform(`${"😀".repeat(5_000)}.jpeg`, transform("$", "!"));
+    expect(emoji).toBe(`${"😀".repeat(2_045)}.jpeg!`);
+  });
+});

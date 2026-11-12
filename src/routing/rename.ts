@@ -4,6 +4,8 @@
 // Path: the directory part stays untouched, and any separator the replacement
 // introduces is sanitized later as an ordinary filename character.
 import { isStringKeyedRecord } from "../shared/util.ts";
+import { EXTENSION_REGEX } from "./filename.ts";
+import { MAX_MATCHED_CHARACTERS } from "./matchers.ts";
 import type { RoutingDownloadInfo } from "./rule-types.ts";
 import { expandVariableTemplate } from "./variable.ts";
 
@@ -47,6 +49,21 @@ export const expandRenameTransform = async (
   replacement: await expandVariableTemplate(transform.replacement, info),
 });
 
+// The component is page-controlled and unbounded (a data: URL link can name a
+// 200,000-character file), and an ordinary find such as `(.*)\.(jpe?g|png)$`
+// backtracks quadratically on it. Like the matchers, the find sees at most
+// MAX_MATCHED_CHARACTERS; the stem gives way so the extension a find usually
+// targets survives. The result is truncated to the filename limit afterwards,
+// far below this bound, and any name within it is passed through unchanged.
+const boundedComponent = (component: string): string => {
+  if (component.length <= MAX_MATCHED_CHARACTERS) return component;
+  const extension = EXTENSION_REGEX.exec(component.slice(-MAX_MATCHED_CHARACTERS))?.[0] ?? "";
+  let stemLength = MAX_MATCHED_CHARACTERS - extension.length;
+  const last = component.charCodeAt(stemLength - 1);
+  if (last >= 0xd800 && last <= 0xdbff) stemLength -= 1;
+  return component.slice(0, stemLength) + extension;
+};
+
 // The expanded replacement is literal text: a function replacer keeps
 // String.replace from interpreting `$&`/`$1` sequences a variable or capture
 // may have introduced. Deleting the whole name falls back to "_" (the same
@@ -61,6 +78,7 @@ export const applyRenameTransform = (component: string, transform: RenameTransfo
     // the download; the component keeps its resolved name.
     return component;
   }
-  const renamed = component.replace(find, () => transform.replacement);
-  return renamed === "" && component !== "" ? "_" : renamed;
+  const bounded = boundedComponent(component);
+  const renamed = bounded.replace(find, () => transform.replacement);
+  return renamed === "" && bounded !== "" ? "_" : renamed;
 };
