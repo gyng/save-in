@@ -199,6 +199,10 @@
   stop working as soon as agent access is turned off. Importing a setting that
   applies on page load reloads Options, and an unsaved webhook endpoint edit
   survives closing the page.
+- On Chrome, a save that fetches its file first (for a Referer-protected
+  site such as pixiv, or with **Always download through Save In**) no longer
+  names the file after the temporary copy's random ID when a routing rule uses
+  `:filename:`; it keeps the image's own name.
 - Folder picker polish: it now takes the Premium themes' starfield,
   scanlines, and sheen; a long file name keeps its extension visible and
   loses its middle instead; and a wrapped folder name keeps its icon and key
