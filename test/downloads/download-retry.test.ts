@@ -85,6 +85,68 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);
   });
 
+  // The planned filename is not where a Save As save was headed: the user
+  // chose the folder in the dialog, and only the dialog can ask again.
+  test.each([
+    [true, { saveAs: true }],
+    [false, {}],
+  ])("retries a save whose dialog was shown (%s) through the dialog", async (prompted, extra) => {
+    await seedStartedDownload();
+    await Download.rememberStartedDownload(101, { saveAsPrompted: prompted });
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    (global.browser.downloads as any).download = vi.fn(() => Promise.resolve(204));
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(global.browser.downloads.download).toHaveBeenCalledWith({
+      url: expect.stringMatching(/^blob:/),
+      filename: "downloads/file.png",
+      conflictAction: "uniquify",
+      ...extra,
+    });
+    expect(downloadState.records.get(204)).toMatchObject({ saveAsPrompted: prompted });
+  });
+
+  test("takes a dismissed retry dialog as the user's cancel, not a failure", async () => {
+    const SaveHistory = await import("../../src/background/history.ts");
+    await seedStartedDownload();
+    await Download.rememberStartedDownload(101, { saveAsPrompted: true });
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    (global.browser.downloads as any).download = vi.fn(() =>
+      Promise.reject(new Error("Download canceled by the user")),
+    );
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED");
+    expect(Log.addLogEntry).not.toHaveBeenCalledWith("fallback fetch failed", expect.anything());
+    expect(sessionStore.siPendingDownloads).toBe(0);
+  });
+
+  test("contains a History failure while recording a dismissed retry", async () => {
+    const SaveHistory = await import("../../src/background/history.ts");
+    vi.mocked(SaveHistory.setHistoryStatus).mockRejectedValueOnce(new Error("history gone"));
+    await seedStartedDownload();
+    await Download.rememberStartedDownload(101, { saveAsPrompted: true });
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    (global.browser.downloads as any).download = vi.fn(() =>
+      Promise.reject(new Error("Download canceled by the user")),
+    );
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "retry cancellation history failed",
+      "Error: history gone",
+    );
+  });
+
   test("leaves a retry's queued filename for Chrome's listener to consume", async () => {
     setCurrentBrowser("CHROME");
     await seedStartedDownload();

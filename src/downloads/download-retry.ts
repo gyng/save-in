@@ -19,6 +19,7 @@ import { getDownload, mergeDownload } from "./download-state.ts";
 import { downloadPorts } from "./ports.ts";
 import { backfillDownloadStartTime } from "./undo-download.ts";
 import { beginAnonymousPrivateDownloadGuard } from "./private-download-guard.ts";
+import { isSaveAsDialogDismissal } from "./download-execution.ts";
 import { isPrivateDownloadRecord } from "./download-state.ts";
 import type { DownloadRecordUpdate } from "./download-state.ts";
 import {
@@ -69,6 +70,11 @@ export const retryViaFetch = async (
   }
 
   const { filename, url } = record;
+  // A save the user directed through Save As went where they chose, which
+  // only the browser knows; the planned filename is merely the dialog's
+  // proposal. Retrying silently to it would put the file somewhere else, so
+  // the retry asks again with the same proposal.
+  const prompted = record.saveAsPrompted === true;
   // Re-derive Referer protection from the persisted record so a retry of a
   // protected download is not the one request that arrives without it. This
   // re-checks the live option and filter rather than trusting stale state.
@@ -172,6 +178,7 @@ export const retryViaFetch = async (
       url: downloadUrl,
       filename,
       conflictAction: record.conflictAction,
+      ...(prompted ? { saveAs: true } : {}),
     };
     Object.assign(
       downloadOptions,
@@ -203,7 +210,7 @@ export const retryViaFetch = async (
       Object.assign({}, record, {
         viaFetch: true,
         adopted: true,
-        saveAsPrompted: false,
+        saveAsPrompted: prompted,
         webhookDownloadId: downloadId,
         ...(offscreenRequestId ? { offscreenRequestId } : {}),
       }),
@@ -237,6 +244,14 @@ export const retryViaFetch = async (
       await OffscreenClient.release(offscreenRequestId).catch(() => {});
     }
     if (controller.signal.aborted) return true;
+    if (prompted && isSaveAsDialogDismissal(error)) {
+      // Closing the retry's dialog is the user's answer: report it as their
+      // cancel rather than the original failure the retry was answering.
+      await downloadPorts.history
+        .setStatus(record.historyEntryId, "USER_CANCELED")
+        .catch((statusError) => addRetryLog("retry cancellation history failed", statusError));
+      return true;
+    }
     addRetryLog("fallback fetch failed", error);
     return false;
   } finally {

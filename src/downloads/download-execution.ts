@@ -293,7 +293,7 @@ export const acquireDownloadUrl = async (
 // Chrome resolves first and reports the dismissal as a USER_CANCELED delta.
 const FIREFOX_SAVE_AS_DISMISSED = "Download canceled by the user";
 
-const isSaveAsDialogDismissal = (error: unknown): boolean =>
+export const isSaveAsDialogDismissal = (error: unknown): boolean =>
   typeof error === "object" &&
   error !== null &&
   "message" in error &&
