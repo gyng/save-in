@@ -23,6 +23,19 @@ const history = {
 };
 const log = { add: vi.fn() };
 
+type SearchItem = { id: number; filename?: string; startTime?: string; exists?: boolean };
+// Answers downloads.search by id. Each move looks up its replacement as well
+// as the original, so every test names where the replacement landed.
+const serveDownloads = (...items: SearchItem[]) =>
+  vi
+    .mocked(global.browser.downloads.search)
+    .mockImplementation((async (query: { id?: number }) =>
+      items.filter((item) => item.id === query.id)) as never);
+const replacementAt = (id: number, filename = "/downloads/moved/photo.png"): SearchItem => ({
+  id,
+  filename,
+});
+
 beforeEach(async () => {
   downloadsState.records.clear();
   downloadsState.hydration = null;
@@ -56,13 +69,10 @@ test("persists a pending move and completes it after an MV3 restart", async () =
   // storage.session rather than an in-memory callback.
   downloadsState.records.clear();
   downloadsState.hydration = null;
-  vi.mocked(global.browser.downloads.search).mockResolvedValue([
-    {
-      id: 9,
-      startTime: "2026-07-17T01:02:03.000Z",
-      filename: "/downloads/photo.png",
-    } as never,
-  ]);
+  serveDownloads(
+    { id: 9, startTime: "2026-07-17T01:02:03.000Z", filename: "/downloads/photo.png" },
+    replacementAt(10),
+  );
 
   await expect(completePendingHistoryMove(10)).resolves.toEqual({
     handled: true,
@@ -143,9 +153,7 @@ test("keeps the original when its persisted identity no longer matches", async (
     downloadId: 11,
     filename: "old/photo.png",
   });
-  vi.mocked(global.browser.downloads.search).mockResolvedValue([
-    { id: 11, filename: "/downloads/unrelated.pdf" } as never,
-  ]);
+  serveDownloads({ id: 11, filename: "/downloads/unrelated.pdf" }, replacementAt(12));
 
   await expect(completePendingHistoryMove(12)).resolves.toMatchObject({
     handled: true,
@@ -206,11 +214,11 @@ test("serializes concurrent completion observers for the same move", async () =>
     filename: "old/photo.png",
   });
   let finishSearch!: (items: unknown[]) => void;
-  vi.mocked(global.browser.downloads.search).mockReturnValue(
-    new Promise((resolve) => {
-      finishSearch = resolve;
-    }) as never,
-  );
+  const originalSearch = new Promise((resolve) => {
+    finishSearch = resolve;
+  });
+  vi.mocked(global.browser.downloads.search).mockImplementation(((query: { id?: number }) =>
+    query.id === 14 ? Promise.resolve([replacementAt(14)]) : originalSearch) as never);
 
   const first = completePendingHistoryMove(14);
   const second = completePendingHistoryMove(14);
@@ -234,9 +242,7 @@ test("retires a failed completion task before the next observer retries it", asy
     downloadId: 15,
     filename: "old/photo.png",
   });
-  vi.mocked(global.browser.downloads.search).mockResolvedValue([
-    { id: 15, filename: "/downloads/photo.png" } as never,
-  ]);
+  serveDownloads({ id: 15, filename: "/downloads/photo.png" }, replacementAt(16));
   history.patchStrict.mockRejectedValueOnce(new Error("history unavailable"));
 
   await expect(completePendingHistoryMove(16)).rejects.toThrow("history unavailable");
@@ -258,9 +264,11 @@ test("keeps browser recovery evidence until the moved status is durable", async 
     downloadId: 17,
     filename: "old/photo.png",
   });
-  vi.mocked(global.browser.downloads.search)
-    .mockResolvedValueOnce([{ id: 17, filename: "/downloads/photo.png", exists: true } as never])
-    .mockResolvedValue([{ id: 17, filename: "/downloads/photo.png", exists: false } as never]);
+  const original: SearchItem = { id: 17, filename: "/downloads/photo.png", exists: true };
+  serveDownloads(original, replacementAt(18));
+  vi.mocked(global.browser.downloads.removeFile).mockImplementation((async () => {
+    original.exists = false;
+  }) as never);
   history.setStatusStrict.mockRejectedValueOnce(new Error("history unavailable"));
 
   await expect(completePendingHistoryMove(18)).rejects.toThrow("history unavailable");
@@ -290,9 +298,7 @@ test("finishes a private move when only browser-shelf cleanup fails", async () =
     downloadId: 19,
     filename: "old/photo.png",
   });
-  vi.mocked(global.browser.downloads.search).mockResolvedValue([
-    { id: 19, filename: "/downloads/photo.png" } as never,
-  ]);
+  serveDownloads({ id: 19, filename: "/downloads/photo.png" }, replacementAt(20));
   vi.mocked(global.browser.downloads.erase).mockRejectedValue(new Error("shelf unavailable"));
 
   await expect(completePendingHistoryMove(20)).resolves.toMatchObject({
@@ -306,4 +312,79 @@ test("finishes a private move when only browser-shelf cleanup fails", async () =
     { privateContext: true },
   );
   expect(downloadsState.records.get(20)?.pendingHistoryMove).toBeUndefined();
+});
+
+describe("a replacement that landed on the original's own path", () => {
+  const registerSamePathMove = async () => {
+    await mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, 32, {
+      adopted: true,
+      historyEntryId: "new-history",
+    });
+    await registerPendingHistoryMove(32, {
+      historyId: "old-history",
+      downloadId: 31,
+      startTime: "2026-07-17T01:02:03.000Z",
+      filename: "photos/photo.png",
+    });
+  };
+
+  test("completes the move without removing the file both rows now name", async () => {
+    await registerSamePathMove();
+    serveDownloads(
+      { id: 31, startTime: "2026-07-17T01:02:03.000Z", filename: "/downloads/photos/photo.png" },
+      replacementAt(32, "/downloads/photos/photo.png"),
+    );
+
+    await expect(completePendingHistoryMove(32)).resolves.toEqual({
+      handled: true,
+      oldRemoved: true,
+      newHistoryId: "new-history",
+    });
+
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    // The old row can no longer be undone into deleting the replacement: it
+    // is marked moved and its browser record, not the file, is erased.
+    expect(history.setStatusStrict).toHaveBeenCalledWith("old-history", "moved", 31);
+    expect(global.browser.downloads.erase).toHaveBeenCalledWith({ id: 31 });
+    expect(downloadsState.records.get(32)?.pendingHistoryMove).toBeUndefined();
+  });
+
+  test("removes the original when the replacement landed elsewhere", async () => {
+    await registerSamePathMove();
+    serveDownloads(
+      { id: 31, startTime: "2026-07-17T01:02:03.000Z", filename: "/downloads/photos/photo.png" },
+      replacementAt(32, "/downloads/photos/photo (1).png"),
+    );
+
+    await expect(completePendingHistoryMove(32)).resolves.toMatchObject({ oldRemoved: true });
+
+    expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(31);
+  });
+
+  test.each([
+    ["the lookup fails", () => Promise.reject(new Error("search unavailable"))],
+    ["the browser no longer knows the replacement", () => Promise.resolve([])],
+    ["the replacement has no filename", () => Promise.resolve([{ id: 32, filename: "" }])],
+  ])("keeps both files when %s", async (_case, replacementSearch) => {
+    await registerSamePathMove();
+    vi.mocked(global.browser.downloads.search).mockImplementation(((query: { id?: number }) =>
+      query.id === 32
+        ? replacementSearch()
+        : Promise.resolve([
+            {
+              id: 31,
+              startTime: "2026-07-17T01:02:03.000Z",
+              filename: "/downloads/photos/photo.png",
+            },
+          ])) as never);
+
+    await expect(completePendingHistoryMove(32)).resolves.toMatchObject({
+      handled: true,
+      oldRemoved: false,
+    });
+
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    expect(history.setStatusStrict).not.toHaveBeenCalled();
+    expect(global.browser.downloads.erase).not.toHaveBeenCalled();
+  });
 });

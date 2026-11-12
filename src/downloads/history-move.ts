@@ -11,7 +11,7 @@ import {
   type PendingHistoryMove,
 } from "./download-state.ts";
 import { downloadPorts } from "./ports.ts";
-import { removeVerifiedDownloadFile } from "./undo-download.ts";
+import { findVerifiedDownload, removeVerifiedDownloadFile } from "./undo-download.ts";
 
 export type CompletedHistoryMove = {
   handled: boolean;
@@ -53,6 +53,33 @@ export const abandonPendingHistoryMove = (replacementDownloadId: number): Promis
     pendingHistoryMove: undefined,
   });
 
+const replacementFilename = async (downloadId: number): Promise<string | undefined> => {
+  try {
+    const [item] = await webExtensionApi.downloads.search({ id: downloadId });
+    return typeof item?.filename === "string" && item.filename ? item.filename : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+// Resolves true once the original's file is gone from its own path. A
+// replacement that resolved to the very same path (overwrite, or Replace in a
+// prompt) has already taken the original's place: removing the original's
+// download would delete the only copy, so the move is complete without
+// removal. Any uncertainty about where the replacement landed keeps both.
+const retireOriginalFile = async (
+  replacementDownloadId: number,
+  pending: PendingHistoryMove,
+): Promise<boolean> => {
+  const expected = { startTime: pending.startTime, filename: pending.filename };
+  const replacementPath = await replacementFilename(replacementDownloadId);
+  if (replacementPath === undefined) return false;
+  const original = await findVerifiedDownload(pending.downloadId, expected);
+  if (original === null) return false;
+  if (original.filename === replacementPath) return true;
+  return removeVerifiedDownloadFile(pending.downloadId, expected);
+};
+
 const runPendingHistoryMove = async (
   replacementDownloadId: number,
 ): Promise<CompletedHistoryMove> => {
@@ -82,10 +109,7 @@ const runPendingHistoryMove = async (
       return { handled: true, oldRemoved: false, newHistoryId };
     }
   }
-  const oldRemoved = await removeVerifiedDownloadFile(pending.downloadId, {
-    startTime: pending.startTime,
-    filename: pending.filename,
-  });
+  const oldRemoved = await retireOriginalFile(replacementDownloadId, pending);
   if (oldRemoved) {
     // Keep the browser record until this strict write succeeds. Its `exists:
     // false` state is the recovery evidence if the worker or storage fails

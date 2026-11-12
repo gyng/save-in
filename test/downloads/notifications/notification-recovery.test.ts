@@ -354,7 +354,7 @@ describe("startup restore", () => {
     } as Record<string, any>;
     setupGlobals(sessionStore, (query) =>
       query.id === 36
-        ? [{ id: 36, state: "complete", fileSize: 12 }]
+        ? [{ id: 36, state: "complete", fileSize: 12, filename: "/downloads/moved/photo.png" }]
         : [{ id: 35, state: "complete", exists: false, filename: "/downloads/photo.png" }],
     );
 
