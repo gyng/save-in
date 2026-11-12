@@ -57,14 +57,14 @@
 }
 
 /* Webring: a starfield over the panel surface. */
-:host([data-theme="webring"]) .panel {
+:host([data-theme="webring"]) :is(.panel, .picker) {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E %3Ccircle cx='12' cy='16' r='1.3' fill='%23ffffff'/%3E %3Ccircle cx='58' cy='30' r='1' fill='%23c0e0ff'/%3E %3Ccircle cx='34' cy='64' r='1.5' fill='%23ffe600'/%3E %3Ccircle cx='76' cy='72' r='1' fill='%23ffffff'/%3E %3Ccircle cx='48' cy='10' r='0.8' fill='%23ff8fe0'/%3E %3C/svg%3E");
 }
 
 /* Phosphor: scanlines over the panel and a faint bloom that inherits onto its
    text. Kept on .panel, not a second :host block, so the schema map keeps the
    theme's single color-role block. */
-:host([data-theme="phosphor"]) .panel {
+:host([data-theme="phosphor"]) :is(.panel, .picker) {
   background-image: repeating-linear-gradient(
     to bottom,
     color-mix(in srgb, var(--theme-accent) 10%, transparent) 0 1px,
@@ -74,7 +74,7 @@
 }
 
 /* Bliss: a soft glassy sheen down the top of the panel. */
-:host([data-theme="bliss"]) .panel {
+:host([data-theme="bliss"]) :is(.panel, .picker) {
   background-image: linear-gradient(
     to bottom,
     color-mix(in srgb, white 40%, transparent),
@@ -85,9 +85,9 @@
 /* Forced colors: drop the drawer's decorative panel fills so the high-contrast
    Canvas shows through. */
 @media (forced-colors: active) {
-  :host([data-theme="webring"]) .panel,
-  :host([data-theme="phosphor"]) .panel,
-  :host([data-theme="bliss"]) .panel {
+  :host([data-theme="webring"]) :is(.panel, .picker),
+  :host([data-theme="phosphor"]) :is(.panel, .picker),
+  :host([data-theme="bliss"]) :is(.panel, .picker) {
     background-image: none;
   }
 }
