@@ -117,6 +117,8 @@ summary:focus-visible {
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
+  scrollbar-color: var(--scrollbar-color);
+  scrollbar-width: thin;
   padding: 4px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);

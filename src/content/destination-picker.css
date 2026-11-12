@@ -158,6 +158,11 @@ svg {
   min-block-size: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* Reserve the gutter so the key column does not jump when a filter leaves
+     too few rows to scroll. */
+  scrollbar-gutter: stable;
+  scrollbar-color: var(--scrollbar-color);
+  scrollbar-width: thin;
   padding: 0 var(--source-space-1) var(--source-space-1);
 }
 

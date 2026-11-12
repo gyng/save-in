@@ -4,6 +4,8 @@
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
+  scrollbar-color: var(--scrollbar-color);
+  scrollbar-width: thin;
   padding: 0 7px 8px;
   list-style: none;
 }

@@ -31,6 +31,10 @@
   --color-surface-page: light-dark(#ffffff, #2a2a2e);
   --color-surface-raised: light-dark(#ededf0, #38383d);
   --color-border: light-dark(#d7d7db, #4a4a4f);
+  /* Thumb and track for the drawer's and picker's scroll areas: a quiet thumb
+     derived from each theme's muted text, so it suits every theme without a
+     per-theme entry, on the surface's own background. */
+  --scrollbar-color: color-mix(in srgb, var(--color-text-muted) 55%, transparent) transparent;
   --color-control-border: light-dark(#939395, #737373);
   --color-hover: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.07));
   --color-accent: light-dark(#0060df, #2f79bc);
@@ -51,4 +55,12 @@
   --z-preview-control: 2;
   --z-panel-resize: 3;
   --z-panel-menu: 4;
+}
+
+/* Forced colors: the system scrollbar, not a muted thumb on a transparent
+   track the user's palette did not choose. */
+@media (forced-colors: active) {
+  :host {
+    --scrollbar-color: auto;
+  }
 }
