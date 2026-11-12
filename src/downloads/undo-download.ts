@@ -123,11 +123,30 @@ export const findVerifiedDownload = async (
   return item;
 };
 
+// Windows and default macOS file systems ignore case, so two paths the
+// browser reports in different case can name one file. Folding only ever
+// treats more paths as the same, which refuses or keeps more, never deletes
+// more. Separators fold too: they cannot be part of a file name on either.
+export const isSameFilePath = (a: string, b: string): boolean => {
+  const fold = (path: string) => path.normalize("NFC").toLowerCase().replaceAll("\\", "/");
+  return fold(a) === fold(b);
+};
+
+// downloads.search's `filename` is exact, so the lookup asks for every
+// download whose url or filename contains the base name, a case-insensitive
+// substring match in both browsers, and compares folded paths here. Terms
+// beginning with "-" exclude matches, so leading dashes are dropped; a name
+// that is nothing but dashes searches everything.
+const samePathQuery = (filename: string): { query?: string[] } => {
+  const term = proposedFilename(filename).replace(/^-+/, "");
+  return term ? { query: [term] } : {};
+};
+
 // Overwrite, or Replace in a prompt, lets a later save take this download's
 // path while the browser keeps this older record pointing at it; removing the
-// older record's file would delete the later save. The browser's own paths
-// compare exactly, an unordered record counts as later, and a failed lookup is
-// uncertainty, which never deletes.
+// older record's file would delete the later save. Paths compare as the file
+// system may (isSameFilePath), an unordered record counts as later, and a
+// failed lookup is uncertainty, which never deletes.
 const isSupersededAtPath = async (item: {
   id: number;
   filename?: string | undefined;
@@ -137,7 +156,7 @@ const isSupersededAtPath = async (item: {
   if (!filename) return false;
   let sharing;
   try {
-    sharing = await webExtensionApi.downloads.search({ filename });
+    sharing = await webExtensionApi.downloads.search(samePathQuery(filename));
   } catch {
     return true;
   }
@@ -145,7 +164,7 @@ const isSupersededAtPath = async (item: {
   return sharing.some(
     (other) =>
       other.id !== item.id &&
-      other.filename === filename &&
+      isSameFilePath(other.filename, filename) &&
       other.exists !== false &&
       other.state !== "interrupted" &&
       !(Date.parse(other.startTime) < startedAt),

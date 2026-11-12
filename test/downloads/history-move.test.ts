@@ -349,6 +349,33 @@ describe("a replacement that landed on the original's own path", () => {
     expect(downloadsState.records.get(32)?.pendingHistoryMove).toBeUndefined();
   });
 
+  // A case-insensitive file system (Windows, default macOS) put the
+  // replacement in the original's file.
+  test("completes the move without removing the file when the paths differ only in case", async () => {
+    await registerSamePathMove();
+    serveDownloads(
+      { id: 31, startTime: "2026-07-17T01:02:03.000Z", filename: "/downloads/photos/photo.png" },
+      replacementAt(32, "/downloads/Photos/Photo.PNG"),
+    );
+
+    await expect(completePendingHistoryMove(32)).resolves.toMatchObject({ oldRemoved: true });
+
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    expect(global.browser.downloads.erase).toHaveBeenCalledWith({ id: 31 });
+  });
+
+  test("removes an original the browser reports without a filename", async () => {
+    await registerSamePathMove();
+    serveDownloads(
+      { id: 31, startTime: "2026-07-17T01:02:03.000Z" },
+      replacementAt(32, "/downloads/photos/photo.png"),
+    );
+
+    await expect(completePendingHistoryMove(32)).resolves.toMatchObject({ oldRemoved: true });
+
+    expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(31);
+  });
+
   test("removes the original when the replacement landed elsewhere", async () => {
     await registerSamePathMove();
     serveDownloads(

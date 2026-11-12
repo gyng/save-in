@@ -353,15 +353,27 @@ describe("a later save at the same path", () => {
     startTime: "2026-07-17T01:02:03.000Z",
     state: "complete",
   };
+  // Mirrors both browsers' downloads.search: `filename` matches exactly, and
+  // each `query` term is a case-insensitive substring of the url or filename.
   const serveSamePath = (...sharing: Record<string, unknown>[]) =>
-    vi
-      .mocked(global.browser.downloads.search)
-      .mockImplementation((async (query: { id?: number; filename?: string }) =>
-        query.id === 3
-          ? [older]
-          : query.filename === older.filename
-            ? [older, ...sharing]
-            : []) as never);
+    vi.mocked(global.browser.downloads.search).mockImplementation((async (query: {
+      id?: number;
+      filename?: string;
+      query?: string[];
+    }) => {
+      if (query.id === 3) return [older];
+      const known = [older, ...sharing];
+      if (query.filename !== undefined) {
+        return known.filter((item) => item.filename === query.filename);
+      }
+      return known.filter((item) =>
+        (query.query ?? []).every((term) =>
+          `${String(item.url ?? "")} ${String(item.filename ?? "")}`
+            .toLowerCase()
+            .includes(term.toLowerCase()),
+        ),
+      );
+    }) as never);
   const newer = { id: 4, filename: older.filename, startTime: "2026-07-18T00:00:00.000Z" };
 
   test.each([
@@ -377,6 +389,53 @@ describe("a later save at the same path", () => {
     await expect(remove()).resolves.toEqual(refused);
     expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
     expect(global.browser.downloads.erase).not.toHaveBeenCalled();
+  });
+
+  // Windows and default macOS file systems ignore case, so a later save to
+  // Photo.JPG replaced the older save's photo.jpg.
+  test.each([
+    ["a case-only difference", "/downloads/Photo.JPG", undefined],
+    [
+      "Windows separators",
+      "C:\\Users\\me\\Downloads\\PHOTO.jpg",
+      "C:\\Users\\me\\Downloads\\photo.jpg",
+    ],
+  ] as const)(
+    "refuses an undo over a later save at the same path with %s",
+    async (_case, later, own) => {
+      if (own) {
+        vi.mocked(global.browser.downloads.search).mockImplementation((async (query: {
+          id?: number;
+          query?: string[];
+        }) => {
+          const self = { ...older, filename: own };
+          if (query.id === 3) return [self];
+          // A lookup by any other key cannot see the later, differently cased name.
+          if (query.query?.join() !== "photo.jpg") return [self];
+          return [self, { ...newer, filename: later, state: "complete" }];
+        }) as never);
+      } else serveSamePath({ ...newer, filename: later, state: "complete" });
+
+      await expect(undoBrowserDownload(3, { startTime: older.startTime })).resolves.toEqual({
+        undone: false,
+        fileMissing: false,
+      });
+      expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    },
+  );
+
+  test("searches every download when the file name is only dashes", async () => {
+    const dashes = { ...older, filename: "/downloads/--" };
+    vi.mocked(global.browser.downloads.search).mockImplementation((async (query: {
+      id?: number;
+    }) =>
+      query.id === 3 ? [dashes] : [dashes, { ...newer, filename: "/downloads/--" }]) as never);
+
+    await expect(undoBrowserDownload(3, { startTime: older.startTime })).resolves.toEqual({
+      undone: false,
+      fileMissing: false,
+    });
+    expect(global.browser.downloads.search).toHaveBeenLastCalledWith({});
   });
 
   test("refuses when the later record has no start time to order it", async () => {

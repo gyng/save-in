@@ -11,7 +11,11 @@ import {
   type PendingHistoryMove,
 } from "./download-state.ts";
 import { downloadPorts } from "./ports.ts";
-import { findVerifiedDownload, removeVerifiedDownloadFile } from "./undo-download.ts";
+import {
+  findVerifiedDownload,
+  isSameFilePath,
+  removeVerifiedDownloadFile,
+} from "./undo-download.ts";
 
 export type CompletedHistoryMove = {
   handled: boolean;
@@ -66,7 +70,8 @@ const replacementFilename = async (downloadId: number): Promise<string | undefin
 // replacement that resolved to the very same path (overwrite, or Replace in a
 // prompt) has already taken the original's place: removing the original's
 // download would delete the only copy, so the move is complete without
-// removal. Any uncertainty about where the replacement landed keeps both.
+// removal. Any uncertainty about where the replacement landed keeps both, and
+// paths that differ only in case may be one file (isSameFilePath).
 const retireOriginalFile = async (
   replacementDownloadId: number,
   pending: PendingHistoryMove,
@@ -76,7 +81,8 @@ const retireOriginalFile = async (
   if (replacementPath === undefined) return false;
   const original = await findVerifiedDownload(pending.downloadId, expected);
   if (original === null) return false;
-  if (original.filename === replacementPath) return true;
+  // replacementPath is never empty, so a nameless original never matches it.
+  if (isSameFilePath(original.filename ?? "", replacementPath)) return true;
   return removeVerifiedDownloadFile(pending.downloadId, expected);
 };
 
