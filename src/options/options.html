@@ -501,7 +501,11 @@ Briefly explain the structure, check that every line follows this syntax, then p
             <input type="checkbox" id="promptIfNoExtension" />__MSG_o_cOpenDialogNoExt__
           </label>
 
-          <label> <input type="checkbox" id="promptOnShift" />__MSG_o_cOpenDialogShift__ </label>
+          <!-- Chrome's menu click data carries no modifier keys (measured on
+               Chrome 150), so this condition can only work in Firefox. -->
+          <label class="firefox-only">
+            <input type="checkbox" id="promptOnShift" />__MSG_o_cOpenDialogShift__
+          </label>
 
           <label>
             <input type="checkbox" id="promptOnFailure" />__MSG_o_cOpenDialogOnFailure__

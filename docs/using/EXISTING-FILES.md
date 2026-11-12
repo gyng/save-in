@@ -84,9 +84,10 @@ address is still recorded, and if so does not download that address again.
 - A skipped menu, click-to-save, Page Sources, or external save shows an
   "Already saved" notice when **Notify when a download fails** is on; a private
   save's notice does not name the address. A skipped automatic save is silent.
-- Asking for the Save As dialog saves anyway: hold Shift while **You hold
-  Shift while choosing a menu item** is on, or choose a destination that always
-  opens the dialog. Moving a save from History and retries after a network
+- Asking for the Save As dialog saves anyway: in Firefox, hold Shift while
+  **You hold Shift while choosing a menu item** is on (Chrome does not tell
+  extensions which keys were held, so the option is hidden there), or choose a
+  destination that always opens the dialog. Moving a save from History and retries after a network
   failure are never skipped.
 - A private save is checked only while **Remember private browsing activity**
   is on, because otherwise it has no History entry of its own and Save In does

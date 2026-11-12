@@ -363,6 +363,15 @@ test("keeps the on-device rule assistant opt-in, ephemeral, and review-first", (
   expect(document.querySelector("#prompt-assistant-form")?.tagName).toBe("FORM");
 });
 
+// Chrome's menu click data carries no modifier keys, so the Shift condition is
+// shown only where it can work.
+test("offers the hold-Shift Save As condition only in Firefox", () => {
+  const document = documentForOptions();
+  expect(
+    document.getElementById("promptOnShift")?.closest("label")?.classList.contains("firefox-only"),
+  ).toBe(true);
+});
+
 test("marks conditional tab-context requirements without describing supported controls", () => {
   const document = documentForOptions();
   for (const [controlId, requirementId] of [
