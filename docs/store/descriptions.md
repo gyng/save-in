@@ -44,12 +44,14 @@ Save In helps manage and organize your downloads. It adds configurable context-m
 Features
 
 - Build a hierarchical destination menu with aliases, separators, submenus, and a last-used location.
-- Route and rename downloads with rules based on the page, source URL, filename, media type, date, counters, and other variables.
+- Route and rename downloads with rules based on the page, source URL, filename, media type, page text, image alt text, date, counters, and other variables.
 - Start from searchable rule templates, add common matchers with Quick add, insert variables and clauses with autocomplete, and test unsaved rules in the route debugger.
 - Use click-to-save for quick downloads and Page Sources to find media exposed by the current page.
+- Optionally open a folder picker at the pointer with its own click gesture or keyboard command, and save what is under the pointer to Last used or your first three folders with keyboard commands.
 - Optionally save newly discovered Page Sources automatically with site-scoped routing rules, private-window controls, and a per-page limit.
 - Save links or pages as .webloc or HTML redirect shortcuts.
 - Search and filter local download history, choose how many completed entries to keep, and export JSON or spreadsheet-safe CSV/TSV.
+- When a file already exists, create a unique name, overwrite it, skip the save, or ask each time.
 - Optionally record matching ordinary Firefox downloads in Save In history.
 - Optionally use browser Save As subfolders inside Downloads as the Last used destination.
 
@@ -75,9 +77,10 @@ Save In helps manage and organize your downloads. It adds configurable context-m
 Features
 
 - Build a hierarchical destination menu with aliases, separators, submenus, and a last-used location.
-- Route and rename downloads with rules based on the page, source URL, filename, media type, date, counters, and other variables.
+- Route and rename downloads with rules based on the page, source URL, filename, media type, page text, image alt text, date, counters, and other variables.
 - Start from searchable rule templates, add common matchers with Quick add, insert variables and clauses with autocomplete, and test unsaved rules in the route debugger.
 - Use click-to-save for quick downloads and Page Sources to find media exposed by the current page.
+- Optionally open a folder picker at the pointer with its own click gesture or keyboard command, and save what is under the pointer to Last used or your first three folders with keyboard commands.
 - Optionally save newly discovered Page Sources automatically with site-scoped routing rules, private-window controls, and a per-page limit.
 - Save links or pages as .url, .webloc, .desktop, or HTML redirect shortcuts.
 - Search and filter local download history, choose how many completed entries to keep, and export JSON or spreadsheet-safe CSV/TSV.
@@ -95,11 +98,36 @@ Requires Chrome 123 or later.
 
 ## Version 4.2.0 release notes
 
-Use this as the store-facing release note. `CHANGELOG.md` remains the complete
-release history.
+Use this as the store-facing release note; AMO renders its Markdown.
+`CHANGELOG.md` remains the complete release history.
 
 ```text
-Version 4.2 adds an optional in-page folder picker: a list of your Save menu folders that opens at the pointer from its own click gesture, a keyboard command, or an approved extension, with the same access keys as the context menu. It is off by default and does not replace the browser context menu. New keyboard commands save what is under the pointer to Last used or to one of the first three folders. Routing rules can name or route a save by an image's alt text (alttext) or by the text of a page element chosen with a CSS selector (pagetext). A new off-by-default setting skips addresses that Save In History already holds as saved, for automatic saves or for all saves. Right-clicking an image that has not finished loading now saves the image instead of the page, click-to-save keeps the folder of the menu item whose rule it reuses, and a left-click gesture no longer also follows the link. Page Sources no longer passes typed keys to the page's shortcuts or takes focus from the page. This release also hardens Save In against hostile pages and servers: a server can no longer give a saved image a program's file name without a Save As dialog, link shortcuts refuse javascript: and file: links, and automatic saves are counted per tab and site so that reloading a page cannot exceed the limit. A routing rule using a regular expression with the v flag and a nested character class no longer stops settings from loading. The off-by-default Remember private browsing activity option now also lets approved extensions save from private windows and open the folder picker there; webhooks and browser credentials stay off in private windows.
+**Save In 4.2** adds an optional in-page folder picker, keyboard commands that save what is under the pointer, routing by page text and image alt text, and a way to skip addresses you have already saved.
+
+**New**
+
+- **Folder picker** (off by default): lists your Save menu folders at the pointer so you can choose where one item goes. Open it with the "Show the folder picker" command, its own click gesture (Alt+Shift+click by default), or from an approved extension. It uses the context menu's access keys and does not replace the browser context menu.
+- **Keyboard commands** save the image, video, audio, or link under the pointer to Last used or to one of the first three folders. Assign keys in the browser's extension shortcut settings.
+- **Routing:** new `pagetext:` and `alttext:` rules name or route a save by the text of a page element or the image's alt text.
+- **Skip addresses already saved** (off by default) leaves out saves that History already holds as completed.
+- **When a file already exists** can now **Skip** or **Ask each time**.
+- **Remember private browsing activity** now also lets approved extensions save from private windows and open the folder picker there. Webhooks and browser credentials stay off in private windows.
+
+**Fixed**
+
+- Right-clicking an image that has not finished loading saves the image instead of the page.
+- Click-to-save keeps the folder of the menu item whose rule it reuses, and a left-click gesture no longer also follows the link.
+- A routing rule using a regular expression with the `v` flag and a nested character class no longer stops settings from loading.
+- Closing a Save As dialog without saving now ends the save and records it as Canceled.
+- Page Sources no longer passes typed keys to the page's shortcuts or takes focus from the page.
+
+**Security**
+
+- A server can no longer give a saved image, video, or audio file a program's file name without a Save As dialog.
+- Link shortcuts and the context menu refuse `javascript:`, `file:`, and other unsupported links.
+- Automatic saves are counted per tab and site, so reloading a page cannot exceed the limit.
+
+Full changelog: https://github.com/gyng/save-in/releases/tag/v4.2.0
 ```
 
 ## Reviewer notes
