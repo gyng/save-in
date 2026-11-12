@@ -211,6 +211,9 @@ export const statusLabel = (
     USER_CANCELED: ["historyStatusCanceled", "Canceled"],
     NETWORK_FAILED: ["historyStatusNetworkFailed", "Network failed"],
     DOWNLOAD_API_FAILED: ["historyStatusDownloadFailed", "Download failed"],
+    // Firefox reports CRASH for a generic save failure such as a refused
+    // connection (Mozilla bug 1633191), not a browser crash.
+    CRASH: ["historyStatusDownloadFailed", "Download failed"],
     DOWNLOAD_PREPARATION_FAILED: ["historyStatusPreparationFailed", "Preparation failed"],
     DOWNLOAD_PREPARATION_INTERRUPTED: ["historyStatusPreparationInterrupted", "Interrupted"],
     DOWNLOAD_STATE_LOST: ["historyStatusStateLost", "Download state lost"],

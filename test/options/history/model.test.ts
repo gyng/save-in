@@ -311,6 +311,7 @@ describe("history row flatteners", () => {
     expect(statusLabel("pending")).toBe("Saving…");
     expect(statusLabel("failed")).toBe("Failed");
     expect(statusLabel("NETWORK_FAILED")).toBe("Network failed");
+    expect(statusLabel("CRASH")).toBe("Download failed");
     expect(statusLabel("RULE_EXCLUDED", (key) => `Translated<${key}>`)).toBe(
       "Translated<routeActionExcluded>",
     );
