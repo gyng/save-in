@@ -173,10 +173,50 @@ const addressName = (address: string): string => {
   }
 };
 
+// Bidi controls let a page reorder how a name reads ("gpj.exe" behind U+202E
+// shows as "exe.jpg"). The header only displays the name, so they go.
+const BIDI_CONTROLS = /[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/gu;
+
+// Longer names are shortened in the middle: the header clips to a few dozen
+// characters anyway, and its tooltip should not carry a page's 3000-character
+// path segment or title.
+export const PICKER_SUBJECT_MAX_LENGTH = 160;
+
+const displayName = (name: string): string => {
+  const plain = name.replace(BIDI_CONTROLS, "").replace(/\s+/gu, " ").trim();
+  // Code points, so shortening never splits a surrogate pair.
+  const points = Array.from(plain);
+  if (points.length <= PICKER_SUBJECT_MAX_LENGTH) return plain;
+  const keep = PICKER_SUBJECT_MAX_LENGTH - 1;
+  const tail = Math.floor(keep / 2);
+  return `${points.slice(0, keep - tail).join("")}…${points.slice(-tail).join("")}`;
+};
+
 export const pickerSubject = (source: PickerSource | null, pageTitle: string): PickerSubject => {
-  if (source?.media) return { kind: source.media.kind, name: addressName(source.media.url) };
-  if (source?.linkUrl) return { kind: "link", name: addressName(source.linkUrl) };
-  return { kind: "page", name: pageTitle.trim() };
+  if (source?.media)
+    return { kind: source.media.kind, name: displayName(addressName(source.media.url)) };
+  if (source?.linkUrl) return { kind: "link", name: displayName(addressName(source.linkUrl)) };
+  return { kind: "page", name: displayName(pageTitle) };
+};
+
+const EXTENSION_MAX_LENGTH = 10;
+const TAIL_CONTEXT = 4;
+
+// A file name that does not fit loses its middle, not its extension: the view
+// clips the head and always shows the tail, the extension plus a few
+// characters before it. A page title has no extension and clips at the end.
+export const splitPickerSubjectName = ({
+  kind,
+  name,
+}: PickerSubject): { head: string; tail: string } => {
+  const points = Array.from(name);
+  const dot = points.lastIndexOf(".");
+  const extension = points.length - dot - 1;
+  if (kind === "page" || dot <= 0 || extension < 1 || extension > EXTENSION_MAX_LENGTH) {
+    return { head: name, tail: "" };
+  }
+  const start = Math.max(0, dot - TAIL_CONTEXT);
+  return { head: points.slice(0, start).join(""), tail: points.slice(start).join("") };
 };
 
 // Splits a row title around the filter terms so the view can mark what

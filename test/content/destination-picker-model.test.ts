@@ -10,6 +10,8 @@ import {
   setPickerActive,
   setPickerQuery,
   pickerSubject,
+  PICKER_SUBJECT_MAX_LENGTH,
+  splitPickerSubjectName,
   splitPickerMatches,
   type PickerRow,
 } from "../../src/content/destination-picker-model.ts";
@@ -230,6 +232,58 @@ describe("picker subject", () => {
   test("names the page by its trimmed title", () => {
     expect(pickerSubject(null, "  Gallery  ")).toEqual({ kind: "page", name: "Gallery" });
     expect(pickerSubject({}, "")).toEqual({ kind: "page", name: "" });
+  });
+
+  test("drops bidi controls so a page cannot make a name read as another", () => {
+    // U+202E would show "photo\u202Egpj.exe" as "photoexe.jpg".
+    expect(pickerSubject({ linkUrl: "https://x.test/photo%E2%80%AEgpj.exe" }, "").name).toBe(
+      "photogpj.exe",
+    );
+    expect(pickerSubject(null, "\u2067Title\u2069\u200F").name).toBe("Title");
+  });
+
+  test("collapses line breaks and runs of spaces in a page title", () => {
+    expect(pickerSubject(null, "Line one\n\n  line\ttwo").name).toBe("Line one line two");
+  });
+
+  test("shortens a very long name in the middle, keeping its end", () => {
+    const long = `${"a".repeat(3000)}-final.jpg`;
+    const { name } = pickerSubject({ media: { url: `https://x.test/${long}`, kind: "image" } }, "");
+    expect(Array.from(name)).toHaveLength(PICKER_SUBJECT_MAX_LENGTH);
+    expect(name.startsWith("aaaa")).toBe(true);
+    expect(name).toContain("…");
+    expect(name.endsWith("-final.jpg")).toBe(true);
+  });
+
+  test("does not split a surrogate pair when shortening", () => {
+    const { name } = pickerSubject(null, "😀".repeat(400));
+    expect(Array.from(name)).toHaveLength(PICKER_SUBJECT_MAX_LENGTH);
+    expect(name.replaceAll("😀", "")).toBe("…");
+  });
+});
+
+describe("splitPickerSubjectName", () => {
+  test.each([
+    [
+      "keeps the extension and a little before it",
+      "image",
+      "IMG_20261112_holiday.jpeg",
+      ["IMG_20261112_hol", "iday.jpeg"],
+    ],
+    ["keeps a short name whole in the tail", "link", "a.pdf", ["", "a.pdf"]],
+    ["clips a name with no extension from the end", "image", "README", ["README", ""]],
+    [
+      "treats a long suffix as part of the name",
+      "link",
+      "archive.notanextension",
+      ["archive.notanextension", ""],
+    ],
+    ["ignores a leading dot", "link", ".htaccess", [".htaccess", ""]],
+    ["ignores a trailing dot", "link", "name.", ["name.", ""]],
+    ["clips a page title from the end", "page", "Gallery.of.things", ["Gallery.of.things", ""]],
+    ["keeps an astral extension whole", "image", "photo.😀", ["p", "hoto.😀"]],
+  ] as const)("%s", (_label, kind, name, [head, tail]) => {
+    expect(splitPickerSubjectName({ kind, name })).toEqual({ head, tail });
   });
 });
 

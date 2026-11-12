@@ -14,6 +14,7 @@ import {
   type PickerRow,
   type PickerState,
   type PickerSubject,
+  splitPickerSubjectName,
 } from "./destination-picker-model.ts";
 import { createSourceKindIcon } from "./source-panel-icons.ts";
 import { resolvedPanelTheme } from "./source-panel-format.ts";
@@ -188,7 +189,12 @@ const renderHeader = (title: string, subject: PickerSubject | undefined): HTMLEl
     // The tooltip for a clipped name sits on the header: an inert element is
     // never hovered.
     header.title = subject.name;
-    header.append(shieldedText("span", "header-subject", subject.name));
+    const { head, tail } = splitPickerSubjectName(subject);
+    const name = document.createElement("span");
+    name.className = "header-subject";
+    name.append(shieldedText("span", "header-subject-head", head));
+    if (tail) name.append(shieldedText("span", "header-subject-tail", tail));
+    header.append(name);
   }
   return header;
 };

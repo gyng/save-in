@@ -97,6 +97,9 @@ describe("destination picker view", () => {
 
     expect(header.querySelector(".header-title")?.textContent).toBe(copy.title);
     expect(header.querySelector(".header-subject")?.textContent).toBe("forest.jpg");
+    // The extension sits in its own unclipped span, so a long name loses its
+    // middle rather than the part that says what the file is.
+    expect(header.querySelector(".header-subject-tail")?.textContent).toBe("rest.jpg");
     expect(header.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
     expect(root().querySelector('[role="dialog"]')?.getAttribute("aria-label")).toBe(copy.title);
   });

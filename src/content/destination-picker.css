@@ -110,13 +110,24 @@ svg {
 }
 
 .header-subject {
+  display: flex;
   flex: 1 1 0;
+  justify-content: flex-end;
   min-inline-size: 0;
   overflow: hidden;
   font-size: var(--text-xs);
-  text-align: end;
-  text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* The head gives way; the tail (extension) stays whole. */
+.header-subject-head {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-subject-tail {
+  flex: none;
 }
 
 .filter {
