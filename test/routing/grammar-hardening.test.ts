@@ -345,3 +345,47 @@ describe("v-flag nested character classes", () => {
     expect(parsed.rules).toHaveLength(1);
   });
 });
+
+// A fetch: template is a URL, where a colon before letters is ordinary text;
+// only into: paths forbid it. There a variable is only a complete token.
+describe("colons in fetch: URLs", () => {
+  test.each([
+    "https://commons.wikimedia.org/wiki/Special:FilePath/:$1:",
+    "https://example.com/img?id=:$1:&fmt=x:y",
+    "https://example.com/a:b/:$1:",
+    "https://example.com/:filename:?t=:host",
+    "https://example.com/view?name=:$1:&size=Original",
+  ])("accepts the literal colons in %s", (url) => {
+    const parsed = parseRulesCollecting(
+      `filename: (.+)\ncapture: filename\nfetch: ${url}\ninto: y/`,
+    );
+    expect(parsed.errors).toEqual([]);
+    expect(parsed.rules).toHaveLength(1);
+  });
+
+  test.each([
+    ["https://example.com/:nope:", ":nope:"],
+    ["https://example.com/Special:FilePath/:file-name:", ":file-name:"],
+    ["https://example.com/:$name:", ":$name:"],
+  ])("still rejects the complete unknown token in %s", (url, variable) => {
+    const parsed = parseRulesCollecting(
+      `filename: (.+)\ncapture: filename\nfetch: ${url}\ninto: y/`,
+    );
+    expect(parsed.rules).toEqual([]);
+    expect(parsed.errors).toContainEqual(
+      expect.objectContaining({ message: "ruleUnknownDestinationVariable", error: variable }),
+    );
+  });
+
+  test.each(["into: y/Special:FilePath/", "into: y/:host", "rename: x -> a:Name"])(
+    "leaves other clauses' variable checks unchanged: %s",
+    (clause) => {
+      const destination = clause.startsWith("into:") ? clause : `${clause}\ninto: y/`;
+      const parsed = parseRulesCollecting(`filename: x\n${destination}`);
+      expect(parsed.rules).toEqual([]);
+      expect(parsed.errors).toContainEqual(
+        expect.objectContaining({ message: "ruleUnknownDestinationVariable" }),
+      );
+    },
+  );
+});

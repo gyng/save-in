@@ -25,7 +25,11 @@ import {
   MAX_CSS_SELECTORS_PER_ORIGIN,
 } from "../shared/css-selector-attestation.ts";
 import { automaticRuleClauseIssues, isAutomaticRuleClauses } from "./automatic-rule.ts";
-import { findBannedFetchVariables, findUnknownPathVariables } from "./path-variables.ts";
+import {
+  findBannedFetchVariables,
+  findUnknownFetchVariables,
+  findUnknownPathVariables,
+} from "./path-variables.ts";
 import { RENAME_SEPARATOR, splitRenameValue } from "./rename.ts";
 import { capturedPageTextFor, isRenameOnlyEligibleRule } from "./rule-matcher.ts";
 import { isSafeRoutingRegex } from "./regex-safety.ts";
@@ -603,7 +607,7 @@ const parseSemanticRule = (
     }
     // Scan the raw node text so spans stay aligned when the trimmed clause
     // value dropped extra leading whitespace.
-    const unknownFetchVariables = findUnknownPathVariables(fetchNode.value);
+    const unknownFetchVariables = findUnknownFetchVariables(fetchNode.value);
     for (const variable of unknownFetchVariables) {
       appendError(
         errors,

@@ -14,11 +14,11 @@ const isInsideBracketedHost = (value: string, index: number): boolean =>
 const isKnownVariableBody = (body: string): boolean =>
   knownPathVariables.has(`:${body}:`) || /^\$\d+$/.test(body);
 
-export const findUnknownPathVariables = (path: string): UnknownPathVariable[] => {
-  const completeOrTerminal = [...path.matchAll(/:[A-Za-z$][A-Za-z0-9_$-]*(?::|(?=[/\\]|$))/g)]
+const unknownTokens = (value: string, pattern: RegExp): UnknownPathVariable[] =>
+  [...value.matchAll(pattern)]
     .filter(
       (match) =>
-        !isInsideBracketedHost(path, match.index) &&
+        !isInsideBracketedHost(value, match.index) &&
         !knownPathVariables.has(match[0]) &&
         !/^:\$\d+:$/.test(match[0]),
     )
@@ -27,6 +27,9 @@ export const findUnknownPathVariables = (path: string): UnknownPathVariable[] =>
       start: match.index,
       end: match.index + match[0].length,
     }));
+
+export const findUnknownPathVariables = (path: string): UnknownPathVariable[] => {
+  const completeOrTerminal = unknownTokens(path, /:[A-Za-z$][A-Za-z0-9_$-]*(?::|(?=[/\\]|$))/g);
   const missingClosers = [...path.matchAll(/:([A-Za-z$][A-Za-z0-9_$-]*)/g)]
     .filter((match) => {
       const body = match[1];
@@ -51,6 +54,13 @@ export const findUnknownPathVariables = (path: string): UnknownPathVariable[] =>
     )
     .toSorted((left, right) => left.start - right.start);
 };
+
+// A fetch: template is a URL, where a colon before letters is ordinary text
+// (`Special:FilePath`, `fmt=x:y`); only into: paths forbid colons, so the
+// terminal and missing-closer heuristics above would reject valid URLs. Here a
+// variable is only a complete `:name:` or `:$n:` token.
+export const findUnknownFetchVariables = (template: string): UnknownPathVariable[] =>
+  unknownTokens(template, /:[A-Za-z$][A-Za-z0-9_$-]*:/g);
 
 // These variables trigger a metadata or content fetch of the current download
 // URL. A fetch: template exists to CHOOSE that URL, so allowing them would
