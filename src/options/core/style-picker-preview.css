@@ -93,13 +93,20 @@
   padding: 0 var(--space-1) var(--space-1);
 }
 
+/* Rows align on their first line, as the in-page picker's do, so a wrapped
+   title keeps its icon and key beside the line they belong to. */
 .picker-demo-option,
 .picker-demo-heading {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: var(--space-2);
   min-block-size: var(--compact-control-size);
-  padding-block: var(--space-1);
+  padding-block: max(var(--space-1), calc((var(--compact-control-size) - 1lh) / 2));
+
+  & > svg {
+    align-self: flex-start;
+    margin-block-start: calc((1lh - 16px) / 2);
+  }
   padding-inline: calc(var(--space-2) + var(--picker-demo-depth) * var(--space-4)) var(--space-2);
   border-inline-start: 2px solid transparent;
   border-radius: var(--radius);

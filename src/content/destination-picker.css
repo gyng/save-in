@@ -166,12 +166,24 @@ svg {
   padding: 0 var(--source-space-1) var(--source-space-1);
 }
 
+/* Rows align on their first line, so a wrapped title keeps its icon and key
+   beside the line they belong to. The block padding centers a single line in
+   the compact row height. */
+.option,
+.heading {
+  align-items: baseline;
+  padding-block: max(var(--source-space-1), calc((var(--compact-control-size) - 1lh) / 2));
+
+  & > svg {
+    align-self: flex-start;
+    margin-block-start: calc((1lh - 16px) / 2);
+  }
+}
+
 .option {
   display: flex;
-  align-items: center;
   gap: var(--source-space-2);
   min-block-size: var(--compact-control-size);
-  padding-block: var(--source-space-1);
   padding-inline: calc(var(--source-space-2) + var(--picker-depth) * var(--source-space-4))
     var(--source-space-2);
   border-radius: var(--radius);
@@ -221,9 +233,7 @@ mark {
 
 .heading {
   display: flex;
-  align-items: center;
   gap: var(--source-space-2);
-  padding-block: var(--source-space-1);
   padding-inline: calc(var(--source-space-2) + var(--picker-depth) * var(--source-space-4))
     var(--source-space-2);
   min-block-size: var(--compact-control-size);
