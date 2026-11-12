@@ -268,7 +268,7 @@
 }
 
 .advanced-checkbox-option > .advanced-option-help {
-  margin-inline-start: calc(1em + var(--space-2));
+  margin-inline-start: var(--check-text-inset);
 }
 
 .background-fetch-options {

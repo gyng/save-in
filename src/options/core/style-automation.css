@@ -76,7 +76,7 @@
 .dependent-options {
   display: grid;
   gap: var(--space-3);
-  margin-inline-start: var(--space-4);
+  margin-inline-start: var(--check-text-inset);
   transition: opacity var(--motion-duration-fast) ease;
 }
 

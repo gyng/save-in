@@ -86,6 +86,12 @@ input[type="text"] {
   max-inline-size: 80px;
 }
 
+input[type="checkbox"],
+input[type="radio"] {
+  inline-size: var(--check-size);
+  block-size: var(--check-size);
+}
+
 label input[type="checkbox"] {
   margin-inline-end: var(--space-2);
 }

@@ -27,6 +27,10 @@
 
   /* Shape, control, and layout */
   --radius: 4px;
+  /* Native checkbox/radio box. A checkbox label's text starts one box plus the
+     label gap in, so nested options and their help align there. */
+  --check-size: 13px;
+  --check-text-inset: calc(var(--check-size) + var(--space-2));
   --radius-sm: calc(var(--radius) - 1px);
   --radius-dialog: calc(var(--radius) * 2);
   --control-height: 34px;

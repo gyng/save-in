@@ -4,6 +4,13 @@
   line-height: 1.4;
 }
 
+/* Help text is muted (docs/contributing/UI.md, option rows). Zero specificity so
+   any status, warning, or disabled colour still wins; a .caption that wraps
+   nested controls is a layout group, not help, and keeps the body colour. */
+:where(.caption:not(:has(input, select, textarea, button))) {
+  color: var(--color-text-muted);
+}
+
 .caption a {
   text-decoration: underline;
   text-underline-offset: 0.12em;
@@ -76,13 +83,13 @@ label:has(> input[type="checkbox"]) > .caption-line {
 }
 
 .behavior-group .option-group > .caption-line {
-  margin-inline-start: var(--space-4);
+  margin-inline-start: var(--check-text-inset);
 }
 
 .prefer-links-filter {
   display: grid;
   gap: var(--space-1);
-  margin-inline-start: var(--space-4);
+  margin-inline-start: var(--check-text-inset);
 }
 
 .prefer-links-filter > label,
@@ -101,7 +108,7 @@ label:has(> input[type="checkbox"]) > .caption-line {
 .save-dialog-conditions {
   display: grid;
   gap: var(--space-1);
-  margin-inline-start: var(--space-4);
+  margin-inline-start: var(--check-text-inset);
 }
 
 .save-dialog-conditions-label {
@@ -115,10 +122,21 @@ label:has(> input[type="checkbox"]) > .caption-line {
   gap: var(--space-2);
 }
 
+/* The two Existing files choices read as a pair, so their menus share a width. */
+.behavior-group[data-behavior-group="existing-files"] select {
+  min-inline-size: 14rem;
+}
+
 /* Nest the Recent locations count under "Show last used menu item": its label
-   aligns with that checkbox's text (checkbox box width + label gap). */
+   aligns with that checkbox's text. */
 .inline-control-label.recent-locations {
-  margin-inline-start: calc(1em + var(--space-2));
+  margin-inline-start: var(--check-text-inset);
+}
+
+/* Help that follows its checkbox's label (outside it, per the option-row
+   contract) starts under the label text, not under the box. */
+label:has(> input[type="checkbox"][aria-describedby]) + :is(.caption, .advanced-option-help) {
+  margin-inline-start: var(--check-text-inset);
 }
 
 .badge {

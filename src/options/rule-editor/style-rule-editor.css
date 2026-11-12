@@ -110,7 +110,7 @@
   display: inline-flex;
   align-items: center;
   flex: none;
-  gap: 4px;
+  gap: var(--space-1);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   white-space: nowrap;
@@ -174,11 +174,11 @@
   max-inline-size: 22rem;
   block-size: var(--compact-control-size);
   margin: 0;
-  padding: 3px var(--space-1);
+  padding: 0 var(--space-2);
   color: var(--color-text);
   border-color: color-mix(in srgb, var(--control-border) 72%, transparent);
   background: color-mix(in srgb, var(--input-background) 72%, transparent);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
 }
 
 .rule-editor-name:hover,

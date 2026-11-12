@@ -3,11 +3,14 @@
   min-inline-size: 0;
 }
 
+/* The feature's on/off switch, weighted like the other section switches
+   (Page Sources browsing, automatic saves). */
 .click-to-save-option-body > label {
   display: block;
   justify-self: start;
   inline-size: fit-content;
   margin: 0;
+  font-weight: 600;
 }
 
 .click-to-save-controls > legend {
@@ -43,6 +46,11 @@
   display: grid;
   gap: var(--space-2);
   inline-size: 100%;
+}
+
+/* With no added bindings the empty row would still take two grid gaps. */
+.click-to-save-additional:empty {
+  display: none;
 }
 
 /* Trigger rows mirror the Page Sources shortcut fields exactly

@@ -469,8 +469,8 @@ Briefly explain the structure, check that every line follows this syntax, then p
             </label>
           </legend>
           <div class="caption-line">
-            <label> <input type="checkbox" id="closeTabOnSave" />__MSG_o_cCloseTabOnSave__ </label>
             <div class="caption">__MSG_o_cSaveTabstripHelp__</div>
+            <label> <input type="checkbox" id="closeTabOnSave" />__MSG_o_cCloseTabOnSave__ </label>
           </div>
         </fieldset>
       </div>
@@ -1067,12 +1067,17 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                       </div>
                     </details>
                   </div>
-                  <a class="toolbar-link" href="#" data-reference-tab="options-reference-clauses"
-                    >__MSG_o_lClauses__</a
-                  >
-                  <a class="toolbar-link" href="#" data-reference-tab="options-reference-variables"
-                    >__MSG_o_lRoutingVariables__</a
-                  >
+                  <span class="editor-reference-links">
+                    <a class="toolbar-link" href="#" data-reference-tab="options-reference-clauses"
+                      >__MSG_o_lClauses__</a
+                    >
+                    <a
+                      class="toolbar-link"
+                      href="#"
+                      data-reference-tab="options-reference-variables"
+                      >__MSG_o_lRoutingVariables__</a
+                    >
+                  </span>
                   <div class="editor-save-actions">
                     <button
                       type="button"
@@ -2203,7 +2208,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           </div>
         </fieldset>
 
-        <div class="option-subgroup auto-download-rules">
+        <div class="auto-download-rules">
           <h4>__MSG_autoDownloadRulesHeading__</h4>
           <p class="caption" id="auto-download-routing-help">__MSG_autoDownloadRoutingHelp__</p>
           <button

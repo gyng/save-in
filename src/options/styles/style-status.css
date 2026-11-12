@@ -278,11 +278,12 @@ textarea.saved-base {
   animation: saved-field-check var(--motion-duration-feedback) ease-out;
 }
 
-input.key {
+input.key,
+label input.key {
   max-inline-size: 2em;
-  margin-inline: var(--space-1) 8px;
+  margin-inline: 0 var(--space-2);
   text-align: center;
-  padding: 4px 8px;
+  padding: var(--space-1) var(--space-2);
 }
 
 .match-row {
@@ -291,6 +292,6 @@ input.key {
 }
 
 .match-row-result {
-  margin-inline-start: 8px;
+  margin-inline-start: var(--space-2);
   font-family: var(--font-mono);
 }
