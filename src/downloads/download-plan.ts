@@ -292,11 +292,6 @@ export const resolveDownloadPlan = async (
     (state.info.context === DOWNLOAD_TYPES.CLICK || state.info.context === DOWNLOAD_TYPES.AUTO)
   )
     state.path = new Path(".");
-  state.path = await applyVariables(state.path, state.info);
-  if (routeMatches) {
-    state.routeIsFolder = ROUTES_TO_FOLDER_REGEX.test(routeMatches);
-    state.route = await applyVariables(new Path(routeMatches), state.info);
-  }
   const routeRequired =
     !state.info.routingDisabled && (state.needRouteMatch || options.routeSkipUnmatched);
   // Re-read the URL: a fetch: rewrite above may have retargeted it.
@@ -326,6 +321,13 @@ export const resolveDownloadPlan = async (
   if (routeRequired && !routeMatches && !deferRouteRequirement) {
     downloadRuntime.forgetPendingState(state);
     return null;
+  }
+  // Expanded only once the save is known to go ahead: a variable can have a
+  // persistent side effect, and a dropped save must not advance :counter:.
+  state.path = await applyVariables(state.path, state.info);
+  if (routeMatches) {
+    state.routeIsFolder = ROUTES_TO_FOLDER_REGEX.test(routeMatches);
+    state.route = await applyVariables(new Path(routeMatches), state.info);
   }
 
   // Expanded after the fetch: rewrite so replacement variables resolve

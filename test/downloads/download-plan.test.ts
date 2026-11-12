@@ -1212,3 +1212,31 @@ describe("renameAndDownload: prompt combinations", () => {
     await expectSaveAs(makeState(), false);
   });
 });
+
+describe("a save the unmatched-route setting drops", () => {
+  test("does not advance a :counter: in the menu folder", async () => {
+    const { routingPorts } = await import("../../src/routing/ports.ts");
+    const nextCounter = vi.spyOn(routingPorts, "nextCounter").mockResolvedValue(7);
+    options.routeSkipUnmatched = true;
+    options.filenamePatterns = [routingRule("filename")];
+    vi.mocked(router.matchRules).mockReturnValue(null);
+
+    const state = makeState({ path: new Path.Path("saved/:counter:") });
+    await expect(Download.resolveDownloadPlan(state)).resolves.toBeNull();
+
+    expect(nextCounter).not.toHaveBeenCalled();
+  });
+
+  test("still advances it for a matched save", async () => {
+    const { routingPorts } = await import("../../src/routing/ports.ts");
+    const nextCounter = vi.spyOn(routingPorts, "nextCounter").mockResolvedValue(7);
+    options.routeSkipUnmatched = true;
+    options.filenamePatterns = [routingRule("filename")];
+    vi.mocked(router.matchRules).mockReturnValue("matched/");
+
+    const state = makeState({ path: new Path.Path("saved/:counter:") });
+    await expect(Download.resolveDownloadPlan(state)).resolves.not.toBeNull();
+
+    expect(nextCounter).toHaveBeenCalledTimes(1);
+  });
+});
