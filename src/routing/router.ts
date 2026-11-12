@@ -116,10 +116,11 @@ export const traceRules = async (
   isEligible: (rule: RoutingRule) => boolean = () => true,
 ): Promise<RuleTrace> => {
   // A trace is offline: the debugger's typed text or a History row's recorded
-  // text is all it has, so that text answers for every pagetext: selector.
+  // text is all it has. A History row also names the selector that captured
+  // it, and then only that selector may answer with it.
   const replayedCapture = suppliedInfo.capturedPageText
     ? undefined
-    : replayedPageTextCapture(rules, suppliedInfo.pageText);
+    : replayedPageTextCapture(rules, suppliedInfo.pageText, suppliedInfo.pageTextSelector);
   const info: RoutingInfo = replayedCapture
     ? { ...suppliedInfo, capturedPageText: replayedCapture }
     : suppliedInfo;

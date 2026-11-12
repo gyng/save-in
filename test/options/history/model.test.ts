@@ -24,6 +24,9 @@ import {
   statusLabel,
 } from "../../../src/options/history/history-model.ts";
 import { normalizeHistoryEntry } from "../../../src/shared/history-normalization.ts";
+import { parseRulesCollecting } from "../../../src/routing/rule-parser.ts";
+import { traceRules } from "../../../src/routing/router.ts";
+import { MAX_CSS_SELECTOR_LENGTH } from "../../../src/shared/css-selector-attestation.ts";
 
 test("missing legacy timestamps render as blank", () => {
   expect(formatHistoryDisplayTime()).toBe("");
@@ -154,6 +157,47 @@ test("reconstructs a compact route-debugger input from current and legacy Histor
     info: { currentTab: { title: "Title only" } },
   });
   expect(historyDebuggerState({})).toEqual({ info: {} });
+});
+
+describe("Debug this save replays page text against the selector that captured it", () => {
+  // R1 names saves by .author, R2 by .title. The page had a .title but no
+  // .author, so the save went to R2; the replay must not hand R1 the title.
+  const rules = parseRulesCollecting(
+    "pagetext: .author\ninto: authors/:pagetext:/:filename:\n\npagetext: .title\ninto: titles/:pagetext:/:filename:",
+  ).rules;
+  const replay = (variables: Record<string, string>) => {
+    const { info } = historyDebuggerState({
+      finalFullPath: "titles/A title/cat.jpg",
+      info: { pageUrl: "https://page.test/post", context: "LINK" },
+      variables: { filename: "cat.jpg", pagetext: "A title", ...variables },
+    });
+    // Undated, so the wire's ISO string never reaches the trace's Date field.
+    return { info, trace: traceRules(rules, { ...info, now: undefined }) };
+  };
+
+  test("a recorded selector traces the rule that saved the file", async () => {
+    const { info, trace } = replay({ pagetextselector: ".title" });
+    expect(info.pageTextSelector).toBe(".title");
+    await expect(trace).resolves.toMatchObject({
+      selectedRule: 2,
+      finalPath: "titles/A title/cat.jpg",
+    });
+  });
+
+  test("a row recorded before the selector keeps offering its text to every rule", async () => {
+    const { info, trace } = replay({});
+    expect(info).not.toHaveProperty("pageTextSelector");
+    await expect(trace).resolves.toMatchObject({ selectedRule: 1 });
+  });
+
+  test("a selector without text, or one too long to be a selector, is not replayed", () => {
+    expect(
+      historyDebuggerState({ variables: { pagetextselector: ".title" } }).info,
+    ).not.toHaveProperty("pageTextSelector");
+    expect(
+      replay({ pagetextselector: "x".repeat(MAX_CSS_SELECTOR_LENGTH + 1) }).info,
+    ).not.toHaveProperty("pageTextSelector");
+  });
 });
 
 test("CSV export includes all flattened history fields and escapes values", () => {

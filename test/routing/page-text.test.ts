@@ -1,4 +1,8 @@
-import { pageTextSelectorsForPage, replayedPageTextCapture } from "../../src/routing/page-text.ts";
+import {
+  pageTextSelectorOf,
+  pageTextSelectorsForPage,
+  replayedPageTextCapture,
+} from "../../src/routing/page-text.ts";
 import {
   capturedPageTextFor,
   evaluateRule,
@@ -323,6 +327,17 @@ describe("pagetext: in a trace", () => {
     expect(second).toMatchObject({ selectedRule: 2, finalPath: "b/recorded-cat.jpg" });
   });
 
+  test("replayed text with its recorded selector reaches only that rule", async () => {
+    const trace = await traceRules(rules, {
+      pageUrl: "https://x.test/first",
+      filename: "cat.jpg",
+      pageText: "recorded",
+      pageTextSelector: ".second",
+    });
+    expect(trace).toMatchObject({ selectedRule: 2, finalPath: "b/recorded-cat.jpg" });
+    expect(trace.rules[0]?.clauses[1]).toMatchObject({ name: "pagetext", matched: false });
+  });
+
   test("a real capture is never overridden by replayed text", async () => {
     const trace = await traceRules(rules, {
       pageUrl: "https://x.test/first",
@@ -394,5 +409,46 @@ describe("selectors worth reading on a page", () => {
     expect(replayedPageTextCapture(rules, "  ")).toBeUndefined();
     expect(replayedPageTextCapture(rules, undefined)).toBeUndefined();
     expect(replayedPageTextCapture([], "recorded")).toEqual([]);
+  });
+
+  // A History row names the selector its text came from; the replay offers the
+  // text to that selector alone. Typed text and older rows name none.
+  test.each([
+    ["a recorded selector one rule uses", ".gallery-title", [[".gallery-title", "recorded name"]]],
+    ["a recorded selector no rule uses", ".gone", [[".gone", "recorded name"]]],
+    [
+      "no recorded selector (older row or typed text)",
+      undefined,
+      [
+        ["header .author", "recorded name"],
+        [".gallery-title", "recorded name"],
+        [".anywhere", "recorded name"],
+      ],
+    ],
+    [
+      "an empty recorded selector",
+      "",
+      [
+        ["header .author", "recorded name"],
+        [".gallery-title", "recorded name"],
+        [".anywhere", "recorded name"],
+      ],
+    ],
+  ])("replays for %s", (_label, selector, expected) => {
+    expect(replayedPageTextCapture(rules, " recorded\nname ", selector)).toEqual(expected);
+  });
+
+  test("a recorded selector with no text replays nothing", () => {
+    expect(replayedPageTextCapture(rules, " ", ".gallery-title")).toBeUndefined();
+  });
+
+  test("names a rule's own pagetext: selector, or none", () => {
+    expect(rules.map(pageTextSelectorOf)).toEqual([
+      "header .author",
+      ".gallery-title",
+      ".anywhere",
+      "header .author",
+      undefined,
+    ]);
   });
 });

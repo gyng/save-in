@@ -69,6 +69,7 @@ const fieldsFromInfo = (info: WireDownloadInfo): RouteDebuggerFields => ({
   linkDownload: info.linkDownload || "",
   altText: info.altText || "",
   pageText: info.pageText || "",
+  pageTextSelector: info.pageTextSelector || "",
   selectionText: info.selectionText || "",
   mediaType: info.mediaType || "",
   sourceKind: info.sourceKind || "",
@@ -266,6 +267,11 @@ export const setupRouteDebugger = (): void => {
   let lastTrace: RouteDebuggerTrace | null = null;
   let lastRunFields: RouteDebuggerFields | null = null;
   let replayingHistory = false;
+  // The selector a History row recorded for its page text has no field of its
+  // own. It stays bound to the text it came with, so a re-run traces the row
+  // the same way, and editing that text makes it typed text again, offered to
+  // every pagetext: selector.
+  let pageTextBinding: { text: string; selector: string } | null = null;
 
   const readFields = (): RouteDebuggerFields => ({
     filename: filename.value.trim(),
@@ -283,6 +289,8 @@ export const setupRouteDebugger = (): void => {
     linkDownload: linkDownload.value.trim(),
     altText: altText.value.trim(),
     pageText: pageText.value.trim(),
+    pageTextSelector:
+      pageTextBinding?.text === pageText.value.trim() ? pageTextBinding.selector : undefined,
     selectionText: selectionText.value.trim(),
     mediaType: mediaType.value,
     sourceKind: isPageSourceKind(sourceKind.value) ? sourceKind.value : "",
@@ -311,6 +319,10 @@ export const setupRouteDebugger = (): void => {
     linkDownload.value = fields.linkDownload || "";
     altText.value = fields.altText || "";
     pageText.value = fields.pageText || "";
+    pageTextBinding =
+      fields.pageTextSelector && pageText.value.trim()
+        ? { text: pageText.value.trim(), selector: fields.pageTextSelector }
+        : null;
     selectionText.value = fields.selectionText || "";
     const nextMediaType = fields.mediaType || "";
     mediaType.value = [...mediaType.options].some((option) => option.value === nextMediaType)

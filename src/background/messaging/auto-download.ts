@@ -1,5 +1,6 @@
 import { DOWNLOAD_TYPES, MESSAGE_TYPES } from "../../shared/constants.ts";
 import { Path } from "../../routing/path.ts";
+import { pageTextSelectorOf } from "../../routing/page-text.ts";
 import { options } from "../../config/options-data.ts";
 import { launchDownload } from "../../downloads/download.ts";
 import {
@@ -187,7 +188,9 @@ export const handleAutoDownloadSource = async (
       capturedPageText,
       // The plan reuses this match instead of matching again, so the text its
       // pagetext: clause captured travels with the route it selected.
-      ...(match.pageText ? { pageText: match.pageText } : {}),
+      ...(match.pageText
+        ? { pageText: match.pageText, pageTextSelector: pageTextSelectorOf(match.rule) }
+        : {}),
       url: sourceUrl,
       context: DOWNLOAD_TYPES.AUTO,
       ...(isDataUrl(sourceUrl) ? { suggestedFilename: "download" } : {}),

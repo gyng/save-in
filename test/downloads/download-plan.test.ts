@@ -21,6 +21,7 @@ import {
   Variable,
 } from "./download-flow.fixture.ts";
 import { settleRoutingResolution } from "../../src/downloads/routing-resolution.ts";
+import { parseRulesCollecting } from "../../src/routing/rule-parser.ts";
 
 describe("getFilenameFromContentDisposition", () => {
   test("returns null for non-string input", () => {
@@ -60,9 +61,11 @@ describe("getFilenameFromContentDisposition", () => {
 });
 
 describe("page text of the winning pagetext: rule", () => {
+  const authorRule = parseRulesCollecting("pagetext: header .author\ninto: authors/:pagetext:/")
+    .rules[0]!;
   const routeMatch = (pageText?: string): RuleMatch => ({
     outcome: "route",
-    rule: routingRule(),
+    rule: authorRule,
     destination: "authors/:pagetext:/",
     fetch: null,
     rename: null,
@@ -91,12 +94,14 @@ describe("page text of the winning pagetext: rule", () => {
     vi.mocked(router.matchRulesDetailed).mockReturnValue(routeMatch("example author"));
     match(state);
     expect(state.info.pageText).toBe("example author");
+    expect(state.info.pageTextSelector).toBe("header .author");
 
     // A later pass can select a rule that captured nothing, an exclusion, or
     // no rule: none of them may inherit the earlier rule's text.
     vi.mocked(router.matchRulesDetailed).mockReturnValue(routeMatch());
     match(state);
     expect(state.info).not.toHaveProperty("pageText");
+    expect(state.info).not.toHaveProperty("pageTextSelector");
 
     state.info.pageText = "stale";
     vi.mocked(router.matchRulesDetailed).mockReturnValue({

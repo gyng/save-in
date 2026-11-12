@@ -19,7 +19,7 @@ export type PageTextCapture = Array<[selector: string, text: string]>;
 export const normalizePageText = (value: string): string =>
   value.replace(/\s+/g, " ").trim().slice(0, MAX_PAGE_TEXT_LENGTH).trimEnd();
 
-const isPageTextSelector = (value: unknown): value is string =>
+export const isPageTextSelector = (value: unknown): value is string =>
   typeof value === "string" && value.length > 0 && value.length <= MAX_CSS_SELECTOR_LENGTH;
 
 export const isPageTextSelectorList = (value: unknown): value is string[] =>

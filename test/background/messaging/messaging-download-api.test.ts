@@ -1347,6 +1347,7 @@ into: authors/:pagetext:/
     expect(state.scratch.routeTemplateRaw).toBe("authors/:pagetext:/");
     expect(state.info).toMatchObject({
       pageText: "example author",
+      pageTextSelector: "header .author",
       capturedPageText: [["header .author", "example author"]],
     });
   });

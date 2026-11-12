@@ -8,6 +8,7 @@ import {
   isSourceSidecar,
 } from "./download-pipeline-state.ts";
 import { historyDisplayUrl, isDataUrl } from "../shared/data-url.ts";
+import { isPageTextSelector } from "../shared/page-text-capture.ts";
 
 const historyPort = downloadPorts.history;
 
@@ -54,6 +55,12 @@ const historyRoutingMetadata = (
       linkdownload: state.info.linkDownload,
       alttext: state.info.altText,
       pagetext: state.info.pageText,
+      // Internal: which pagetext: selector captured that text, so a replay
+      // offers it to that rule alone. Recorded only beside the text.
+      pagetextselector:
+        state.info.pageText && isPageTextSelector(state.info.pageTextSelector)
+          ? state.info.pageTextSelector
+          : undefined,
       selection: state.info.selectionText,
       mediatype: state.info.mediaType,
       sourcekind: state.info.sourceKind,

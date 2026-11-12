@@ -43,14 +43,23 @@ export const pageTextSelectorsForPage = (
   return [...selectors].slice(0, MAX_PAGE_TEXT_SELECTORS);
 };
 
-// A replay has no page to ask. The one recorded or typed text stands in for
-// every pagetext: selector, so the rule that used it can be traced again.
+// The pagetext: selector of one rule, which has at most one.
+export const pageTextSelectorOf = (rule: RoutingRule): string | undefined =>
+  rule.filter(isMatcher).find(isPageTextMatcherClause)?.value;
+
+// A replay has no page to ask. A recorded selector says which pagetext: clause
+// the text came from, so only that selector sees it; every other one sees no
+// capture, exactly as on a page without its element. Hand-typed text and
+// History rows recorded before the selector have none, so their text stands in
+// for every pagetext: selector and the rule that used it can still be traced.
 export const replayedPageTextCapture = (
   rules: readonly RoutingRule[],
   text: string | undefined,
+  recordedSelector?: string | undefined,
 ): PageTextCapture | undefined => {
   const normalized = normalizePageText(text ?? "");
   if (!normalized) return undefined;
+  if (recordedSelector) return [[recordedSelector, normalized]];
   const selectors = new Set(
     rules
       .flatMap((rule) => rule.filter(isMatcher).filter(isPageTextMatcherClause))

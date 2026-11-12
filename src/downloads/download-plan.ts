@@ -17,6 +17,7 @@ import { applyVariables, mimeToExtension, resolveMime } from "../routing/variabl
 import { options } from "../config/options-data.ts";
 import { deriveUrlFilenames, EXTENSION_REGEX } from "../routing/filename.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
+import { pageTextSelectorOf } from "../routing/page-text.ts";
 import type { DownloadPipelineState, DownloadPlan } from "./download-types.ts";
 import { downloadRuntime } from "./download-runtime-instance.ts";
 import {
@@ -41,8 +42,15 @@ const recordMatchedPageText = (
   info: DownloadPipelineState["info"],
   match: RuleMatch | null,
 ): void => {
-  if (match?.outcome === "route" && match.pageText) info.pageText = match.pageText;
-  else delete info.pageText;
+  if (match?.outcome === "route" && match.pageText) {
+    info.pageText = match.pageText;
+    // History records it so Debug this save offers the text to this rule's
+    // selector alone, as the page did.
+    info.pageTextSelector = pageTextSelectorOf(match.rule);
+  } else {
+    delete info.pageText;
+    delete info.pageTextSelector;
+  }
 };
 
 export const getRoutingMatch = (state: Pick<DownloadPipelineState, "info">): RuleMatch | null => {

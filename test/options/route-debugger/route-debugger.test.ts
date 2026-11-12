@@ -403,6 +403,54 @@ test("replays a validated History snapshot against current rules and navigates t
   ).toHaveLength(1);
 });
 
+test("a replayed row's page text selector stays with its text until the text is edited", async () => {
+  renderWorkbench();
+  vi.mocked(browser.i18n.getMessage).mockReturnValue("");
+  const sendMessage = vi
+    .spyOn(webExtensionApi.runtime, "sendMessage")
+    .mockImplementation(async (message: any) => {
+      if (message.type === MESSAGE_TYPES.CHECK_ROUTES) return checkResponse();
+      return {
+        type: MESSAGE_TYPES.VALIDATE_RESULT,
+        body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
+      };
+    });
+  const validatedInfo = () =>
+    sendMessage.mock.calls
+      .filter(([message]: any[]) => message.type === MESSAGE_TYPES.VALIDATE)
+      .map(([message]: any[]) => message.body.info);
+  setupRouteDebugger();
+  const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
+  const pageText = document.querySelector<HTMLInputElement>("#route-debugger-page-text")!;
+  const run = document.querySelector<HTMLButtonElement>("#route-debugger-run")!;
+
+  document.dispatchEvent(
+    new CustomEvent("save-in:debug-history", {
+      detail: {
+        state: {
+          info: { filename: "cat.jpg", pageText: "A title", pageTextSelector: ".title" },
+        },
+      },
+    }),
+  );
+  await vi.waitFor(() => expect(validatedInfo()).toHaveLength(1));
+  expect(validatedInfo()[0]).toMatchObject({ pageText: "A title", pageTextSelector: ".title" });
+  await vi.waitFor(() => expect(result.dataset.state).toBe("no-match"));
+  await vi.waitFor(() => expect(run.disabled).toBe(false));
+
+  run.click();
+  await vi.waitFor(() => expect(validatedInfo()).toHaveLength(2));
+  await vi.waitFor(() => expect(run.disabled).toBe(false));
+  expect(validatedInfo()[1]).toMatchObject({ pageTextSelector: ".title" });
+
+  // Edited text is typed text: it is offered to every pagetext: selector.
+  pageText.value = "Another title";
+  run.click();
+  await vi.waitFor(() => expect(validatedInfo()).toHaveLength(3));
+  expect(validatedInfo()[2]).toMatchObject({ pageText: "Another title" });
+  expect(validatedInfo()[2]).not.toHaveProperty("pageTextSelector");
+});
+
 const fetchTraceResponse = (
   ruleTrace: Record<string, unknown>,
 ): ((message: { type: string }) => Promise<unknown>) => {

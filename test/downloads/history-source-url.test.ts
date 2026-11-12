@@ -60,6 +60,61 @@ test("history keeps the remaining compact inputs needed to replay routing decisi
   ).not.toContain("header .author");
 });
 
+test("history records which pagetext: selector captured the recorded text", () => {
+  const state = makeState({
+    info: {
+      pageText: "example author",
+      pageTextSelector: "header .author",
+      capturedPageText: [
+        ["header .author", "example author"],
+        [".title", "other title"],
+      ],
+    },
+  });
+
+  Download.createDownloadPlan(state);
+
+  const entry = vi.mocked(SaveHistory.addHistoryEntry).mock.calls.at(-1)?.[0];
+  expect(entry?.variables).toEqual(
+    expect.objectContaining({ pagetext: "example author", pagetextselector: "header .author" }),
+  );
+  expect(JSON.stringify(entry)).not.toContain(".title");
+  expect(JSON.stringify(entry)).not.toContain("other title");
+});
+
+test.each([
+  ["without recorded text", { pageTextSelector: "header .author" }],
+  ["beyond a selector's length", { pageText: "name", pageTextSelector: "x".repeat(513) }],
+])("history records no selector %s", (_label, info) => {
+  Download.createDownloadPlan(makeState({ info }));
+
+  expect(
+    vi.mocked(SaveHistory.addHistoryEntry).mock.calls.at(-1)?.[0].variables,
+  ).not.toHaveProperty("pagetextselector");
+});
+
+test("an isolated private save persists neither its page text nor its selector", async () => {
+  const state = makeState({
+    info: {
+      currentTab: { incognito: true },
+      pageText: "example author",
+      pageTextSelector: "header .author",
+    },
+  });
+
+  // The real History boundary, not the fixture's mirror of it.
+  vi.mocked(SaveHistory.addHistoryEntry).mockRestore();
+
+  Download.createDownloadPlan(state);
+
+  // History drops a private row unless the user opted in, selector and all.
+  expect(state.scratch.historyEntryId).toBeNull();
+  await Promise.resolve();
+  expect(JSON.stringify(vi.mocked(browser.storage.local.set).mock.calls)).not.toContain(
+    "header .author",
+  );
+});
+
 test("history stores a truncated, non-fetchable form of a data: URL, never the full payload", () => {
   const dataUrl = `data:image/png;base64,${"A".repeat(4000)}`;
   const state = makeState({

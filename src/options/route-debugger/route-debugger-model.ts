@@ -71,6 +71,8 @@ export type RouteDebuggerFields = {
   linkDownload?: string | undefined;
   altText?: string | undefined;
   pageText?: string | undefined;
+  // Not a field: the selector a replayed History row recorded for pageText.
+  pageTextSelector?: string | undefined;
   selectionText?: string | undefined;
   mediaType?: string | undefined;
   sourceKind?: PageSourceKind | "" | undefined;
@@ -320,6 +322,7 @@ export const routeDebuggerInfo = (fields: RouteDebuggerFields): ValidationInfo =
   if (fields.linkDownload) info.linkDownload = fields.linkDownload;
   if (fields.altText) info.altText = fields.altText;
   if (fields.pageText) info.pageText = fields.pageText;
+  if (fields.pageText && fields.pageTextSelector) info.pageTextSelector = fields.pageTextSelector;
   if (fields.selectionText) info.selectionText = fields.selectionText;
   const mediaType = fields.mediaType || (automatic ? fields.sourceKind : "");
   if (mediaType) info.mediaType = mediaType;

@@ -58,6 +58,10 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   // The text the winning rule's pagetext: selector captured; :pagetext: expands
   // to it. Set by whoever selects the rule, never taken from a message.
   pageText?: string | undefined;
+  // That rule's pagetext: selector, recorded beside the text. A replay offers
+  // the text to this selector only; without it, the text answers for every
+  // selector, as it did for History rows recorded before the selector was.
+  pageTextSelector?: string | undefined;
 };
 
 export type RuleErrorLocation = {

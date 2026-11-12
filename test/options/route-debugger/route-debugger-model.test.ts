@@ -349,6 +349,7 @@ test("normalizes debugger fields into the routing engine input aliases", () => {
       linkDownload: "quarterly-report.pdf",
       altText: "quarterly-report.pdf",
       pageText: "example_author",
+      pageTextSelector: ".author",
       selectionText: "Q2",
       mediaType: "image",
       sourceKind: "document",
@@ -375,6 +376,7 @@ test("normalizes debugger fields into the routing engine input aliases", () => {
     linkDownload: "quarterly-report.pdf",
     altText: "quarterly-report.pdf",
     pageText: "example_author",
+    pageTextSelector: ".author",
     selectionText: "Q2",
     mediaType: "image",
     sourceKind: "document",
@@ -384,6 +386,19 @@ test("normalizes debugger fields into the routing engine input aliases", () => {
     counter: 7,
     sha256: "ba7816bf8f01",
   });
+});
+
+test("a page text selector without page text is not sent", () => {
+  expect(
+    routeDebuggerInfo({
+      filename: "",
+      sourceUrl: "",
+      pageUrl: "",
+      mime: "",
+      context: "",
+      pageTextSelector: ".author",
+    }),
+  ).not.toHaveProperty("pageTextSelector");
 });
 
 // currentTab is the exception: it is named even when blank, because an absent

@@ -16,6 +16,7 @@ import type {
 import type { WireDownloadInfo, WireDownloadState } from "../../shared/message-protocol.ts";
 import { isClickGesture, normalizeClickKeys } from "../../shared/click-gesture.ts";
 import { isPageSourceKind } from "../../shared/page-source.ts";
+import { isPageTextSelector } from "../../shared/page-text-capture.ts";
 import {
   historyEntryInfo,
   historySourceUrl,
@@ -307,6 +308,12 @@ export const historyDebuggerState = (entry: HistoryEntry): WireDownloadState => 
   } satisfies Partial<WireDownloadInfo>;
   for (const [key, value] of Object.entries(directFields)) {
     if (value) info[key as keyof typeof directFields] = value;
+  }
+  // Rows recorded before the selector carry only the text, which the trace
+  // then offers to every pagetext: selector as it always did.
+  const pageTextSelector = firstVariable("pagetextselector");
+  if (info.pageText && isPageTextSelector(pageTextSelector)) {
+    info.pageTextSelector = pageTextSelector;
   }
 
   const sourceKind = firstVariable("sourcekind");

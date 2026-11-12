@@ -44,6 +44,7 @@ export type WireDownloadInfo = {
   linkDownload?: string | undefined;
   altText?: string | undefined;
   pageText?: string | undefined;
+  pageTextSelector?: string | undefined;
   mediaType?: string | undefined;
   sourceKind?: PageSourceKind | undefined;
   mime?: string | undefined;
@@ -97,6 +98,7 @@ export const WIRE_INFO_STRING_FIELDS = [
   "linkDownload",
   "altText",
   "pageText",
+  "pageTextSelector",
   "mediaType",
   "mime",
   "filename",
