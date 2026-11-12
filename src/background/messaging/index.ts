@@ -55,7 +55,9 @@ import {
   API_ERRORS,
   API_VERSION,
   isExternalDownloadAllowed,
+  isOwnExtensionPageSender,
   isPageContentSender,
+  isWebMcpDownloadRequest,
   type MessageSender,
   type ProtocolSendResponse,
 } from "./protocol.ts";
@@ -590,6 +592,9 @@ const dispatchMessage = <M extends InternalMessage>(
   sender: MessageSender,
   sendResponse: ProtocolSendResponse<M>,
   handlers: HandlerTable<M>,
+  // The external table answers versioned API callers (and WebMCP's validation),
+  // whose every response names the API version, failures included.
+  version?: number,
 ): true | void => {
   // The table is exhaustive for M, so this lookup is safe even though TS cannot
   // preserve the correlation between a union's discriminator and mapped value.
@@ -608,13 +613,23 @@ const dispatchMessage = <M extends InternalMessage>(
     const task = backgroundRuntime.ready
       .then(() => handler(request, sender, sendResponse))
       .then(() => undefined);
-    return respondAsync(request.type, task, sendResponse, reportFailure);
+    return respondAsync(request.type, task, sendResponse, reportFailure, version);
   }
   const result = handler(request, sender, sendResponse);
   if (result instanceof Promise) {
-    return respondAsync(request.type, result, sendResponse, reportFailure);
+    return respondAsync(request.type, result, sendResponse, reportFailure, version);
   }
 };
+
+const webMcpSourceRejection = (version: number | undefined) => ({
+  type: MESSAGE_TYPES.DOWNLOAD,
+  body: {
+    status: MESSAGE_TYPES.ERROR,
+    error: API_ERRORS.BAD_REQUEST,
+    message: "'source' is reserved for Save In's own pages",
+    version: version || API_VERSION,
+  },
+});
 
 // MV3: entry.background calls this synchronously at startup so a worker woken BY
 // an incoming message still has the handlers attached.
@@ -639,6 +654,12 @@ export const registerMessaging = () => {
       }
       return;
     }
+    // The WebMCP marker withdraws the sender tab, and with it an external
+    // caller's private marker. It belongs to Save In's own options page only.
+    if (rawRequest.type === MESSAGE_TYPES.DOWNLOAD && isWebMcpDownloadRequest(rawRequest.body)) {
+      sendResponse(webMcpSourceRejection(rawRequest.body.version));
+      return;
+    }
     if (rawRequest.type === MESSAGE_TYPES.VALIDATE) {
       const rejection = getUntrustedValidationRejection(rawRequest, sender);
       if (rejection) {
@@ -649,11 +670,21 @@ export const registerMessaging = () => {
         return;
       }
     }
-    return dispatchMessage(rawRequest, sender, sendResponse, externalHandlers);
+    return dispatchMessage(rawRequest, sender, sendResponse, externalHandlers, API_VERSION);
   });
 
   webExtensionApi.runtime.onMessage.addListener((rawRequest, sender, sendResponse) => {
     if (!isInternalMessage(rawRequest)) {
+      return;
+    }
+    // Content scripts share this listener and sender.id; only the browser-set
+    // page URL proves the request came from Save In's own options page.
+    if (
+      rawRequest.type === MESSAGE_TYPES.DOWNLOAD &&
+      isWebMcpDownloadRequest(rawRequest.body) &&
+      !isOwnExtensionPageSender(sender)
+    ) {
+      sendResponse(webMcpSourceRejection(rawRequest.body.version));
       return;
     }
     if (
@@ -665,7 +696,7 @@ export const registerMessaging = () => {
         sendResponse({ type: MESSAGE_TYPES.VALIDATE, body: rejection });
         return;
       }
-      return dispatchMessage(rawRequest, sender, sendResponse, externalHandlers);
+      return dispatchMessage(rawRequest, sender, sendResponse, externalHandlers, API_VERSION);
     }
     return dispatchMessage(rawRequest, sender, sendResponse, internalHandlers);
   });

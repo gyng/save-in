@@ -49,6 +49,7 @@ import {
   API_ERRORS,
   API_VERSION,
   isValidDownloadUrl,
+  isWebMcpDownloadRequest,
   type MessageSender,
   type ProtocolSendResponse,
 } from "./protocol.ts";
@@ -345,6 +346,10 @@ export const handleValidate = async (
                 initialFilename: suggestedFilename,
               }
             : {}),
+          // traceRules replays this for the rules' pagetext: selectors, as it
+          // does info.pageText; without it every automatic pagetext: rule
+          // traced as unmatched.
+          ...(typeof candidate.pageText === "string" ? { pageText: candidate.pageText } : {}),
         },
         (rule) => isEligibleAutomaticRoutingRuleForCandidate(rule, candidate),
       );
@@ -470,6 +475,14 @@ export const handleDownloadMessage = (
   const { url: requestedUrl, target, comment } = requestBody;
   // Callers may pin a version; default to the current one
   const version = requestBody.version || API_VERSION;
+  // The registered listeners admit this marker only from Save In's own pages;
+  // the external flag keeps an external caller from shedding its private
+  // marker with it even if a listener let one through.
+  const webMcp = !external && isWebMcpDownloadRequest(requestBody);
+  // A WebMCP save arrives from the options tab, which is Save In's settings
+  // page, not a page being saved: its title must not reach pagetitle: rules,
+  // History, a source sidecar, or a webhook, and no rule may close it.
+  const senderTab = webMcp ? undefined : sender.tab;
 
   // Validate before triggering a download: external callers are untrusted,
   // and a malformed message should get typed feedback, not silent failure.
@@ -492,10 +505,10 @@ export const handleDownloadMessage = (
   const launch = (
     url: string,
     selectedTab?: CurrentTab,
-    postSaveActionTab: CurrentTab | null = internal ? sender.tab || null : null,
+    postSaveActionTab: CurrentTab | null = internal ? senderTab || null : null,
   ): Promise<void> | void => {
-    const tabTied = Boolean(selectedTab || sender.tab);
-    const resolvedTab = selectedTab || sender.tab || ambientTab();
+    const tabTied = Boolean(selectedTab || senderTab);
+    const resolvedTab = selectedTab || senderTab || (webMcp ? null : ambientTab());
     if (!isValidDownloadUrl(url)) {
       fail(API_ERRORS.INVALID_URL, "URL must be http(s), ftp, data or blob");
       return;
@@ -531,7 +544,9 @@ export const handleDownloadMessage = (
       pageUrl: info.pageUrl,
       selectionText: info.selectionText,
       selectedUrl: url,
-      webhookEligible: sender.id === webExtensionApi.runtime.id,
+      // A WebMCP save is an agent acting through the settings page, not a
+      // direct Save In command, so it is excluded like an external caller.
+      webhookEligible: sender.id === webExtensionApi.runtime.id && !webMcp,
       linkText: info.linkText,
       linkTitle: info.linkTitle,
       linkDownload: info.linkDownload,
@@ -597,6 +612,7 @@ export const handleDownloadMessage = (
     if (
       resolvedTab?.incognito !== true &&
       sender.id === webExtensionApi.runtime.id &&
+      !webMcp &&
       info.sourceKind &&
       info.sourceKind !== "link" &&
       options.saveSourceSidecar
@@ -650,8 +666,8 @@ export const handleDownloadMessage = (
   // extension's background context, so sender.tab is often absent. Query the
   // last-focused window instead of relying on Save In's lifecycle-bound tab
   // mirror; prefer sender.tab when the caller did originate in a tab.
-  if (sender && sender.tab && sender.tab.url) {
-    return launch(sender.tab.url, sender.tab, sender.tab);
+  if (senderTab && senderTab.url) {
+    return launch(senderTab.url, senderTab, senderTab);
   }
   return webExtensionApi.tabs
     .query({ active: true, lastFocusedWindow: true })

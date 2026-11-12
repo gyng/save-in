@@ -11,6 +11,9 @@ export const respondAsync = <Type extends InternalMessage["type"]>(
   task: Promise<void>,
   sendResponse: SendResponse<ProtocolErrorResponse<Type>>,
   onError: (error: unknown) => void = () => {},
+  // External callers negotiate an API version and every other external
+  // response carries it, so their failure response does too.
+  version?: number,
 ): true => {
   void task.catch((error: unknown) => {
     try {
@@ -22,8 +25,11 @@ export const respondAsync = <Type extends InternalMessage["type"]>(
       type,
       body: {
         status: MESSAGE_TYPES.ERROR,
+        // API_ERRORS.INTERNAL_ERROR; messaging/protocol.ts already imports
+        // this module, so the literal avoids an import cycle.
         error: "INTERNAL_ERROR",
         message: "Save In could not complete the request",
+        ...(version === undefined ? {} : { version }),
       },
     });
   });

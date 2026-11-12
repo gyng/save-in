@@ -45,7 +45,7 @@ export const promptAssistantCandidateIssues = async (
     type: MESSAGE_TYPES.VALIDATE,
     body: { filenamePatterns: candidate },
   });
-  if (!("version" in response.body)) throw new Error("Rule validation is unavailable");
+  if ("status" in response.body) throw new Error("Rule validation is unavailable");
   return [
     ...issues,
     ...(response.body.ruleErrors ?? [])

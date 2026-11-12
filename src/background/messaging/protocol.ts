@@ -1,3 +1,4 @@
+import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { splitLines, withUrl } from "../../shared/util.ts";
 import { options } from "../../config/options-data.ts";
 import type { CurrentTab } from "../../platform/current-tab.ts";
@@ -41,6 +42,7 @@ export const API_CAPABILITIES = [
 ];
 export const API_ERRORS = {
   BAD_REQUEST: "BAD_REQUEST", // malformed message (e.g. missing url)
+  INTERNAL_ERROR: "INTERNAL_ERROR", // the handler failed unexpectedly; the request may be retried
   INVALID_URL: "INVALID_URL", // url is not a fetchable http(s)/ftp/data URL
   RATE_LIMITED: "RATE_LIMITED", // caller exceeded the bounded validation burst rate
   UNAUTHORIZED: "UNAUTHORIZED", // caller is not in the user's external-download allowlist
@@ -86,6 +88,20 @@ export const isPageContentSender = (
   if (origin === "null") return sender.tab?.url === pageUrl && sender.url === pageUrl;
   return pageOrigin(sender.tab?.url) === origin && pageOrigin(sender.url) === origin;
 };
+
+// Save In's own extension pages (options, reference) share runtime.onMessage
+// with its content scripts, which carry the same sender.id. Only the page URL
+// tells them apart, and only the browser sets it.
+export const isOwnExtensionPageSender = (sender: MessageSender): boolean =>
+  sender.id === webExtensionApi.runtime.id &&
+  typeof sender.url === "string" &&
+  sender.url.startsWith(webExtensionApi.runtime.getURL(""));
+
+// A WebMCP save is requested from the options page, so the browser reports
+// Save In's own settings tab as its sender tab. Only that page may say so.
+export const isWebMcpDownloadRequest = <Body extends { source?: unknown }>(
+  body: Body | undefined,
+): body is Body & { source: "webmcp" } => body?.source === "webmcp";
 
 // Only schemes the downloads pipeline can actually fetch are accepted from
 // external callers — this keeps javascript:/file:/extension: URLs from being

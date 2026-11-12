@@ -88,9 +88,10 @@ attributes; Save In does not reinterpret `linkText` as either attribute.
 `alttext:` and expanded by `:alttext:`. Page text for `pagetext:` rules is
 accepted only from Save In's own content script, so a `pagetext:` rule never
 matches an external `DOWNLOAD` request; `VALIDATE` accepts an `info.pageText`
-string that stands in for every `pagetext:` selector in the trace.
+string, and an `automaticCandidate.pageText` string for an automatic trace, that
+stands in for every `pagetext:` selector in the trace.
 
-Download errors are `UNAUTHORIZED`, `BAD_REQUEST`, or `INVALID_URL`; unknown external message types return `UNKNOWN_TYPE`. `OPEN_PICKER` adds `UNAVAILABLE`, described [below](#opening-the-folder-picker). Treat `UNAUTHORIZED` as a request for user configuration, not as a transient error to retry repeatedly.
+Download errors are `UNAUTHORIZED`, `BAD_REQUEST`, or `INVALID_URL`; unknown external message types return `UNKNOWN_TYPE`. Any external message can also return `INTERNAL_ERROR` when Save In fails unexpectedly while handling it; the request was well formed, and it may be retried later. Like every other external error, it carries `version`. `OPEN_PICKER` adds `UNAVAILABLE`, described [below](#opening-the-folder-picker). Treat `UNAUTHORIZED` as a request for user configuration, not as a transient error to retry repeatedly.
 
 For a non-private `UNAUTHORIZED` request with a browser-authenticated caller ID, Save In shows a native notification. Clicking it opens Options. **Advanced → External integrations → Pending approval** lists up to 20 rejected caller IDs with their attempt count, request kind, and last-seen time; selecting **Approve** appends that exact ID to the approved list and clears the rejection. Save In does not retain the rejected URL. Private-window rejections are neither recorded nor notified.
 
@@ -221,7 +222,7 @@ for the action; an explicit-URL request does not close a caller or ambient tab.
 `VALIDATE` traces expose `selectedOutcome`,
 `selectedTabAction`, and each rule's `outcome`; these fields are additive.
 
-External validation is isolated from Save In's browser state: a trace uses only the sample fields supplied by the caller and never falls back to the active tab. Requests are bounded to 32,768 characters for each editable grammar, 4,096 characters per ordinary sample field, and 8,192 characters per sample URL. Bursts above 20 validation requests per 10 seconds per sender return `RATE_LIMITED`.
+External validation is isolated from Save In's browser state: a trace uses only the sample fields supplied by the caller and never falls back to the active tab. Requests are bounded to 32,768 characters for each editable grammar; 8,192 characters per sample URL (`info.url` and every `info` key ending in `Url`, such as `srcUrl`, `pageUrl`, `linkUrl`, `frameUrl`, and `referrerUrl`, plus `automaticCandidate.pageUrl` and `sourceUrl`); 4,096 characters per other sample string, including `info.pageText` and `automaticCandidate.pageText`; 1,024 characters for `automaticCandidate.suggestedFilename`; and 65,536 characters for the whole request, counting every string and key. A request over any bound returns `BAD_REQUEST`. Bursts above 20 validation requests per 10 seconds per sender return `RATE_LIMITED`.
 
 External validation runs a deliberately narrower regular-expression grammar than the routing engine itself, because an external trace executes caller-supplied patterns against caller-supplied samples on the background event loop. A rule whose matcher or `rename:` find pattern falls outside that grammar is reported in `ruleErrors` with the offending pattern in `error`, and is inert for that trace — the same treatment any other invalid rule receives. The rest of the request still validates. Such a rule is not rejected by the options page, so a pattern Save In declines to trace here may still be one the engine runs; check it in the route debugger.
 
@@ -246,6 +247,8 @@ const response = await browser.runtime.sendMessage(SAVE_IN_ID, {
 ```
 
 An automatic save carries the tab it came from, so a candidate may name that page with `currentTab: { title }`. Rules naming `pagetitle:` or `:pagetitleslug:` trace as an empty title without it.
+
+An automatic save also reads the page for `pagetext:` rules. A trace has no page, so a candidate may supply representative text as `pageText`; like `info.pageText`, it stands in for every `pagetext:` selector in the rules. Without it, an automatic `pagetext:` rule traces as unmatched.
 
 A rule may also carry one `fetch:` clause: a literal `http://` or `https://` URL template that Save In downloads from instead of the matched source once the rule wins, while `into:` keeps setting the destination. `VALIDATE` reports violations in `ruleErrors[].message`: `ruleExtraFetch` (a rule has more than one `fetch:` clause), `ruleFetchNotHttp` (the template is not a usable literal http(s) URL), and `ruleFetchUnsupportedVariable` (the template references a variable that would fetch the URL being replaced, such as `:mime:` or `:sha256:`). If expansion does not produce a usable HTTP(S) URL, the selected save fails rather than downloading the original source under the rewritten route. Rules carrying `fetch:` are skipped by ordinary-browser-download routing, which can only rename a download, not redirect it to a different URL; the first matching rule without `fetch:` applies there instead.
 
@@ -311,14 +314,16 @@ Recommended agent flow:
 Tools exist only while the options page is open and the browser provides WebMCP. Inputs may contain untrusted page data; tool annotations distinguish read-only and mutating operations.
 `save_in_get_config` returns the complete saved configuration, including text settings such as destinations, routing rules, approved extension IDs, and webhook details. It does not add a Save In-specific consent step. Mutating tools remain marked with `readOnlyHint: false` so the agent or browser can apply its normal confirmation policy.
 `save_in_apply_config` applies every valid key and reports invalid keys separately, so a mixed request can partially succeed. Read the returned `applied` and `rejected` lists before continuing.
+`save_in_download` runs from the options page, so the browser reports Save In's own settings tab as the request's tab. Save In does not treat that tab as the page being saved: the save has no page title for `pagetitle:` rules or `:pagetitle:`, History records no page title for it, it writes no source sidecar, an `after: close-tab` rule does not close any tab, and it never sends a webhook. Pass `pageUrl` to give routing the page the URL came from.
 
 ## Webhooks
 
 Webhooks are an optional, user-configured notification for Save In downloads.
 They are disabled by default. Only non-private downloads started by a direct
 Save In command are eligible. Ordinary browser downloads, automatic Page Sources
-saves, external Download API requests, private-window activity, failed
-preparations, and rejected downloads never send one. Webhook failure never
+saves, external Download API requests, WebMCP `save_in_download` calls,
+private-window activity, failed preparations, and rejected downloads never send
+one. Webhook failure never
 changes the download result, and Save In does not retry delivery.
 
 Each eligible download can send a start event and one outcome event, each

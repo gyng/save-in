@@ -12,6 +12,7 @@ import {
   waitForCall,
 } from "./messaging.fixture.ts";
 import { setCurrentTab } from "../../../src/platform/current-tab.ts";
+import { API_ERRORS } from "../../../src/background/messaging/protocol.ts";
 
 beforeEach(() => setupGlobals());
 
@@ -383,6 +384,31 @@ describe("external DOWNLOAD API v1", () => {
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: { status: MESSAGE_TYPES.ERROR, error: "BAD_REQUEST", version: 1 },
+    });
+  });
+
+  test("answers an unexpected external handler failure with a versioned INTERNAL_ERROR", async () => {
+    vi.mocked(Download.launchDownload).mockRejectedValueOnce(new Error("pipeline crashed"));
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessageExternal(
+        download({ url: "https://x/file.png" }),
+        { id: "trusted-extension" },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+
+    expect(API_ERRORS.INTERNAL_ERROR).toBe("INTERNAL_ERROR");
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: {
+        status: MESSAGE_TYPES.ERROR,
+        error: "INTERNAL_ERROR",
+        message: "Save In could not complete the request",
+        version: 1,
+      },
     });
   });
 

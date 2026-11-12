@@ -37,6 +37,24 @@ describe("respondAsync", () => {
     });
   });
 
+  it("names the API version only when the caller negotiated one", async () => {
+    const versioned = vi.fn();
+    const unversioned = vi.fn();
+
+    respondAsync("VALIDATE", Promise.reject(new Error("failed")), versioned, undefined, 1);
+    respondAsync("VALIDATE", Promise.reject(new Error("failed")), unversioned);
+
+    await vi.waitFor(() => expect(unversioned).toHaveBeenCalledOnce());
+    await vi.waitFor(() => expect(versioned).toHaveBeenCalledOnce());
+    expect(versioned.mock.calls[0]?.[0].body).toEqual({
+      status: "ERROR",
+      error: "INTERNAL_ERROR",
+      message: "Save In could not complete the request",
+      version: 1,
+    });
+    expect(unversioned.mock.calls[0]?.[0].body).not.toHaveProperty("version");
+  });
+
   it("does not require an error-reporting callback", async () => {
     const sendResponse = vi.fn();
 

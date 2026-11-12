@@ -13,6 +13,12 @@ const MAX_REGEX_CHARACTERS = 1_024;
 const MAX_REGEX_QUANTIFIERS = 8;
 const MAX_REPEATING_REGEX_QUANTIFIERS = 1;
 
+// A sample URL is routinely longer than other sample text (signed CDN links,
+// tracking parameters), so URL-valued keys — url and every *Url — get the
+// larger bound the integration guide promises.
+const sampleFieldLimit = (key: string): number =>
+  key === "url" || key.endsWith("Url") ? MAX_URL_CHARACTERS : MAX_SAMPLE_FIELD_CHARACTERS;
+
 type ExternalValidationBody = {
   paths?: string | undefined;
   filenamePatterns?: string | undefined;
@@ -66,8 +72,8 @@ export const externalValidationRequestError = (
   }
   if (
     isStringKeyedRecord(body.info) &&
-    Object.values(body.info).some((value) => {
-      if (typeof value === "string") return value.length > MAX_SAMPLE_FIELD_CHARACTERS;
+    Object.entries(body.info).some(([key, value]) => {
+      if (typeof value === "string") return value.length > sampleFieldLimit(key);
       if (Array.isArray(value)) {
         return (
           value.length > 32 ||
@@ -78,8 +84,8 @@ export const externalValidationRequestError = (
       }
       return (
         isStringKeyedRecord(value) &&
-        Object.values(value).some(
-          (item) => typeof item === "string" && item.length > MAX_SAMPLE_FIELD_CHARACTERS,
+        Object.entries(value).some(
+          ([itemKey, item]) => typeof item === "string" && item.length > sampleFieldLimit(itemKey),
         )
       );
     })
@@ -87,12 +93,13 @@ export const externalValidationRequestError = (
     return "Validation sample fields are too large";
   }
   if (isStringKeyedRecord(body.automaticCandidate)) {
-    const { pageUrl, sourceUrl, suggestedFilename, currentTab } = body.automaticCandidate;
+    const { pageUrl, sourceUrl, suggestedFilename, pageText, currentTab } = body.automaticCandidate;
     if (
       (typeof pageUrl === "string" && pageUrl.length > MAX_URL_CHARACTERS) ||
       (typeof sourceUrl === "string" && sourceUrl.length > MAX_URL_CHARACTERS) ||
       (typeof suggestedFilename === "string" &&
         suggestedFilename.length > MAX_FILENAME_CHARACTERS) ||
+      (typeof pageText === "string" && pageText.length > MAX_SAMPLE_FIELD_CHARACTERS) ||
       (isStringKeyedRecord(currentTab) &&
         Object.values(currentTab).some(
           (item) => typeof item === "string" && item.length > MAX_SAMPLE_FIELD_CHARACTERS,

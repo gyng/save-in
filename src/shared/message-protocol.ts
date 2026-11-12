@@ -151,6 +151,10 @@ export type AutomaticRoutingValidationCandidate = {
   sourceUrl: string;
   sourceKind: PageSourceKind;
   suggestedFilename?: string | undefined;
+  // A real automatic save captures pagetext: evidence from the page itself; a
+  // trace has no page, so the caller supplies representative text instead,
+  // replayed exactly like info.pageText.
+  pageText?: string | undefined;
   // A real automatic save carries the sender tab, so a trace that cannot be
   // told about one cannot model pagetitle: or :pagetitleslug:.
   currentTab?: WireCurrentTab | null | undefined;
@@ -158,7 +162,12 @@ export type AutomaticRoutingValidationCandidate = {
 
 export type ProtocolErrorResponse<Type extends string> = Response<
   Type,
-  { status: typeof MESSAGE_TYPES.ERROR; error: string; message?: string | undefined }
+  {
+    status: typeof MESSAGE_TYPES.ERROR;
+    error: string;
+    message?: string | undefined;
+    version?: number | undefined;
+  }
 >;
 
 type OkResponse = Response<typeof MESSAGE_TYPES.OK>;
@@ -346,6 +355,12 @@ export type DownloadRequestBody = {
     | undefined;
   comment?: string | undefined;
   version?: number | undefined;
+  // "webmcp" marks a save requested through the options page's WebMCP tool,
+  // whose sender tab is Save In's own settings page rather than a page being
+  // saved. Background listeners honour it only from Save In's own extension
+  // pages. Unknown keys were always tolerated, so any other value is ignored
+  // rather than rejected: external callers that sent one keep working.
+  source?: unknown;
 };
 
 // External request to show the in-page destination picker. Without a url the
@@ -631,6 +646,7 @@ const isAutomaticRoutingValidationCandidate = (
   typeof value.sourceUrl === "string" &&
   isPageSourceKind(value.sourceKind) &&
   hasOptionalString(value, "suggestedFilename") &&
+  hasOptionalString(value, "pageText") &&
   (typeof value.currentTab === "undefined" ||
     value.currentTab === null ||
     isWireCurrentTab(value.currentTab));

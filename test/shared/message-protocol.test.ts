@@ -423,6 +423,7 @@ describe("message protocol runtime validation", () => {
     { pageUrl: 1, sourceUrl: "https://x/a", sourceKind: "image" },
     { pageUrl: "https://x/", sourceUrl: 1, sourceKind: "image" },
     { pageUrl: "https://x/", sourceUrl: "https://x/a", sourceKind: "script" },
+    { pageUrl: "https://x/", sourceUrl: "https://x/a", sourceKind: "image", pageText: 7 },
   ])("rejects malformed automatic validation candidates %#", (automaticCandidate) => {
     expect(
       isExternalMessage({

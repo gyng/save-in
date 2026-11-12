@@ -511,6 +511,40 @@ describe("config API", () => {
     expect(eligible?.(rules[1]!)).toBe(true);
   });
 
+  test("automatic validation replays candidate page text for pagetext: rules", async () => {
+    // The real parser and trace: the point is that a pagetext: rule, which
+    // could only ever trace unmatched without page text, can now match.
+    vi.mocked(router.parseRulesCollecting).mockRestore();
+    vi.mocked(router.traceRules).mockRestore();
+    const filenamePatterns = [
+      "context: ^auto$",
+      "pagedomain: ^example\\.test$",
+      "sourcekind: ^image$",
+      "pagetext: h1.artist",
+      "into: Artists/:pagetext:",
+    ].join("\n");
+    const automaticCandidate = {
+      pageUrl: "https://example.test/gallery",
+      sourceUrl: "https://cdn.test/cat.png",
+      sourceKind: "image",
+    };
+    const trace = async (candidate: Record<string, unknown>) => {
+      const sendResponse = vi.fn();
+      onMessageExternal(
+        { type: MESSAGE_TYPES.VALIDATE, body: { filenamePatterns, automaticCandidate: candidate } },
+        { id: "page-text-trace" },
+        sendResponse,
+      );
+      await waitForCall(sendResponse);
+      return sendResponse.mock.calls[0]![0]!.body.automaticTrace;
+    };
+
+    await expect(trace(automaticCandidate)).resolves.toMatchObject({ selectedRule: null });
+    await expect(trace({ ...automaticCandidate, pageText: "Ada" })).resolves.toMatchObject({
+      selectedRule: 1,
+    });
+  });
+
   test("VALIDATE is exposed on the internal listener too", async () => {
     const sendResponse = vi.fn();
     expect(

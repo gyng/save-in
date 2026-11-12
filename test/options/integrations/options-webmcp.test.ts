@@ -146,6 +146,9 @@ describe("buildTools", () => {
           sourceKind: undefined,
         },
         comment: "c",
+        // The options tab is the sender; the marker keeps it from being
+        // treated as the page being saved.
+        source: "webmcp",
       },
     });
   });
@@ -416,6 +419,39 @@ describe("buildTools", () => {
         automaticCandidate,
         validationSource: "webmcp",
       },
+    });
+  });
+
+  test("forwards candidate page text so an automatic pagetext: rule can match", async () => {
+    const { send, byName } = toolsByName();
+    const automaticCandidate = {
+      pageUrl: "https://example.test/gallery",
+      sourceUrl: "https://cdn.test/cat.png",
+      sourceKind: "image",
+      pageText: "Cats of the week",
+    };
+
+    await byName.save_in_validate_config.execute({
+      filenamePatterns: "context: ^auto$\npagedomain: example\\.test\npagetext: h1\ninto: Cats",
+      automaticCandidate,
+    });
+
+    expect(send).toHaveBeenCalledWith({
+      type: "VALIDATE",
+      body: {
+        filenamePatterns: "context: ^auto$\npagedomain: example\\.test\npagetext: h1\ninto: Cats",
+        automaticCandidate,
+        validationSource: "webmcp",
+      },
+    });
+    await expect(
+      byName.save_in_validate_config.execute({
+        filenamePatterns: "context: ^auto$\ninto: x",
+        automaticCandidate: { ...automaticCandidate, pageText: 7 },
+      }),
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "automaticCandidate.pageText", message: "Expected a string" }],
     });
   });
 
@@ -753,6 +789,7 @@ describe("buildTools", () => {
           sourceKind: undefined,
         },
         comment: undefined,
+        source: "webmcp",
       },
     });
   });

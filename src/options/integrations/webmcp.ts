@@ -114,6 +114,7 @@ const AUTOMATIC_CANDIDATE_PROPERTIES = new Set([
   "sourceUrl",
   "sourceKind",
   "suggestedFilename",
+  "pageText",
   "currentTab",
 ]);
 const TRACE_STRING_FIELDS = [
@@ -255,6 +256,10 @@ export const buildTools = (
                 type: "string",
                 description: "Optional filename hint; defaults to the source URL filename",
               },
+              pageText: {
+                type: "string",
+                description: "Sample page text; stands in for every pagetext: selector",
+              },
               currentTab: {
                 type: "object",
                 description: "The page being saved from; supplies :pagetitle: naming",
@@ -390,7 +395,10 @@ export const buildTools = (
           if (!isPageSourceKind(candidate.sourceKind)) {
             return inputError("automaticCandidate.sourceKind", "Unknown source kind");
           }
-          const filenameError = invalidOptionalString(candidate, "suggestedFilename");
+          const filenameError = firstInvalidOptionalString(candidate, [
+            "suggestedFilename",
+            "pageText",
+          ]);
           if (filenameError) {
             return inputError(`automaticCandidate.${filenameError.field}`, filenameError.message);
           }
@@ -586,6 +594,9 @@ export const buildTools = (
               sourceKind: input.sourceKind,
             },
             comment: input.comment,
+            // The browser reports this settings tab as the sender; the marker
+            // tells the background not to treat it as the page being saved.
+            source: "webmcp",
           },
         });
       },

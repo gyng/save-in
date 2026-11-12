@@ -105,6 +105,55 @@ describe("external validation safeguards", () => {
     );
   });
 
+  // The integration guide promises 8,192 characters for a sample URL and 4,096
+  // for other sample text.
+  test.each(["url", "srcUrl", "sourceUrl", "pageUrl", "linkUrl", "frameUrl", "referrerUrl"])(
+    "bounds the URL-valued info.%s at 8,192 characters",
+    (key) => {
+      expect(externalValidationRequestError({ info: { [key]: "x".repeat(8_192) } })).toBeNull();
+      expect(externalValidationRequestError({ info: { [key]: "x".repeat(8_193) } })).toBe(
+        "Validation sample fields are too large",
+      );
+    },
+  );
+
+  test.each(["filename", "pageText", "altText", "linkText"])(
+    "keeps the 4,096-character bound on the non-URL info.%s",
+    (key) => {
+      expect(externalValidationRequestError({ info: { [key]: "x".repeat(4_096) } })).toBeNull();
+      expect(externalValidationRequestError({ info: { [key]: "x".repeat(4_097) } })).toBe(
+        "Validation sample fields are too large",
+      );
+    },
+  );
+
+  test("bounds the current tab's URL like any other sample URL", () => {
+    expect(
+      externalValidationRequestError({ info: { currentTab: { url: "x".repeat(8_192) } } }),
+    ).toBeNull();
+    expect(
+      externalValidationRequestError({ info: { currentTab: { url: "x".repeat(8_193) } } }),
+    ).toBe("Validation sample fields are too large");
+  });
+
+  test("bounds an automatic candidate's page text like info.pageText", () => {
+    const candidate = {
+      pageUrl: "https://example.test/",
+      sourceUrl: "https://example.test/a.png",
+      sourceKind: "image",
+    };
+    expect(
+      externalValidationRequestError({
+        automaticCandidate: { ...candidate, pageText: "x".repeat(4_096) },
+      }),
+    ).toBeNull();
+    expect(
+      externalValidationRequestError({
+        automaticCandidate: { ...candidate, pageText: "x".repeat(4_097) },
+      }),
+    ).toBe("Automatic validation fields are too large");
+  });
+
   test("bounds adversarial validation object graphs", () => {
     expect(externalValidationRequestError({ extra: [1, "small"] } as never)).toBeNull();
     expect(externalValidationRequestError({ extra: Array(1_025).fill(null) } as never)).toBe(
