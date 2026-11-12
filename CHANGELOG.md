@@ -199,6 +199,16 @@
   stop working as soon as agent access is turned off. Importing a setting that
   applies on page load reloads Options, and an unsaved webhook endpoint edit
   survives closing the page.
+- Folder picker polish: it now takes the Premium themes' starfield,
+  scanlines, and sheen; a long file name keeps its extension visible and
+  loses its middle instead; and a wrapped folder name keeps its icon and key
+  beside its first line. The picker and Page Sources use slim scrollbars in
+  each theme's colors.
+- Options polish: help text and nested options line up under their checkbox
+  labels and use muted help text throughout, section switches share one
+  weight, buttons line up with the menus and fields beside them, an empty
+  History no longer shows "0 results", the disabled Delete all button is
+  readable, and the phone-width header takes fewer rows.
 
 # 4.1.0
 
