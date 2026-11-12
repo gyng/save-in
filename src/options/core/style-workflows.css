@@ -78,6 +78,9 @@
   gap: var(--space-1);
   min-inline-size: 0;
   margin: 0;
+  /* The generic label padding would leave 2px under each menu, so the
+     bottom-aligned Remove button sat lower than the menus beside it. */
+  padding: 0;
 }
 
 .click-to-save-row select,

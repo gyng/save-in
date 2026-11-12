@@ -313,6 +313,12 @@
   max-inline-size: 520px;
 }
 
+/* The value field is monospace and its buttons are not, so baseline alignment
+   left the field 1.4px off the buttons beside it. */
+.counter-control .dev-api-row {
+  align-items: center;
+}
+
 .tab-panel .counter-control #counter-value {
   inline-size: 8rem;
   max-inline-size: 8rem;
