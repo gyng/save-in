@@ -19,7 +19,12 @@
     padding-inline: var(--space-3);
   }
 
+  /* The status wraps onto its own line here, where a leading divider would
+     separate it from nothing. */
   .save-status {
+    margin-inline-start: 0;
+    padding-inline-start: 0;
+    border-inline-start: 0;
     white-space: normal;
   }
 

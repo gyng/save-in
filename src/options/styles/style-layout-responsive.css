@@ -1,9 +1,11 @@
 @media (max-width: 640px) {
+  /* Search shares the language menu's row; the reference links (order 9) take
+     the next one. */
   .option-search {
-    order: 10;
-    flex: 0 1 16rem;
-    inline-size: min(16rem, 100%);
-    margin: var(--space-1) 0 0;
+    order: 1;
+    flex: 1 1 10rem;
+    inline-size: auto;
+    margin: 0;
   }
 
   #options {
