@@ -14,7 +14,9 @@
 // subdirectory (control) and a symlinked subdirectory (subject).
 //
 // Contract asserted:
-//   chrome  -> the symlinked download is REJECTED (interrupted).
+//   chrome  -> the symlinked download is never written through the link: it is
+//              either interrupted or, as measured on Linux Chrome 150, held
+//              with no filename while Chrome opens its own Save File dialog.
 //   firefox -> the symlinked download COMPLETES and writes through the link.
 // A broken contract exits 1 (update the docs). A control failure exits 2. A
 // runner that cannot create a directory symlink at all exits 0 with a loud
@@ -71,7 +73,7 @@ const DOWNLOAD_EXPR = `(async () => {
         if (it && (it.state === "complete" || it.state === "interrupted")) {
           return { filename, state: it.state, error: it.error || null, final: it.filename || "" };
         }
-        if (Date.now() - started > 8000) return { filename, state: (it && it.state) || "unknown", error: "poll-timeout", final: "" };
+        if (Date.now() - started > 8000) return { filename, state: (it && it.state) || "unknown", error: "poll-timeout", final: "", unnamed: Boolean(it && it.state === "in_progress" && !it.filename) };
         await new Promise((r) => setTimeout(r, 150));
       }
     } catch (e) { return { filename, startError: String(e) }; }
@@ -108,7 +110,7 @@ const setUpLinks = (downloadDir) => {
 const wroteThrough = (externalTarget) =>
   fs.existsSync(externalTarget) && fs.readdirSync(externalTarget).length > 0;
 
-/** @typedef {{ filename: string, state?: string, error?: string | null, final?: string, startError?: string }} DlResult */
+/** @typedef {{ filename: string, state?: string, error?: string | null, final?: string, startError?: string, unnamed?: boolean }} DlResult */
 /** @typedef {{ rootControl: DlResult, realSub: DlResult, symlinked: DlResult }} ProbeResult */
 
 /** @returns {Promise<{ result: ProbeResult, linkKind: string, version: string, wroteThroughLink: boolean } | null>} */
@@ -208,12 +210,19 @@ const main = async () => {
   }
 
   const symlinkRejected = result.symlinked.state === "interrupted";
+  // Chrome may instead hold the download unnamed behind its Save File dialog;
+  // it still never writes through the link.
+  const symlinkPrompted = result.symlinked.unnamed === true;
   const symlinkFollowed = result.symlinked.state === "complete" && wroteThroughLink;
 
   if (browser === "chrome") {
     if (symlinkRejected && !wroteThroughLink) {
       process.stdout.write(
         `\nPASS: Chrome rejects the symlinked destination (${result.symlinked.error}).\n`,
+      );
+    } else if (symlinkPrompted && !wroteThroughLink) {
+      process.stdout.write(
+        `\nPASS: Chrome refuses the symlinked destination and asks where to save instead.\n`,
       );
     } else {
       process.stderr.write(

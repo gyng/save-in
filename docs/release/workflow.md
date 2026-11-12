@@ -167,8 +167,9 @@ manually check current Chrome and Firefox:
    Verify initial and late-discovered matches use its destination, the per-page
    limit stops additional saves, and a broad ordinary rule does not trigger.
 7. Create the same destination symlink inside each browser's download folder.
-   Verify Firefox reaches the target and Chrome reports a failed download
-   without writing outside its download folder.
+   Verify Firefox reaches the target and Chrome writes nothing outside its
+   download folder: it either fails the download or, as Chrome 150 does on
+   Linux, opens its own Save File dialog instead.
 8. Spot-check the automated private-window contract in Chrome Incognito and
    Firefox Private Browsing. With private activity retention off, perform a Save
    In download and an ordinary browser download; verify neither enters Save In
