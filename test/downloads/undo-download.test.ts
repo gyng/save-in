@@ -343,6 +343,82 @@ describe("removeVerifiedDownloadFile", () => {
   });
 });
 
+// Overwrite (or Replace in a prompt) lets a later save take an older save's
+// path while the browser keeps the older record pointing at it.
+describe("a later save at the same path", () => {
+  const older = {
+    id: 3,
+    url: "https://a/photo.jpg",
+    filename: "/downloads/photo.jpg",
+    startTime: "2026-07-17T01:02:03.000Z",
+    state: "complete",
+  };
+  const serveSamePath = (...sharing: Record<string, unknown>[]) =>
+    vi
+      .mocked(global.browser.downloads.search)
+      .mockImplementation((async (query: { id?: number; filename?: string }) =>
+        query.id === 3
+          ? [older]
+          : query.filename === older.filename
+            ? [older, ...sharing]
+            : []) as never);
+  const newer = { id: 4, filename: older.filename, startTime: "2026-07-18T00:00:00.000Z" };
+
+  test.each([
+    [
+      "undo",
+      () => undoBrowserDownload(3, { startTime: older.startTime }),
+      { undone: false, fileMissing: false },
+    ],
+    ["a move", () => removeVerifiedDownloadFile(3, { startTime: older.startTime }), false],
+  ])("refuses %s that would delete the later save", async (_case, remove, refused) => {
+    serveSamePath({ ...newer, state: "complete" });
+
+    await expect(remove()).resolves.toEqual(refused);
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    expect(global.browser.downloads.erase).not.toHaveBeenCalled();
+  });
+
+  test("refuses when the later record has no start time to order it", async () => {
+    serveSamePath({ id: 4, filename: older.filename, state: "complete" });
+
+    await expect(undoBrowserDownload(3, { startTime: older.startTime })).resolves.toEqual({
+      undone: false,
+      fileMissing: false,
+    });
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+  });
+
+  test("refuses when the same-path lookup fails", async () => {
+    vi.mocked(global.browser.downloads.search).mockImplementation((async (query: {
+      id?: number;
+    }) => {
+      if (query.id === 3) return [older];
+      throw new Error("search unavailable");
+    }) as never);
+
+    await expect(removeVerifiedDownloadFile(3, { startTime: older.startTime })).resolves.toBe(
+      false,
+    );
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ["an earlier save", { id: 2, filename: older.filename, startTime: "2026-07-16T00:00:00.000Z" }],
+    ["a later save whose file is gone", { ...newer, exists: false }],
+    ["a later save that was interrupted", { ...newer, state: "interrupted" }],
+    ["a later save elsewhere", { ...newer, filename: "/downloads/photo (1).jpg" }],
+  ])("still removes the file when the other record is %s", async (_case, other) => {
+    serveSamePath(other);
+
+    await expect(undoBrowserDownload(3, { startTime: older.startTime })).resolves.toEqual({
+      undone: true,
+      fileMissing: false,
+    });
+    expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(3);
+  });
+});
+
 describe("undoDownloadAndMark", () => {
   test("marks only after a successful undo", async () => {
     seedSearch([{ id: 3, url: "https://a/photo.jpg" }]);

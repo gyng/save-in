@@ -123,6 +123,35 @@ export const findVerifiedDownload = async (
   return item;
 };
 
+// Overwrite, or Replace in a prompt, lets a later save take this download's
+// path while the browser keeps this older record pointing at it; removing the
+// older record's file would delete the later save. The browser's own paths
+// compare exactly, an unordered record counts as later, and a failed lookup is
+// uncertainty, which never deletes.
+const isSupersededAtPath = async (item: {
+  id: number;
+  filename?: string | undefined;
+  startTime?: string | undefined;
+}): Promise<boolean> => {
+  const { filename } = item;
+  if (!filename) return false;
+  let sharing;
+  try {
+    sharing = await webExtensionApi.downloads.search({ filename });
+  } catch {
+    return true;
+  }
+  const startedAt = item.startTime ? Date.parse(item.startTime) : Number.NaN;
+  return sharing.some(
+    (other) =>
+      other.id !== item.id &&
+      other.filename === filename &&
+      other.exists !== false &&
+      other.state !== "interrupted" &&
+      !(Date.parse(other.startTime) < startedAt),
+  );
+};
+
 export const undoBrowserDownload = async (
   downloadId: number,
   expected: ExpectedDownloadIdentity = {},
@@ -136,6 +165,9 @@ export const undoBrowserDownload = async (
   // between the identity search and the undo, and then nothing was done.
   let fileMissing = item.exists === false;
   let confirmed = fileMissing;
+  if (!fileMissing && (await isSupersededAtPath(item))) {
+    return { undone: false, fileMissing: false };
+  }
   if (!fileMissing) {
     try {
       await webExtensionApi.downloads.removeFile(downloadId);
@@ -171,6 +203,7 @@ export const removeVerifiedDownloadFile = async (
   const item = await findVerifiedDownload(downloadId, expected);
   if (!item) return false;
   if (item.exists === false) return true;
+  if (await isSupersededAtPath(item)) return false;
   try {
     await webExtensionApi.downloads.removeFile(downloadId);
     return true;
